@@ -1086,7 +1086,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.index.data');
     Route::get('/overtime/{id}', [OvertimeRequestController::class, 'show'])->name('overtime.show');
     Route::post('/overtime/{id}/approve', [OvertimeRequestController::class, 'approve'])->name('overtime.approve');
-
+    Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
+    Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
 });
 
 

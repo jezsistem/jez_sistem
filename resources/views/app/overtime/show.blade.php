@@ -4,22 +4,25 @@
     <div class="container">
         <h4 class="mb-4">Detail Overtime Request</h4>
 
-        <!-- Card Header Information -->
+        <!-- ========================= CARD DETAIL ========================= -->
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Header Information</h5>
                 <div>
                     @php
-                        $statusBadge = (!empty($detail->approved_by) && !empty($detail->approved_at))
-                            ? 'Approved'
-                            : ($detail->status ?? '-');
+                        $statusBadge = $detail->status ?? '-';
                     @endphp
                     <span class="badge bg-light text-dark">{{ $statusBadge }}</span>
 
-                    {{-- ✅ Button muncul hanya jika MANAGER --}}
                     @if($isManager && empty($detail->approved_by))
                         <button id="btnApprove" class="btn btn-success btn-sm ms-2">
                             <i class="bi bi-check-circle"></i> Approve Overtime
+                        </button>
+                    @endif
+
+                    @if($detail->status === 'HR Check' && $isHR)
+                        <button id="btnApproveHR" class="btn btn-warning btn-sm ms-2">
+                            <i class="bi bi-person-check"></i> Approve HR
                         </button>
                     @endif
                 </div>
@@ -54,15 +57,11 @@
                             </tr>
                             <tr>
                                 <th>Start</th>
-                                <td>
-                                    {{ \Carbon\Carbon::parse($detail->start)->translatedFormat('d F Y H:i') }}
-                                </td>
+                                <td>{{ \Carbon\Carbon::parse($detail->start)->translatedFormat('d F Y H:i') }}</td>
                             </tr>
                             <tr>
                                 <th>End</th>
-                                <td>
-                                    {{ \Carbon\Carbon::parse($detail->end)->translatedFormat('d F Y H:i') }}
-                                </td>
+                                <td>{{ \Carbon\Carbon::parse($detail->end)->translatedFormat('d F Y H:i') }}</td>
                             </tr>
                             <tr>
                                 <th>Duration</th>
@@ -118,6 +117,60 @@
                 </div>
             </div>
         </div>
+
+        <!-- ========================= CARD INPUT REPORT ========================= -->
+        <!-- ========================= CARD INPUT / VIEW REPORT ========================= -->
+        @if($statusBadge === 'Approved' || 'HR Check' || 'Done')
+            <div class="card shadow-sm border-warning mb-4">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square"></i>
+                        {{ !empty($detail->report_desc) ? 'View Report Overtime' : 'Input Report Overtime' }}
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    @if(empty($detail->report_desc))
+                        {{-- =================== FORM INPUT REPORT =================== --}}
+                        <form id="formReport" enctype="multipart/form-data">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="report_desc" class="form-label">Report Description</label>
+                                <textarea name="report_desc" id="report_desc" class="form-control" rows="4" placeholder="Tuliskan hasil pekerjaan selama lembur..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="report_attachment" class="form-label">Attachment (optional)</label>
+                                <input type="file" name="report_attachment" id="report_attachment" class="form-control">
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-warning text-dark">
+                                    <i class="bi bi-save"></i> Simpan Report
+                                </button>
+                            </div>
+                        </form>
+                    @else
+                        {{-- =================== VIEW REPORT =================== --}}
+                        <div class="mb-3">
+                            <h6 class="text-primary"><i class="bi bi-journal-text"></i> Deskripsi Report:</h6>
+                            <p class="border rounded p-3 bg-light">{{ $detail->report_desc }}</p>
+                        </div>
+
+                        @if(!empty($detail->report_attachment))
+                            <div class="mb-3">
+                                <h6 class="text-primary"><i class="bi bi-paperclip"></i> Lampiran:</h6>
+                                <a href="{{ asset('storage/'.$detail->report_attachment) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-file-earmark-arrow-down"></i> Lihat Lampiran
+                                </a>
+                            </div>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        @endif
+
+
     </div>
 
     <style>
@@ -157,6 +210,7 @@
     @include('app.overtime.overtime_js')
 
     <script>
+        // ✅ Tombol Approve
         $(document).on('click', '#btnApprove', function() {
             Swal.fire({
                 title: 'Approve Overtime?',
@@ -170,9 +224,7 @@
                     $.ajax({
                         url: "{{ route('overtime.approve', $detail->id) }}",
                         type: 'POST',
-                        data: {
-                            _token: "{{ csrf_token() }}"
-                        },
+                        data: { _token: "{{ csrf_token() }}" },
                         success: function(res) {
                             if (res.success) {
                                 swal('Berhasil', 'Lembur telah disetujui', 'success');
@@ -189,5 +241,66 @@
                 }
             });
         });
+
+
+        $('#formReport').on('submit', function(e) {
+            e.preventDefault();
+
+            let formData = new FormData(this);
+            $.ajax({
+                url: "{{ route('overtime.report.submit', $detail->id) }}",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(res) {
+                    if (res.success) {
+                        swal('Berhasil', 'Report lembur telah disimpan', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        swal('Gagal', res.message || 'Gagal menyimpan report', 'error');
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                    swal('Error', 'Terjadi kesalahan server', 'error');
+                }
+            });
+        });
+
+        $(document).on('click', '#btnApproveHR', function() {
+            Swal.fire({
+                title: 'Approve HR Overtime?',
+                text: 'Apakah Anda yakin ingin menyetujui lembur ini sebagai HR?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Approve HR',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('overtime.approve.hr', $detail->id) }}",
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire('Berhasil', 'Lembur disetujui oleh HR', 'success');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+                            }
+                        },
+                        error: function(err) {
+                            console.error(err);
+                            Swal.fire('Error', 'Terjadi kesalahan server', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+
     </script>
 @endsection

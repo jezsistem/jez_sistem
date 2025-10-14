@@ -139,6 +139,7 @@ class OvertimeRequestController extends Controller
                 'details' => $validated['details'],
                 'attachment' => $attachmentPath,
                 'ot_id' => $validated['claim'] ?? null,
+                'status' => 'Pending',
                 'request_by' => auth()->id(),
                 'approved_by' => null,
                 'approved_at' => null,
@@ -283,6 +284,15 @@ class OvertimeRequestController extends Controller
             ->where('p.up_name', 'MANAGER')
             ->exists();
 
+        // Cek apakah user HR
+        $isHR = false;
+        if ($user && $user->ud_id) {
+            $isHR = \DB::table('user_divisions')
+                ->where('id', $user->ud_id)
+                ->where('ud_code', 'HUMANRESOU')
+                ->exists();
+        }
+
         $data =[
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
@@ -291,7 +301,7 @@ class OvertimeRequestController extends Controller
         ];
 
         // kirim ke view
-        return view('app.overtime.show', compact('detail', 'data', 'isManager'));
+        return view('app.overtime.show', compact('detail', 'data', 'isManager', 'isHR'));
     }
 
     public function approve($id)
@@ -303,8 +313,98 @@ class OvertimeRequestController extends Controller
             ->update([
                 'approved_by' => $userId,
                 'approved_at' => now(),
+                'status' => 'Approved'
             ]);
 
         return response()->json(['success' => true]);
+    }
+
+
+    public function reportSubmit(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'report_desc' => 'nullable|string',
+                'report_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xlsx|max:5120', // max 5MB
+            ]);
+
+            $overtime = OvertimeRequest::findOrFail($id);
+
+            $filePath = $overtime->report_attachment;
+            if ($request->hasFile('report_attachment')) {
+                $file = $request->file('report_attachment');
+
+                $directory = storage_path('app/public/overtime_reports');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                $fileName = 'report_' . time() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs('overtime_reports', $fileName, 'public');
+
+                // Simpan path ke database
+                $data['report_attachment'] = $filePath;
+            }
+
+            $overtime->update([
+                'report_desc' => $request->report_desc,
+                'report_attachment' => $filePath,
+                'status' => 'HR Check',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Report berhasil disimpan dan dikirim ke HR.'
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error reportSubmit: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan report.',
+            ], 500);
+        }
+    }
+
+    public function approveHr($id)
+    {
+        try {
+            $overtime = OvertimeRequest::findOrFail($id);
+
+//            // Pastikan hanya HR yang bisa approve
+//            $user = auth()->user();
+//            $isHR = $user->userDivision && $user->userDivision->ud_code === 'HUMANRESRC';
+
+//            if (!$isHR) {
+//                return response()->json([
+//                    'success' => false,
+//                    'message' => 'Anda tidak memiliki izin untuk approve HR.'
+//                ]);
+//            }
+
+            // Update status dan kolom HR approval
+            $overtime->update([
+                'status' => 'Done',
+                'hr_checked_by' => Auth::user()->id,
+                'hr_checked_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Overtime berhasil disetujui oleh HR.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ]);
+        }
     }
 }
