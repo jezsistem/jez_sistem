@@ -221,42 +221,25 @@
                                     <div class="menu-sub menu-sub-accordion">
                                         <ul class="menu-subnav">
 
-                                            @php
-                                                $hasLeaveType = $row->ma->contains(function ($item) {
-                                                  return $item->ma_slug === 'overtime-types';
-                                                });
-                                            @endphp
-
-                                            @if($hasLeaveType)
-                                                <li class="menu-item {{ request()->is('leave-types*') ? 'active' : '' }}">
-                                                    <a href="{{ url('/leave-types') }}" class="menu-link">
+                                            <li class="menu-item {{ request()->is('overtime_type*') ? 'active' : '' }}">
+                                                <a href="{{ url('/overtime_type') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
-                                                        <span class="menu-text">Overtime Type</span>
-                                                    </a>
-                                                </li>
-                                            @endif
+                                                    <span class="menu-text">Overtime Types</span>
+                                                </a>
+                                            </li>
 
-                                            @php
-                                                $hasLeaveRequest = $row->ma->contains(function ($item) {
-                                                   return $item->ma_slug === 'leave-requests';
-                                                });
-                                            @endphp
-
-                                            @if($hasLeaveRequest)
-                                                <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
-                                                    <a href="{{ url('/leave-requests') }}" class="menu-link">
+                                            <li class="menu-item {{ request()->is('overtime*') ? 'active' : '' }}">
+                                                <a href="{{ url('/overtime') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
-                                                        <span class="menu-text">Overtime Request</span>
-                                                    </a>
-                                                </li>
-                                            @endif
+                                                    <span class="menu-text">Overtime Request</span>
+                                                </a>
+                                            </li>
 
                                             @if($hasLeaveType)
                                                 <li class="menu-item {{ request()->is('leave-requests/summary-report*') ? 'active' : '' }}">
-                                                    <a href="{{ url('/leave-requests/summary-report') }}"
-                                                       class="menu-link">
+                                                    <a href="{{ url('/leave-requests/summary-report') }}"  class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
                                                         <span class="menu-text">Overtime Report</span>
@@ -293,7 +276,8 @@
                                             </li>
 
                                             <li class="menu-item {{ request()->is('external-assignment*') ? 'active' : '' }}">
-                                                <a href="{{ url('/external-assignment/summary-report') }}" class="menu-link">
+                                                <a href="{{ url('/external-assignment/summary-report') }}"
+                                                   class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
                                                     <span class="menu-text">External Assignment Summary</span>

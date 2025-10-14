@@ -199,11 +199,15 @@ class SettlementController extends Controller
         DB::beginTransaction();
 
         try {
-            $transaction_items = PosTransactionDetail::where('pt_id', $id)
+
+            $transaction_items = DB::table('pos_transaction_details')
+            ->select('pos_transaction_details.id', 'pst_id', 'pos_td_item_cogs', 'pos_td_item_price_tag', 'pos_status')
+                ->join('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                 ->where(function ($query) {
                     $query->where('pos_td_item_cogs', 0)
                         ->orWhere('pos_td_item_price_tag', 0);
                 })
+                ->where('pos_transactions.id', $id)
                 ->get();
 
             foreach ($transaction_items as $transaction_item) {
@@ -211,14 +215,26 @@ class SettlementController extends Controller
 
                 $update_data = [];
 
-                // Check if COGS is 0 and needs update
-                if ($transaction_item->pos_td_item_cogs == 0) {
-                    $update_data['pos_td_item_cogs'] = $product_stock->ps_purchase_price ?? 0;
-                }
+                if ($transaction_item->pos_status == 'REFUND' || $transaction_item->pos_status == 'CANCEL') {
+                    // Check if COGS is 0 and needs update
+                    if ($transaction_item->pos_td_item_cogs == 0) {
+                        $update_data['pos_td_item_cogs'] = -$product_stock->ps_purchase_price ?? 0;
+                    }
 
-                // Check if price tag is null or 0 and needs update
-                if (is_null($transaction_item->pos_td_item_price_tag) || $transaction_item->pos_td_item_price_tag == 0) {
-                    $update_data['pos_td_item_price_tag'] = $product_stock->ps_price_tag ?? 0;
+                    // Check if price tag is null or 0 and needs update
+                    if (is_null($transaction_item->pos_td_item_price_tag) || $transaction_item->pos_td_item_price_tag == 0) {
+                        $update_data['pos_td_item_price_tag'] = -$product_stock->ps_price_tag ?? 0;
+                    }
+                } else {
+                    // Check if COGS is 0 and needs update
+                    if ($transaction_item->pos_td_item_cogs == 0) {
+                        $update_data['pos_td_item_cogs'] = $product_stock->ps_purchase_price ?? 0;
+                    }
+
+                    // Check if price tag is null or 0 and needs update
+                    if (is_null($transaction_item->pos_td_item_price_tag) || $transaction_item->pos_td_item_price_tag == 0) {
+                        $update_data['pos_td_item_price_tag'] = $product_stock->ps_price_tag ?? 0;
+                    }
                 }
 
                 // Only update if there's data to update
@@ -839,13 +855,18 @@ class SettlementController extends Controller
                 })->get();
 
             // Get transaction details that need updating
-            $transactionDetails = PosTransactionDetail::whereIn('pt_id', $transactions->pluck('id'))
+
+            $transactionDetails = DB::table('pos_transaction_details')
+                ->select('pos_transaction_details.id', 'pos_td_item_cogs', 'pos_td_item_price_tag', 'pos_status', 'pst_id')
+                ->join('pos_transactions', 'pos_transactions.id', '=', 'pt_id')
+                ->whereIn('pt_id', $calc_transaction_id)
                 ->where(function ($query) {
                     $query->where('pos_td_item_cogs', 0)
                         ->orWhere('pos_td_item_price_tag', 0)
                         ->orWhereNull('pos_td_item_cogs')
                         ->orWhereNull('pos_td_item_price_tag');
-                })->get();
+                })
+                ->get();
 
             foreach ($transactionDetails as $detail) {
                 $productStock = ProductStock::find($detail->pst_id);
@@ -860,6 +881,16 @@ class SettlementController extends Controller
                     // Check if price tag is 0 or null and needs update
                     if ($detail->pos_td_item_price_tag == 0 || is_null($detail->pos_td_item_price_tag)) {
                         $updateData['pos_td_item_price_tag'] = $productStock->ps_price_tag ?? 0;
+                    }
+
+                    // Adjust COGS and price tag if status is REFUND or CANCEL
+                    if (in_array($detail->pos_status, ['REFUND', 'CANCEL'])) {
+                        if (isset($updateData['pos_td_item_cogs'])) {
+                            $updateData['pos_td_item_cogs'] *= -1;
+                        }
+                        if (isset($updateData['pos_td_item_price_tag'])) {
+                            $updateData['pos_td_item_price_tag'] *= -1;
+                        }
                     }
 
                     // Only update if there's data to update

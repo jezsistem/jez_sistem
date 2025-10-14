@@ -25,6 +25,8 @@ use App\Models\Season;
 use App\Models\UserActivity;
 use App\Imports\ProductImport;
 use App\Exports\ProductExport;
+use App\Imports\MassUpdateProductImport;
+use App\Services\MassUpdateProductService;
 use Maatwebsite\Excel\Facades\Excel;
 
 
@@ -381,7 +383,8 @@ class ProductController extends Controller
                     'mp_stock_masking',
                     'is_everlast',
                     'is_supersale',
-                    'is_reguler'
+                    'is_reguler',
+                    'p_turnoverclass'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
@@ -752,7 +755,7 @@ class ProductController extends Controller
 
     public function storeData(Request $request)
     {
-//     return json_encode($request->all());
+        //     return json_encode($request->all());
 
         try {
             $product = new Product;
@@ -792,6 +795,7 @@ class ProductController extends Controller
                 'is_everlast'         => $request->input('is_everlast') ?? 0,
                 'is_supersale'       => $request->input('is_supersale') ?? 0,
                 'is_reguler'         => $request->input('is_reguler') ?? 0,
+                'p_turnoverclass'   => $request->input('p_turnoverclass'),
             ];
             $save = $product->storeData($mode, $id, $data);
 
@@ -987,5 +991,34 @@ class ProductController extends Controller
     {
         //        set_time_limit(4096);
         return Excel::download(new ProductExport, 'product_data_barcode.xlsx');
+    }
+
+    public function massUpdateProductImport(Request $request)
+    {
+
+        $import_data = Excel::toArray(new MassUpdateProductImport, $request->file('p_mass_import'));
+
+        $update_column = $import_data[0][0][1]; // Get the second column on first row
+
+        $is_allowed = Product::$massUpdateColumns; // Accessing the property as static
+
+        if (!in_array($update_column, $is_allowed)) {
+            $r['status'] = '405';
+            $r['message'] = 'Kolom yang akan diupdate tidak sesuai.';
+            return json_encode($r);
+        }
+
+        $massUpdateService = new MassUpdateProductService(); // Instantiate the service
+        $error_ids = $massUpdateService->processRow($import_data[0], $update_column); // Call the method on the service with the first array
+        if (!$error_ids) {
+            $r['status'] = '200';
+            $r['message'] = 'Update massal produk berhasil.';
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'Update massal produk gagal';
+            $r['error_ids'] = $error_ids;
+        }
+
+        return json_encode($r);
     }
 }

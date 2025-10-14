@@ -388,7 +388,7 @@ class POReceiveApprovalController extends Controller
                 $total_cogs_new = $new_price * $new_stock;
 
                 $total_cogs_merge = ceil($total_cogs_old + $total_cogs_new);
-                $total_qty_merge = $old_stock + $new_stock;
+                $total_qty_merge = $old_stock_current + $new_stock;
 
                 // new cogs
                 $new_cogs = ceil($total_cogs_merge / $total_qty_merge);
