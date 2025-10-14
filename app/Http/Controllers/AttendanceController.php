@@ -44,7 +44,7 @@ class AttendanceController extends Controller
                     //                    'position_access.route' => request()->path()
                 ])->exists();
 
-            if (!$check) {
+            if (!$check || Auth::user()->manual_attendance_access == 0) {
                 dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
             }
         }
