@@ -95,7 +95,7 @@ class OvertimeTypeController extends Controller
 
     public function storeData(Request $request)
     {
-        $ot_type = new ExternalAssignmentType();
+        $ot_type = new OvertimeType();
         $mode = $request->input('_mode');
         $id = $request->input('_id');
 
