@@ -8,6 +8,7 @@ use App\Http\Controllers\PhotoController;
 
 use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
+use App\Http\Controllers\OvertimeTypeController;
 use App\Models\ExternalAssignmentType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
@@ -1069,12 +1070,26 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('ear.report.store');
 
 
+    //Overtime Type
+    Route::get('overtime_type', [OvertimeTypeController::class, 'index'])->name('overtime_type');
+    Route::get('overtime_type_datatables', [OvertimeTypeController::class, 'getDatatables']);
+    Route::post('ot_save', [OvertimeTypeController::class, 'storeData']);
+    Route::post('ot_delete', [OvertimeTypeController::class, 'deleteData']);
+    Route::post('ot_import', [OvertimeTypeController::class, 'importData']);
+    Route::post('check_exists_overtime_type', [OvertimeTypeController::class, 'checkExistsExternalTypes']);
+    Route::get('export-perusahaan', [OvertimeTypeController::class, 'exportData']);
+
     // overtime
     Route::get('/overtime', [OvertimeRequestController::class, 'index'])->name('overtime.index');
     Route::get('/overtime/create', [OvertimeRequestController::class, 'create'])->name('overtime.create');
     Route::post('/overtime/store', [OvertimeRequestController::class, 'store'])->name('overtime.store');
-    Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.data');
+    Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.index.data');
+    Route::get('/overtime/{id}', [OvertimeRequestController::class, 'show'])->name('overtime.show');
+    Route::post('/overtime/{id}/approve', [OvertimeRequestController::class, 'approve'])->name('overtime.approve');
+    Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
+    Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
 });
+
 
 require __DIR__ . '/purchase_order.php';
 require __DIR__ . '/sales.php';
