@@ -19,12 +19,26 @@
             background: #000;
         }
 
-        .webcam-capture video,
-        .webcam-capture canvas {
+        /.webcam-capture {
+             position: relative;
+             width: 100%;
+             max-width: 100%;
+             overflow: hidden;
+             border-radius: 10px;
+             background: #000;
+         }
+
+        .webcam-capture video {
             width: 100% !important;
             height: auto !important;
-            object-fit: cover;
-            border-radius: 10px;
+            object-fit: contain !important; /* Biar tidak crop */
+            transform: scaleX(-1); /* mirror kamera depan */
+            display: block;
+            margin: 0 auto;
+        }
+
+        .webcam-capture.video-back video {
+            transform: none !important;
         }
 
         #address {
@@ -172,34 +186,60 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        let useFrontCamera = false;
-        let cameraReady = false;
+        let useFrontCamera = true;
         let map, marker, withinRadius = false;
         const lokasi = document.getElementById('lokasi');
+        const loadingOverlay = document.getElementById('loadingOverlay');
 
         const centerLat = -7.945221934890168;
         const centerLng = 112.61913974639859;
         const maxDistanceMeters = 100;
 
-        // --- Fungsi Kamera ---
         function startCamera() {
-            $('#loadingOverlay').show();
-            cameraReady = false;
+            // Tampilkan overlay loading
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
             Webcam.reset();
+
+            const webcamContainer = document.querySelector('.webcam-capture');
+            if (!useFrontCamera) {
+                webcamContainer.classList.add('video-back');
+            } else {
+                webcamContainer.classList.remove('video-back');
+            }
+
             Webcam.set({
-                width: 640,
-                height: 480,
+                width: window.innerWidth,
+                height: window.innerHeight * 0.7,
                 image_format: 'jpeg',
-                jpeg_quality: 80,
+                jpeg_quality: 85,
                 constraints: {
-                    facingMode: useFrontCamera ? "user" : "environment"
+                    facingMode: useFrontCamera ? "user" : "environment",
+                    aspectRatio: 16 / 9
                 }
             });
+
             Webcam.attach('.webcam-capture');
-            Webcam.on('live', function () {
-                cameraReady = true;
-                $('#loadingOverlay').hide();
-            });
+
+            // Tunggu hingga video benar-benar siap
+            const checkVideoReady = setInterval(() => {
+                const video = document.querySelector('.webcam-capture video');
+                if (video && video.readyState === 4) { // HAVE_ENOUGH_DATA
+                    clearInterval(checkVideoReady);
+                    // Pastikan tampil proporsional
+                    video.style.objectFit = 'contain';
+                    video.style.width = '100%';
+                    video.style.height = 'auto';
+
+                    // Sembunyikan overlay
+                    if (loadingOverlay) loadingOverlay.style.display = 'none';
+                }
+            }, 300);
+
+            // Timeout agar overlay tetap hilang meski gagal load
+            setTimeout(() => {
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+            }, 6000);
         }
 
         // --- Fungsi Error Lokasi ---
