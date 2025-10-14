@@ -227,10 +227,12 @@ class OvertimeRequestController extends Controller
         $row = DB::table('overtime_requests as o')
             ->leftJoin('users as requester', 'o.request_by', '=', 'requester.id')
             ->leftJoin('user_divisions as d', 'o.ud_id', '=', 'd.id')
+            ->leftJoin('overtime_types as ot', 'o.ot_id', '=', 'ot.id')
             ->select(
                 'o.*',
                 'requester.u_name as request_by_name',
-                'd.ud_name as department_name'
+                'd.ud_name as department_name',
+                'ot.ot_name as claim',
             )
             ->where('o.id', $id)
             ->first();

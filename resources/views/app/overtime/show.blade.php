@@ -78,7 +78,11 @@
                             </tr>
                             <tr>
                                 <th>Claim</th>
-                                <td>Rp {{ number_format($detail->claim ?? 0, 0, ',', '.') }}</td>
+                                <td>{{ $detail->claim }}</td>
+                            </tr>
+                            <tr>
+                                <th>Desc Overtime</th>
+                                <td>{{ $detail->details }}</td>
                             </tr>
                             <tr>
                                 <th>Requested By</th>
