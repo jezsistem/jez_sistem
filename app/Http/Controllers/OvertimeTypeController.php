@@ -116,7 +116,7 @@ class OvertimeTypeController extends Controller
 
     public function deleteData(Request $request)
     {
-        $ot_type = new ExternalAssignmentType();
+        $ot_type = new OvertimeType();
         $id = $request->input('_id');
         $save = $ot_type->deleteData($id);
         if ($save) {
@@ -129,7 +129,7 @@ class OvertimeTypeController extends Controller
 
     public function checkExistsExternalTypes(Request $request)
     {
-        $check = ExternalAssignmentType::where(['ot_name' => strtoupper($request->_ot_name)])->exists();
+        $check = OvertimeType::where(['ot_name' => strtoupper($request->_ot_name)])->exists();
         if ($check) {
             $r['status'] = '200';
         } else {
