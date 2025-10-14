@@ -328,14 +328,9 @@
                                 <textarea class="form-control" id="subcattwo" name="subcattwo"></textarea>
                                 {{--                                <input type="text" name="subcattwo" id="subcattwo" class="form-control" placeholder="Sub Category 2" /> --}}
                             </div>
-                            <div class="col-lg-4 pt-1 mt-2">
+                            <div class="col-lg-12 pt-1 mt-2">
                                 <label>Turn Over Class </label>
-                                <select name="p_turnoverclass" id="p_turnoverclass" class="form-control">
-                                    <option value="">- Pilih Turn Over Class -</option>
-                                    <option value="NON MOVING">NON MOVING</option>
-                                    <option value="SLOW MOVING">SLOW MOVING</option>
-                                    <option value="FAST MOVING">FAST MOVING</option>
-                                </select>
+                                <input type="text" name="p_turnoverclass" id="p_turnoverclass" class="form-control"/>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -492,6 +487,17 @@
                             <label>Pilih template yang sudah di download dan diisi
                                 <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="p_mass_import" id="p_mass_import" required/>
+                        </div>
+                        <div class="form-group">
+                            <label>Pilih Tipe Update
+                                <span class="text-danger">*</span></label>
+                            <div>
+                                <select class="form-control" name="update_type" id="update_type" required>
+                                    <option value="">-- Pilih Tipe Update --</option>
+                                    <option value="article">Level Artikel</option>
+                                    <option value="sku">Level SKU</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
