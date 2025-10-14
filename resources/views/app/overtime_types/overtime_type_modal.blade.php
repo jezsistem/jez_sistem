@@ -4,7 +4,7 @@
     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form id="f_external_assignment_type">
+            <form id="f_overtime_type">
                 @csrf
                 <input type="hidden" name="_id" id="_id" value="" />
                 <input type="hidden" name="_mode" id="_mode" value="" />
