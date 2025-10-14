@@ -1073,8 +1073,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/overtime', [OvertimeRequestController::class, 'index'])->name('overtime.index');
     Route::get('/overtime/create', [OvertimeRequestController::class, 'create'])->name('overtime.create');
     Route::post('/overtime/store', [OvertimeRequestController::class, 'store'])->name('overtime.store');
-    Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.data');
+    Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.index.data');
+    Route::get('/overtime/{id}', [OvertimeRequestController::class, 'show'])->name('overtime.show');
+    Route::post('/overtime/{id}/approve', [OvertimeRequestController::class, 'approve'])->name('overtime.approve');
+
 });
+
 
 require __DIR__ . '/purchase_order.php';
 require __DIR__ . '/sales.php';

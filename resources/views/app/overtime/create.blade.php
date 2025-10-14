@@ -1,8 +1,14 @@
 @extends('app.structure')
 
 @section('content')
-    <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
 
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
@@ -11,75 +17,49 @@
                             <form id="overtimeRequestForm" enctype="multipart/form-data">
                                 @csrf
 
-                                <!-- Main Form -->
-                                <div class="row">
-                                    <!-- Submission Date -->
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="submission_date">Submission Date <span class="text-danger">*</span></label>
-                                                <input type="date" id="submission_date" name="submission_date" class="form-control" required>
-                                            </div>
-                                        </div>
-
-                                    <!-- Department -->
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="department">Department <span class="text-danger">*</span></label>
-                                            <select id="department" name="department" class="form-control" required>
-                                                <option value="">Select Department</option>
-                                                @foreach($departments as $dept)
-                                                    <option value="{{ $dept }}">{{ $dept }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
+                                <!-- Submission Date -->
+                                <div class="form-group">
+                                    <label for="submission_date">Submission Date <span class="text-danger">*</span></label>
+                                    <input type="date" id="submission_date" name="submission_date" class="form-control" required>
                                 </div>
 
-                                <div class="row">
-                                    <!-- Assigned Staff -->
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="assigned_staff">Assigned Staff <span class="text-danger">*</span></label>
-                                            <select id="assigned_staff" name="assigned_staff[]" class="form-control select2" multiple required>
-                                                @foreach($users as $id => $name)
-                                                    <option value="{{ $name }}">{{ $name }}</option>
-                                                @endforeach
-                                            </select>
-                                            <small class="text-muted">Hold CTRL / CMD to select multiple staff</small>
-                                        </div>
-                                    </div>
+                                <!-- Department (Auto-filled) -->
+                                <div class="form-group">
+                                    <label for="department">Department</label>
+                                    <input type="text" id="department_name" class="form-control"
+                                           value="{{ $data['user']->ud_name }}" readonly>
+                                    <input type="hidden" name="department" value="{{ $data['user']->ud_id }}">
                                 </div>
 
-                                <div class="row">
-                                    <!-- Start Date & Time -->
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="start_date">Start Date <span class="text-danger">*</span></label>
-                                            <input type="date" id="start_date" name="start_date" class="form-control" required>
-                                        </div>
+                                <!-- Assigned Staff -->
+                                <div class="form-group">
+                                    <label for="assigned_staff">Assigned Staff <span class="text-danger">*</span></label>
+                                    <select id="assigned_staff" name="assigned_staff[]" class="form-control select2" multiple required>
+                                        @foreach($staff as $id => $name)
+                                            <option value="{{ $id }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                                        <div class="form-group">
-                                            <label for="start_time">Start Time <span class="text-danger">*</span></label>
-                                            <input type="time" id="start_time" name="start_time" class="form-control" required>
-                                        </div>
+                                <!-- Start Date & Time -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Start Date</label>
+                                        <input type="date" name="start_date" class="form-control" required>
+                                        <label class="mt-2">Start Time</label>
+                                        <input type="time" name="start_time" class="form-control" required>
                                     </div>
 
-                                    <!-- End Date & Time -->
                                     <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="end_date">End Date <span class="text-danger">*</span></label>
-                                            <input type="date" id="end_date" name="end_date" class="form-control" required>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for="end_time">End Time <span class="text-danger">*</span></label>
-                                            <input type="time" id="end_time" name="end_time" class="form-control" required>
-                                        </div>
+                                        <label>End Date</label>
+                                        <input type="date" name="end_date" class="form-control" required>
+                                        <label class="mt-2">End Time</label>
+                                        <input type="time" name="end_time" class="form-control" required>
                                     </div>
                                 </div>
 
                                 <!-- Details -->
-                                <div class="form-group">
+                                <div class="form-group mt-3">
                                     <label for="details">Overtime Details <span class="text-danger">*</span></label>
                                     <textarea id="details" name="details" class="form-control" rows="3" placeholder="Describe the overtime work..." required></textarea>
                                 </div>
@@ -88,7 +68,6 @@
                                 <div class="form-group">
                                     <label for="attachment">Attachment</label>
                                     <input type="file" id="attachment" name="attachment" class="form-control">
-                                    <small class="text-muted">Optional — upload supporting file (PDF, JPG, etc.)</small>
                                 </div>
 
                                 <!-- Claim -->
@@ -108,9 +87,24 @@
                 </div>
             </div>
         </div>
-
     </div>
+
+{{--    <!-- JS Section -->--}}
+{{--    @push('scripts')--}}
+{{--        <script>--}}
+{{--            $(document).ready(function () {--}}
+{{--                $('#assigned_staff').select2({--}}
+{{--                    placeholder: "Select staff from your department",--}}
+{{--                    width: '100%'--}}
+{{--                });--}}
+{{--            });--}}
+{{--        </script>--}}
+{{--    @endpush--}}
+
+
+
+    @include('app._partials.js')
+    @include('app.overtime.overtime_js')
 @endsection
 
-{{--@include('app._partials.js')--}}
-{{--@include('app.overtime_request.overtime_request_js')--}}
+
