@@ -1073,9 +1073,9 @@ Route::group(['middleware' => 'auth'], function () {
     //Overtime Type
     Route::get('overtime_type', [OvertimeTypeController::class, 'index'])->name('overtime_type');
     Route::get('overtime_type_datatables', [OvertimeTypeController::class, 'getDatatables']);
-    Route::post('ea_save', [OvertimeTypeController::class, 'storeData']);
-    Route::post('ea_delete', [OvertimeTypeController::class, 'deleteData']);
-    Route::post('ea_import', [OvertimeTypeController::class, 'importData']);
+    Route::post('ot_save', [OvertimeTypeController::class, 'storeData']);
+    Route::post('ot_delete', [OvertimeTypeController::class, 'deleteData']);
+    Route::post('ot_import', [OvertimeTypeController::class, 'importData']);
     Route::post('check_exists_overtime_type', [OvertimeTypeController::class, 'checkExistsExternalTypes']);
     Route::get('export-perusahaan', [OvertimeTypeController::class, 'exportData']);
 
