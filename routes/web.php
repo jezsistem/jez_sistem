@@ -8,6 +8,7 @@ use App\Http\Controllers\PhotoController;
 
 use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
+use App\Http\Controllers\OvertimeTypeController;
 use App\Models\ExternalAssignmentType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
@@ -1068,6 +1069,15 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/ear/{id}/report/store', [ExternalAssignmentRequestController::class, 'storeReport'])
         ->name('ear.report.store');
 
+
+    //Overtime Type
+    Route::get('overtime_type', [OvertimeTypeController::class, 'index'])->name('overtime_type');
+    Route::get('overtime_type_datatables', [OvertimeTypeController::class, 'getDatatables']);
+    Route::post('ea_save', [OvertimeTypeController::class, 'storeData']);
+    Route::post('ea_delete', [OvertimeTypeController::class, 'deleteData']);
+    Route::post('ea_import', [OvertimeTypeController::class, 'importData']);
+    Route::post('check_exists_overtime_type', [OvertimeTypeController::class, 'checkExistsExternalTypes']);
+    Route::get('export-perusahaan', [OvertimeTypeController::class, 'exportData']);
 
     // overtime
     Route::get('/overtime', [OvertimeRequestController::class, 'index'])->name('overtime.index');

@@ -26,7 +26,7 @@
                                         <th>Start</th>
                                         <th>End</th>
                                         <th>Duration</th>
-                                        <th>Claim (Rp)</th>
+                                        <th>Claim Type</th>
                                         <th>Requested By</th>
                                         <th>Approval</th>
                                         <th>Created At</th>

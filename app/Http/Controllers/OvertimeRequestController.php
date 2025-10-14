@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ExternalAssignmentRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
+use App\Models\OvertimeType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -89,6 +90,9 @@ class OvertimeRequestController extends Controller
             ->where('ud_id', $user_data->ud_id)
             ->pluck('u_name', 'id');
 
+        $overtime_types = DB::table('overtime_types')
+            ->pluck('ot_name', 'id');
+
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')
@@ -99,7 +103,7 @@ class OvertimeRequestController extends Controller
             'segment' => request()->segment(1),
         ];
 
-        return view('app.overtime.create', compact('staff', 'data'));
+        return view('app.overtime.create', compact('staff', 'data', 'overtime_types'));
     }
 
     public function store(Request $request)
@@ -115,7 +119,7 @@ class OvertimeRequestController extends Controller
                 'end_time' => 'required',
                 'details' => 'required|string',
                 'attachment' => 'nullable|file|max:2048', // max 2MB
-                'claim' => 'nullable|numeric',
+                'claim' => 'required',
             ]);
 
             // handle file upload
@@ -134,7 +138,7 @@ class OvertimeRequestController extends Controller
                 'end_time' => $validated['end_time'],
                 'details' => $validated['details'],
                 'attachment' => $attachmentPath,
-                'claim' => $validated['claim'] ?? null,
+                'ot_id' => $validated['claim'] ?? null,
                 'request_by' => auth()->id(),
                 'approved_by' => null,
                 'approved_at' => null,
@@ -157,6 +161,7 @@ class OvertimeRequestController extends Controller
         $data = DB::table('overtime_requests as o')
             ->leftJoin('users as u', 'o.request_by', '=', 'u.id')
             ->leftJoin('user_divisions as d', 'o.ud_id', '=', 'd.id')
+            ->leftJoin('overtime_types as ot', 'o.ot_id', '=', 'ot.id')
             ->select(
                 'o.id',
                 'o.submission_date',
@@ -166,7 +171,7 @@ class OvertimeRequestController extends Controller
                 'o.start_time',
                 'o.end_date',
                 'o.end_time',
-                'o.claim',
+                'ot.ot_name as claim',
                 'o.attachment',
                 'o.approved_by',
                 'o.approved_at',

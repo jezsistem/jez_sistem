@@ -72,8 +72,14 @@
 
                                 <!-- Claim -->
                                 <div class="form-group">
-                                    <label for="claim">Overtime Claim (Rp)</label>
-                                    <input type="number" step="0.01" id="claim" name="claim" class="form-control" placeholder="0.00">
+                                    <label for="claim">Overtime Claim</label>
+{{--                                    <input type="number" step="0.01" id="claim" name="claim" class="form-control" placeholder="0.00">--}}
+                                    <select name="claim" id="claim" class="form-control">
+                                        <option value="">-- Select Overtime Claim --</option>
+                                        @foreach($overtime_types as $id => $name)
+                                            <option value="{{ $id }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <!-- Submit -->

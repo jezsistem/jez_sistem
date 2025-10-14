@@ -78,9 +78,10 @@
                         return `<span class="badge bg-secondary">${diffHrs} jam ${diffMins} menit</span>`;
                     }
                 },
-                { data: 'claim', name: 'claim', render: function(data) {
-                        return data ? parseFloat(data).toLocaleString('id-ID') : '-';
-                    }},
+                // { data: 'claim', name: 'claim', render: function(data) {
+                //         return data ? parseFloat(data).toLocaleString('id-ID') : '-';
+                //     }},
+                { data: 'claim', name: 'claim' },
                 { data: 'request_by_name', name: 'request_by_name' },
                 { data: 'approved_info', name: 'approved_info' },
                 { data: 'created_at', name: 'created_at' },
@@ -136,6 +137,7 @@
                         swal('Berhasil', response.message, 'success');
                         form[0].reset();
                         $('#assigned_staff').val(null).trigger('change');
+                        window.location.href = "{{ url('overtime') }}";
                     } else {
                         swal('Gagal', response.message || 'Terjadi kesalahan', 'error');
                     }
