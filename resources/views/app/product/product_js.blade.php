@@ -1,7 +1,7 @@
 <script src="https://cdn.tiny.cloud/1/323apjbgqf1hr5qmcz0u8uwvl3oymnrypmtg98wfpvhw0khd/tinymce/5/tinymce.min.js"
     referrerpolicy="origin"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
 <script>
@@ -884,6 +884,12 @@
             $('#f_import')[0].reset();
         });
 
+        $('#mass_update_product').on('click', function() {
+            jQuery.noConflict();
+            $('#MassUpdateModal').modal('show');
+            $('#f_mass_update')[0].reset();
+        });
+
         {{-- $('#sz_schema_modal_id').on('change', function (e) { --}}
         {{--    // Get the selected value in sc_schema_modal_id --}}
         {{--    var selectedValue = $(this).val(); --}}
@@ -1037,6 +1043,7 @@
             var is_everlast = product_table.row(this).data().is_everlast;
             var is_supersale = product_table.row(this).data().is_supersale;
             var is_reguler = product_table.row(this).data().is_reguler;
+            var p_turnoverclass = product_table.row(this).data().p_turnoverclass;
 
             console.log(product_table.row(this).data())
             console.log(subcategory1)
@@ -1126,17 +1133,49 @@
             $('#_current_pssc_id').val(pssc_id);
             $('#subcatone').text(subcategory1);
             $('#subcattwo').text(subcategory2);
-            $('#consignment').val(consignment);
-            $('#complement').val(complement);
-            $('#mp_best_seller').val(mp_best_seller);
-            $('#mp_stock_masking').val(mp_stock_masking);
-            $('#is_everlast').val(is_everlast);
-            $('#is_supersale').val(is_supersale);
+            if (consignment == '1') {
+                $('#consignment').prop('checked', true);
+            } else {
+                $('#consignment').prop('checked', false);
+            }
+
+            if (complement == '1') {
+                $('#complement').prop('checked', true);
+            } else {
+                $('#complement').prop('checked', false);
+            }
+
+            if (mp_best_seller == '1') {
+                $('#mp_best_seller').prop('checked', true);
+            } else {
+                $('#mp_best_seller').prop('checked', false);
+            }
+
+            if (mp_stock_masking == '1') {
+                $('#mp_stock_masking').prop('checked', true);
+            } else {
+                $('#mp_stock_masking').prop('checked', false);
+            }
+
+            if (is_everlast == '1') {
+                $('#is_everlast').prop('checked', true);
+            } else {
+                $('#is_everlast').prop('checked', false);
+            }
+
+            if (is_supersale == '1') {
+                $('#is_supersale').prop('checked', true);
+            } else {
+                $('#is_supersale').prop('checked', false);
+            }
+
             if (is_reguler == '1') {
                 $('#is_reguler').prop('checked', true);
             } else {
                 $('#is_reguler').prop('checked', false);
             }
+
+            $('#p_turnoverclass').val(p_turnoverclass);
             jQuery('#br_id').val(br_id).trigger('change');
             jQuery('#ps_id').val(ps_id).trigger('change');
             jQuery('#pu_id').val(pu_id).trigger('change');
@@ -1144,10 +1183,6 @@
             jQuery('#ss_id').val(ss_id).trigger('change');
             jQuery('#mc_id').val(mc_id).trigger('change');
             jQuery('#sz_schema_modal_id').val(schema_size).trigger('change');
-            jQuery('#mp_best_seller').val(mp_best_seller).trigger('change');
-            jQuery('#mp_stock_masking').val(mp_stock_masking).trigger('change');
-            jQuery('#is_everlast').val(is_everlast).trigger('change');
-            jQuery('#is_supersale').val(is_supersale).trigger('change');
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ($data['user']->delete_access == '1')
@@ -1343,6 +1378,105 @@
                             'Silahkan periksa format input pada template Anda, pastikan kolom biru terisi sesuai dengan sistem',
                             'Peringatan');
                     }
+                },
+                error: function(data) {
+                    console.log(data);
+                    toastr.error('Terjadi kesalahan saat mengimpor data', 'Error');
+                }
+            });
+        });
+
+        $('#f_mass_update').on('submit', function(e) {
+            e.preventDefault();
+            $("#import_data_btn").html('Proses ..');
+            $("#import_data_btn").attr("disabled", true);
+            var formData = new FormData(this);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('mass_update_product') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+
+                    if (data.status == '200') {
+                        $("#MassUpdateModal").modal('hide');
+                        toastr.success('Data berhasil diimpor', 'Berhasil');
+                        $('#f_import')[0].reset();
+                        product_table.ajax.reload();
+
+                    } else {
+
+                        // Display error IDs in a table using Swal
+                        if (data.error_ids && data.error_ids.length > 0) {
+                            var errorIds = data.error_ids;
+                            Swal.fire({
+                                title: 'Error IDs',
+                                html: `
+                                    <div style="overflow-x:auto;">
+                                        <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="border: 1px solid #ccc; padding: 8px;">Error ID</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="error-table-body">
+                                                <!-- Data masuk sini -->
+                                            </tbody>
+                                        </table>
+                                        <br/>
+                                        <div style="text-align: center;">
+                                            <button id="export_error_ids" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export to Excel</button>
+                                            <button id="close_error_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Close</button>
+                                        </div>
+                                    </div>
+                                `,
+                                icon: 'warning',
+                                showConfirmButton: false,
+                                didOpen: () => {
+                                    let tbody = document.getElementById('error-table-body');
+                                    errorIds.forEach(function(id) {
+                                        let row = document.createElement('tr');
+                                        row.innerHTML = `
+                                            <td style="border: 1px solid #ccc; padding: 8px;">${id || '-'}</td>
+                                        `;
+                                        tbody.appendChild(row);
+                                    });
+
+                                    // Export to Excel button
+                                    document.getElementById('export_error_ids')
+                                        .addEventListener('click', function() {
+                                            let wb = XLSX.utils.book_new();
+                                            let ws_data = [
+                                                ["Error ID"], // Header
+                                                ...errorIds.map(id => [id]) // Each ID in its own array
+                                            ];
+                                            let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                            XLSX.utils.book_append_sheet(wb, ws, "Error IDs");
+                                            XLSX.writeFile(wb, "Error_IDs.xlsx");
+                                        });
+
+                                    // Close button
+                                    document.getElementById('close_error_alert')
+                                        .addEventListener('click', function() {
+                                            Swal.close();
+                                        });
+                                }
+                            });
+                        } else {
+                            $("#MassUpdateModal").modal('hide');
+                            toastr.warning(
+                                data.message || 'Silahkan periksa format input pada template Anda, pastikan kolom biru terisi sesuai dengan sistem',
+                                'Peringatan');
+                        }
+                    }
+                    $("#MassUpdateModal").modal('hide');
                 },
                 error: function(data) {
                     console.log(data);

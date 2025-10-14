@@ -41,6 +41,7 @@ class Product extends Model
         'is_supersale',
         'is_reguler',
         'created_at',
+        'p_turnoverclass',
         'updated_at'
     ];
 
@@ -142,4 +143,25 @@ class Product extends Model
             ->get();
         return $export;
     }
+    
+    public static $massUpdateColumns = [
+        'schema_size',
+        'subcategory1',
+        'subcategory2',
+        'p_color',
+        'p_name',
+        'p_aging',
+        'p_price_tag',
+        'p_sell_price',
+        'p_purchase_price',
+        'bestseller',
+        'mp_best_seller',
+        'completenet',
+        'consigment',
+        'mp_stock_masking',
+        'is_everlast',
+        'is_supersale',
+        'is_reguler',
+        'p_turnoverclass'
+    ];
 }

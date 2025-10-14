@@ -189,6 +189,10 @@
                                             </svg>
                                             <!--end::Svg Icon-->
                                         </span>Lengkapi Barcode</a>
+                                    <button type="button" class="btn btn-warning font-weight-bolder ml-2" id="mass_update_product">
+                                        Mass Update
+                                    </button>
+                                        
                                 </div>
                                 <!--end::Dropdown-->
                             </div>
