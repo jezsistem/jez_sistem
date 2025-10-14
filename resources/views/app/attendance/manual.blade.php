@@ -431,39 +431,81 @@
         {{--});--}}
 
         $('#absen').click(function () {
-            if (!cameraReady) {
-                Swal.fire('Kamera belum siap', 'Mohon tunggu beberapa detik...', 'info');
+
+            console.log("hs");
+            // Pastikan kamera sudah siap
+            const video = document.querySelector('.webcam-capture video');
+            if (!video || video.readyState !== 4) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Kamera belum siap',
+                    text: 'Mohon tunggu beberapa detik hingga kamera aktif.',
+                    confirmButtonText: 'OK'
+                });
                 return;
             }
 
-            $('#loadingOverlay').show();
+            // Tampilkan overlay loading
+            $('#loadingOverlay').fadeIn(200);
 
+            // Ambil snapshot dari webcam
             Webcam.snap(function (uri) {
                 const lokasiVal = $('#lokasi').val();
                 const alamatVal = $('#alamat').val();
 
+                if (!lokasiVal || !alamatVal) {
+                    $('#loadingOverlay').fadeOut(200);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Lokasi Tidak Lengkap',
+                        text: 'Pastikan lokasi dan alamat Anda telah terdeteksi.',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                // Kirim data ke server
                 $.ajax({
                     type: 'POST',
-                    url: '/attendance/manualStore',
+                    url: "{{ route('attendance.manual-store') }}",
                     data: {
                         _token: "{{ csrf_token() }}",
                         photo: uri,
                         lokasi: lokasiVal,
                         alamat: alamatVal
                     },
+                    beforeSend: function () {
+                        console.log('Mengirim data absen...');
+                    },
                     success: function (res) {
-                        $('#loadingOverlay').hide();
+                        $('#loadingOverlay').fadeOut(200);
+
                         if (res.status === 'success') {
-                            Swal.fire('Berhasil', res.message, 'success');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message || 'Absen berhasil disimpan.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
                             setTimeout(() => location.reload(), 2000);
                         } else {
-                            Swal.fire('Gagal', res.message, 'error');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: res.message || 'Absen gagal disimpan.'
+                            });
                         }
                     },
                     error: function (xhr) {
-                        $('#loadingOverlay').hide();
+                        $('#loadingOverlay').fadeOut(200);
                         const msg = xhr.responseJSON?.message || 'Terjadi kesalahan sistem.';
-                        Swal.fire('Error!', msg, 'error');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: msg
+                        });
                     }
                 });
             });
