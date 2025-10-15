@@ -239,7 +239,8 @@
 
                                             @if($hasLeaveType)
                                                 <li class="menu-item {{ request()->is('leave-requests/summary-report*') ? 'active' : '' }}">
-                                                    <a href="{{ url('/leave-requests/summary-report') }}"  class="menu-link">
+                                                    <a href="{{ url('/leave-requests/summary-report') }}"
+                                                       class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
                                                         <span class="menu-text">Overtime Report</span>
@@ -303,6 +304,18 @@
                                         </a>
                                         <div class="menu-sub menu-sub-accordion">
                                             <ul class="menu-subnav">
+
+                                                @if(\Illuminate\Support\Facades\Auth::user()->manual_attendance_access)
+
+                                                    <li class="menu-item {{ request()->is('attendance*') ? 'active' : '' }}">
+                                                        <a href="{{ url('/manual-attendance') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                            <span class="menu-text">Manual Attendance</span>
+                                                        </a>
+                                                    </li>
+
+                                                @endif
                                                 <li class="menu-item {{ request()->is('attendance*') ? 'active' : '' }}">
                                                     <a href="{{ url('/attendance') }}" class="menu-link">
                                                     <span class="menu-bullet"><span

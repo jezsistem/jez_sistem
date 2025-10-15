@@ -995,21 +995,39 @@ class ProductController extends Controller
 
     public function massUpdateProductImport(Request $request)
     {
+        $update_type = $request->input('update_type');
 
         $import_data = Excel::toArray(new MassUpdateProductImport, $request->file('p_mass_import'));
 
-        $update_column = $import_data[0][0][1]; // Get the second column on first row
+        $update_column = $import_data[0][0][1];
 
-        $is_allowed = Product::$massUpdateColumns; // Accessing the property as static
+        if ($update_type == 'article') {
+            $is_allowed = Product::$massUpdateColumns; // Accessing the property as static
 
-        if (!in_array($update_column, $is_allowed)) {
-            $r['status'] = '405';
-            $r['message'] = 'Kolom yang akan diupdate tidak sesuai.';
+            if (!in_array($update_column, $is_allowed) || $import_data[0][0][0] != 'article_id') {
+                $r['status'] = '400';
+                $r['message'] = 'Kolom yang akan diupdate tidak sesuai.';
+                return json_encode($r);
+            }
+
+            $massUpdateService = new MassUpdateProductService(); // Instantiate the service
+            $error_ids = $massUpdateService->processRowArticleLevel($import_data[0], $update_column); // Call the method on the service with the first array
+        } else if ($update_type == 'sku') {
+            if ($update_column != 'ps_sell_price' || $import_data[0][0][0] != 'ps_barcode') {
+                $r['status'] = '400';
+                $r['message'] = 'Kolom yang akan diupdate tidak sesuai.';
+                return json_encode($r);
+            }
+
+            $massUpdateService = new MassUpdateProductService(); // Instantiate the service
+            $error_ids = $massUpdateService->processRowSkuLevel($import_data[0]); // Call the method on the service with the first array
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'Tipe update tidak sesuai.';
             return json_encode($r);
         }
 
-        $massUpdateService = new MassUpdateProductService(); // Instantiate the service
-        $error_ids = $massUpdateService->processRow($import_data[0], $update_column); // Call the method on the service with the first array
+
         if (!$error_ids) {
             $r['status'] = '200';
             $r['message'] = 'Update massal produk berhasil.';
