@@ -25,6 +25,7 @@ class OnlineTransactions extends Model
         'payment_method',
         'total_payment',
         'city',
-        'province'
+        'province',
+        'internal_order_status'
     ];
 }

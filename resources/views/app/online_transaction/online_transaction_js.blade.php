@@ -19,6 +19,8 @@
         $('#chatModal').modal('hide');
         setChatOpenStatus();
         ot_id = null;
+        $('.close-modal').trigger('click');
+        
     }
 
     function setChatOpenStatus() {
@@ -190,7 +192,7 @@
         });
     }
 
-    function pickItems(to_id, sku, to_detail_id, qty) {
+    function pickItems(warehouse_st_id, to_id, sku, to_detail_id, qty) {
         console.log(to_id, sku, to_detail_id, qty);
         
         $.ajax({
@@ -201,6 +203,7 @@
                 sku: sku,
                 to_detail_id: to_detail_id,
                 qty: qty,
+                warehouse_st_id: warehouse_st_id,
                 _token: $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
@@ -392,6 +395,10 @@
                     name: 'order_status'
                 },
                 {
+                    data: 'internal_order_status',
+                    name: 'internal_order_status'
+                },
+                {
                     data: 'action',
                     name: 'action'
                 }
@@ -406,6 +413,10 @@
             }
         });
 
+        $('.close-modal').on('click', function() {
+            online_transaction_table.draw(false);
+        });
+        
         // Event listener untuk dropdown filter st_id_filter
         $('#st_id_filter').on('change', function() {
             online_transaction_table.draw(false); // Memuat ulang tabel tanpa reset halaman
@@ -847,7 +858,7 @@
                 $('#add_item_detail_btn').show();
             }
 
-            $('#DetailModal').on('show.bs.modal', function() {
+            $('#DetailModal').off('show.bs.modal').on('show.bs.modal', function() {
                 detail_table.draw(false);
             }).modal('show');
         });
@@ -925,7 +936,7 @@
             $('#sales_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
-            online_transaction_table.draw();
+            // online_transaction_table.draw();
             // article_report_table.draw();
         }
 

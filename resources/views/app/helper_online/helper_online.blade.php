@@ -1,0 +1,100 @@
+@extends('app.structure')
+@section('content')
+    <!--begin::Content-->
+    <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <!--begin::Subheader-->
+        <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
+            <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+                <!--begin::Info-->
+                <div class="d-flex align-items-center flex-wrap mr-1">
+                    <!--begin::Page Heading-->
+                    <div class="d-flex align-items-baseline flex-wrap mr-5">
+                        <!--begin::Page Title-->
+                        <div>
+                            <input type="hidden" name="st_id" id="st_id" value={{ $data['st_id'] }}>
+                            <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
+                            {{-- <h5 class="text-dark font-weight-bold my-1 mr-5">Warehouse : {{$data['warehouse']}}</h5> --}}
+                        </div>
+
+                        <!--end::Page Title-->
+                    </div>
+                    <!--end::Page Heading-->
+                </div>
+                <!--end::Info-->
+            </div>
+        </div>
+        <!--end::Subheader-->
+        <!--begin::Entry-->
+        <div class="d-flex flex-column-fluid col-lg-12">
+            <!--begin::Container-->
+            <div class="container">
+                <div class="">
+                    <!--begin::Card-->
+                    <div class="card card-custom gutter-b">
+                        <div class="card-body">
+                            <!--begin: Datatable-->
+                            <div class="form-group mb-1 pb-1">
+                                <label for="order_number">Order Number/No Resi</label>
+                                <input type="text" class="form-control" id="order_number" name="order_number" placeholder="Enter Order Number/No Resi">
+
+                                <label for="status_filter" class="mt-3">Status</label>
+                                <select class="form-control" id="status_filter" name="status_filter" required>
+                                    <option value="">- Pilih Status -</option>
+                                    <option value="WAITING ONLINE">WAITING ONLINE</option>
+                                    <option value="UNDER REVIEW">UNDER REVIEW</option>
+                                    <option value="WAITING RECEIPT">WAITING RECEIPT</option>
+                                    <option value="WAITING PACKING">WAITING PACKING</option>
+                                </select>
+                                <div id="status_filter_parent"></div>
+                            </div>
+
+                            <!--end: Datatable-->
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card-->
+                <div class="">
+                    <!--begin::Card-->
+                    <div class="card card-custom gutter-b">
+                        <div class="card-body">
+                            <!--begin: Datatable-->
+                            {{-- <table class="table table-bordered table-hover" id="helper_online_table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>No Transaksi</th>
+                                        <th>Platform</th>
+                                        <th>Store</th>
+                                        <th>SKU</th>
+                                        <th>Tanggal Pesanan</th>
+                                        <th>Status Transaksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table> --}}
+                            <!--end: Datatable-->
+                            <center>
+                                <div class="picked_online_trx row" id="picked_online_trx"></div>
+                            </center>
+
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card-->
+
+
+            </div>
+        </div>
+        <!--end::Container-->
+    </div>
+    <!--end::Entry-->
+
+    </div>
+    <!--end::Content-->
+    @include('app.helper_online.helper_online_modal')
+    @include('app._partials.js')
+    @include('app.helper_online.helper_online_js')
+@endSection()

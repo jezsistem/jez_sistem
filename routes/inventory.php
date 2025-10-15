@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Route;
 
 /* new 25-09-2024*/
 use App\Http\Controllers\AllstockController;
+use App\Http\Controllers\HelperOnlineController;
 use App\Http\Controllers\StorageAreaController;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -380,4 +381,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reload_storage_area', [StorageAreaController::class, 'reloadStorageArea']);
 
     Route::post('mass_update_product', [ProductController::class, 'massUpdateProductImport'])->name('mass_update_product');
+
+    Route::get('helper_online', [HelperOnlineController::class, 'index'])->name('helper_online');
+    Route::get('helper_online_datatables', [HelperOnlineController::class, 'getDatatables']);
+    Route::get('helper_online_get_picked_item', [HelperOnlineController::class, 'getListPickedOnline']);
 });

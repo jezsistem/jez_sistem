@@ -24,6 +24,7 @@ class OnlineTransactionDetails extends Model
         'discount_seller',
         'discount_platform',
         'ns_before_admin',
-        'platform_name'
+        'platform_name',
+        'warehouse'
     ];
 }

@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\WebConfig;
 use App\Models\User;
+use App\Models\WarehouseIndex;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Carbon\Carbon;
@@ -118,7 +119,8 @@ class TransaksiOnlineController extends Controller
                     'shipping_fee',
                     'total_payment',
                     'order_status',
-                    'online_print'
+                    'online_print',
+                    'internal_order_status',
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     // ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
@@ -155,7 +157,22 @@ class TransaksiOnlineController extends Controller
                                 </button>' . $badge . '
                             </div>';
                 })
-                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action'])
+                ->editColumn('internal_order_status', function ($data) {
+                    $statusClasses = [
+                        'NEW TRX' => 'badge badge-info',
+                        'WAITING ONLINE' => 'badge badge-warning',
+                        'UNDER REVIEW' => 'badge badge-secondary',
+                        'WAITING RECEIPT' => 'badge badge-primary',
+                        'WAITING PACKING' => 'badge badge-light',
+                        'DONE' => 'badge badge-success',
+                    ];
+
+                    $status = $data->internal_order_status; // Assuming this is the field name
+                    $class = $statusClasses[$status] ?? 'badge badge-default';
+
+                    return '<span class="' . $class . '">' . $status . '</span>';
+                })
+                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -243,13 +260,12 @@ class TransaksiOnlineController extends Controller
                     return '<span class="btn ' . $btnClass . '">' . $show_status . '</span>';
                 })
                 ->addColumn('action', function ($data) {
-                    $st_id = Auth::user()->st_id;
-                    $st_code = Store::where('id', $st_id)->first()->st_code;
+                    $warehouse_st_id = WarehouseIndex::query()->where('w_code', $data->warehouse)->first()->st_id;
 
                     $total_stock = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->join('stores', 'stores.id', '=', 'product_locations.st_id')
-                        ->where('stores.st_code', '=', $st_code)
+                        ->where('stores.id', '=', $warehouse_st_id)
                         ->where('product_stocks.ps_barcode', '=', $data->ps_barcode)
                         ->sum('product_location_setups.pls_qty');
                     
@@ -259,15 +275,16 @@ class TransaksiOnlineController extends Controller
                         ->leftjoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->leftjoin('stores', 'stores.id', '=', 'product_locations.st_id')
                         ->leftjoin('stores as s2', 's2.id', '=', 'product_location_setup_transactions.st_id')
-                        ->where(function($query) use ($st_code) {
-                            $query->where('stores.st_code', '=', $st_code)
-                                ->orWhere('s2.st_code', '=', $st_code);
+                        ->where(function($query) use ($warehouse_st_id) {
+                            $query->where('stores.id', '=', $warehouse_st_id)
+                                ->orWhere('s2.id', '=', $warehouse_st_id)
+                                ->orWhere('warehouse_st_id', '=', $warehouse_st_id);
                         })
                         ->where(function($query) use ($data) {
                             $query->where('product_stocks.ps_barcode', '=', $data->ps_barcode)
                                 ->orWhere('ps2.ps_barcode', '=', $data->ps_barcode);
                         })
-                        ->whereIn('product_location_setup_transactions.plst_status', ['WAITING ONLINE', 'WAITING TO TAKE'])
+                        ->whereIn('product_location_setup_transactions.plst_status', ['WAITING ONLINE', 'WAITING TO TAKE', 'UNDER REVIEW'])
                         ->count();
 
                     $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->sum('plst_qty');
@@ -275,7 +292,7 @@ class TransaksiOnlineController extends Controller
                     return '<div class="d-flex flex-column align-items-center">
                                 <span class="badge badge-warning mb-1">Stock: ' . $total_stock-$total_waiting . '</span>
                                 <div>
-                                    <button class="btn btn-sm btn-secondary me-1" onclick="pickItems(\'' . $data->to_id . '\', \'' . $data->ps_barcode . '\', \'' . $data->otd_id . '\', \'' . $data->to_qty . '\')" ' . ($cek_pick >= $data->to_qty ? 'disabled' : '') . '>
+                                    <button class="btn btn-sm btn-secondary me-1" onclick="pickItems(\'' . $warehouse_st_id . '\',\'' . $data->to_id . '\', \'' . $data->ps_barcode . '\', \'' . $data->otd_id . '\', \'' . $data->to_qty . '\')" ' . ($cek_pick >= $data->to_qty ? 'disabled' : '') . '>
                                         <i class="fas fa-hand-paper"></i> Pick
                                     </button>
                                 </div>
@@ -769,6 +786,7 @@ class TransaksiOnlineController extends Controller
     }
 
     public function pickItems(Request $request){
+        $warehouse_st_id = $request->warehouse_st_id;
         $to_id = $request->to_id;
         $ps_barcode = $request->sku;
         $otd_id = $request->to_detail_id;
@@ -837,6 +855,7 @@ class TransaksiOnlineController extends Controller
                     'u_id' => $user_id,
                     'otd_id' => $otd_id,
                     'st_id' => $st_id,
+                    'warehouse_st_id' => $warehouse_st_id,
                     'plst_qty' => 1,
                     'plst_type' => 'OUT',
                     'plst_status' => 'WAITING ONLINE',
@@ -847,6 +866,19 @@ class TransaksiOnlineController extends Controller
                     DB::rollback();
                     return response()->json(['status' => '500', 'message' => 'Failed to create pick item record']);
                 }
+            }
+
+            $items = OnlineTransactionDetails::query()->where('to_id', $to_id)->get();
+            $item_ids = $items->pluck('id')->toArray();
+            $total_qty = $items->sum('qty');
+
+            $all_picked = ProductLocationSetupTransaction::whereIn('otd_id', $item_ids)
+                ->where('plst_status', 'WAITING ONLINE')
+                ->count();
+
+            if ($total_qty == $all_picked) {
+                OnlineTransactions::where('id', $to->id)
+                    ->update(['internal_order_status' => 'WAITING ONLINE']);
             }
 
             DB::commit();
@@ -898,6 +930,7 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
+                    'internal_order_status' => 'NEW TRX'
                 ];
 
                 try {
@@ -1034,6 +1067,7 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
+                    'internal_order_status' => 'NEW TRX'
                 ];
 
                 try {
