@@ -144,7 +144,7 @@ class ExternalAssignmentRequestController extends Controller
             $master = ExternalAssignmentRequest::create([
                 'ea_id'            => $request->ea_id,
                 'request_by'       => Auth::user()->id,
-                'ear_cash_advance' => $request->ear_cash_advance,
+                'ear_cash_advance' => $request->ear_cash_advance ?? 0,
                 'ear_date_start'   => $request->ear_date_start,
                 'ear_date_end'     => $request->ear_date_end,
                 'ear_locations'    => $request->ear_locations,
