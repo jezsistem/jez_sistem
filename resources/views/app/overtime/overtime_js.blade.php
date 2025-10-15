@@ -1,12 +1,19 @@
 <script>
 
     $(document).ready(function() {
-        // Setup DataTable with server-side processing
-        $('#overtimeTable').DataTable({
+        // Inisialisasi DataTable
+        const table = $('#overtimeTable').DataTable({
             processing: true,
             serverSide: true,
             searching: false,
-            ajax: "{{ route('overtime.index.data') }}",
+            ajax: {
+                url: "{{ route('overtime.index.data') }}",
+                data: function (d) {
+                    d.status = $('#status').val();
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
+                }
+            },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'submission_date', name: 'submission_date' },
@@ -28,7 +35,6 @@
                             return `<span class="text-muted">-</span>`;
                         }
 
-                        // Setiap badge punya margin kecil biar longgar
                         return staffArray.map(name =>
                             `<span class="badge bg-success text-dark me-1 mb-1" style="font-size: 12px; padding: 6px 10px;">${name}</span>`
                         ).join('<br>');
@@ -78,9 +84,6 @@
                         return `<span class="badge bg-secondary">${diffHrs} jam ${diffMins} menit</span>`;
                     }
                 },
-                // { data: 'claim', name: 'claim', render: function(data) {
-                //         return data ? parseFloat(data).toLocaleString('id-ID') : '-';
-                //     }},
                 { data: 'claim', name: 'claim' },
                 { data: 'request_by_name', name: 'request_by_name' },
                 { data: 'approved_info', name: 'approved_info' },
@@ -91,6 +94,29 @@
             columnDefs: [
                 { width: '150rem', targets: [4, 5] }
             ]
+        });
+
+        // ==========================
+        // 🔍 Event Filter
+        // ==========================
+
+        // Ketika user submit filter form
+        $('#filterForm').on('submit', function(e) {
+            e.preventDefault();
+            table.ajax.reload();
+        });
+
+        // Atau otomatis reload saat status diubah
+        $('#status').on('change', function() {
+            table.ajax.reload();
+        });
+
+        // Optional: Tombol reset filter
+        $('#resetFilter').on('click', function() {
+            $('#status').val('');
+            $('#start_date').val('');
+            $('#end_date').val('');
+            table.ajax.reload();
         });
     });
 

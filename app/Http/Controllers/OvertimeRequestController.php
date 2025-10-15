@@ -61,6 +61,14 @@ class OvertimeRequestController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
+        $summary = [
+            'total'     => OvertimeRequest::count(),
+            'pending'   => OvertimeRequest::where('status', 'Pending')->count(),
+            'approved'  => OvertimeRequest::where('status', 'Approved')->count(),
+            'hr_check'  => OvertimeRequest::where('status', 'HR Check')->count(),
+            'done'      => OvertimeRequest::where('status', 'Done')->count(),
+        ];
+
 
         $data = [
             'title' => $title,
@@ -70,7 +78,7 @@ class OvertimeRequestController extends Controller
             'segment' => request()->segment(1),
         ];
 
-        return view('app.overtime.index', compact('data'));
+        return view('app.overtime.index', compact('data', 'summary'));
     }
 
     public function create()
@@ -173,6 +181,7 @@ class OvertimeRequestController extends Controller
                 'o.end_date',
                 'o.end_time',
                 'ot.ot_name as claim',
+                'o.status',
                 'o.attachment',
                 'o.approved_by',
                 'o.approved_at',
@@ -180,6 +189,21 @@ class OvertimeRequestController extends Controller
                 'o.created_at'
             )
             ->orderByDesc('o.id');
+
+        // =============================
+        // 🔍 Filter Section
+        // =============================
+        if ($request->status) {
+            $data->where('o.status', $request->status);
+        }
+
+        if ($request->start_date) {
+            $data->whereDate('o.start_date', '>=', $request->start_date);
+        }
+
+        if ($request->end_date) {
+            $data->whereDate('o.end_date', '<=', $request->end_date);
+        }
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -215,7 +239,9 @@ class OvertimeRequestController extends Controller
             })
             ->addColumn('action', function ($row) {
                 return '
-                <a href="'.route('overtime.show', $row->id).'" class="btn btn-sm btn-info">View</a>
+                <a href="' . route('overtime.show', $row->id) . '" class="btn btn-sm btn-info">
+                    <i class="fa fa-eye"></i> View
+                </a>
             ';
             })
             ->rawColumns(['approved_info', 'action', 'assigned_staff'])

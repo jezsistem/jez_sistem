@@ -1406,7 +1406,7 @@
                     jQuery.noConflict();
 
                     if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
+                        $("#MassUpdateModal").modal('hide');
                         toastr.success('Data berhasil diimpor', 'Berhasil');
                         $('#f_import')[0].reset();
                         product_table.ajax.reload();
@@ -1469,9 +1469,14 @@
                                         });
                                 }
                             });
+                        } else {
+                            $("#MassUpdateModal").modal('hide');
+                            toastr.warning(
+                                data.message || 'Silahkan periksa format input pada template Anda, pastikan kolom biru terisi sesuai dengan sistem',
+                                'Peringatan');
                         }
                     }
-                    
+                    $("#MassUpdateModal").modal('hide');
                 },
                 error: function(data) {
                     console.log(data);

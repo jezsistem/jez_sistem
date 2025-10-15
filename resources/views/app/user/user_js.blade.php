@@ -330,6 +330,10 @@
                     name: 'pick_access',
                 },
                 {
+                    data: 'manual_attendance_access',
+                    name: 'manual_attendance_access'
+                },
+                {
                     data: 'action',
                     name: 'action'
                 },
@@ -767,7 +771,7 @@
                 }
             });
         });
-        
+
         $(document).on('change', '.toggle-pickaccess', function() {
             let uid = $(this).data('id');
             let isChecked = $(this).is(':checked') ? 1 : 0;
@@ -778,6 +782,28 @@
                 data: {
                     uid: uid,
                     pick_access: isChecked,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('Data berhasil diubah', 'Berhasil');
+                    // user_table.draw(false);
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengubah status.', 'Gagal');
+                }
+            });
+        });
+
+        $(document).on('change', '.toggle-manual_attendance_access', function() {
+            let uid = $(this).data('id');
+            let isChecked = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: '/update-manual-attendance-access',
+                method: 'POST',
+                data: {
+                    uid: uid,
+                    manual_attendance_access: isChecked,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {

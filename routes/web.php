@@ -1090,6 +1090,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
     Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
 
+
+    // absen manual
+    Route::get('/manual-attendance', [AttendanceController::class, 'manualAttendance'])->name('manual.absensi');
+    Route::post('/attendance/manualStore', [AttendanceController::class, 'manualStore'])->name('attendance.manual-store');
+
     Route::get('/warehouse-index', [WarehouseIndexController::class, 'index'])->name('warehouse.index');
     Route::get('/warehouse_index_datatables', [WarehouseIndexController::class, 'getDatatables'])->name('warehouse.index.datatables');
     Route::post('/warehouse_index_save', [WarehouseIndexController::class, 'storeData'])->name('warehouse.index.store');

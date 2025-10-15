@@ -279,6 +279,7 @@
                                             <th class="text-dark">Status</th>
                                             <th class="text-dark">POS Access</th>
                                             <th class="text-dark">Pick Access</th>
+                                            <th class="text-dark">Manual Attendance Access</th>
                                             <th class="text-dark">Detail</th>
                                         </tr>
                                     </thead>

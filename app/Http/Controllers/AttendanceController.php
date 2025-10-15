@@ -13,6 +13,7 @@ use App\Models\DailySchedule;
 use App\Exports\AttendanceExport;
 use App\Exports\StaffAttendanceExport;
 use App\Exports\AttendanceSummaryExport;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
@@ -4149,5 +4150,174 @@ class AttendanceController extends Controller
         }
 
         return response()->json(['error' => 'Invalid request'], 400);
+    }
+
+    public function manualAttendance()
+    {
+
+//        $user = DB::table('users')->where('id', Auth::id())->first();
+//
+//        dd($user);
+
+        if (Auth::user()->manual_attendance_access === 0) {
+            dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
+        }
+
+        $title = "Manual Attendance";
+        $user_data = Auth::user();
+        $date_now = Carbon::now()->toDateString();
+
+        // Cek apakah ada jadwal untuk hari ini
+        $check_schedule = DB::table('daily_schedules')
+            ->where('user_id', Auth::id())
+            ->where('ds_date', $date_now)
+            ->exists();
+
+        $has_attendance = false;
+        $attendance = null;
+        $button_status = [
+            'text' => 'Absen Masuk',
+            'disabled' => false,
+            'class' => 'btn-primary',
+        ];
+
+        // Jika ada jadwal, baru cek absensi
+        if ($check_schedule) {
+            $attendance = DB::table('attendance')
+                ->where('user_id', Auth::id())
+                ->where('at_date', $date_now)
+                ->first();
+
+            if ($attendance) {
+                $has_attendance = true;
+
+                if ($attendance->at_time_in && !$attendance->at_time_out) {
+                    // Sudah absen masuk, tapi belum pulang
+                    $button_status = [
+                        'text' => 'Absen Pulang',
+                        'disabled' => false,
+                        'class' => 'btn-warning',
+                    ];
+                } elseif ($attendance->at_time_in && $attendance->at_time_out) {
+                    // Sudah absen masuk & pulang
+                    $button_status = [
+                        'text' => 'Sudah Absen Hari Ini',
+                        'disabled' => true,
+                        'class' => 'btn-success',
+                    ];
+                }
+            }
+        } else {
+            // Tidak ada jadwal
+            $button_status = [
+                'text' => 'No Schedules at this Day',
+                'disabled' => true,
+                'class' => 'btn-secondary',
+            ];
+        }
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Create New Attendance',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'button_status' => $button_status,
+            'attendance' => $attendance,
+            'check_schedule' => $check_schedule,
+        ];
+
+        return view('app.attendance.manual', compact('data'));
+    }
+
+    public function manualStore(Request $request)
+    {
+        try {
+            $userId = Auth::id();
+            $dateNow = now()->toDateString();
+            $timeNow = now()->format('H:i:s');
+
+            $photoData = $request->photo;
+            $lokasi = $request->lokasi;
+            $alamat = $request->alamat;
+
+            if (!$photoData || !$lokasi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data tidak lengkap, pastikan kamera dan lokasi aktif.',
+                ], 400);
+            }
+
+            // --- Cek apakah sudah ada absen hari ini ---
+            $attendance = DB::table('attendance')
+                ->where('user_id', $userId)
+                ->where('at_date', $dateNow)
+                ->first();
+
+            // --- Pastikan folder penyimpanan ada ---
+            $folder = 'public/attendance/' . $userId;
+            if (!Storage::exists($folder)) {
+                Storage::makeDirectory($folder, 0755, true);
+            }
+
+            // --- Decode foto base64 ---
+            $imageParts = explode(";base64,", $photoData);
+            $imageBase64 = base64_decode($imageParts[1]);
+            $fileName = 'att_' . $userId . '_' . now()->format('Ymd_His') . '.jpg';
+            $filePath = $folder . '/' . $fileName;
+            Storage::put($filePath, $imageBase64);
+
+            $daily_schedule_id = DB::table('daily_schedules')->where('user_id', Auth::id())->where('ds_date', $dateNow)->first();
+
+            if (!$attendance) {
+                // ======== ABSEN MASUK =========
+                DB::table('attendance')->insert([
+                    'daily_schedule_id' => $daily_schedule_id->id,
+                    'user_id' => $userId,
+                    'at_date' => $dateNow,
+                    'at_time_in' => $timeNow,
+                    'at_location_in' => $lokasi,
+                    'at_photos_in' => 'attendance/' . $userId . '/' . $fileName,
+                    'at_address_attendance' => $alamat,
+                    'at_status' => 'present',
+                    'at_source' => 'webcam',
+                    'created_by' => Auth::user()->name ?? 'system',
+                    'created_at' => now(),
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Absen masuk berhasil disimpan',
+                ]);
+            } else {
+                // ======== ABSEN PULANG =========
+                if ($attendance->at_time_out) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Kamu sudah melakukan absen pulang hari ini.',
+                    ], 400);
+                }
+
+                DB::table('attendance')
+                    ->where('id', $attendance->id)
+                    ->update([
+                        'at_time_out' => $timeNow,
+                        'at_location_out' => $lokasi,
+                        'at_photos_out' => 'attendance/' . $userId . '/' . $fileName,
+                        'updated_by' => Auth::user()->name ?? 'system',
+                        'updated_at' => now(),
+                    ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Absen pulang berhasil disimpan',
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

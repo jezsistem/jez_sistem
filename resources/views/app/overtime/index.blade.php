@@ -6,6 +6,105 @@
             <div class="row">
                 <div class="col-12">
 
+                    {{-- ========================= SUMMARY CARDS ========================= --}}
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-4">
+                            <div class="card card-custom rounded-lg bg-light">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="symbol symbol-40 mr-4">
+                            <span class="symbol-label text-dark">
+                                <i class="fa fa-list text-dark"></i>
+                            </span>
+                                    </div>
+                                    <div>
+                                        <div class="text-dark font-weight-bold font-size-h5">{{ $summary['total'] ?? 0 }}</div>
+                                        <div class="text-dark-50">Total Requests</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-4">
+                            <div class="card card-custom rounded-lg bg-warning">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="symbol symbol-40 mr-4">
+                            <span class="symbol-label bg-white text-dark">
+                                <i class="fa fa-hourglass-half text-dark"></i>
+                            </span>
+                                    </div>
+                                    <div>
+                                        <div class="text-dark font-weight-bold font-size-h5">{{ $summary['pending'] ?? 0 }}</div>
+                                        <div class="text-dark-50">Pending</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-4">
+                            <div class="card card-custom rounded-lg bg-success text-white">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="symbol symbol-40 mr-4">
+                            <span class="symbol-label bg-white text-success">
+                                <i class="fa fa-check-circle text-success"></i>
+                            </span>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-weight-bold font-size-h5">{{ $summary['approved'] ?? 0 }}</div>
+                                        <div class="text-white-50">Approved</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-4">
+                            <div class="card card-custom rounded-lg bg-info text-white">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="symbol symbol-40 mr-4">
+                            <span class="symbol-label bg-white text-info">
+                                <i class="fa fa-user-check text-info"></i>
+                            </span>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-weight-bold font-size-h5">{{ $summary['hr_check'] ?? 0 }}</div>
+                                        <div class="text-white-50">HR Check</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ========================= FILTER FORM ========================= --}}
+                    <div class="card mb-5">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fa fa-filter"></i> Filters</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="filterForm" class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label for="status">Status</label>
+                                    <select class="form-control" id="status" name="status">
+                                        <option value="">All</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="HR Check">HR Check</option>
+                                        <option value="Done">Done</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="start_date">Start Date</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="end_date">End Date</label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date">
+                                </div>
+                                <div class="col-md-3 mb-3 align-self-end">
+                                    <button type="submit" class="btn btn-primary w-100"><i class="fa fa-search"></i> Apply</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">Overtime Requests</h4>
