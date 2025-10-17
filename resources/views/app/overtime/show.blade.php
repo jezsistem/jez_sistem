@@ -11,7 +11,6 @@
             <a href="{{ route('overtime.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
-            <h4 class="mb-0">Detail Overtime Request</h4>
         </div>
 
         <!-- ========================= CARD DETAIL ========================= -->
