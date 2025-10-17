@@ -86,6 +86,7 @@
                                         <option value="">All</option>
                                         <option value="Pending">Pending</option>
                                         <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
                                         <option value="HR Check">HR Check</option>
                                         <option value="Done">Done</option>
                                     </select>
@@ -127,7 +128,8 @@
                                         <th>Duration</th>
                                         <th>Claim Type</th>
                                         <th>Requested By</th>
-                                        <th>Approval</th>
+                                        <th>Approver</th>
+                                        <th>Status</th>
                                         <th>Created At</th>
                                         <th width="100">Action</th>
                                     </tr>
