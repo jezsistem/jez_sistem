@@ -1,8 +1,18 @@
 @extends('app.structure')
 @section('content')
 
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <div class="container">
         <h4 class="mb-4">Detail Overtime Request</h4>
+
+        <!-- Tombol Back -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ route('overtime.index') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h4 class="mb-0">Detail Overtime Request</h4>
+        </div>
 
         <!-- ========================= CARD DETAIL ========================= -->
         <div class="card shadow-sm mb-4">
