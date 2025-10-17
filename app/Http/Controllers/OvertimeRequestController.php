@@ -330,7 +330,7 @@ class OvertimeRequestController extends Controller
         return view('app.overtime.show', compact('detail', 'data', 'isManager', 'isHR'));
     }
 
-    public function approve($id)
+    public function approve(Request $request,$id)
     {
         $userId = Auth::id();
 
@@ -339,7 +339,7 @@ class OvertimeRequestController extends Controller
             ->update([
                 'approved_by' => $userId,
                 'approved_at' => now(),
-                'status' => 'Approved'
+                'status' => $request->action
             ]);
 
         return response()->json(['success' => true]);
