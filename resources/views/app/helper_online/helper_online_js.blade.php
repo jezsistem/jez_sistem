@@ -3,6 +3,8 @@
     let chat_status = 'closed';
     let ot_id = null;
     var detail_table = '';
+    var transactionId = '';
+    var modal_opened = null;
 
     function openChat($trx_id) {
         jQuery.noConflict();
@@ -43,7 +45,7 @@
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
             html += `
-                <div class="col-md-4 mb-4 text-left" id="transaction_card" data-transaction_id=${transaction.transaction_id} style="cursor: pointer;">
+                <div class="col-md-4 mb-4 text-left" id="transaction_card" data-transaction_id=${transaction.transaction_id} data-order_number=${transaction.order_number} style="cursor: pointer;">
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
@@ -217,6 +219,8 @@
 
         startChatPolling();
 
+
+
         var helper_online_table = $('#helper_online_table').DataTable({
             processing: true,
             serverSide: true,
@@ -259,11 +263,400 @@
             ]
         });
 
-        $(document).on('click', '#transaction_card', function() {
-            var transactionId = $(this).data('transaction_id');
-            // Add your logic here to handle the click event, e.g., open a modal or redirect
-            console.log('Transaction ID:', transactionId);
+        var online_items_table = $('#online_items_table').DataTable({
+            destroy: true,
+            processing: false,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('/helper_online_get_online_items') }}",
+                data: function(d) {
+                    d.ot_id = transactionId;
+                }
+            },
+            columns: [{
+                data: 'item',
+                name: 'item',
+            }],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-left",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
         });
+
+        $('#close_scan_out_modal').on('click', function() {
+            $('#sku_send').val('');
+            $('#bin_out_search').val('');
+            $('#binTable tbody').empty();
+            $('#sku_search').remove();
+            $('#bin_out_search').prop('disabled', false);
+        });
+
+        $(document).on('click', '#transaction_card', function(e) {
+            transactionId = $(this).data('transaction_id');
+            orderNumber = $(this).data('order_number');
+            scanner_scan_bin_out.clear();
+            e.preventDefault();
+            modal_opened = 'ScanOutModal';
+            jQuery.noConflict();
+            $('#OnlineItemsModalLabel').text('Order Number: ' + orderNumber);
+            $('#OnlineItemsModal').modal('show');
+            online_items_table.draw();
+        });
+
+        $(document).on('click', '.ambil-dari-bin', function(e) {
+            var pl_code = $(this).data('pl_code');
+            var bin_id = $(this).data('bin_id');
+            $('#bin_out_search').focus().val(pl_code).data('bin_id', bin_id);
+
+            // Trigger keyup event with ENTER key using native KeyboardEvent
+            var event = new KeyboardEvent('keyup', {
+                key: 'Enter',
+                keyCode: 13,
+                which: 13,
+                bubbles: true,
+                cancelable: true
+            });
+            document.getElementById('bin_out_search').dispatchEvent(event);
+        });
+
+        $(document).on('click', '#pick_get_bin_products', function(e) {
+            e.preventDefault();
+
+            let plst_id = $(this).data('plst_id');
+            let qty = $(this).data('qty');
+            let sku = $(this).data('sku');
+            let p_name = $(this).data('p_name');
+
+            console.log("SKU:", sku);
+
+            $('#sku_selected').text(sku);
+
+            // AJAX ambil data BIN
+            $.ajax({
+                url: "{{ url('helper_online_get_bin') }}",
+                method: 'GET',
+                data: {
+                    warehouse_id: $(this).data('warehouse_st_id'),
+                    pst_id: $(this).data('pst_id'),
+                },
+                success: function(response) {
+                    // Kosongkan isi tabel
+                    $('#binTable tbody').empty();
+
+                    // Masukkan data BIN ke tabel
+                    $.each(response.data, function(index, bin) {
+                        $('#binTable tbody').append(`
+                        <tr>
+                            <td>${bin.pl_code}</td>
+                            <td>${bin.pls_qty}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm ambil-dari-bin"
+                                        data-bin_id="${bin.pls_id}"
+                                        data-pl_code="${bin.pl_code}">
+                                    Ambil
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                    });
+
+                    // Set nama produk
+                    $('#product_name').text(p_name);
+                    $('#plst_id').text(plst_id);
+
+
+                    modal_opened = 'binModal';
+                    // Tampilkan modal
+                    $('#binModal').modal('show');
+                    // scan_in_table.draw();
+                    scanner_scan_bin_out.render(success, error);
+
+                }
+            });
+        });
+
+        $(document).on('click', '#submit_qc', function(e) {
+            e.preventDefault();
+
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    denyButton: "btn btn-danger",
+                    cancelButton: "btn btn-secondary"
+                },
+                buttonsStyling: false
+            });
+
+            swalWithBootstrapButtons.fire({
+                title: "QC Confirmation",
+                text: "Apakah lolos QC?",
+                icon: "warning",
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: "Ya",
+                denyButtonText: "Tidak",
+                cancelButtonText: "Batal",
+                customClass: {
+                    denyButton: "bg-danger text-white border py-2 px-4 rounded mr-2 mt-15 fs-5",
+                    confirmButton: "bg-success text-white border border-success py-2 px-4 rounded mt-15 fs-5",
+                    cancelButton: "bg-secondary border py-2 px-4 rounded mr-32 mt-15 fs-5"
+                },
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Handle "Ya" (passed QC)
+                    $.ajax({
+                        url: "{{ url('qc_confirmation') }}",
+                        type: 'POST',
+                        data: {
+                            plst_id: transactionId,
+                            qc_status: 'passed',
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.status === '200') {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Success",
+                                    text: "Produk lolos QC",
+                                    icon: "success"
+                                });
+                                online_items_table.draw();
+                            } else {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Error",
+                                    text: "Gagal menyimpan hasil QC",
+                                    icon: "error"
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            swalWithBootstrapButtons.fire({
+                                title: "Error",
+                                text: "Terjadi kesalahan saat menyimpan hasil QC",
+                                icon: "error"
+                            });
+                        }
+                    });
+                } else if (result.isDenied) {
+                    // Handle "Tidak" (failed QC)
+                    swalWithBootstrapButtons.fire({
+                        title: "Info",
+                        text: "Produk tidak lolos QC",
+                        icon: "info"
+                    });
+                }
+                // Cancel button will automatically close the dialog without further action
+            });
+        });
+
+        $('#bin_out_search').on('keyup', function(event) {
+            let searchText = $(this).val().toLowerCase();
+            let bin_search = $(this).val();
+            let bin_id = $(this).data('bin_id');
+            let matchingRows = [];
+
+            let bin = bin_search;
+
+            $('#binTable tbody tr').each(function() {
+                let binText = $(this).find('td:first').text().toLowerCase();
+
+                if (binText.includes(searchText)) {
+                    $(this).show();
+                    matchingRows.push(this);
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            if (event.key === 'Enter') {
+                if (matchingRows.length === 1) {
+                    // Disable BIN input dan trigger klik
+                    $('#bin_out_search').prop('disabled', true);
+                    $(matchingRows[0]).find('.ambil-dari-bin').trigger('click');
+
+                    let selectedRow = $(matchingRows[0]);
+                    let validSku = document.getElementById('sku_selected').textContent;
+                    let plst_id = document.getElementById('plst_id').textContent;
+                    let product_name = document.getElementById('product_name').textContent;
+
+                    let bin_name = $('#bin_out_search').val();
+
+                    // Tambahkan input SKU
+                    if ($('#sku_search').length === 0) {
+                        $('#bin_out_search').after(`
+                    <input type="text" id="sku_search" class="form-control mt-2" placeholder="Scan / Ketik SKU...">
+                `);
+                    }
+
+                    // var sku_send = $('#sku_send').val(validSku)
+
+                    $('#sku_search').focus().on('keyup', function(e) {
+                        if (e.key === 'Enter') {
+                            let enteredSku = $(this).val();
+
+                            if (enteredSku === validSku) {
+                                swal({
+                                    title: "Keluar..?",
+                                    text: "Yakin keluarin produk " + product_name +
+                                        " dari BIN " + bin_name + " ?",
+                                    icon: "warning",
+                                    buttons: [
+                                        'Batal',
+                                        'Yakin'
+                                    ],
+                                    dangerMode: false,
+                                }).then(function(isConfirm) {
+                                    if (isConfirm) {
+                                        $.ajaxSetup({
+                                            headers: {
+                                                'X-CSRF-TOKEN': $(
+                                                    'meta[name="csrf-token"]'
+                                                ).attr('content')
+                                            }
+                                        });
+
+                                        $.ajax({
+                                            type: "POST",
+                                            data: {
+                                                // cari ini
+                                                _sku: enteredSku,
+                                                _bin: bin,
+                                                _bin_id: bin_id,
+                                                _plst_qty: 1,
+                                                _plst_id: plst_id,
+                                                _status: status
+                                            },
+                                            dataType: 'json',
+                                            url: "{{ url('helper_online_pick_item') }}",
+                                            success: function(r) {
+                                                if (r.status == '200') {
+                                                    online_items_table
+                                                        .draw();
+                                                    $('#binModal').modal(
+                                                        'hide');
+
+                                                    $('#sku_send').val('');
+                                                    $('#bin_out_search')
+                                                        .val('');
+                                                    $('#binTable tbody')
+                                                        .empty();
+                                                    $('#sku_search')
+                                                        .remove();
+                                                    $('#bin_out_search')
+                                                        .prop('disabled',
+                                                            false);
+
+                                                    swal({
+                                                        title: 'Berhasil',
+                                                        text: ' berhasil dikeluarkan',
+                                                        icon: 'success',
+                                                        button: 'OK',
+                                                    });
+                                                } else {
+                                                    swal('Gagal',
+                                                        'Gagal keluar produk',
+                                                        'error');
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'SKU tidak ditemukan',
+                                    text: 'SKU tidak cocok dengan BIN yang dipilih!',
+                                });
+                            }
+                        }
+                    });
+
+                } else if (matchingRows.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'BIN tidak ditemukan',
+                        text: 'Pastikan kode BIN yang kamu masukkan benar!',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Terlalu banyak hasil',
+                        text: 'Lebih dari satu BIN cocok. Harap perjelas pencarian.',
+                    });
+                }
+            }
+        });
+
+        function initializeScanner(elementId) {
+            return new Html5QrcodeScanner(elementId, {
+                // Scanner will be initialized in DOM inside the element with the given id
+                qrbox: {
+                    width: 250,
+                    height: 250,
+                },
+                fps: 30,
+            });
+        }
+
+        // Example usage for multiple modals
+        // let scanner_scan_out = initializeScanner('reader_scan_out');
+        let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
+        let scanner_scan_in = initializeScanner('reader_scan_in');
+        let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
+        let scanner_pick_online = initializeScanner('reader_pick_online');
+        let scanner_take_transfer = initializeScanner('reader_take_transfer');
+        let scanner_scan_default = initializeScanner('reader_default');
+        //
+
+        var scan_timer = null;
+
+        function success(result) {
+            if (scan_timer) {
+                clearTimeout(scan_timer);
+            }
+
+            scan_timer = setTimeout(function() {
+                var hasil = result;
+
+                if (hasil.startsWith(']C1')) {
+                    hasil = hasil.replace(']C1', '');
+                }
+
+                if (modal_opened == 'binModal') {
+                    // alert(hasil);
+                    $('#sku_search').focus().val(hasil);
+
+                    // Trigger keyup event with ENTER key using native KeyboardEvent
+                    var event = new KeyboardEvent('keyup', {
+                        key: 'Enter',
+                        keyCode: 13,
+                        which: 13,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    document.getElementById('sku_search').dispatchEvent(event);
+                    // scan_in_refund_table.ajax.reload();
+
+                } else {
+                    alert('Scanner aktif di modal: ' + modal_opened);
+                }
+
+            }, 1000); // Add a delay of 1s to prevent spamming
+        }
+
+        function error(err) {
+            console.error(err);
+        }
+        //
+        // function console_log(result) {
+        //     console.log(result);
+        // }
 
 
 

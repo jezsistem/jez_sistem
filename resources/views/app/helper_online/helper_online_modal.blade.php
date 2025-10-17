@@ -125,6 +125,85 @@
     </div>
 </div>
 
+<!-- Online Items Modal -->
+<div class="modal fade" id="OnlineItemsModal" tabindex="-1" aria-labelledby="OnlineItemsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="OnlineItemsModalLabel"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body table-responsive">
+                <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
+                <table class="table table-hover table-checkable table-striped" id="online_items_table">
+                    <thead class="bg-dark text-light">
+                    <tr>
+                        <th class="text-dark">Artikel</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="binModal" tabindex="-1" role="dialog" aria-labelledby="binModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pilih BIN <span id="product_name"></span>-<span id="plst_id"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="pl_id_out_parent"></div>
+                <br>
+                <div class="d-flex justify-content-center">
+                    <div>
+                        <div id="reader_scan_bin_out" class="rounded" style="max-width: 500px;"></div>
+                        <div id="result"></div>
+                    </div>
+                </div>
+
+                <span>SKU : </span><span id="sku_selected"></span>
+                <input type="hidden" id="sku_send">
+{{--                <input type="text" id="" value="">--}}
+{{--                <input type="text" id="" value="">--}}
+{{--                <input type="text" id="" value="">--}}
+{{--                <input type="text" id="" value="">--}}
+                <input type="search" class="form-control mt-3" id="bin_out_search" placeholder="Cari nama bin"/><br>
+                <table class="table table-bordered" id="binTable">
+                    <thead>
+                    <tr>
+                        <th>BIN</th>
+                        <th>QTY</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Data BIN akan diisi di sini -->
+                    </tbody>
+                </table>
+                <div class="text-right mt-3">
+                    {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>--}}
+                    <button type="button" class="btn btn-dark font-weight-bold" id="close_scan_out_modal" data-dismiss="modal">Selesai</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .chat-container {
     height: 70vh;

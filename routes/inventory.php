@@ -385,4 +385,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('helper_online', [HelperOnlineController::class, 'index'])->name('helper_online');
     Route::get('helper_online_datatables', [HelperOnlineController::class, 'getDatatables']);
     Route::get('helper_online_get_picked_item', [HelperOnlineController::class, 'getListPickedOnline']);
+    Route::get('helper_online_get_online_items', [HelperOnlineController::class, 'getOnlineItems']);
+    Route::get('helper_online_get_bin', [HelperOnlineController::class, 'getBin']);
+    Route::post('helper_online_pick_item', [HelperOnlineController::class, 'pickItem']);
 });

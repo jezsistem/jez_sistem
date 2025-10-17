@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserActivity;
 use App\Models\WarehouseIndex;
 use App\Models\WebConfig;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -104,7 +105,8 @@ class HelperOnlineController extends Controller
             ->orderBy('online_transactions.order_date_created', 'DESC');
     }
 
-    public function getListPickedOnline(Request $request) {
+    public function getListPickedOnline(Request $request)
+    {
         $st_id = $request->get('st_id');
         $status_filter = $request->get('status_filter');
         $order_number = $request->get('order_number');
@@ -124,19 +126,154 @@ class HelperOnlineController extends Controller
                 'no_resi',
                 DB::raw('SUM(ts_online_transaction_details.qty) AS total_picked'),
                 DB::raw('(select COUNT(*)
-                from ts_online_transaction_chat_history where is_amp=1 and is_readed=0 and ot_id=ts_online_transactions.id) AS unreaded_chat'))
+                from ts_online_transaction_chat_history where is_amp=1 and is_readed=0 and ot_id=ts_online_transactions.id) AS unreaded_chat')
+            )
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
             ->when($status_filter, function ($query, $status_filter) {
                 $query->where('online_transactions.internal_order_status', $status_filter);
             })
             ->when($order_number, function ($query, $order_number) {
                 $query->where('online_transactions.order_number', 'like', '%' . $order_number . '%')
-                ->orWhere('no_resi', 'like', '%' . $order_number . '%');
+                    ->orWhere('no_resi', 'like', '%' . $order_number . '%');
             })
             ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
             ->orderBy('picked_time', 'asc')
-            ->get();        
+            ->get();
 
         return response()->json($transactions);
+    }
+
+    public function getOnlineItems(Request $request)
+    {
+        $transaction_id = $request->get('ot_id');
+
+        $items = DB::table('online_transactions')
+            ->join('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+            ->leftJoin('product_location_setup_transactions', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+            ->join('product_stocks', 'online_transaction_details.sku', '=', 'product_stocks.ps_barcode')
+            ->leftJoin('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
+            ->join('products', 'product_stocks.p_id', '=', 'products.id')
+            ->join('brands', 'products.br_id', '=', 'brands.id')
+            ->select(
+                'online_transactions.order_number',
+                'online_transaction_details.id as otd_id',
+                'online_transaction_details.sku as ps_barcode',
+                'product_location_setup_transactions.id as plst_id',
+                'product_location_setup_transactions.plst_status',
+                'product_location_setup_transactions.plst_qty',
+                'products.p_name',
+                'products.p_color',
+                'product_location_setup_transactions.created_at as plst_created',
+                'sizes.sz_name',
+                'brands.br_name',
+                'product_location_setup_transactions.id as plst_id',
+                DB::raw('(select SUM(pls_qty) from ts_product_location_setups join ts_product_locations on ts_product_locations.id = pl_id where ts_product_location_setups.pst_id = ts_product_location_setup_transactions.pst_id and ts_product_locations.st_id = warehouse_st_id and pl_freeze=0) as current_qty'),
+                'product_location_setup_transactions.warehouse_st_id',
+                'product_location_setup_transactions.pst_id as pst_id',
+                'product_location_setup_transactions.pls_id as pls_id'
+            )
+            ->where('online_transactions.id', $transaction_id)
+            ->get();
+
+        return datatables()->of($items)
+            ->addColumn('item', function ($data) {
+                $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
+                $dateTime = $data->plst_created; // '2024-08-07 14:13:46'
+                $time = Carbon::parse($dateTime)->format('H:i:s'); // '14:13:46'
+                $items = '
+                ' . (function () use ($data) {
+                    $statusClasses = [
+                        'WAITING ONLINE' => 'warning',
+                        'UNDER REVIEW' => 'secondary',
+                        'WAITING RECEIPT' => 'primary',
+                        'WAITING PACKING' => 'danger'
+                    ];
+                    $badgeClass = $statusClasses[$data->plst_status] ?? 'secondary';
+                    return '<span class="badge badge-' . $badgeClass . '" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>';
+                })() . '
+                <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/><span style="white-space: nowrap; font-weight:bold; font-size: 10px;">' . $time . ' </span><br/>
+                <div class="d-flex justify-content-between align-items-center">
+                <div>
+                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->plst_qty . '</span>
+                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Stok : ' . $data->current_qty . '</span>
+                </div>';
+
+                if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id == null) {
+                    $items .= '<a class="btn btn-sm btn-success ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="pick_get_bin_products" style="font-weight:bold;">Ambil</a>';
+                }
+
+                if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id) {
+                    $items .= '<a class="btn btn-sm btn-dark ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="submit_qc" style="font-weight:bold;">Under QC</a>';
+                }
+
+                $items .= '</div>';
+
+                return $items;
+            })
+            ->rawColumns(['item'])
+            ->make(true);
+    }
+
+    public function getBin(Request $request)
+    {
+        $warehouse_st_id = $request->get('warehouse_id');
+        $pst_id = $request->get('pst_id');
+
+        $bins = DB::table('product_location_setups')
+            ->select('pls_qty', 'pl_code', 'product_location_setups.id as pls_id')
+            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->where('product_location_setups.pst_id', $pst_id)
+            ->where('product_locations.st_id', $warehouse_st_id)
+            ->where('pls_qty', '!=', 0)
+            ->get();
+
+        return response()->json(['data' => $bins]);
+    }
+
+    public function pickItem(Request $request)
+    {
+        //        $pls_id = $request->_pls_id;
+        $plst_id = $request->_plst_id;
+        $sku = $request->_sku;
+        $bin = $request->_bin;
+        $bin_id = $request->_bin_id; // New variable to hold bin_id
+        $u_id = Auth::user()->id;
+        $plst_qty = $request->_plst_qty;
+        //        dd($plst_id, $sku, $bin);
+
+        //pst_id
+        $pst_id = DB::table('product_stocks')->where('ps_barcode', $sku)->first()->id;
+
+        //pl_id selected
+        // $pl_id_selected = DB::table('product_locations')->where('pl_code', "=", "$bin")->first()->id;
+
+        //get pls_id
+        $pls_id_selected = DB::table('product_location_setups')->where('id', $bin_id)->where('pst_id', $pst_id)->first()->id;
+
+        $update_pls = DB::table('product_location_setups')->where('id', $pls_id_selected)
+            ->update([
+                'pls_qty' => DB::raw("pls_qty - $plst_qty"),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+        if ($update_pls) {
+            $update_plst = DB::table('product_location_setup_transactions')->where('id', $plst_id)
+                ->whereIn('plst_status', ['WAITING ONLINE'])->update([
+                    'u_id_helper' => $u_id,
+                    'plst_type' => 'OUT',
+                    'pls_id'        => $pls_id_selected,
+                    'plst_status' => 'WAITING ONLINE',
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'move_store_time' => date('Y-m-d H:i:s')
+                ]);
+
+
+            if ($update_plst) {
+                $r['status'] = '200';
+            } else {
+                $r['status'] = '400';
+            }
+            return json_encode($r);
+        }
     }
 }
