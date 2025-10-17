@@ -1,0 +1,33 @@
+#!/bin/bash
+# migrate_15.sh
+# Jalankan semua migration tertentu secara manual dengan php artisan migrate --path
+
+echo "=== Menjalankan migrasi spesifik ==="
+
+php artisan migrate --path=database/migrations/2025_09_27_122929_add_pst_id_and_ba_cogs_column_to_bin_adjustments_table.php
+php artisan migrate --path=database/migrations/2025_09_28_183533_create_external_assignments_type_table.php
+php artisan migrate --path=database/migrations/2025_09_28_184156_create_external_assignments_requests_table.php
+php artisan migrate --path=database/migrations/2025_09_28_184250_create_external_assignments_request_details_table.php
+php artisan migrate --path=database/migrations/2025_09_29_102841_add_pst_id_and_mad_cogs_and_mad_sell_price_columns_to_mass_adjustment_details_table.php
+php artisan migrate --path=database/migrations/2025_09_30_153801_add_status_and_approval_to_external_assignments_requests_table.php
+php artisan migrate --path=database/migrations/2025_09_30_165156_add_is_everlast_and_is_supersale_and_is_regular_to_products_table.php
+php artisan migrate --path=database/migrations/2025_09_30_171543_make_subcatone_and_subcattwo_nullable_in_products_table.php
+php artisan migrate --path=database/migrations/2025_09_30_182324_add_is_settle_partial_and_pos_note_settle_partial_columns_to_pos_transactions_table.php
+php artisan migrate --path=database/migrations/2025_10_01_002149_add_ear_note_to_external_assignment_requests_table.php
+php artisan migrate --path=database/migrations/2025_10_01_003354_add_external_assignment_requests_cash_detail_table.php
+php artisan migrate --path=database/migrations/2025_10_04_171637_rename_receive_at_column_at_purchase_order_article_detail_statuses_table.php
+php artisan migrate --path=database/migrations/2025_10_04_211716_add_bank_general_colum_to_purchase_orders_table.php
+php artisan migrate --path=database/migrations/2025_10_05_172854_change_date_to_datetime_on_arrived_at_to_purchase_order_article_detail_statuses_table.php
+php artisan migrate --path=database/migrations/2025_10_06_164757_update_ts_external_assignment_request_details_table.php
+php artisan migrate --path=database/migrations/2025_10_07_143223_create_external_assignment_request_reports_table.php
+php artisan migrate --path=database/migrations/2025_10_07_173438_add_notes_to_external_assignment_requests_table.php
+php artisan migrate --path=database/migrations/2025_10_08_140625_create_overtime_requests_table.php
+php artisan migrate --path=database/migrations/2025_10_09_160247_add_ear_finance_uploads_to_external_assignment_requests_table.php
+php artisan migrate --path=database/migrations/2025_10_13_115936_add_p_turnoverclass_column_to_products_table.php
+php artisan migrate --path=database/migrations/2025_10_14_114223_create_overtime_types_table.php
+php artisan migrate --path=database/migrations/2025_10_14_114935_alter_overtimes_change_claim_to_ot_id.php
+php artisan migrate --path=database/migrations/2025_10_14_131617_alter_overtime_request_add_column_report_desc.php
+php artisan migrate --path=database/migrations/2025_10_14_174522_add_location_and_photo_to_attendance_table.php
+php artisan migrate --path=database/migrations/2025_10_14_234312_add_manual_attendance_access_column_to_users_table.php
+
+echo "=== Semua migrasi selesai ==="
