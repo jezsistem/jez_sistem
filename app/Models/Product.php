@@ -156,7 +156,7 @@ class Product extends Model
         'p_purchase_price',
         'bestseller',
         'mp_best_seller',
-        'completenet',
+        'complement',
         'consigment',
         'mp_stock_masking',
         'is_everlast',
