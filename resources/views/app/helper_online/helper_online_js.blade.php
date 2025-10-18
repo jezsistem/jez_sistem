@@ -412,10 +412,10 @@
                 if (result.isConfirmed) {
                     // Handle "Ya" (passed QC)
                     $.ajax({
-                        url: "{{ url('qc_confirmation') }}",
+                        url: "{{ url('helper_online_quality_check_item') }}",
                         type: 'POST',
                         data: {
-                            plst_id: transactionId,
+                            plst_id: $(this).data('plst_id'),
                             qc_status: 'passed',
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
@@ -438,17 +438,44 @@
                         error: function(xhr, status, error) {
                             swalWithBootstrapButtons.fire({
                                 title: "Error",
-                                text: "Terjadi kesalahan saat menyimpan hasil QC",
+                                text: "Terjadi kesalahan saa    t menyimpan hasil QC",
                                 icon: "error"
                             });
                         }
                     });
                 } else if (result.isDenied) {
                     // Handle "Tidak" (failed QC)
-                    swalWithBootstrapButtons.fire({
-                        title: "Info",
-                        text: "Produk tidak lolos QC",
-                        icon: "info"
+                    $.ajax({
+                        url: "{{ url('helper_online_quality_check_item') }}",
+                        type: 'POST',
+                        data: {
+                            plst_id: $(this).data('plst_id'),
+                            qc_status: 'failed',
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.status === '200') {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Info",
+                                    text: "Produk tidak lolos QC",
+                                    icon: "info"
+                                });
+                                online_items_table.draw();
+                            } else {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Error",
+                                    text: "Gagal menyimpan hasil QC",
+                                    icon: "error"
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            swalWithBootstrapButtons.fire({
+                                title: "Error",
+                                text: "Terjadi kesalahan saat menyimpan hasil QC",
+                                icon: "error"
+                            });
+                        }
                     });
                 }
                 // Cancel button will automatically close the dialog without further action

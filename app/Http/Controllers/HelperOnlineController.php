@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductLocationSetupTransaction;
 use App\Models\Store;
 use App\Models\User;
 use App\Models\UserActivity;
@@ -170,7 +171,8 @@ class HelperOnlineController extends Controller
                 DB::raw('(select SUM(pls_qty) from ts_product_location_setups join ts_product_locations on ts_product_locations.id = pl_id where ts_product_location_setups.pst_id = ts_product_location_setup_transactions.pst_id and ts_product_locations.st_id = warehouse_st_id and pl_freeze=0) as current_qty'),
                 'product_location_setup_transactions.warehouse_st_id',
                 'product_location_setup_transactions.pst_id as pst_id',
-                'product_location_setup_transactions.pls_id as pls_id'
+                'product_location_setup_transactions.pls_id as pls_id',
+                'product_location_setup_transactions.qc_status'
             )
             ->where('online_transactions.id', $transaction_id)
             ->get();
@@ -186,7 +188,8 @@ class HelperOnlineController extends Controller
                         'WAITING ONLINE' => 'warning',
                         'UNDER REVIEW' => 'secondary',
                         'WAITING RECEIPT' => 'primary',
-                        'WAITING PACKING' => 'danger'
+                        'WAITING PACKING' => 'danger',
+                        'INSTOCK'=> 'info'
                     ];
                     $badgeClass = $statusClasses[$data->plst_status] ?? 'secondary';
                     return '<span class="badge badge-' . $badgeClass . '" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>';
@@ -202,8 +205,14 @@ class HelperOnlineController extends Controller
                     $items .= '<a class="btn btn-sm btn-success ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="pick_get_bin_products" style="font-weight:bold;">Ambil</a>';
                 }
 
-                if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id) {
+                if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id && $data->qc_status == ProductLocationSetupTransaction::QC_STATUS_ON_GOING) {
                     $items .= '<a class="btn btn-sm btn-dark ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="submit_qc" style="font-weight:bold;">Under QC</a>';
+                }
+                if ($data->plst_status == 'INSTOCK' && $data->pls_id && $data->qc_status == ProductLocationSetupTransaction::QC_STATUS_FAILED) {
+                    $items .= '<a class="btn btn-sm btn-dark ml-1 disabled" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" style="font-weight:bold; pointer-events: none; opacity: 0.6;">Gagal QC</a>';
+                }
+                if ($data->plst_status == 'WAITING RECEIPT' && $data->pls_id && $data->qc_status == ProductLocationSetupTransaction::QC_STATUS_PASSED) {
+                    $items .= '<a class="ml-1 disabled" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" style="font-weight:bold; pointer-events: none; opacity: 0.6; background-color: #28a745; color: white; border: 1px solid #28a745; padding: 0.25rem 0.5rem; border-radius: 0.2rem; display: inline-block; text-decoration: none;">LOLOS QC</a>';
                 }
 
                 $items .= '</div>';
@@ -264,7 +273,8 @@ class HelperOnlineController extends Controller
                     'pls_id'        => $pls_id_selected,
                     'plst_status' => 'WAITING ONLINE',
                     'updated_at' => date('Y-m-d H:i:s'),
-                    'move_store_time' => date('Y-m-d H:i:s')
+                    'move_store_time' => date('Y-m-d H:i:s'),
+                    'qc_status' => ProductLocationSetupTransaction::QC_STATUS_ON_GOING
                 ]);
 
 
@@ -274,6 +284,68 @@ class HelperOnlineController extends Controller
                 $r['status'] = '400';
             }
             return json_encode($r);
+        }
+    }
+
+    public function qualityCheckItem(Request $request) {
+        $plst_id = $request->plst_id;
+        $qc_status = $request->qc_status;
+
+        DB::beginTransaction();
+        try {
+            $check = DB::table('product_location_setup_transactions')
+                ->where('id', $plst_id)
+                ->where('qc_status', ProductLocationSetupTransaction::QC_STATUS_ON_GOING)
+                ->exists();
+
+            if (!$check) {
+                return response()->json(['status' => '400', 'message' => 'Transaksi tidak ditemukan atau sudah selesai QC.']);
+            }
+
+            if ($qc_status == 'passed'){
+                $update = DB::table('product_location_setup_transactions')
+                    ->where('id', $plst_id)
+                    ->update([
+                        'qc_status' => ProductLocationSetupTransaction::QC_STATUS_PASSED,
+                        'plst_status' => 'WAITING RECEIPT',
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                
+                if ($update) {
+                    DB::commit();
+                    return response()->json(['status' => '200', 'message' => 'Item berhasil melewati QC.']);
+                } else {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status QC.']);
+                }
+            } elseif ($qc_status == 'failed'){
+                $update_plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $plst_id)
+                    ->update([
+                        'qc_status' => ProductLocationSetupTransaction::QC_STATUS_FAILED,
+                        'plst_type' => 'IN',
+                        'plst_status' => 'INSTOCK',
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                
+                $update = DB::table('product_location_setups')
+                    ->where('id', DB::raw("(select pls_id from ts_product_location_setup_transactions where id = $plst_id)"))
+                    ->update([
+                        'pls_qty' => DB::raw("pls_qty + (select plst_qty from ts_product_location_setup_transactions where id = $plst_id)"),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                if ($update && $update_plst) {
+                    DB::commit();
+                    return response()->json(['status' => '200', 'message' => 'Item gagal melewati QC.']);
+                } else {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status QC.']);
+                }
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '400', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
     }
 }

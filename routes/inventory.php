@@ -388,4 +388,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('helper_online_get_online_items', [HelperOnlineController::class, 'getOnlineItems']);
     Route::get('helper_online_get_bin', [HelperOnlineController::class, 'getBin']);
     Route::post('helper_online_pick_item', [HelperOnlineController::class, 'pickItem']);
+    Route::post('helper_online_quality_check_item', [HelperOnlineController::class, 'qualityCheckItem']);
 });
