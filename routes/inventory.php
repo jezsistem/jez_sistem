@@ -389,4 +389,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('helper_online_get_bin', [HelperOnlineController::class, 'getBin']);
     Route::post('helper_online_pick_item', [HelperOnlineController::class, 'pickItem']);
     Route::post('helper_online_quality_check_item', [HelperOnlineController::class, 'qualityCheckItem']);
+    Route::post('helper_online_cancel_pick/{plst_id}', [HelperOnlineController::class, 'cancelPickItem']);
+    Route::get('helper_online_get_waiting_receipt_items', [HelperOnlineController::class, 'waitingReceipt']);
+    Route::post('helper_online_print_resi/{to_id}', [HelperOnlineController::class, 'printResi']);
+    Route::post('helper_online_print_invoice/{to_id}', [HelperOnlineController::class, 'printInvoice']);
+    Route::post('helper_online_scan_packing_single', [HelperOnlineController::class, 'scanPackingSingle']);
+    Route::post('helper_online_scan_packing_bulk', [HelperOnlineController::class, 'scanPackingBulk']);
+    Route::post('helper_online_scan_manifest_bulk', [HelperOnlineController::class, 'scanManifestBulk']);
+    Route::get('helper_online_print_manifest', [HelperOnlineController::class, 'printManifest']);
 });

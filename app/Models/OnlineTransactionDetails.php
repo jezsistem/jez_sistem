@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OnlineTransactionDetails extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'online_transaction_details';
 
@@ -25,6 +26,10 @@ class OnlineTransactionDetails extends Model
         'discount_platform',
         'ns_before_admin',
         'platform_name',
-        'warehouse'
+        'warehouse',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'deleted_at',
     ];
 }

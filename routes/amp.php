@@ -29,6 +29,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('get_chat_history_online_transaction/{id}', [TransaksiOnlineController::class, 'getChatHistoryOnlineTransaction']);
     Route::post('send_chat_history_online_transaction', [TransaksiOnlineController::class, 'sendChatHistoryOnlineTransaction']);
     Route::post('transaksi_online_pick_items', [TransaksiOnlineController::class, 'pickItems']);
+    Route::get('transaksi_online_get_items', [TransaksiOnlineController::class, 'getOnlineTransactionItems']);
+    Route::post('transaksi_online_add_new_item', [TransaksiOnlineController::class, 'addNewItem']);
+    Route::post('transaksi_online_delete_item', [TransaksiOnlineController::class, 'deleteItem']);
+    Route::post('transaksi_online_edit_item', [TransaksiOnlineController::class, 'editItem']);
 
     // Rekap Resi
     /**

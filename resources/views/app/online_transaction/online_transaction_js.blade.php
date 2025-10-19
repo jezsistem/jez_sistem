@@ -20,7 +20,7 @@
         setChatOpenStatus();
         ot_id = null;
         $('.close-modal').trigger('click');
-        
+
     }
 
     function setChatOpenStatus() {
@@ -97,6 +97,57 @@
 
     }
 
+    function deleteItem(otd_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Data yang dihapus tidak dapat dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ url('transaksi_online_delete_item') }}",
+                    type: 'POST',
+                    data: {
+                        otd_id: otd_id,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            Swal.fire(
+                                'Terhapus!',
+                                'Item berhasil dihapus.',
+                                'success'
+                            );
+                            detail_table.draw(false);
+                        } else {
+                            Swal.fire(
+                                'Gagal!',
+                                response.message || 'Terjadi kesalahan saat menghapus item.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire(
+                            'Error!',
+                            'Terjadi kesalahan saat menghapus item.',
+                            'error'
+                        );
+                        console.error('Error deleting item:', error);
+                    }
+                });
+            }
+        });
+    }
+
+
+
+
     document.getElementById('splitForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -108,12 +159,12 @@
         loading.style.display = 'block'; // tampilkan loading
 
         fetch("{{ route('pdf.split') }}", {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: formData
-        })
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
             .then(response => response.json())
             .then(data => {
                 loading.style.display = 'none';
@@ -151,9 +202,11 @@
         const content = $('#historyContent');
 
         modal.modal('show');
-        content.html('<div class="text-center p-4"><div class="spinner-border text-info"></div><p class="mt-2">Memuat data...</p></div>');
+        content.html(
+            '<div class="text-center p-4"><div class="spinner-border text-info"></div><p class="mt-2">Memuat data...</p></div>'
+            );
 
-        fetch('{{ route("split.history.ajax") }}')
+        fetch('{{ route('split.history.ajax') }}')
             .then(res => res.text())
             .then(html => content.html(html))
             .catch(() => content.html('<div class="text-danger p-4 text-center">Gagal memuat data</div>'));
@@ -194,7 +247,7 @@
 
     function pickItems(warehouse_st_id, to_id, sku, to_detail_id, qty) {
         console.log(to_id, sku, to_detail_id, qty);
-        
+
         $.ajax({
             url: "{{ url('transaksi_online_pick_items') }}",
             type: 'POST',
@@ -211,7 +264,7 @@
                     toastr.success('Items picked successfully!');
                     detail_table.draw(false);
                 } else {
-                    toastr.error('Failed to pick items. Please try again.');
+                    toastr.error(response.message || 'Failed to pick items. Please try again.');
                 }
             },
             error: function(xhr, status, error) {
@@ -416,7 +469,7 @@
         $('.close-modal').on('click', function() {
             online_transaction_table.draw(false);
         });
-        
+
         // Event listener untuk dropdown filter st_id_filter
         $('#st_id_filter').on('change', function() {
             online_transaction_table.draw(false); // Memuat ulang tabel tanpa reset halaman
@@ -674,7 +727,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: '<"text-right"l>rt<"text-right"ip>',
+            dom: 'rt<"text-right"ip>',
             buttons: [{
                 "extend": 'excelHtml5',
                 "text": 'Excel',
@@ -765,6 +818,10 @@
                     name: 'warehouse'
                 },
                 {
+                    data: 'pick_status',
+                    name: 'pick_status'
+                },
+                {
                     data: 'action',
                     name: 'action'
                 },
@@ -774,14 +831,119 @@
                 "className": "text-center",
                 "width": "0%"
             }],
-            language: {
-                "lengthMenu": "MENU",
-            },
             order: [
                 [0, 'desc']
             ],
         });
         jQuery.noConflict();
+
+        $(document).delegate('#add_new_item_btn', 'click', function() {
+            jQuery.noConflict();
+            $to_id = $('#to_id').val();
+            $.ajax({
+                url: "{{ url('transaksi_online_get_items') }}",
+                type: 'GET',
+                data: {
+                    to_id: $to_id,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        var items = response.data;
+                        var select = $('#item_sejenis_select');
+                        select.empty();
+                        select.append('<option value="">Pilih Item</option>');
+                        
+                        items.forEach(function(item) {
+                            select.append('<option value="' + item.id + '">' + item.sku + '</option>');
+                        });
+                    } else {
+                        toastr.error('Failed to load items. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('An error occurred while fetching items. Please try again.');
+                    console.error('Error fetching items:', error);
+                }
+            });
+
+            $('#tambahItemModal').modal('show');
+        });
+
+        $(document).delegate('#edit_item_btn', 'click', function() {
+            jQuery.noConflict();
+            var otd_id = $(this).data('otd_id');
+            var qty = $(this).data('qty');
+            var to_id = $('#to_id').val();
+
+            $('#edit_item_otd_id').val(otd_id);
+            $('#edit_item_qty').val(qty);
+            $('#edit_item_to_id').val(to_id);
+            $('#editItemModal').modal('show');
+        });
+
+        $('#f_edit_item').on('submit', function(e) {
+            e.preventDefault();
+            
+            var formData = new FormData(this);
+            var otd_id = $(this).data('otd_id');
+            
+            formData.append('otd_id', otd_id);
+            
+            $.ajax({
+                url: "{{ url('transaksi_online_edit_item') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#editItemModal').modal('hide');
+                        toastr.success('Item berhasil diedit!');
+                        $('#f_edit_item')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message || 'Failed to edit item. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(response.message || 'An error occurred while editing the item. Please try again.');
+                    console.error('Error editing item:', error);
+                }
+            });
+        });
+
+        $('#f_tambah_item').on('submit', function(e) {
+            e.preventDefault();
+            
+            var formData = new FormData(this);
+            
+            $.ajax({
+                url: "{{ url('transaksi_online_add_new_item') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#tambahItemModal').modal('hide');
+                        toastr.success('Item berhasil ditambahkan!');
+                        $('#f_tambah_item')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message || 'Failed to add item. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(response.message || 'An error occurred while adding the item. Please try again.');
+                    console.error('Error adding item:', error);
+                }
+            });
+        });
 
         $(document).delegate('#print_invoice', 'click', function() {
             var numOrder = document.getElementById('num_order').textContent;

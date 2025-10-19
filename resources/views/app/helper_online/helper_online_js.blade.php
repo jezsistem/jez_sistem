@@ -45,13 +45,13 @@
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
             html += `
-                <div class="col-md-4 mb-4 text-left" id="transaction_card" data-transaction_id=${transaction.transaction_id} data-order_number=${transaction.order_number} style="cursor: pointer;">
+                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' ? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number=${transaction.order_number} style="cursor: pointer;">
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="card-title text-primary" style="font-weight: bold;">Order Number: ${transaction.order_number}</h5>
 
-                                <button class="btn position-relative" onclick="openChat(${transaction.transaction_id})" data-trx_number=${transaction.order_number}>
+                                <button class="btn position-relative" id="open_chat" onclick="openChat(${transaction.transaction_id})" data-trx_number=${transaction.order_number}>
                                     <i class="fas fa-comments"></i>
                                     ${transaction.unreaded_chat > 0 ? `
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white">
@@ -269,6 +269,7 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
+            deferLoading: 0,
             ajax: {
                 url: "{{ url('/helper_online_get_online_items') }}",
                 data: function(d) {
@@ -289,12 +290,86 @@
             ],
         });
 
+        var waiting_receipt_table = $('#waitingReceiptTable').DataTable({
+            destroy: true,
+            processing: false,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            deferLoading: 0,
+            ajax: {
+                url: "{{ url('/helper_online_get_waiting_receipt_items') }}",
+                data: function(d) {
+                    d.ot_id = transactionId;
+                }
+            },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'article',
+                    name: 'article',
+                },
+                {
+                    data: 'sku',
+                    name: 'sku',
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                },
+                {
+                    data: 'platform_price',
+                    name: 'platform_price',
+                    render: function(data, type, row) {
+                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
+                    }
+                },
+                {
+                    data: 'jez_price',
+                    name: 'jez_price',
+                    render: function(data, type, row) {
+                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
+                    }
+                },
+                {
+                    data: 'seller_discount',
+                    name: 'seller_discount',
+                    render: function(data, type, row) {
+                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
+                    }
+                },
+                {
+                    data: 'final_price',
+                    name: 'final_price',
+                    render: function(data, type, row) {
+                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
+                    }
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-left",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         $('#close_scan_out_modal').on('click', function() {
             $('#sku_send').val('');
             $('#bin_out_search').val('');
             $('#binTable tbody').empty();
             $('#sku_search').remove();
             $('#bin_out_search').prop('disabled', false);
+        });
+
+        $(document).on('click', '#open_chat', function(e) {
+            e.stopPropagation();
         });
 
         $(document).on('click', '#transaction_card', function(e) {
@@ -307,6 +382,40 @@
             $('#OnlineItemsModalLabel').text('Order Number: ' + orderNumber);
             $('#OnlineItemsModal').modal('show');
             online_items_table.draw();
+        });
+
+        $(document).on('click', '#waiting_receipt_card', function(e) {
+            transactionId = $(this).data('transaction_id');
+            orderNumber = $(this).data('order_number');
+            jQuery.noConflict();
+            $('#trx_number_title_wr').text('Order Number: ' + orderNumber);
+            $('#waitingReceiptModal').modal('show');
+            waiting_receipt_table.draw();
+        });
+
+        $(document).on('click', '#cancel_pick', function(e) {
+            e.preventDefault();
+            var plst_id = $(this).data('plst_id');
+
+            $.ajax({
+                url: "{{ url('helper_online_cancel_pick') }}/" + plst_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        toastr.success('Pick berhasil dibatalkan');
+                        online_items_table.draw();
+                    } else {
+                        toastr.error('Gagal membatalkan pick');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('Terjadi kesalahan saat membatalkan pick');
+                    console.error('Error:', error);
+                }
+            });
         });
 
         $(document).on('click', '.ambil-dari-bin', function(e) {
@@ -416,6 +525,7 @@
                         type: 'POST',
                         data: {
                             plst_id: $(this).data('plst_id'),
+                            to_id: $(this).data('to_id'),
                             qc_status: 'passed',
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },

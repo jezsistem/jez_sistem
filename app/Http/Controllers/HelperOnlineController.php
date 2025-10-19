@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OnlineTransactionDetails;
+use App\Models\OnlineTransactions;
 use App\Models\ProductLocationSetupTransaction;
 use App\Models\Store;
 use App\Models\User;
@@ -172,9 +174,11 @@ class HelperOnlineController extends Controller
                 'product_location_setup_transactions.warehouse_st_id',
                 'product_location_setup_transactions.pst_id as pst_id',
                 'product_location_setup_transactions.pls_id as pls_id',
-                'product_location_setup_transactions.qc_status'
+                'product_location_setup_transactions.qc_status',
+                'online_transactions.id as to_id'
             )
             ->where('online_transactions.id', $transaction_id)
+            ->where('online_transaction_details.deleted_at', null)
             ->get();
 
         return datatables()->of($items)
@@ -184,12 +188,15 @@ class HelperOnlineController extends Controller
                 $time = Carbon::parse($dateTime)->format('H:i:s'); // '14:13:46'
                 $items = '
                 ' . (function () use ($data) {
+                    if ($data->plst_status === null) {
+                        return '<span class="badge badge-dark" style="white-space: nowrap; font-weight:bold;">Not Picked</span>';
+                    }
                     $statusClasses = [
                         'WAITING ONLINE' => 'warning',
                         'UNDER REVIEW' => 'secondary',
                         'WAITING RECEIPT' => 'primary',
                         'WAITING PACKING' => 'danger',
-                        'INSTOCK'=> 'info'
+                        'INSTOCK' => 'info'
                     ];
                     $badgeClass = $statusClasses[$data->plst_status] ?? 'secondary';
                     return '<span class="badge badge-' . $badgeClass . '" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>';
@@ -202,11 +209,11 @@ class HelperOnlineController extends Controller
                 </div>';
 
                 if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id == null) {
-                    $items .= '<a class="btn btn-sm btn-success ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="pick_get_bin_products" style="font-weight:bold;">Ambil</a>';
+                    $items .= '<div><a class="btn btn-sm btn-info ml-1" data-plst_id="' . $data->plst_id . '" id="cancel_pick" style="font-weight:bold;">Batal</a><a class="btn btn-sm btn-success ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="pick_get_bin_products" style="font-weight:bold;">Ambil</a></div>';
                 }
 
                 if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id && $data->qc_status == ProductLocationSetupTransaction::QC_STATUS_ON_GOING) {
-                    $items .= '<a class="btn btn-sm btn-dark ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="submit_qc" style="font-weight:bold;">Under QC</a>';
+                    $items .= '<a class="btn btn-sm btn-dark ml-1" data-status="pickup" data-to_id="' . $data->to_id . '" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="submit_qc" style="font-weight:bold;">Under QC</a>';
                 }
                 if ($data->plst_status == 'INSTOCK' && $data->pls_id && $data->qc_status == ProductLocationSetupTransaction::QC_STATUS_FAILED) {
                     $items .= '<a class="btn btn-sm btn-dark ml-1 disabled" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" style="font-weight:bold; pointer-events: none; opacity: 0.6;">Gagal QC</a>';
@@ -287,9 +294,11 @@ class HelperOnlineController extends Controller
         }
     }
 
-    public function qualityCheckItem(Request $request) {
+    public function qualityCheckItem(Request $request)
+    {
         $plst_id = $request->plst_id;
         $qc_status = $request->qc_status;
+        $to_id = $request->to_id;
 
         DB::beginTransaction();
         try {
@@ -302,7 +311,7 @@ class HelperOnlineController extends Controller
                 return response()->json(['status' => '400', 'message' => 'Transaksi tidak ditemukan atau sudah selesai QC.']);
             }
 
-            if ($qc_status == 'passed'){
+            if ($qc_status == 'passed') {
                 $update = DB::table('product_location_setup_transactions')
                     ->where('id', $plst_id)
                     ->update([
@@ -310,7 +319,20 @@ class HelperOnlineController extends Controller
                         'plst_status' => 'WAITING RECEIPT',
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
-                
+
+                $items = OnlineTransactionDetails::query()->where('to_id', $to_id)->get();
+                $item_ids = $items->pluck('id')->toArray();
+                $total_qty = $items->sum('qty');
+
+                $all_picked = ProductLocationSetupTransaction::whereIn('otd_id', $item_ids)
+                    ->where('plst_status', 'WAITING RECEIPT')
+                    ->count();
+
+                if ($total_qty == $all_picked) {
+                    OnlineTransactions::where('id', $to_id)
+                        ->update(['internal_order_status' => 'WAITING RECEIPT', 'updated_at' => date('Y-m-d H:i:s')]);
+                }
+
                 if ($update) {
                     DB::commit();
                     return response()->json(['status' => '200', 'message' => 'Item berhasil melewati QC.']);
@@ -318,7 +340,7 @@ class HelperOnlineController extends Controller
                     DB::rollBack();
                     return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status QC.']);
                 }
-            } elseif ($qc_status == 'failed'){
+            } elseif ($qc_status == 'failed') {
                 $update_plst = DB::table('product_location_setup_transactions')
                     ->where('id', $plst_id)
                     ->update([
@@ -327,13 +349,17 @@ class HelperOnlineController extends Controller
                         'plst_status' => 'INSTOCK',
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
-                
+
                 $update = DB::table('product_location_setups')
                     ->where('id', DB::raw("(select pls_id from ts_product_location_setup_transactions where id = $plst_id)"))
                     ->update([
                         'pls_qty' => DB::raw("pls_qty + (select plst_qty from ts_product_location_setup_transactions where id = $plst_id)"),
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
+
+                OnlineTransactions::where('id', $to_id)
+                    ->update(['internal_order_status' => 'UNDER REVIEW', 'updated_at' => date('Y-m-d H:i:s')]);
+
 
                 if ($update && $update_plst) {
                     DB::commit();
@@ -347,5 +373,91 @@ class HelperOnlineController extends Controller
             DB::rollBack();
             return response()->json(['status' => '400', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
+    }
+
+    public function cancelPickItem($plst_id)
+    {
+
+        $check = ProductLocationSetupTransaction::where('id', $plst_id)
+            ->whereIn('plst_status', ['WAITING ONLINE'])
+            ->whereNull('pls_id')
+            ->first();
+
+        if (!$check) {
+            return response()->json(['status' => '400', 'message' => 'Transaksi tidak ditemukan atau tidak dapat dibatalkan.']);
+        }
+
+        $update = ProductLocationSetupTransaction::where('id', $plst_id)
+            ->update([
+                'plst_type' => 'IN',
+                'plst_status' => 'INSTOCK',
+                'cancel_pickup_time' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+        if ($update) {
+            return response()->json(['status' => '200', 'message' => 'Pengambilan item berhasil dibatalkan.']);
+        } else {
+            return response()->json(['status' => '400', 'message' => 'Gagal membatalkan pengambilan item.']);
+        }
+    }
+
+    public function waitingReceipt(Request $request)
+    {
+
+        $ot_id = $request->get('ot_id');
+
+        $query = DB::table('product_location_setup_transactions')
+            ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
+            ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
+            ->join('product_stocks', 'product_location_setup_transactions.pst_id', '=', 'product_stocks.id')
+            ->join('products', 'product_stocks.p_id', '=', 'products.id')
+            ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
+            ->join('brands', 'products.br_id', '=', 'brands.id')
+            ->select(
+                'online_transactions.order_number',
+                'product_stocks.ps_barcode as sku',
+                'products.p_name',
+                'products.p_color',
+                'sizes.sz_name',
+                'brands.br_name',
+                'online_transaction_details.qty as qty',
+                DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as plst_qty'),
+                'product_stocks.ps_purchase_price as cogs',
+                'product_stocks.ps_price_tag as jez_price',
+                'online_transaction_details.original_price as platform_price',
+                'online_transaction_details.total_discount as seller_discount',
+                'online_transaction_details.price_after_discount'
+            )
+            ->where('online_transactions.id', $ot_id)
+            ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')
+            ->groupBy(
+                'online_transaction_details.id',
+                'product_stocks.ps_barcode',
+                'products.p_name',
+                'products.p_color',
+                'sizes.sz_name',
+                'brands.br_name',
+                'online_transaction_details.qty',
+                'product_stocks.ps_purchase_price',
+                'product_stocks.ps_price_tag',
+                'online_transaction_details.original_price',
+                'online_transaction_details.total_discount',
+                'online_transaction_details.price_after_discount',
+                'online_transactions.order_number'
+            );
+
+        return datatables()->of($query)
+        ->addColumn('article', function ($data) {
+            return '
+            <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->sku . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>';
+        })
+        ->addColumn('final_price', function ($data) {
+            return $data->qty * $data->price_after_discount;
+        })
+        ->addIndexColumn()
+        ->rawColumns(['article'])
+        ->make(true);
+        
     }
 }
