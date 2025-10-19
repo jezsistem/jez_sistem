@@ -218,7 +218,8 @@
         <div class="modal-content">
             <div class="modal-header bg-dark">
                 <h5 class="modal-title text-white" id="waitingReceiptModallLabel">
-                    Waiting Receipt TRX : <span class="trx_number_title_wr" id="trx_number_title_wr">No TRX</span>
+                    Waiting Receipt TRX : <span class="trx_number_title_wr" id="trx_number_title_wr">No TRX</span> -
+                    <span class="to_id_waiting_receipt" id="to_id_waiting_receipt">ID</span>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
@@ -227,12 +228,17 @@
             <div class="modal-body p-0">
                 <!-- Waiting Receipt Messages Container -->
                 <div class="container-fluid p-4">
-                    <div class="mb-5 mt-5">
-                        <button type="button" class="btn btn-info me-2" id="printResiBtn" disabled>
-                            <i class="fas fa-print"></i> Print Resi
-                        </button>
-                        <button type="button" class="btn btn-warning" id="printNotaBtn" disabled>
-                            <i class="fas fa-print"></i> Print Nota
+                    <div class="mb-5 mt-5 d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="button" class="btn btn-info me-2" id="printResiBtn">
+                                <i class="fas fa-print"></i> Print Resi
+                            </button>
+                            <button type="button" class="btn btn-warning" id="printNotaBtn">
+                                <i class="fas fa-print"></i> Print Nota
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-success" id="continuePackingBtn">
+                            Lanjut Packing
                         </button>
                     </div>
                     <div class="table-responsive mt-5">
@@ -257,30 +263,30 @@
                 </div>
             </div>
 
+        </div>
     </div>
-</div>
 
-<style>
-    .chat-container {
-        height: 70vh;
-        background-color: #f8f9fa;
-    }
+    <style>
+        .chat-container {
+            height: 70vh;
+            background-color: #f8f9fa;
+        }
 
-    .chat-messages {
-        height: 100%;
-        overflow-y: auto;
-    }
+        .chat-messages {
+            height: 100%;
+            overflow-y: auto;
+        }
 
-    .chat-messages::-webkit-scrollbar {
-        width: 6px;
-    }
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
 
-    .chat-messages::-webkit-scrollbar-track {
-        background: transparent;
-    }
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-    .chat-messages::-webkit-scrollbar-thumb {
-        background: #dee2e6;
-        border-radius: 3px;
-    }
-</style>
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #dee2e6;
+            border-radius: 3px;
+        }
+    </style>

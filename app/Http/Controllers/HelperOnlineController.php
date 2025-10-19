@@ -460,4 +460,14 @@ class HelperOnlineController extends Controller
         ->make(true);
         
     }
+
+    public function printResi($to_id)
+    {
+        dd("print resi " . $to_id);
+    }
+
+    public function printInvoice($to_id)
+    {
+        dd("print invoice " . $to_id);
+    }
 }

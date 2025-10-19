@@ -389,8 +389,57 @@
             orderNumber = $(this).data('order_number');
             jQuery.noConflict();
             $('#trx_number_title_wr').text('Order Number: ' + orderNumber);
+            $('#to_id_waiting_receipt').text(transactionId);
             $('#waitingReceiptModal').modal('show');
             waiting_receipt_table.draw();
+        });
+
+        $(document).on('click', '#printResiBtn', function(e) {
+            e.preventDefault();
+            var to_id = $('#to_id_waiting_receipt').text();
+
+            $.ajax({
+                url: "{{ url('helper_online_print_resi') }}/" + to_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        toastr.success('Resi berhasil dicetak');
+                    } else {
+                        toastr.error('Gagal mencetak resi');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('Terjadi kesalahan saat mencetak resi');
+                    console.error('Error:', error);
+                }
+            });
+        });
+
+        $(document).on('click', '#printNotaBtn', function(e) {
+            e.preventDefault();
+            var to_id = $('#to_id_waiting_receipt').text();
+
+            $.ajax({
+                url: "{{ url('helper_online_print_invoice') }}/" + to_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        toastr.success('Invoice berhasil dicetak');
+                    } else {
+                        toastr.error('Gagal mencetak Invoice');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('Terjadi kesalahan saat mencetak Invoice');
+                    console.error('Error:', error);
+                }
+            });
         });
 
         $(document).on('click', '#cancel_pick', function(e) {
