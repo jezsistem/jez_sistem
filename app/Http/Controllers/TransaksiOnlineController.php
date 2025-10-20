@@ -183,6 +183,15 @@ class TransaksiOnlineController extends Controller
                         });
                     }
 
+                    if (!empty($request->get('tab_status'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $tab_status = $request->get('tab_status');
+                            if ($tab_status != '') {
+                                $w->orWhere('internal_order_status', 'LIKE', "%$tab_status%");
+                            }
+                        });
+                    }
+
                     if (!empty($request->get('status'))) {
                         $instance->where(function ($w) use ($request) {
                             $status = $request->get('status');

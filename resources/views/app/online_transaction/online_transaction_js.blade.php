@@ -397,97 +397,83 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('transaksi_online_datatables') }}", // URL endpoint
+                url: "{{ url('transaksi_online_datatables') }}", // Endpoint DataTables
                 data: function(d) {
-                    d.search = $('#online_transaction_search').val(); // Input pencarian
-                    d.st_id = $('#st_id_filter').val(); // Filter st_id
-                    d.status = $('#filter_status').val(); // Filter status
+                    d.search = $('#online_transaction_search').val();
+                    d.st_id = $('#st_id_filter').val();
+                    d.status = $('#filter_status').val(); // Status aktif dari tab
+                    d.tab_status = $('#tab_status').val(); // Status aktif dari tab
                 }
             },
-            columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'to_id',
-                    searchable: false
-                },
-                {
-                    data: 'order_number',
-                    name: 'to_order_number'
-                },
-                {
-                    data: 'no_resi',
-                    name: 'no_resi'
-                },
-                {
-                    data: 'platform_name',
-                    name: 'platform_name'
-                },
-                {
-                    data: 'order_date_created',
-                    name: 'order_date_created'
-                },
-                {
-                    data: 'total_item',
-                    name: 'total_item'
-                },
+            columns: [
+                { data: 'DT_RowIndex', name: 'to_id', searchable: false },
+                { data: 'order_number', name: 'to_order_number' },
+                { data: 'no_resi', name: 'no_resi' },
+                { data: 'platform_name', name: 'platform_name' },
+                { data: 'order_date_created', name: 'order_date_created' },
+                { data: 'total_item', name: 'total_item' },
                 {
                     data: 'shipping_fee',
                     name: 'shipping_fee',
-                    render: function(data, type, row) {
+                    render: function(data) {
                         return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
                     }
                 },
                 {
                     data: 'total_payment',
                     name: 'total_payment',
-                    render: function(data, type, row) {
+                    render: function(data) {
                         return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
                     }
                 },
-                {
-                    data: 'order_status',
-                    name: 'order_status'
-                },
-                {
-                    data: 'internal_order_status',
-                    name: 'internal_order_status'
-                },
-                {
-                    data: 'action',
-                    name: 'action'
-                }
+                { data: 'order_status', name: 'order_status' },
+                { data: 'internal_order_status', name: 'internal_order_status' },
+                { data: 'action', name: 'action' }
             ],
-            columnDefs: [{
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+            columnDefs: [
+                { "targets": 0, "className": "text-center", "width": "5%" }
+            ],
             language: {
-                "lengthMenu": "Tampilkan MENU data per halaman", // Menyesuaikan teks menu panjang
+                "lengthMenu": "Tampilkan _MENU_ data per halaman",
+                "zeroRecords": "Tidak ada data ditemukan",
+                "info": "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                "infoEmpty": "Tidak ada data yang tersedia",
+                "infoFiltered": "(disaring dari total _MAX_ data)"
             }
+        });
+
+        $('#trxTabs .nav-link').on('click', function(e) {
+            e.preventDefault();
+
+            $('#trxTabs .nav-link').removeClass('active');
+            $(this).addClass('active');
+
+            var status = $(this).data('status');
+            $('#tab_status').val(status);
+
+            console.log(status)
+
+            online_transaction_table.ajax.reload();
         });
 
         $('.close-modal').on('click', function() {
             online_transaction_table.draw(false);
         });
 
-        // Event listener untuk dropdown filter st_id_filter
         $('#st_id_filter').on('change', function() {
             online_transaction_table.draw(false); // Memuat ulang tabel tanpa reset halaman
         });
 
-        // Initialize Select2 pada elemen select filter_status
         $('#filter_status').select2({
             width: "200px",
             dropdownParent: $('#filter_status_parent') // Menentukan parent untuk dropdown
         });
 
-        // Event listener untuk perubahan pada filter_status
         $('#filter_status').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 
-        // Event listener untuk input pencarian
         $('#online_transaction_search').on('keyup', function() {
             online_transaction_table.draw(); // Memuat ulang tabel setiap kali ada perubahan pencarian
         });

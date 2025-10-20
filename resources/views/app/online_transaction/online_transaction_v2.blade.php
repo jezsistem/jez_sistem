@@ -165,7 +165,6 @@
                                     </div>
 
 
-
                                 </div>
                             </div>
 
@@ -176,7 +175,7 @@
                                                placeholder="Cari No Order / No resi"/>
                                     </div>
                                     <div class="col-6">
-                                        <select name="filter_status" id="filter_status" class="form-control col-6">
+                                        <select name="filter_statuss" id="filter_status" class="form-control col-6">
                                             <option value="">-- Pilih Status Cetak --</option>
                                             <option value="0">Belum di Cetak</option>
                                             <option value="1">Sudah di Cetak</option>
@@ -185,28 +184,55 @@
                                     </div>
                                 </div>
                             </div>
+
+
                             <div class="card-body table-responsive">
+                                <div class="card-header pb-0">
+                                    <ul class="nav nav-tabs card-header-tabs" id="trxTabs" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-status="" href="#">All TRX</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-status="NEW TRX" href="#">New TRX</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-status="WAITING ONLINE" href="#">Waiting Online</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-status="UNDER REVIEW" href="#">Under Review</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-status="WAITING RECEIPT" href="#">Waiting
+                                                Receipt</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-status="WAITING PACKING" href="#">Waiting
+                                                Packing</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-status="DONE" href="#">Done</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <input type="hidden" id="tab_status" value="">
                                 <table class="table table-hover table-checkable" id="OnlineTransactionb">
                                     <thead class="bg-light text-dark">
                                     <tr>
-                                        <th class="text-dark">No</th>
-                                        <th class="text-dark">Nomer Order</th>
-                                        <th class="text-dark">Nomer Resi</th>
-                                        <th class="text-dark">Platform Name</th>
-                                        <th class="text-dark">Tanggal Order</th>
-                                        <th class="text-dark">Item</th>
-                                        <th class="text-dark">Ongkos Kirim</th>
-                                        <th class="text-dark">Total Pembayaran</th>
-                                        <th class="text-dark">Status Pengiriman</th>
-                                        <th class="text-dark">Status TRX</th>
-                                        <th class="text-dark">Aksi</th>
+                                        <th>No</th>
+                                        <th>Nomer Order</th>
+                                        <th>Nomer Resi</th>
+                                        <th>Platform Name</th>
+                                        <th>Tanggal Order</th>
+                                        <th>Item</th>
+                                        <th>Ongkos Kirim</th>
+                                        <th>Total Pembayaran</th>
+                                        <th>Status Pengiriman</th>
+                                        <th>Status TRX</th>
+                                        <th>Aksi</th>
                                     </tr>
                                     </thead>
-                                    <tbody>
-
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
-                                <!--end: Datatable-->
                             </div>
 
 
@@ -241,16 +267,26 @@
 
 
         @keyframes dots {
-            0%, 100% { content: ""; }
-            25% { content: "."; }
-            50% { content: ".."; }
-            75% { content: "..."; }
+            0%, 100% {
+                content: "";
+            }
+            25% {
+                content: ".";
+            }
+            50% {
+                content: "..";
+            }
+            75% {
+                content: "...";
+            }
         }
     </style>
 
 
-    <div id="loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
-        <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%" style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:10px; border-radius:10px;">
+    <div id="loader"
+         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
+        <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%"
+             style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:10px; border-radius:10px;">
         <div class="loading-text">Loading<span class="dots">...</span></div>
     </div>
     <!--end::Content-->
