@@ -144,7 +144,7 @@ class OvertimeRequestController extends Controller
                 'start_time' => $validated['start_time'],
                 'end_date' => $validated['end_date'],
                 'end_time' => $validated['end_time'],
-                'details' => $validated['details'],
+                'details' =>  trim($validated['details']),
                 'attachment' => $attachmentPath,
                 'ot_id' => $validated['claim'] ?? null,
                 'status' => 'Pending',
@@ -235,7 +235,31 @@ class OvertimeRequestController extends Controller
                     $approvedAt = $row->approved_at ? date('d M Y H:i', strtotime($row->approved_at)) : '-';
                     return "$approver<br><small>$approvedAt</small>";
                 }
-                return '<span class="text-muted">Pending</span>';
+                return '<span class="text-muted">-</span>';
+            })
+            ->addColumn('status', function ($row) {
+                switch ($row->status) {
+                    case 'Pending':
+                        $badge = '<span class="badge bg-secondary">Pending</span>';
+                        break;
+                    case 'Approved':
+                        $badge = '<span class="badge bg-success">Approved</span>';
+                        break;
+                    case 'Rejected':
+                        $badge = '<span class="badge bg-danger">Rejected</span>';
+                        break;
+                    case 'HR Check':
+                        $badge = '<span class="badge bg-warning text-dark">HR Check</span>';
+                        break;
+                    case 'Done':
+                        $badge = '<span class="badge success">Done</span>';
+                        break;
+                    default:
+                        $badge = '<span class="badge bg-light text-dark">-</span>';
+                        break;
+                }
+
+                return $badge;
             })
             ->addColumn('action', function ($row) {
                 return '
@@ -244,7 +268,7 @@ class OvertimeRequestController extends Controller
                 </a>
             ';
             })
-            ->rawColumns(['approved_info', 'action', 'assigned_staff'])
+            ->rawColumns(['approved_info', 'action', 'assigned_staff', 'status'])
             ->make(true);
     }
 
@@ -330,7 +354,7 @@ class OvertimeRequestController extends Controller
         return view('app.overtime.show', compact('detail', 'data', 'isManager', 'isHR'));
     }
 
-    public function approve($id)
+    public function approve(Request $request,$id)
     {
         $userId = Auth::id();
 
@@ -339,7 +363,7 @@ class OvertimeRequestController extends Controller
             ->update([
                 'approved_by' => $userId,
                 'approved_at' => now(),
-                'status' => 'Approved'
+                'status' => $request->action
             ]);
 
         return response()->json(['success' => true]);

@@ -57,7 +57,7 @@
 
                                         <div class="position-relative mr-3">
                                             <input type="search" class="form-control form-control-sm"
-                                                id="threshold_promo_search" placeholder="Cari Threshold Promo"
+                                                id="threshold_promo_search" placeholder="Cari Threshold Promo / Article ID"
                                                 style="width: 250px;" />
                                         </div>
                                         <!--end::Search-->

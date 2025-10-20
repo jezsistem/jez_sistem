@@ -87,6 +87,7 @@
                 { data: 'claim', name: 'claim' },
                 { data: 'request_by_name', name: 'request_by_name' },
                 { data: 'approved_info', name: 'approved_info' },
+                { data: 'status', name: 'status' },
                 { data: 'created_at', name: 'created_at' },
                 { data: 'action', name: 'action', orderable: false, searchable: false }
             ],

@@ -144,7 +144,7 @@ class ExternalAssignmentRequestController extends Controller
             $master = ExternalAssignmentRequest::create([
                 'ea_id'            => $request->ea_id,
                 'request_by'       => Auth::user()->id,
-                'ear_cash_advance' => $request->ear_cash_advance,
+                'ear_cash_advance' => $request->ear_cash_advance ?? 0,
                 'ear_date_start'   => $request->ear_date_start,
                 'ear_date_end'     => $request->ear_date_end,
                 'ear_locations'    => $request->ear_locations,
@@ -219,7 +219,7 @@ class ExternalAssignmentRequestController extends Controller
                 ->exists();
         }
         // HR
-        elseif (is_null($detail->ear_hr_checked_by)) {
+        elseif (is_null($detail->ear_hr_checked_by) && $detail->ear_status != 'Rejected') {
             $approvalStep = 'hr';
             $canApprove = DB::table('users')
                 ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
@@ -228,7 +228,7 @@ class ExternalAssignmentRequestController extends Controller
                 ->exists();
         }
         // Finance
-        elseif (is_null($detail->ear_finance_by)) {
+        elseif (is_null($detail->ear_finance_by) && $detail->ear_status != 'Rejected') {
             $approvalStep = 'finance';
             $canApprove = DB::table('users')
                 ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
@@ -250,6 +250,8 @@ class ExternalAssignmentRequestController extends Controller
 
     public function approve(Request $request, $id)
     {
+
+//        dd();
         $ear = ExternalAssignmentRequest::findOrFail($id);
         $user = auth()->user();
 
@@ -257,7 +259,10 @@ class ExternalAssignmentRequestController extends Controller
         if (is_null($ear->ear_approved_by)) {
             $ear->ear_approved_by = $user->id;
             $ear->ear_approved_at = now();
-            $ear->ear_status = 'Approved';
+            $ear->ear_status = $request->action;
+
+            // absen manual
+
         }
 
         // STEP 2: HR Check
@@ -269,7 +274,7 @@ class ExternalAssignmentRequestController extends Controller
             $ear->ear_hr_checked_by = $user->id;
             $ear->ear_hr_checked_at = now();
             $ear->ear_hr_note = $request->ear_hr_note ?? null;
-            $ear->ear_status = 'Finance Process';
+            $ear->ear_status = $request->action;
         }
 
         // STEP 3: Finance Process
@@ -290,14 +295,14 @@ class ExternalAssignmentRequestController extends Controller
                     mkdir($uploadDir, 0775, true);
                 }
 
-                $filePath = $file->storeAs('uploads/finance', $filename, 'public');
+                    $filePath = $file->storeAs('uploads/finance', $filename, 'public');
             }
 
             $ear->ear_finance_by = $user->id;
             $ear->ear_finance_at = now();
             $ear->ear_finance_note = $request->ear_finance_note ?? null;
             $ear->ear_finance_uploads = $filePath;
-            $ear->ear_status = 'DONE';
+            $ear->ear_status = $request->action;
         }
 
         else {
@@ -384,7 +389,7 @@ class ExternalAssignmentRequestController extends Controller
         $data = [
             'title' => $title,
             'subtitle' => 'Edit Leave Request',
-            'sidebar' => $this->sidebar(),
+        
             'user' => $user_data,
             'segment' => request()->segment(1)
         ];
