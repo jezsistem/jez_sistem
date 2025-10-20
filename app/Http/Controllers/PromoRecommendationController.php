@@ -95,12 +95,17 @@ class PromoRecommendationController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(PromoRecommendation::select('promo_recommendations.id as pr_id', 'pr_code', 'channel', 'created_at', 'updated_at')->orderBy('created_at', 'DESC'))
+            return datatables()->of(PromoRecommendation::select('promo_recommendations.id as pr_id', 'pr_code', 'channel', 'promo_recommendations.created_at', 'promo_recommendations.updated_at')
+            ->join('promo_recommendation_details', 'promo_recommendation_details.pr_id', '=', 'promo_recommendations.id')
+            ->join('products', 'products.id', '=', 'promo_recommendation_details.p_id')
+            ->groupBy('promo_recommendations.id', 'pr_code', 'channel', 'promo_recommendations.created_at', 'promo_recommendations.updated_at')
+            ->orderBy('promo_recommendations.created_at', 'DESC'))
                 ->filter(function ($instance) use ($request) {
                     $search = $request->get('search');
                     if (!empty($search)) {
                         $instance->where(function ($query) use ($search) {
-                            $query->orWhere('pr_code', 'LIKE', "%$search%");
+                            $query->orWhere('pr_code', 'LIKE', "%$search%")
+                            ->orWhere('products.article_id', 'LIKE', "%$search%");
                         });
                     }
 
@@ -113,13 +118,13 @@ class PromoRecommendationController extends Controller
                         $request->get('date_start') != '' && $request->get('date_end') != ''
                     ) {
                         $instance->whereBetween(
-                            DB::raw('DATE(created_at)'),
+                            DB::raw('DATE(ts_promo_recommendations.created_at)'),
                             [$request->get('date_start'), $request->get('date_end')]
                         );
                     } elseif ($request->has('date_start') && $request->get('date_start') != '') {
-                        $instance->whereDate('created_at', '>=', $request->get('date_start'));
+                        $instance->whereDate('promo_recommendations.created_at', '>=', $request->get('date_start'));
                     } elseif ($request->has('date_end') && $request->get('date_end') != '') {
-                        $instance->whereDate('created_at', '<=', $request->get('date_end'));
+                        $instance->whereDate('promo_recommendations.created_at', '<=', $request->get('date_end'));
                     }
                 })
                 ->addIndexColumn()
