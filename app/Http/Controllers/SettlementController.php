@@ -201,7 +201,7 @@ class SettlementController extends Controller
         try {
 
             $transaction_items = DB::table('pos_transaction_details')
-            ->select('pos_transaction_details.id', 'pst_id', 'pos_td_item_cogs', 'pos_td_item_price_tag', 'pos_status')
+                ->select('pos_transaction_details.id', 'pst_id', 'pos_td_item_cogs', 'pos_td_item_price_tag', 'pos_status')
                 ->join('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                 ->where(function ($query) {
                     $query->where('pos_td_item_cogs', 0)
@@ -271,7 +271,7 @@ class SettlementController extends Controller
                                         END)
                                         ELSE ts_pos_transactions.pos_total_discount 
                                     END as total_discount'),
-                    DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                    DB::raw('SUM(CASE WHEN pos_status IN (\'REFUND\', \'CANCEL\') THEN pos_td_qty * -1 * pos_td_item_cogs ELSE pos_td_qty * pos_td_item_cogs END) as total_cogs'),
                     'seller_voucher_discount AS total_seller_discount',
                     'pos_transactions.pos_note as note',
                     ($is_partial == 1 ? 'pos_transactions.pos_notes_settle_partial as note_settlement' : 'pos_transactions.pos_notes_settle as note_settlement'),
@@ -979,7 +979,7 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(CASE WHEN pos_status IN (\'REFUND\', \'CANCEL\') THEN pos_td_qty * -1 * pos_td_item_cogs ELSE pos_td_qty * pos_td_item_cogs END) as total_cogs'),
                 'total_disburshed_amount as total_dana_cair',
                 DB::raw('0 as is_partial')
             ])
@@ -1063,7 +1063,7 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(CASE WHEN pos_status IN (\'REFUND\', \'CANCEL\') THEN pos_td_qty * -1 * pos_td_item_cogs ELSE pos_td_qty * pos_td_item_cogs END) as total_cogs'),
                 'total_disburshed_amount as total_dana_cair',
                 DB::raw('0 as is_partial')
             ])
@@ -1143,7 +1143,7 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle_partial as is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(CASE WHEN pos_status IN (\'REFUND\', \'CANCEL\') THEN pos_td_qty * -1 * pos_td_item_cogs ELSE pos_td_qty * pos_td_item_cogs END) as total_cogs'),
                 'total_disburshed_amount as total_dana_cair',
                 DB::raw('1 as is_partial')
             ])
@@ -1221,7 +1221,8 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(CASE WHEN pos_status IN (\'REFUND\', \'CANCEL\') THEN pos_td_qty * -1 * pos_td_item_cogs ELSE pos_td_qty * pos_td_item_cogs END) as total_cogs'),
+
                 'total_disburshed_amount as total_dana_cair',
                 DB::raw('0 as is_partial')
             ])

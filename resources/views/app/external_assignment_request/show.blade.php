@@ -50,21 +50,30 @@
                         <hr>
                         @if($canApprove)
                             @if($approvalStep === 'hr')
-                                <!-- Tombol untuk HR -->
-                                <button type="button" class="btn btn-success mt-3"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#hrNoteModal">
-                                    Approve By HR
-                                </button>
+                                <!-- Dropdown Tombol HR -->
+                                <div class="dropdown mt-3">
+                                    <button class="btn btn-success dropdown-toggle" type="button" id="hrActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Action by HR
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="hrActionDropdown">
+                                        <li>
+                                            <a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#hrApproveModal">Approve</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#hrRejectModal">Reject</a>
+                                        </li>
+                                    </ul>
+                                </div>
 
-                                <!-- Modal HR Note -->
-                                <div class="modal fade" id="hrNoteModal" tabindex="-1" aria-labelledby="hrNoteModalLabel" aria-hidden="true">
+                                <!-- Modal Approve HR -->
+                                <div class="modal fade" id="hrApproveModal" tabindex="-1" aria-labelledby="hrApproveModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form method="POST" action="{{ route('ear.approve', $detail->id) }}">
                                             @csrf
+                                            <input type="hidden" name="action" value="Finance Process">
                                             <div class="modal-content">
-                                                <div class="modal-header bg-primary text-white">
-                                                    <h5 class="modal-title" id="hrNoteModalLabel" style="color: #fff;">Note HR</h5>
+                                                <div class="modal-header bg-success text-white">
+                                                    <h5 class="modal-title">Approve by HR</h5>
                                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
@@ -82,23 +91,54 @@
                                     </div>
                                 </div>
 
-                            @elseif($approvalStep === 'finance')
-                                <!-- Tombol untuk Finance -->
-                                <button type="button" class="btn btn-success mt-3"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#financeNoteModal">
-                                    Approve By Finance
-                                </button>
+                                <!-- Modal Reject HR -->
+                                <div class="modal fade" id="hrRejectModal" tabindex="-1" aria-labelledby="hrRejectModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form method="POST" action="{{ route('ear.approve', $detail->id) }}">
+                                            @csrf
+                                            <input type="hidden" name="action" value="Rejected">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Reject by HR</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Reason</label>
+                                                        <textarea name="ear_hr_note" class="form-control" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-danger">Submit Reject</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
 
-                                <!-- Modal Finance Note -->
-                                <div class="modal fade" id="financeNoteModal" tabindex="-1" aria-labelledby="financeApproveModalLabel" aria-hidden="true">
+                            @elseif($approvalStep === 'finance')
+                                <!-- Dropdown Tombol Finance -->
+                                <div class="dropdown mt-3">
+                                    <button class="btn btn-success dropdown-toggle" type="button" id="financeActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Action by Finance
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="financeActionDropdown">
+                                        <li><a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#financeApproveModal">Approve</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#financeRejectModal">Reject</a></li>
+                                    </ul>
+                                </div>
+
+                                <!-- Modal Approve Finance -->
+                                <div class="modal fade" id="financeApproveModal" tabindex="-1" aria-labelledby="financeApproveModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form action="{{ route('ear.approve', $detail->id) }}" method="POST" enctype="multipart/form-data">
                                             @csrf
+                                            <input type="hidden" name="action" value="Done">
                                             <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="financeApproveModalLabel">Finance Approval</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <div class="modal-header bg-success text-white">
+                                                    <h5 class="modal-title">Finance Approval</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
@@ -113,7 +153,32 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="submit" class="btn btn-success">Approve</button>
+                                                    <button type="submit" class="btn btn-success">Submit Approval</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Modal Reject Finance -->
+                                <div class="modal fade" id="financeRejectModal" tabindex="-1" aria-labelledby="financeRejectModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form action="{{ route('ear.approve', $detail->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="action" value="Rejected">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Reject by Finance</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="ear_finance_note_reject" class="form-label">Reason</label>
+                                                        <textarea class="form-control" name="ear_finance_note" id="ear_finance_note_reject" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-danger">Submit Reject</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -121,14 +186,28 @@
                                 </div>
 
                             @else
-                                <!-- Default untuk Supervisor / Manager -->
-                                <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="mt-3"
-                                      onsubmit="return confirm('Yakin ingin melanjutkan ke tahap berikutnya?')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-success">
-                                        Approve By {{ ucfirst($approvalStep) }}
+                                <!-- Dropdown Tombol Supervisor / Manager -->
+                                <div class="dropdown mt-3">
+                                    <button class="btn btn-success dropdown-toggle" type="button" id="defaultActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Action by {{ ucfirst($approvalStep) }}
                                     </button>
-                                </form>
+                                    <ul class="dropdown-menu" aria-labelledby="defaultActionDropdown">
+                                        <li>
+                                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="action" value="Approved">
+                                                <button type="submit" class="dropdown-item text-success" onclick="return confirm('Yakin ingin melanjutkan ke tahap berikutnya?')">Approve</button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="action" value="Rejected">
+                                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Yakin ingin menolak request ini?')">Reject</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                             @endif
 
                         @elseif($detail->ear_status === 'Completed')
