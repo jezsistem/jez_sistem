@@ -45,7 +45,7 @@
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
             html += `
-                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' ? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number=${transaction.order_number} style="cursor: pointer;">
+                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" style="cursor: pointer;">
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
@@ -205,6 +205,86 @@
             }
         });
     }
+
+    function initializeScanner(elementId) {
+        return new Html5QrcodeScanner(elementId, {
+            // Scanner will be initialized in DOM inside the element with the given id
+            qrbox: {
+                width: 200,
+                height: 200,
+            },
+            fps: 30,
+        });
+    }
+
+    // Example usage for multiple modals
+    // let scanner_scan_out = initializeScanner('reader_scan_out');
+    let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
+    let scanner_scan_resi = initializeScanner('reader_scan_resi');
+    //
+
+    var scan_timer = null;
+
+    function success(result) {
+        if (scan_timer) {
+            clearTimeout(scan_timer);
+        }
+
+        scan_timer = setTimeout(function() {
+            var hasil = result;
+
+            if (hasil.startsWith(']C1')) {
+                hasil = hasil.replace(']C1', '');
+            }
+
+            if (modal_opened == 'binModal') {
+                // alert(hasil);
+                $('#sku_search').focus().val(hasil);
+
+                // Trigger keyup event with ENTER key using native KeyboardEvent
+                var event = new KeyboardEvent('keyup', {
+                    key: 'Enter',
+                    keyCode: 13,
+                    which: 13,
+                    bubbles: true,
+                    cancelable: true
+                });
+                document.getElementById('sku_search').dispatchEvent(event);
+                // scan_in_refund_table.ajax.reload();
+
+            } else if (modal_opened == 'ScanPackingModal') {
+                $('#scan_packing_result').focus();
+                $('#scan_packing_result').val(hasil);
+                // Trigger keyup event with ENTER key using native KeyboardEvent
+                var event = new KeyboardEvent('keyup', {
+                    key: 'Enter',
+                    keyCode: 13,
+                    which: 13,
+                    bubbles: true,
+                    cancelable: true
+                });
+                document.getElementById('scan_packing_result').dispatchEvent(event);
+            } else {
+                alert('Scanner aktif di modal: ' + modal_opened);
+            }
+
+        }, 1000); // Add a delay of 1s to prevent spamming
+    }
+
+    function error(err) {
+        console.error(err);
+    }
+    //
+    // function console_log(result) {
+    //     console.log(result);
+    // }
+
+    function clearScanners() {
+        scanner_scan_bin_out.clear();
+        scanner_scan_resi.clear();
+    }
+
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -375,7 +455,7 @@
         $(document).on('click', '#transaction_card', function(e) {
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
-            scanner_scan_bin_out.clear();
+            clearScanners();
             e.preventDefault();
             modal_opened = 'ScanOutModal';
             jQuery.noConflict();
@@ -384,14 +464,73 @@
             online_items_table.draw();
         });
 
+        $(document).on('click', '.close_scanner', function(e) {
+            clearScanners();
+        })
+
         $(document).on('click', '#waiting_receipt_card', function(e) {
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
+            resi_number = $(this).data('resi_number');
+            status = $(this).data('internal_order_status');
+            clearScanners();
             jQuery.noConflict();
             $('#trx_number_title_wr').text('Order Number: ' + orderNumber);
             $('#to_id_waiting_receipt').text(transactionId);
             $('#waitingReceiptModal').modal('show');
+            $('#continuePackingBtn').data('to_id', transactionId);
+            $('#continuePackingBtn').data('order_number', orderNumber);
+            $('#continuePackingBtn').data('resi_number', resi_number);
+            $('#continuePackingBtn').data('status', status);
+
+            if (status == 'DONE' || status == 'DONE ONLINE') {
+                $('#continuePackingBtn').prop('disabled', true);
+            }
             waiting_receipt_table.draw();
+        });
+
+        $(document).on('click', '#continuePackingBtn', function(e) {
+            // $('#waitingReceiptModal').modal('hide');
+            transactionId = $(this).data('to_id');
+            orderNumber = $(this).data('order_number');
+            resi_number = $(this).data('resi_number');
+            status = $(this).data('status');
+
+            if (status == 'WAITING RECEIPT') {
+                $.ajax({
+                    url: "{{ url('helper_online_done_print') }}/" + transactionId,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            toastr.success('Status diupdate ke WAITING PACKING');
+                        } else {
+                            toastr.error('Gagal mengupdate status');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        toastr.error('Terjadi kesalahan saat mengupdate status');
+                        console.error('Error:', error);
+                    }
+                });
+            }
+
+            clearScanners();
+            scanner_scan_resi.render(success, error);
+            e.preventDefault();
+            modal_opened = 'ScanPackingModal';
+            jQuery.noConflict();
+            $('#order_number_scan_packing').text(orderNumber);
+            $('#plst_id_scan_packing').text(transactionId);
+            $('#resi_number_holder').text(resi_number);
+            $('#scan_packing_result').val('');
+            $('#scanPackingModal').modal('show');
+        })
+
+        $(document).on('click', '#close_scan_packing_modal_btn', function(e) {
+            $('#scanPackingModal').modal('hide');
         });
 
         $(document).on('click', '#printResiBtn', function(e) {
@@ -724,10 +863,12 @@
                                                 if (r.status == '200') {
                                                     online_items_table
                                                         .draw();
-                                                    $('#binModal').modal(
-                                                        'hide');
+                                                    $('#binModal')
+                                                        .modal(
+                                                            'hide');
 
-                                                    $('#sku_send').val('');
+                                                    $('#sku_send').val(
+                                                        '');
                                                     $('#bin_out_search')
                                                         .val('');
                                                     $('#binTable tbody')
@@ -735,7 +876,8 @@
                                                     $('#sku_search')
                                                         .remove();
                                                     $('#bin_out_search')
-                                                        .prop('disabled',
+                                                        .prop(
+                                                            'disabled',
                                                             false);
 
                                                     swal({
@@ -779,72 +921,59 @@
             }
         });
 
-        function initializeScanner(elementId) {
-            return new Html5QrcodeScanner(elementId, {
-                // Scanner will be initialized in DOM inside the element with the given id
-                qrbox: {
-                    width: 250,
-                    height: 250,
-                },
-                fps: 30,
-            });
-        }
-
-        // Example usage for multiple modals
-        // let scanner_scan_out = initializeScanner('reader_scan_out');
-        let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
-        let scanner_scan_in = initializeScanner('reader_scan_in');
-        let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
-        let scanner_pick_online = initializeScanner('reader_pick_online');
-        let scanner_take_transfer = initializeScanner('reader_take_transfer');
-        let scanner_scan_default = initializeScanner('reader_default');
-        //
-
-        var scan_timer = null;
-
-        function success(result) {
-            if (scan_timer) {
-                clearTimeout(scan_timer);
-            }
-
-            scan_timer = setTimeout(function() {
-                var hasil = result;
-
-                if (hasil.startsWith(']C1')) {
-                    hasil = hasil.replace(']C1', '');
-                }
-
-                if (modal_opened == 'binModal') {
-                    // alert(hasil);
-                    $('#sku_search').focus().val(hasil);
-
-                    // Trigger keyup event with ENTER key using native KeyboardEvent
-                    var event = new KeyboardEvent('keyup', {
-                        key: 'Enter',
-                        keyCode: 13,
-                        which: 13,
-                        bubbles: true,
-                        cancelable: true
+        $('#scan_packing_result').focus().on('keyup', function(e) {
+            if (e.key === 'Enter') {
+                let enteredResi = $(this).val();
+                let validResi = $('#resi_number_holder').text();
+                // Lakukan sesuatu dengan SKU yang dimasukkan
+                if (enteredResi === validResi) {
+                    swal({
+                        title: "Konfirmasi Packing",
+                        text: "Yakin sudah selesai packing?",
+                        icon: "warning",
+                        buttons: [
+                            'Batal',
+                            'Yakin'
+                        ],
+                        dangerMode: false,
+                    }).then(function(isConfirm) {
+                        if (isConfirm) {
+                            $.ajax({
+                                type: "POST",
+                                data: {
+                                    to_id: $('#plst_id_scan_packing').text(),
+                                    _token: $('meta[name="csrf-token"]').attr('content')
+                                },
+                                dataType: 'json',
+                                url: "{{ url('helper_online_scan_packing_single') }}",
+                                success: function(r) {
+                                    if (r.status == '200') {
+                                        $('#scanPackingModal').modal('hide');
+                                        $('#scan_packing_result').val('');
+                                        swal({
+                                            title: 'Berhasil',
+                                            text: 'Packing berhasil dikonfirmasi',
+                                            icon: 'success',
+                                            button: 'OK',
+                                        });
+                                        getListPicked();
+                                    } else {
+                                        swal('Gagal', 'Gagal konfirmasi packing', 'error');
+                                    }
+                                }
+                            });
+                        }
                     });
-                    document.getElementById('sku_search').dispatchEvent(event);
-                    // scan_in_refund_table.ajax.reload();
-
                 } else {
-                    alert('Scanner aktif di modal: ' + modal_opened);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Resi tidak sesuai',
+                        text: 'Nomor resi yang dimasukkan tidak cocok!',
+                    });
                 }
-
-            }, 1000); // Add a delay of 1s to prevent spamming
-        }
-
-        function error(err) {
-            console.error(err);
-        }
-        //
-        // function console_log(result) {
-        //     console.log(result);
-        // }
-
-
+                
+            }
+        });
 
     });
 </script>

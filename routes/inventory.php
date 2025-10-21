@@ -393,6 +393,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('helper_online_get_waiting_receipt_items', [HelperOnlineController::class, 'waitingReceipt']);
     Route::post('helper_online_print_resi/{to_id}', [HelperOnlineController::class, 'printResi']);
     Route::post('helper_online_print_invoice/{to_id}', [HelperOnlineController::class, 'printInvoice']);
+    Route::post('helper_online_done_print/{to_id}', [HelperOnlineController::class, 'donePrint']);
     Route::post('helper_online_scan_packing_single', [HelperOnlineController::class, 'scanPackingSingle']);
     Route::post('helper_online_scan_packing_bulk', [HelperOnlineController::class, 'scanPackingBulk']);
     Route::post('helper_online_scan_manifest_bulk', [HelperOnlineController::class, 'scanManifestBulk']);

@@ -181,7 +181,7 @@ class HelperOnlineController extends Controller
                 'product_location_setup_transactions.pst_id as pst_id',
                 'product_location_setup_transactions.pls_id as pls_id',
                 'product_location_setup_transactions.qc_status',
-                'online_transactions.id as to_id'
+                'online_transactions.id as to_id',
             )
             ->where('online_transactions.id', $transaction_id)
             ->where('online_transaction_details.deleted_at', null)
@@ -454,17 +454,16 @@ class HelperOnlineController extends Controller
             );
 
         return datatables()->of($query)
-        ->addColumn('article', function ($data) {
-            return '
+            ->addColumn('article', function ($data) {
+                return '
             <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->sku . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>';
-        })
-        ->addColumn('final_price', function ($data) {
-            return $data->qty * $data->price_after_discount;
-        })
-        ->addIndexColumn()
-        ->rawColumns(['article'])
-        ->make(true);
-        
+            })
+            ->addColumn('final_price', function ($data) {
+                return $data->qty * $data->price_after_discount;
+            })
+            ->addIndexColumn()
+            ->rawColumns(['article'])
+            ->make(true);
     }
 
     public function printResi($to_id)
@@ -824,5 +823,103 @@ class HelperOnlineController extends Controller
             'cashier' => $cashier
         ];
         return view('app.invoice.print_invoice_online', compact('data'));
+    }
+
+    public function donePrint($to_id)
+    {
+        DB::beginTransaction();
+        try {
+            $transaction = OnlineTransactions::where('id', $to_id)->where('internal_order_status', 'WAITING RECEIPT')->first();
+
+            if (!$transaction) {
+                return response()->json(['status' => '400', 'message' => 'Transaksi tidak ditemukan.']);
+            }
+
+            $transaction_items = OnlineTransactionDetails::where('to_id', $to_id)->get();
+
+            if ($transaction_items->isEmpty()) {
+                return response()->json(['status' => '400', 'message' => 'Tidak ada item dalam transaksi ini.']);
+            }
+
+            $update_trx = OnlineTransactions::where('id', $to_id)
+                ->update(['internal_order_status' => 'WAITING PACKING', 'updated_at' => date('Y-m-d H:i:s')]);
+
+            if ($update_trx === 0) {
+                DB::rollBack();
+                return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status transaksi.']);
+            }
+
+            $item_ids = [];
+
+            foreach ($transaction_items as $item) {
+                $item_ids[] = $item->id;
+            }
+
+            $update_plst = DB::table('product_location_setup_transactions')
+                ->whereIn('otd_id', $item_ids)
+                ->where('plst_status', 'WAITING RECEIPT')
+                ->update(['plst_status' => 'WAITING PACKING', 'updated_at' => date('Y-m-d H:i:s')]);
+
+            if ($update_plst === 0) {
+                DB::rollBack();
+                return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status item transaksi.']);
+            }
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Status berhasil diperbarui ke WAITING PACKING.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '400', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
+    }
+
+    public function scanPackingSingle(Request $request)
+    {
+        $to_id = $request->get('to_id');
+
+        DB::beginTransaction();
+        try {
+            $transaction = OnlineTransactions::where('id', $to_id)->first();
+
+            if (!$transaction) {
+                return response()->json(['status' => '400', 'message' => 'Transaksi tidak ditemukan.']);
+            }
+
+            $transaction_items = OnlineTransactionDetails::where('to_id', $to_id)->get();
+
+            if ($transaction_items->isEmpty()) {
+                return response()->json(['status' => '400', 'message' => 'Tidak ada item dalam transaksi ini.']);
+            }
+
+            $update_trx = OnlineTransactions::where('id', $to_id)
+                ->update(['internal_order_status' => 'DONE ONLINE', 'updated_at' => date('Y-m-d H:i:s')]);
+
+            if ($update_trx === 0) {
+                DB::rollBack();
+                return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status transaksi.']);
+            }
+
+            $item_ids = [];
+
+            foreach ($transaction_items as $item) {
+                $item_ids[] = $item->id;
+            }
+
+            $update_plst = DB::table('product_location_setup_transactions')
+                ->whereIn('otd_id', $item_ids)
+                ->where('plst_status', 'WAITING PACKING')
+                ->update(['plst_status' => 'DONE ONLINE', 'updated_at' => date('Y-m-d H:i:s')]);
+
+            if ($update_plst === 0) {
+                DB::rollBack();
+                return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status item transaksi.']);
+            }
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Transaksi dan item berhasil diperbarui ke DONE ONLINE.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '400', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
     }
 }

@@ -1133,6 +1133,9 @@ class TransaksiOnlineController extends Controller
 
         $st_id = $st_id_form;
 
+        $store_id = Auth::user()->st_id;
+        $st_code = Store::where('id', $store_id)->first()->st_code;
+
         if ($type === 'Shopee') {
             foreach ($data as $item) {
                 $order_number = $item[0];
@@ -1217,7 +1220,7 @@ class TransaksiOnlineController extends Controller
                 $total_discount = str_replace('.', '', $item[13]);
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
-                $warehouse = $item[19];
+                $warehouse = $item[19] ?? $st_code;
 
 
                 try {
@@ -1353,7 +1356,7 @@ class TransaksiOnlineController extends Controller
                 $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
-                $warehouse = $item[19];
+                $warehouse = $item[19] ?? $st_code;
 
 
                 try {
