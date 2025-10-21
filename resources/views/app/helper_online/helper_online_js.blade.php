@@ -45,7 +45,7 @@
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
             html += `
-                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number=${transaction.order_number} data-resi_number=${transaction.no_resi} style="cursor: pointer;">
+                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" style="cursor: pointer;">
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
@@ -472,6 +472,7 @@
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
             resi_number = $(this).data('resi_number');
+            status = $(this).data('internal_order_status');
             clearScanners();
             jQuery.noConflict();
             $('#trx_number_title_wr').text('Order Number: ' + orderNumber);
@@ -480,6 +481,11 @@
             $('#continuePackingBtn').data('to_id', transactionId);
             $('#continuePackingBtn').data('order_number', orderNumber);
             $('#continuePackingBtn').data('resi_number', resi_number);
+            $('#continuePackingBtn').data('status', status);
+
+            if (status == 'DONE' || status == 'DONE ONLINE') {
+                $('#continuePackingBtn').prop('disabled', true);
+            }
             waiting_receipt_table.draw();
         });
 
@@ -488,25 +494,28 @@
             transactionId = $(this).data('to_id');
             orderNumber = $(this).data('order_number');
             resi_number = $(this).data('resi_number');
+            status = $(this).data('status');
 
-            $.ajax({
-                url: "{{ url('helper_online_done_print') }}/" + transactionId,
-                type: 'POST',
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.status === '200') {
-                        toastr.success('Status diupdate ke WAITING PACKING');
-                    } else {
-                        toastr.error('Gagal mengupdate status');
+            if (status == 'WAITING RECEIPT') {
+                $.ajax({
+                    url: "{{ url('helper_online_done_print') }}/" + transactionId,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            toastr.success('Status diupdate ke WAITING PACKING');
+                        } else {
+                            toastr.error('Gagal mengupdate status');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        toastr.error('Terjadi kesalahan saat mengupdate status');
+                        console.error('Error:', error);
                     }
-                },
-                error: function(xhr, status, error) {
-                    toastr.error('Terjadi kesalahan saat mengupdate status');
-                    console.error('Error:', error);
-                }
-            });
+                });
+            }
 
             clearScanners();
             scanner_scan_resi.render(success, error);
@@ -914,9 +923,55 @@
 
         $('#scan_packing_result').focus().on('keyup', function(e) {
             if (e.key === 'Enter') {
-                let enteredSku = $(this).val();
+                let enteredResi = $(this).val();
+                let validResi = $('#resi_number_holder').text();
                 // Lakukan sesuatu dengan SKU yang dimasukkan
-                console.log('SKU yang dimasukkan:', enteredSku);
+                if (enteredResi === validResi) {
+                    swal({
+                        title: "Konfirmasi Packing",
+                        text: "Yakin sudah selesai packing?",
+                        icon: "warning",
+                        buttons: [
+                            'Batal',
+                            'Yakin'
+                        ],
+                        dangerMode: false,
+                    }).then(function(isConfirm) {
+                        if (isConfirm) {
+                            $.ajax({
+                                type: "POST",
+                                data: {
+                                    to_id: $('#plst_id_scan_packing').text(),
+                                    _token: $('meta[name="csrf-token"]').attr('content')
+                                },
+                                dataType: 'json',
+                                url: "{{ url('helper_online_scan_packing_single') }}",
+                                success: function(r) {
+                                    if (r.status == '200') {
+                                        $('#scanPackingModal').modal('hide');
+                                        $('#scan_packing_result').val('');
+                                        swal({
+                                            title: 'Berhasil',
+                                            text: 'Packing berhasil dikonfirmasi',
+                                            icon: 'success',
+                                            button: 'OK',
+                                        });
+                                        getListPicked();
+                                    } else {
+                                        swal('Gagal', 'Gagal konfirmasi packing', 'error');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Resi tidak sesuai',
+                        text: 'Nomor resi yang dimasukkan tidak cocok!',
+                    });
+                }
+                
             }
         });
 
