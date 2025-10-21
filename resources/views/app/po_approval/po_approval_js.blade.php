@@ -205,7 +205,7 @@
             ],
         });
 
-        var PurchaseOrdersFileDispute = $('#FileDeliveryNoteTb').DataTable({
+        var PurchaseOrdersDeliveryNote = $('#FileDeliveryNoteTb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -498,6 +498,7 @@
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
                     PurchaseOrdersFileDispute.draw();
+                    PurchaseOrdersDeliveryNote.draw();
                 }
             });
             $('#ApproveModal').modal('show');
