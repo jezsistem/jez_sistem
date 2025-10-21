@@ -177,7 +177,8 @@
                 <br>
                 <div class="d-flex justify-content-center">
                     <div>
-                        <div id="reader_scan_bin_out" class="rounded" style="max-width: 500px;"></div>
+                        <div id="reader_scan_bin_out" class="rounded" style="max-width: 500px; min-width:300px">
+                        </div>
                         <div id="result"></div>
                     </div>
                 </div>
@@ -204,7 +205,7 @@
                 </table>
                 <div class="text-right mt-3">
                     {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button> --}}
-                    <button type="button" class="btn btn-dark font-weight-bold" id="close_scan_out_modal"
+                    <button type="button" class="btn btn-dark font-weight-bold close_scanner" id="close_scan_out_modal"
                         data-dismiss="modal">Selesai</button>
                 </div>
             </div>
@@ -218,7 +219,7 @@
         <div class="modal-content">
             <div class="modal-header bg-dark">
                 <h5 class="modal-title text-white" id="waitingReceiptModallLabel">
-                    Waiting Receipt TRX : <span class="trx_number_title_wr" id="trx_number_title_wr">No TRX</span> -
+                    <span class="trx_number_title_wr" id="trx_number_title_wr">No TRX</span> -
                     <span class="to_id_waiting_receipt" id="to_id_waiting_receipt">ID</span>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -236,8 +237,9 @@
                             <button type="button" class="btn btn-warning" id="printNotaBtn">
                                 <i class="fas fa-print"></i> Print Nota
                             </button>
+                            <input type="hidden" id="resi_number">
                         </div>
-                        <button type="button" class="btn btn-success" id="continuePackingBtn">
+                        <button type="button" class="btn btn-success" id="continuePackingBtn" data-to_id="" data-order_number="">
                             Lanjut Packing
                         </button>
                     </div>
@@ -263,6 +265,41 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    {{-- Modal Scan Packing --}}
+
+    <div class="modal fade" id="scanPackingModal" tabindex="-1" role="dialog" aria-labelledby="scanPackingModalLabel"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Scan Packing:  <span id="order_number_scan_packing"></span> - <span id="plst_id_scan_packing"></span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="pl_id_out_parent"></div>
+                    <br>
+                    <div class="d-flex justify-content-center">
+                        <div>
+                            <div id="reader_scan_resi" class="rounded" style="max-width: 500px; min-width:300px">
+                            </div>
+                            <div id="result"></div>
+                        </div>
+                    </div>
+                    <p class="mt-8">No Resi : </span><span id="resi_number_holder"></p>
+                    <input type="search" class="form-control mt-3" id="scan_packing_result"
+                    placeholder="Hasil Scan" /><br>
+                    <div class="text-right mt-3">
+                        {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button> --}}
+                        <button type="button" class="btn btn-dark font-weight-bold close_scanner" id="close_scan_packing_modal_btn" >Selesai</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

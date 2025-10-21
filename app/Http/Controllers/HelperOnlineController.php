@@ -470,4 +470,12 @@ class HelperOnlineController extends Controller
     {
         dd("print invoice " . $to_id);
     }
+
+    public function donePrint($to_id)
+    {
+        OnlineTransactions::where('id', $to_id)->where('internal_order_status', 'WAITING RECEIPT')
+            ->update(['internal_order_status' => 'WAITING PACKING', 'updated_at' => date('Y-m-d H:i:s')]);
+
+        return response()->json(['status' => '200', 'message' => 'Status order berhasil diperbarui ke WAITING PACKING.']);
+    }
 }
