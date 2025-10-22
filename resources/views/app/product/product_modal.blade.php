@@ -318,6 +318,16 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="mark_down" name="mark_down" value="1">
+                                    <label class="" for="mark_down">
+                                        Mark Down
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <div class="col-lg-6 pt-1">
                                 <label>Sub Category 1 <span class="text-danger"></span></label>
                                 <textarea class="form-control" id="subcatone" name="subcatone"></textarea>
