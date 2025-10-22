@@ -19,7 +19,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class HelperOnlineController extends Controller
 {
@@ -471,7 +470,7 @@ class HelperOnlineController extends Controller
         dd("print resi " . $to_id);
     }
 
-    public function printInvoice($to_id)
+    public function printInvoice(Request $request, $to_id)
     {
         try {
             DB::beginTransaction();

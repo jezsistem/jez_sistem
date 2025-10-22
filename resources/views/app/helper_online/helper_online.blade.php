@@ -34,6 +34,64 @@
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2 col-sm-6 mb-4">
+                                    <div class="card bg-warning text-white">
+                                        <div class="card-body text-center">
+                                            <h3 class="mb-0" id="waiting_online_count">0</h3>
+                                            <small>WAITING ONLINE</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 col-sm-6 mb-4">
+                                    <div class="card bg-primary text-white">
+                                        <div class="card-body text-center">
+                                            <h3 class="mb-0" id="under_review_count">0</h3>
+                                            <small>UNDER REVIEW</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 col-sm-6 mb-4">
+                                    <div class="card text-white" style="background-color: blue">
+                                        <div class="card-body text-center">
+                                            <h3 class="mb-0" id="waiting_receipt_count">0</h3>
+                                            <small>WAITING RECEIPT</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 col-sm-6 mb-4">
+                                    <div class="card bg-danger text-white">
+                                        <div class="card-body text-center">
+                                            <h3 class="mb-0" id="waiting_packing_count">0</h3>
+                                            <small>WAITING PACKING</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 col-sm-6 mb-4">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h3 class="mb-0" id="done_online_count">0</h3>
+                                            <small>DONE ONLINE</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-12">
+                                <div class="col-md-12">
+                                    <button type="button" class="btn btn-primary mr-2" id="open_modal_scan_manifest_btn">
+                                        Import Scan Manifest
+                                    </button>
+                                </div>
+                            </div>
+                            <!--end: Datatable-->
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card-->
+                <div class="">
+                    <!--begin::Card-->
+                    <div class="card card-custom gutter-b">
+                        <div class="card-body">
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <label for="order_number">Order Number/No Resi</label>
@@ -46,6 +104,7 @@
                                     <option value="UNDER REVIEW">UNDER REVIEW</option>
                                     <option value="WAITING RECEIPT">WAITING RECEIPT</option>
                                     <option value="WAITING PACKING">WAITING PACKING</option>
+                                    <option value="DONE ONLINE">DONE ONLINE</option>
                                 </select>
                                 <div id="status_filter_parent"></div>
                             </div>
@@ -54,7 +113,7 @@
                         </div>
                     </div>
                 </div>
-                <!--end::Card-->
+                
                 <div class="">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">

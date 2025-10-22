@@ -205,8 +205,8 @@
                 </table>
                 <div class="text-right mt-3">
                     {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button> --}}
-                    <button type="button" class="btn btn-dark font-weight-bold close_scanner" id="close_scan_out_modal"
-                        data-dismiss="modal">Selesai</button>
+                    <button type="button" class="btn btn-dark font-weight-bold close_scanner"
+                        id="close_scan_out_modal" data-dismiss="modal">Selesai</button>
                 </div>
             </div>
         </div>
@@ -239,7 +239,8 @@
                             </button>
                             <input type="hidden" id="resi_number">
                         </div>
-                        <button type="button" class="btn btn-success" id="continuePackingBtn" data-to_id="" data-order_number="">
+                        <button type="button" class="btn btn-success" id="continuePackingBtn" data-to_id=""
+                            data-order_number="">
                             Lanjut Packing
                         </button>
                     </div>
@@ -267,63 +268,102 @@
 
         </div>
     </div>
+</div>
 
-    {{-- Modal Scan Packing --}}
+{{-- Modal Scan Packing --}}
 
-    <div class="modal fade" id="scanPackingModal" tabindex="-1" role="dialog" aria-labelledby="scanPackingModalLabel"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Scan Packing:  <span id="order_number_scan_packing"></span> - <span id="plst_id_scan_packing"></span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div id="pl_id_out_parent"></div>
-                    <br>
-                    <div class="d-flex justify-content-center">
-                        <div>
-                            <div id="reader_scan_resi" class="rounded" style="max-width: 500px; min-width:300px">
-                            </div>
-                            <div id="result"></div>
+<div class="modal fade" id="scanPackingModal" tabindex="-1" role="dialog" aria-labelledby="scanPackingModalLabel"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scan Packing: <span id="order_number_scan_packing"></span> - <span
+                        id="plst_id_scan_packing"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="pl_id_out_parent"></div>
+                <br>
+                <div class="d-flex justify-content-center">
+                    <div>
+                        <div id="reader_scan_resi" class="rounded" style="max-width: 500px; min-width:300px">
                         </div>
+                        <div id="result"></div>
                     </div>
-                    <p class="mt-8">No Resi : </span><span id="resi_number_holder"></p>
-                    <input type="search" class="form-control mt-3" id="scan_packing_result"
+                </div>
+                <p class="mt-8">No Resi : </span><span id="resi_number_holder"></p>
+                <input type="search" class="form-control mt-3" id="scan_packing_result"
                     placeholder="Hasil Scan" /><br>
-                    <div class="text-right mt-3">
-                        {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button> --}}
-                        <button type="button" class="btn btn-dark font-weight-bold close_scanner" id="close_scan_packing_modal_btn" >Selesai</button>
-                    </div>
+                <div class="text-right mt-3">
+                    {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button> --}}
+                    <button type="button" class="btn btn-dark font-weight-bold close_scanner"
+                        id="close_scan_packing_modal_btn">Selesai</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <style>
-        .chat-container {
-            height: 70vh;
-            background-color: #f8f9fa;
-        }
+<!-- Modal-->
+<div class="modal fade" id="importManifestModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
 
-        .chat-messages {
-            height: 100%;
-            overflow-y: auto;
-        }
+            <form id="f_upload_manifest" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Import Scan Manifest</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
 
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
+                    <div class="modal-body">
+                        <a href="{{ asset('upload/template/template_scan_manifest.xlsx') }}" download
+                            class="btn btn-success mb-3">
+                            <i class="fas fa-download"></i> Download Template
+                        </a>
+                        <div class="form-group">
+                            <label for="importFile">Pilih importFile Scan Manifest</label>
+                            <input type="file" class="form-control" id="importFile" name="importFile"required>
+                        </div>
+                    </div>
 
-        .chat-messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
+                    <div class="modal-footer">
+                        <button type="submit" id="uploadBtn" class="btn btn-dark mt-3">Upload</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #dee2e6;
-            border-radius: 3px;
-        }
-    </style>
+<style>
+    .chat-container {
+        height: 70vh;
+        background-color: #f8f9fa;
+    }
+
+    .chat-messages {
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #dee2e6;
+        border-radius: 3px;
+    }
+</style>

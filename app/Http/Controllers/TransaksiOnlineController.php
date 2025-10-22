@@ -463,11 +463,11 @@ class TransaksiOnlineController extends Controller
             // // get data item that already picked by helper
             $transaction = OnlineTransactions::where('id', $to_id)->get()->first();
 
-            if ($transaction->internal_order_status == 'WAITING RECEIPT') {
+            if ($transaction->internal_order_status == 'WAITING RECEIPT' || $transaction->internal_order_status == 'WAITING PACKING' || $transaction->internal_order_status == 'DONE ONLINE' || $transaction->internal_order_status == 'DONE') {
                 DB::rollBack();
                 return response()->json([
                     'status' => '400',
-                    'message' => 'Transaksi sudah dalam status WAITING RECEIPT, tidak dapat diubah.'
+                    'message' => 'Transaksi sudah dalam status '.$transaction->internal_order_status.', tidak dapat diubah.'
                 ]);
             }
 
@@ -632,17 +632,17 @@ class TransaksiOnlineController extends Controller
                             ->where('product_stocks.ps_barcode', '=', $data->sku)
                             ->where('st_id', '=', $st_id)
                             ->whereNull('pt_id')
-                            ->where('plst_status', '=', 'WAITING ONLINE')
+                            ->where('plst_status', '=', 'WAITING RECEIPT')
                             ->count();
 
-                        // Fetch the first record of waiting online transactions
+                        // Fetch the first record of WAITING RECEIPT transactions
                         $data_keep_online = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id')
                             ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                             ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                             ->where('product_stocks.ps_barcode', '=', $data->sku)
                             ->where('st_id', '=', $st_id)
                             ->whereNull('pt_id')
-                            ->where('plst_status', '=', 'WAITING ONLINE')
+                            ->where('plst_status', '=', 'WAITING RECEIPT')
                             ->first();
 
                         // If there are any waiting transactions, store them for further processing
@@ -790,7 +790,7 @@ class TransaksiOnlineController extends Controller
                                 }
                             }
 
-                            $updateResult = ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
+                            // $updateResult = ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
                             if (!$updateResult) {
                                 throw new \Exception('Failed to update product location setup transaction');
                             }
@@ -927,7 +927,8 @@ class TransaksiOnlineController extends Controller
                     "Order Amount",
                     "Regency and City",
                     "Province",
-                    "Warehouse"
+                    "Warehouse",
+                    'Ekspedisi'
                 ];
 
                 if (!isset($data[0][0]) || $data[0][0] !== $expectedHeaders) {
@@ -1152,6 +1153,13 @@ class TransaksiOnlineController extends Controller
                 $city = $item[17];
                 $province = $item[18];
 
+                // Extract courier from shipping method if it contains SPX
+                if (strpos($item[20], 'SPX') !== false) {
+                    $courier = 'SPX';
+                } else {
+                    $courier = $item[20];
+                }
+
                 $rowData = [
                     'st_id' => 20,
                     'order_number' => $order_number,
@@ -1167,7 +1175,8 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
-                    'internal_order_status' => 'NEW TRX'
+                    'internal_order_status' => 'NEW TRX',
+                    'courier' => $courier,
                 ];
 
                 try {
@@ -1192,6 +1201,7 @@ class TransaksiOnlineController extends Controller
                             'total_payment' => $total_payment,
                             'city' => $city,
                             'province' => $province,
+                            'courier' => $courier,
                         ];
 
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
@@ -1287,6 +1297,7 @@ class TransaksiOnlineController extends Controller
                 $total_payment = str_replace(['IDR ', '.'], '', $item[16]);
                 $city = $item[17];
                 $province = $item[18];
+                $courier = $item[20];
 
                 $rowData = [
                     'st_id' => '20',
@@ -1303,7 +1314,8 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
-                    'internal_order_status' => 'NEW TRX'
+                    'internal_order_status' => 'NEW TRX',
+                    'courier' => $courier,
                 ];
 
                 try {
@@ -1328,6 +1340,7 @@ class TransaksiOnlineController extends Controller
                             'total_payment' => $total_payment,
                             'city' => $city,
                             'province' => $province,
+                            'courier' => $courier,
                         ];
 
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
