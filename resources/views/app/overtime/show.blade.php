@@ -1,8 +1,17 @@
 @extends('app.structure')
 @section('content')
 
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <div class="container">
         <h4 class="mb-4">Detail Overtime Request</h4>
+
+        <!-- Tombol Back -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ route('overtime.index') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
 
         <!-- ========================= CARD DETAIL ========================= -->
         <div class="card shadow-sm mb-4">
@@ -14,17 +23,58 @@
                     @endphp
                     <span class="badge bg-light text-dark">{{ $statusBadge }}</span>
 
+{{--                    @if($isManager && empty($detail->approved_by))--}}
+{{--                        <button id="btnApprove" class="btn btn-success btn-sm ms-2">--}}
+{{--                            <i class="bi bi-check-circle"></i> Approve Overtime--}}
+{{--                        </button>--}}
+{{--                    @endif--}}
+
+{{--                    @if($detail->status === 'HR Check' && $isHR)--}}
+{{--                        <button id="btnApproveHR" class="btn btn-warning btn-sm ms-2">--}}
+{{--                            <i class="bi bi-person-check"></i> Approve HR--}}
+{{--                        </button>--}}
+{{--                    @endif--}}
+                    {{-- APPROVE BUTTONS --}}
                     @if($isManager && empty($detail->approved_by))
-                        <button id="btnApprove" class="btn btn-success btn-sm ms-2">
-                            <i class="bi bi-check-circle"></i> Approve Overtime
-                        </button>
+                        <div class="btn-group ms-2">
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" id="ManagerAction" aria-expanded="false">
+                                <i class="bi bi-check-circle"></i> Manager Action
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button id="btnApprove" class="dropdown-item text-success">
+                                        <i class="bi bi-check-circle"></i> Approve Overtime
+                                    </button>
+                                </li>
+                                <li>
+                                    <button id="btnReject" class="dropdown-item text-danger">
+                                        <i class="bi bi-x-circle"></i> Reject Overtime
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     @endif
 
                     @if($detail->status === 'HR Check' && $isHR)
-                        <button id="btnApproveHR" class="btn btn-warning btn-sm ms-2">
-                            <i class="bi bi-person-check"></i> Approve HR
-                        </button>
+                        <div class="btn-group ms-2">
+                            <button type="button" class="btn btn-warning btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-check"></i> HR Action
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button id="btnApproveHR" class="dropdown-item text-success">
+                                        <i class="bi bi-check2"></i> Approve HR
+                                    </button>
+                                </li>
+                                <li>
+                                    <button id="btnRejectHR" class="dropdown-item text-danger">
+                                        <i class="bi bi-x-circle"></i> Reject HR
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     @endif
+
                 </div>
             </div>
 
@@ -120,7 +170,7 @@
 
         <!-- ========================= CARD INPUT REPORT ========================= -->
         <!-- ========================= CARD INPUT / VIEW REPORT ========================= -->
-        @if($statusBadge === 'Approved' || 'HR Check' || 'Done')
+        @if($statusBadge === 'Approved' || 'HR Check' || 'Done' && $detail->status != 'Rejected')
             <div class="card shadow-sm border-warning mb-4">
                 <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
@@ -224,7 +274,44 @@
                     $.ajax({
                         url: "{{ route('overtime.approve', $detail->id) }}",
                         type: 'POST',
-                        data: { _token: "{{ csrf_token() }}" },
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            action: 'Approved'
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                swal('Berhasil', 'Lembur telah disetujui', 'success');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                swal('Gagal', 'Terjadi kesalahan saat approve', 'error');
+                            }
+                        },
+                        error: function(err) {
+                            console.error(err);
+                            swal('Error', 'Terjadi kesalahan server', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '#btnReject', function() {
+            Swal.fire({
+                title: 'Reject Overtime?',
+                text: 'Anda yakin ingin menolak lembur ini?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Approve',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('overtime.approve', $detail->id) }}",
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            action: 'Rejected'
+                        },
                         success: function(res) {
                             if (res.success) {
                                 swal('Berhasil', 'Lembur telah disetujui', 'success');
@@ -282,7 +369,42 @@
                         url: "{{ route('overtime.approve.hr', $detail->id) }}",
                         type: 'POST',
                         data: {
-                            _token: "{{ csrf_token() }}"
+                            _token: "{{ csrf_token() }}",
+                            action: 'Done'
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire('Berhasil', 'Lembur disetujui oleh HR', 'success');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+                            }
+                        },
+                        error: function(err) {
+                            console.error(err);
+                            Swal.fire('Error', 'Terjadi kesalahan server', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '#btnRejectHR', function() {
+            Swal.fire({
+                title: 'Rejected By HR?',
+                text: 'Apakah Anda yakin ingin menolak lembur ini sebagai HR?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Approve HR',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('overtime.approve.hr', $detail->id) }}",
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            action: 'Rejected'
                         },
                         success: function(res) {
                             if (res.success) {
@@ -303,4 +425,7 @@
 
 
     </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 @endsection

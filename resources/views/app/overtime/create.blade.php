@@ -61,7 +61,8 @@
                                 <!-- Details -->
                                 <div class="form-group mt-3">
                                     <label for="details">Overtime Details <span class="text-danger">*</span></label>
-                                    <textarea id="details" name="details" class="form-control" rows="3" placeholder="Describe the overtime work..." required></textarea>
+{{--                                    <textarea id="details" name="details" class="form-control" rows="3" placeholder="Describe the overtime work..." required></textarea>--}}
+                                    <textarea id="details" name="details" class="form-control" rows="3" required>{{ old('details', $detail->details ?? '') }}</textarea>
                                 </div>
 
                                 <!-- Attachment -->

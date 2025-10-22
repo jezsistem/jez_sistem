@@ -248,7 +248,7 @@
         if (jQuery.trim(discount) == '' || jQuery.trim(discount) == 0) {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item));
 
-            jQuery('#reseller_disc_number' + index).val('');
+            jQuery('#reseller_disc_number' + index).val('');w
         } else {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item)) - (parseFloat(replaceComma(
                 sell_price_item)) / 100 * parseFloat(discount));
@@ -1404,6 +1404,7 @@
             var discount_seller = jQuery('#discount_seller').val();
             var no_resi = jQuery('#no_resi').val();
             var downpayment = jQuery('#dp_checkbox').val() || 0;
+            // var another_cost = jQuery('#another_cost').val() || null;
             var dp_payment = jQuery('#dp_payment').val() || null;
 
             if (std_id == '14' || std_id == '13') {

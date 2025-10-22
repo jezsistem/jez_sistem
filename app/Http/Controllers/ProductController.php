@@ -384,6 +384,7 @@ class ProductController extends Controller
                     'is_everlast',
                     'is_supersale',
                     'is_reguler',
+                    'mark_down',
                     'p_turnoverclass'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
@@ -795,6 +796,7 @@ class ProductController extends Controller
                 'is_everlast'         => $request->input('is_everlast') ?? 0,
                 'is_supersale'       => $request->input('is_supersale') ?? 0,
                 'is_reguler'         => $request->input('is_reguler') ?? 0,
+                'mark_down'         => $request->input('mark_down') ?? 0,
                 'p_turnoverclass'   => $request->input('p_turnoverclass'),
             ];
             $save = $product->storeData($mode, $id, $data);
