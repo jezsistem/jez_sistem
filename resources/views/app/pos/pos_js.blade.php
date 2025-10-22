@@ -232,11 +232,11 @@
     }
 
     function resellerDisc(index) {
-        if (jQuery('#reseller_disc' + index).val() < 0) {
-            swal('Minus', 'diskon reseller tidak boleh minus', 'warning');
-            jQuery('#reseller_disc' + index).val('');
-            return false;
-        }
+        // if (jQuery('#reseller_disc' + index).val() < 0) {
+        //     swal('Minus', 'diskon reseller tidak boleh minus', 'warning');
+        //     jQuery('#reseller_disc' + index).val('');
+        //     return false;
+        // }
         var discount = jQuery('#reseller_disc' + index).val();
         var discount_number = jQuery('#reseller_disc_number' + index).val();
         var sell_price_item = jQuery('#sell_price_item' + index).text();
@@ -281,11 +281,11 @@
     }
 
     function resellerDiscNumber(index) {
-        if (jQuery('#reseller_disc_number' + index).val() < 0) {
-            swal('Minus', 'diskon reseller tidak boleh minus', 'warning');
-            jQuery('#reseller_disc' + index).val('');
-            return false;
-        }
+        // if (jQuery('#reseller_disc_number' + index).val() < 0) {
+        //     swal('Minus', 'diskon reseller tidak boleh minus', 'warning');
+        //     jQuery('#reseller_disc' + index).val('');
+        //     return false;
+        // }
         var discount_percentage = jQuery('#reseller_disc' + index).val();
         var discount = jQuery('#reseller_disc_number' + index).val();
         var sell_price_item = jQuery('#sell_price_item' + index).text();
