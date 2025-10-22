@@ -167,7 +167,7 @@
                     <input type="hidden" id="to_id" value="" />
                     <input type="hidden" id="status_pesanan" value="" />
 
-                    {{-- <button class="btn btn-light-primary font-weight-bolder" id="print_invoice">
+                    <button class="btn btn-light-primary font-weight-bolder" id="print_invoice">
                             <span class="svg-icon svg-icon-md">
                                 <!--begin::Svg Icon | Print Icon-->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24"
@@ -183,7 +183,7 @@
                                 <!--end::Svg Icon-->
                             </span>
                         Print
-                    </button> --}}
+                    </button>
 
                     <table class="table table-hover to mt-3" id="Detailtb">
                         <div class="alert-danger running-text"

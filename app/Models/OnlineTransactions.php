@@ -26,6 +26,9 @@ class OnlineTransactions extends Model
         'total_payment',
         'city',
         'province',
-        'internal_order_status'
+        'internal_order_status',
+        'courier',
+        'scan_manifest',
+        'print_manifest'
     ];
 }

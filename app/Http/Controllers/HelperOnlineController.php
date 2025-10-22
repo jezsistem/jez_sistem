@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\ScanManifestImport;
 use App\Models\OnlineTransactionDetails;
 use App\Models\OnlineTransactions;
 use App\Models\ProductLocationSetupTransaction;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class HelperOnlineController extends Controller
 {
@@ -143,7 +145,22 @@ class HelperOnlineController extends Controller
             ->orderBy('picked_time', 'asc')
             ->get();
 
-        return response()->json($transactions);
+        $total_waiting_online = $transactions->where('internal_order_status', 'WAITING ONLINE')->count();
+        $total_under_review = $transactions->where('internal_order_status', 'UNDER REVIEW')->count();
+        $total_waiting_receipt = $transactions->where('internal_order_status', 'WAITING RECEIPT')->count();
+        $total_waiting_packing = $transactions->where('internal_order_status', 'WAITING PACKING')->count();
+        $total_done_online = $transactions->where('internal_order_status', 'DONE ONLINE')->count();
+
+        $data = [
+            'transactions' => $transactions,
+            'total_waiting_online' => $total_waiting_online,
+            'total_under_review' => $total_under_review,
+            'total_waiting_receipt' => $total_waiting_receipt,
+            'total_waiting_packing' => $total_waiting_packing,
+            'total_done_online' => $total_done_online,
+        ];
+
+        return response()->json($data);
     }
 
     public function getOnlineItems(Request $request)
@@ -430,7 +447,7 @@ class HelperOnlineController extends Controller
                 'online_transaction_details.price_after_discount'
             )
             ->where('online_transactions.id', $ot_id)
-            ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')
+            ->whereIn('product_location_setup_transactions.plst_status', ['WAITING RECEIPT', 'WAITING PACKING', 'DONE ONLINE', 'DONE'])
             ->groupBy(
                 'online_transaction_details.id',
                 'product_stocks.ps_barcode',
@@ -565,6 +582,63 @@ class HelperOnlineController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => '400', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
+    }
+
+    public function scanManifestBulk(Request $request)
+    {
+        $file = $request->file('importFile');
+
+        $import = new ScanManifestImport();
+        $data = Excel::toArray($import, $file);
+
+        if (!isset($data[0][0]) || $data[0][0] !== ['resi']) {
+            $r['status'] = "422";
+            $r['message'] = 'Invalid file format.';
+            return json_encode($r);
+        }
+
+        if (count($data) < 0) {
+
+            return response()->json(['status' => '400', 'message' => 'Data tidak ada']);
+        }
+
+        $processData = $this->saveManifestStatus($data[0]);
+
+        if ($processData['status'] == 'success') {
+            return response()->json(['status' => '200', 'message' => 'Import Scan Manifest Berhasil']);
+        } else {
+            return response()->json(['status' => '405', 'message' => 'Import Scan Manifest Gagal', 'failed_resi' => $processData['failed_resi']]);
+        }
+    }
+
+    private function saveManifestStatus($data)
+    {
+        DB::beginTransaction();
+        try {
+            $errorResi = [];
+            foreach ($data as $key => $resi_number) {
+                if ($key === 0) {
+                    continue;
+                }
+
+                $update = OnlineTransactions::query()->where('no_resi', $resi_number[0])->update(['scan_manifest' => true]);
+
+                if (!$update) {
+                    $errorResi[] = $resi_number[0];
+                }
+            }
+
+            if (!empty($errorResi)) {
+                DB::rollBack();
+                return ['status' => 'error', 'message' => 'Failed to update resi', 'failed_resi' => $errorResi];
+            }
+
+            DB::commit();
+            return ['status' => 'success', 'message' => 'All resi updated successfully'];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ['status' => 'error', 'message' => 'Error: ' . $e->getMessage()];
         }
     }
 }

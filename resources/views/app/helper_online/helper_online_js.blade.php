@@ -1,3 +1,4 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     var current_tab = '';
     let chat_status = 'closed';
@@ -28,9 +29,24 @@
                 order_number: $('#order_number').val()
             },
             success: function(r) {
-                $("#picked_online_trx").html(renderTransactions(r)); // Removed animation
+                $("#picked_online_trx").html(renderTransactions(r.transactions)); // Removed animation
+                setTotalStatuses(
+                    r.total_done_online,
+                    r.total_waiting_packing,
+                    r.total_waiting_receipt,
+                    r.total_under_review,
+                    r.total_waiting_online
+                );
             }
         });
+    }
+
+    function setTotalStatuses(done_online, waiting_packing, waiting_receipt, under_review, waiting_online) {
+        $('#done_online_count').text(done_online);
+        $('#waiting_packing_count').text(waiting_packing);
+        $('#waiting_receipt_count').text(waiting_receipt);
+        $('#under_review_count').text(under_review);
+        $('#waiting_online_count').text(waiting_online);
     }
 
     function renderTransactions(transactions) {
@@ -40,12 +56,14 @@
                 'WAITING ONLINE': 'warning',
                 'UNDER REVIEW': 'secondary',
                 'WAITING RECEIPT': 'primary',
-                'WAITING PACKING': 'danger'
+                'WAITING PACKING': 'danger',
+                'DONE ONLINE': 'dark',
+                'DONE': 'dark',
             };
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
             html += `
-                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" style="cursor: pointer;">
+                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING' || transaction.internal_order_status === 'DONE ONLINE'|| transaction.internal_order_status === 'DONE'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" style="cursor: pointer;">
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
@@ -85,6 +103,10 @@
                     return '#007bff';
                 case 'WAITING PACKING':
                     return '#f00c0c';
+                case 'DONE ONLINE':
+                    return '#5CE65C';
+                case 'DONE':
+                    return '#5CE65C';
                 default:
                     return '#000'; // Default color
             }
@@ -463,6 +485,11 @@
             $('#OnlineItemsModal').modal('show');
             online_items_table.draw();
         });
+
+        $(document).on('click', '#open_modal_scan_manifest_btn', function(e) {
+            jQuery.noConflict();
+            $('#importManifestModal').modal('show');
+        })
 
         $(document).on('click', '.close_scanner', function(e) {
             clearScanners();
@@ -958,7 +985,8 @@
                                         });
                                         getListPicked();
                                     } else {
-                                        swal('Gagal', 'Gagal konfirmasi packing', 'error');
+                                        swal('Gagal', 'Gagal konfirmasi packing',
+                                            'error');
                                     }
                                 }
                             });
@@ -971,9 +999,124 @@
                         text: 'Nomor resi yang dimasukkan tidak cocok!',
                     });
                 }
-                
+
             }
         });
 
+        $(document).on('submit', '#f_upload_manifest', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            // 1. Show Loading Swal before AJAX call
+            Swal.fire({
+                title: 'Memproses...', // Processing...
+                html: 'Mohon tunggu sebentar saat manifest diupload.', // Please wait a moment while the manifest is uploaded.
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                type: "POST",
+                url: "{{ url('helper_online_scan_manifest_bulk') }}",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // 2. Dismiss Loading Swal on success
+                    Swal.close();
+
+                    if (response.status === '200') {
+                        toastr.success('Manifest berhasil diimport');
+                        $('#importManifestModal').modal('hide');
+                        $('#f_upload_manifest')[0].reset();
+                        getListPicked();
+                    } else {
+                        // Show failed resi in a table
+                        if (response.failed_resi && response.failed_resi.length > 0) {
+                            Swal.fire({
+                                title: 'Import Gagal', // Import Failed
+                                html: `
+                            <div style="overflow-x:auto;">
+                                <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border: 1px solid #ccc; padding: 8px;">Nomor Resi Gagal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="error-table-body">
+                                        </tbody>
+                                </table>
+                                <br/>
+                                <div style="text-align: center;">
+                                    <button id="export_failed_resi" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export to Excel</button>
+                                    <button id="close_error_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Close</button>
+                                </div>
+                            </div>
+                        `,
+                                icon: 'warning',
+                                width: '600px',
+                                showConfirmButton: false,
+                                didOpen: () => {
+                                    let tbody = document.getElementById(
+                                        'error-table-body');
+                                    response.failed_resi.forEach(function(
+                                        resi) {
+                                        let row = document
+                                            .createElement('tr');
+                                        row.innerHTML = `
+                                    <td style="border: 1px solid #ccc; padding: 8px;">${resi || '-'}</td>
+                                `;
+                                        tbody.appendChild(row);
+                                    });
+
+                                    // Export to Excel button
+                                    document.getElementById(
+                                            'export_failed_resi')
+                                        .addEventListener('click', function() {
+                                            let wb = XLSX.utils.book_new();
+                                            let ws_data = [
+                                                [
+                                                    "Nomor Resi Gagal"
+                                                ], // Header
+                                                ...response.failed_resi
+                                                .map(resi => [
+                                                    resi
+                                                ]) // Each resi in its own array
+                                            ];
+                                            let ws = XLSX.utils
+                                                .aoa_to_sheet(ws_data);
+                                            XLSX.utils.book_append_sheet(wb,
+                                                ws, "Failed Resi");
+                                            XLSX.writeFile(wb,
+                                                `failed_resi_${new Date().getTime()}.xlsx`
+                                            );
+                                        });
+
+                                    // Close button
+                                    document.getElementById('close_error_alert')
+                                        .addEventListener('click', function() {
+                                            Swal.close();
+                                        });
+                                }
+                            });
+                        } else {
+                            toastr.error(response.message ||
+                            'Gagal mengimport manifest'); // Failed to import manifest
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // 3. Dismiss Loading Swal on error
+                    Swal.close();
+
+                    toastr.error(
+                    'Terjadi kesalahan saat mengimport manifest'); // An error occurred while importing the manifest
+                    console.error('Error:', error);
+                }
+            });
+        });
     });
 </script>
