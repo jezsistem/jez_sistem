@@ -776,6 +776,7 @@
                         data: {
                             plst_id: $(this).data('plst_id'),
                             qc_status: 'failed',
+                            to_id: $(this).data('to_id'),
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function(response) {

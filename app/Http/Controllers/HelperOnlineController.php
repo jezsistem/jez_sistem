@@ -144,11 +144,27 @@ class HelperOnlineController extends Controller
                 $query->where('online_transactions.order_number', 'like', '%' . $order_number . '%')
                     ->orWhere('no_resi', 'like', '%' . $order_number . '%');
             })
+            ->where('product_location_setup_transactions.plst_status','!=', 'INSTOCK')
             ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
             ->orderBy('picked_time', 'asc')
             ->get();
 
-        return response()->json($transactions);
+        $total_waiting_online = $transactions->where('internal_order_status', 'WAITING ONLINE')->count();
+        $total_under_review = $transactions->where('internal_order_status', 'UNDER REVIEW')->count();
+        $total_waiting_receipt = $transactions->where('internal_order_status', 'WAITING RECEIPT')->count();
+        $total_waiting_packing = $transactions->where('internal_order_status', 'WAITING PACKING')->count();
+        $total_done_online = $transactions->where('internal_order_status', 'DONE ONLINE')->count();
+
+        $data = [
+            'transactions' => $transactions,
+            'total_waiting_online' => $total_waiting_online,
+            'total_under_review' => $total_under_review,
+            'total_waiting_receipt' => $total_waiting_receipt,
+            'total_waiting_packing' => $total_waiting_packing,
+            'total_done_online' => $total_done_online,
+        ];
+
+        return response()->json($data);
     }
 
     public function getOnlineItems(Request $request)
