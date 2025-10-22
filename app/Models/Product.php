@@ -42,7 +42,8 @@ class Product extends Model
         'is_reguler',
         'created_at',
         'p_turnoverclass',
-        'updated_at'
+        'updated_at',
+        'mark_down'
     ];
 
 
@@ -162,6 +163,7 @@ class Product extends Model
         'is_everlast',
         'is_supersale',
         'is_reguler',
-        'p_turnoverclass'
+        'p_turnoverclass',
+        'mark_down'
     ];
 }

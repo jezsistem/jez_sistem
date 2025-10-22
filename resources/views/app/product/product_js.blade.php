@@ -1044,6 +1044,7 @@
             var is_supersale = product_table.row(this).data().is_supersale;
             var is_reguler = product_table.row(this).data().is_reguler;
             var p_turnoverclass = product_table.row(this).data().p_turnoverclass;
+            var mark_down = product_table.row(this).data().mark_down;
 
             console.log(product_table.row(this).data())
             console.log(subcategory1)
@@ -1173,6 +1174,12 @@
                 $('#is_reguler').prop('checked', true);
             } else {
                 $('#is_reguler').prop('checked', false);
+            }
+
+            if (mark_down == '1') {
+                $('#mark_down').prop('checked', true);
+            } else {
+                $('#mark_down').prop('checked', false);
             }
 
             $('#p_turnoverclass').val(p_turnoverclass);
