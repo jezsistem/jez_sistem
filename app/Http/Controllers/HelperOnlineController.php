@@ -133,9 +133,14 @@ class HelperOnlineController extends Controller
                 DB::raw('MAX(ts_product_location_setup_transactions.created_at) AS picked_time'),
                 'no_resi',
                 DB::raw('SUM(ts_online_transaction_details.qty) AS total_picked'),
-                DB::raw('(select COUNT(*)
-                from ts_online_transaction_chat_history where is_amp=1 and is_readed=0 and ot_id=ts_online_transactions.id) AS unreaded_chat')
+                DB::raw('COUNT(ts_online_transaction_chat_history.id) as unreaded_chat'),
+                DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time')
             )
+            ->leftJoin('online_transaction_chat_history', function ($join) {
+                $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
+                    ->where('online_transaction_chat_history.is_readed', '=', 0)
+                    ->where('online_transaction_chat_history.is_amp', '=', 1);
+            })
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
             ->when($status_filter, function ($query, $status_filter) {
                 $query->where('online_transactions.internal_order_status', $status_filter);
@@ -146,6 +151,7 @@ class HelperOnlineController extends Controller
             })
             // ->where('product_location_setup_transactions.plst_status','!=', 'INSTOCK')
             ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
+            ->orderByDesc('last_chat_time')
             ->orderBy('picked_time', 'asc')
             ->get();
 

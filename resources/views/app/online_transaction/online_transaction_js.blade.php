@@ -403,6 +403,7 @@
                     d.st_id = $('#st_id_filter').val();
                     d.status = $('#filter_status').val(); // Status aktif dari tab
                     d.tab_status = $('#tab_status').val(); // Status aktif dari tab
+                    d.chat_status = $('#filter_status_chat').val(); // Status chat dari filter
                 }
             },
             columns: [
@@ -470,6 +471,16 @@
         });
 
         $('#filter_status').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_status_chat').select2({
+            width: "200px",
+            dropdownParent: $('#filter_status_chat_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_status_chat').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });

@@ -122,12 +122,18 @@ class TransaksiOnlineController extends Controller
                     'order_status',
                     'online_print',
                     'internal_order_status',
+                    DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
+                    DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-                    // ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
-                    // ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('online_transaction_chat_history', function ($join) {
+                        $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
+                             ->where('online_transaction_chat_history.is_readed', '=', 0)
+                             ->where('online_transaction_chat_history.is_amp', '=', 0);
+                    })
                     ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
+                    ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
             )
@@ -145,10 +151,7 @@ class TransaksiOnlineController extends Controller
                     return '<a class="text-white" href="#" data-pt_id="' . $data->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $data->order_status . '</span></a>';
                 })
                 ->addColumn('action', function ($data) {
-                    $unreadCount = OnlineTransactionChat::where('ot_id', $data->to_id)
-                        ->where('is_readed', 0)
-                        ->where('is_amp', 0)
-                        ->count();
+                    $unreadCount = $data->unread_count;
 
                     $badge = $unreadCount > 0 ? '<span class="badge badge-danger position-absolute top-0 start-100 translate-middle">' . $unreadCount . '</span>' : '';
 
@@ -200,6 +203,30 @@ class TransaksiOnlineController extends Controller
                                 $w->orWhere('online_print', '=', "0");
                             } else if ($status == 1) {
                                 $w->orWhere('online_print', '=', "1");
+                            }
+                        });
+                    }
+
+                    if(!empty($request->get('chat_status'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $chat_status = $request->get('chat_status');
+
+                            if ($chat_status == 'unreaded') {
+                                $w->whereExists(function ($query) {
+                                    $query->select(DB::raw(1))
+                                        ->from('online_transaction_chat_history')
+                                        ->whereRaw('ts_online_transaction_chat_history.ot_id = ts_online_transactions.id')
+                                        ->where('online_transaction_chat_history.is_readed', 0)
+                                        ->where('online_transaction_chat_history.is_amp', 0);
+                                });
+                            } else if ($chat_status == 'readed') {
+                                $w->whereNotExists(function ($query) {
+                                    $query->select(DB::raw(1))
+                                        ->from('online_transaction_chat_history')
+                                        ->whereRaw('ts_online_transaction_chat_history.ot_id = ts_online_transactions.id')
+                                        ->where('online_transaction_chat_history.is_readed', 1)
+                                        ->where('online_transaction_chat_history.is_amp', 0);
+                                });
                             }
                         });
                     }

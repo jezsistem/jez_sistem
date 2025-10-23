@@ -174,13 +174,21 @@
                                         <input type="search" class="form-control" id="online_transaction_search"
                                                placeholder="Cari No Order / No resi"/>
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col-2">
                                         <select name="filter_statuss" id="filter_status" class="form-control col-6">
                                             <option value="">-- Pilih Status Cetak --</option>
                                             <option value="0">Belum di Cetak</option>
                                             <option value="1">Sudah di Cetak</option>
                                         </select>
                                         <div id="filter_status_parent"></div>
+                                    </div>
+                                    <div class="col-2">
+                                        <select name="filter_status_chat" id="filter_status_chat" class="form-control col-6">
+                                            <option value="">-- Pilih Status Chat --</option>
+                                            <option value="unreaded">Belum di Baca</option>
+                                            <option value="readed">Sudah di Betak</option>
+                                        </select>
+                                        <div id="filter_status_chat_parent"></div>
                                     </div>
                                 </div>
                             </div>
