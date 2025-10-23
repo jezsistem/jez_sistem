@@ -127,7 +127,7 @@ class HelperOnlineController extends Controller
                 'online_transactions.order_number',
                 'platform_name AS platform',
                 'st_name AS store',
-                DB::raw("GROUP_CONCAT(DISTINCT CONCAT(ts_online_transaction_details.sku, ' (', ts_online_transaction_details.qty, ')') ORDER BY ts_online_transaction_details.sku ASC SEPARATOR ', ') AS sku"),
+                // DB::raw("GROUP_CONCAT(DISTINCT CONCAT(ts_online_transaction_details.sku, ' (', ts_online_transaction_details.qty, ')') ORDER BY ts_online_transaction_details.sku ASC SEPARATOR ', ') AS sku"),
                 'online_transactions.order_date_created AS created_at',
                 'online_transactions.internal_order_status AS internal_order_status',
                 DB::raw('MAX(ts_product_location_setup_transactions.created_at) AS picked_time'),
@@ -144,7 +144,7 @@ class HelperOnlineController extends Controller
                 $query->where('online_transactions.order_number', 'like', '%' . $order_number . '%')
                     ->orWhere('no_resi', 'like', '%' . $order_number . '%');
             })
-            ->where('product_location_setup_transactions.plst_status','!=', 'INSTOCK')
+            // ->where('product_location_setup_transactions.plst_status','!=', 'INSTOCK')
             ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
             ->orderBy('picked_time', 'asc')
             ->get();

@@ -81,7 +81,6 @@
                             <p class="card-text">Resi: <strong>${transaction.no_resi}</strong></p>
                             <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
                             <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
-                            <p class="card-text">SKU: <code>${transaction.sku}</code></p>
                             <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
                             <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
                             <p class="card-text">Status TRX: 
