@@ -255,7 +255,10 @@ class TransaksiOnlineController extends Controller
                 'price_after_discount as final_price',
                 'discount_seller',
                 'platform_name',
+                'online_transactions.st_id as trx_store_id',
+                'online_transactions.internal_order_status as jezpro_status',
                 'warehouse',
+                'online_transactions.online_print as is_printed',
                 DB::raw('CONCAT_WS(", ", 
                 IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING ONLINE" THEN 1 ELSE 0 END) > 0, 
                     CONCAT("WAITING ONLINE => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING ONLINE" THEN 1 ELSE 0 END)), 
@@ -338,7 +341,7 @@ class TransaksiOnlineController extends Controller
                     return implode('<br>', $badges);
                 })
                 ->addColumn('action', function ($data) {
-                    $warehouse_st_id = WarehouseIndex::query()->where('w_code', $data->warehouse)->first()->st_id;
+                    $warehouse_st_id = WarehouseIndex::query()->where('w_code', $data->warehouse)->first()->st_id ?? $data->trx_store_id;
                     $ps_barcode = $data->ps_barcode;
 
                     $total_stock = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -366,12 +369,21 @@ class TransaksiOnlineController extends Controller
 
 
                     $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->whereNotIn('plst_status', ['INSTOCK'])->sum('plst_qty');
+                    $can_pick = true;
+
+                    if ($data->warehouse == null && $data->is_printed == 1) {
+                        $can_pick = false;
+                    }
+
+                    if ($data->internal_order_status == 'WAITING RECEIPT' || $data->internal_order_status == 'WAITING PACKING' || $data->internal_order_status == 'DONE ONLINE' || $data->internal_order_status == 'DONE') {
+                        $can_pick = false;
+                    }
 
                     return '<div class="d-flex">
                                 <div class="d-flex flex-column align-items-center">
                                     <span class="badge badge-warning mb-1">Stock: ' . $total_stock - $total_waiting . '</span>
                                     <div>
-                                        <button class="btn btn-sm btn-secondary me-1" onclick="pickItems(\'' . $warehouse_st_id . '\',\'' . $data->to_id . '\', \'' . $data->ps_barcode . '\', \'' . $data->otd_id . '\', \'' . $data->to_qty . '\')" ' . ($cek_pick >= $data->to_qty ? 'disabled' : '') . '>
+                                        <button class="btn btn-sm btn-secondary me-1" onclick="pickItems(\'' . $warehouse_st_id . '\',\'' . $data->to_id . '\', \'' . $data->ps_barcode . '\', \'' . $data->otd_id . '\', \'' . $data->to_qty . '\')" ' . ($cek_pick >= $data->to_qty || $can_pick == false ? 'disabled' : '') . '>
                                             <i class="fas fa-hand-paper"></i> Pick
                                         </button>
                                         
