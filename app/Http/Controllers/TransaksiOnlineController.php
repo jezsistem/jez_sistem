@@ -341,7 +341,12 @@ class TransaksiOnlineController extends Controller
                     return implode('<br>', $badges);
                 })
                 ->addColumn('action', function ($data) {
-                    $warehouse_st_id = WarehouseIndex::query()->where('w_code', $data->warehouse)->first()->st_id ?? $data->trx_store_id;
+                    $user_st_id = Auth::user()->st_id;
+                    $user_st_code = Store::query()->where('id', $user_st_id)->first()->st_code;
+
+                    $store_id = Store::query()->where('st_code', $user_st_code)->where('st_name','like', 'JEZ%')->first()->id;
+                    $warehouse_st_id = WarehouseIndex::query()->where('w_code', $data->warehouse)->first()->st_id ?? $store_id;
+                    
                     $ps_barcode = $data->ps_barcode;
 
                     $total_stock = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
