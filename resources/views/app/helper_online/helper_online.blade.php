@@ -99,12 +99,12 @@
 
                                 <label for="status_filter" class="mt-3">Status</label>
                                 <select class="form-control" id="status_filter" name="status_filter" required>
-                                    <option value="">- Pilih Status -</option>
                                     <option value="WAITING ONLINE">WAITING ONLINE</option>
                                     <option value="UNDER REVIEW">UNDER REVIEW</option>
                                     <option value="WAITING RECEIPT">WAITING RECEIPT</option>
                                     <option value="WAITING PACKING">WAITING PACKING</option>
                                     <option value="DONE ONLINE">DONE ONLINE</option>
+                                    <option value="">SEMUA STATUS</option>
                                 </select>
                                 <div id="status_filter_parent"></div>
                             </div>
