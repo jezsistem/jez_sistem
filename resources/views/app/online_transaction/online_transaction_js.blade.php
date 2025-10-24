@@ -485,6 +485,26 @@
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 
+        $('#filter_warehouse').select2({
+            width: "200px",
+            dropdownParent: $('#filter_warehouse_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_warehouse').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_courier').select2({
+            width: "200px",
+            dropdownParent: $('#filter_courier_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_courier').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
         $('#online_transaction_search').on('keyup', function() {
             online_transaction_table.draw(); // Memuat ulang tabel setiap kali ada perubahan pencarian
         });

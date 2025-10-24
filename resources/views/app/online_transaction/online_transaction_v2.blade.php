@@ -170,7 +170,7 @@
 
                             <div class="container mt-6">
                                 <div class="row">
-                                    <div class="col-6">
+                                    <div class="col-3">
                                         <input type="search" class="form-control" id="online_transaction_search"
                                                placeholder="Cari No Order / No resi"/>
                                     </div>
@@ -190,6 +190,25 @@
                                         </select>
                                         <div id="filter_status_chat_parent"></div>
                                     </div>
+                                    <div class="col-2">
+                                        <select name="filter_warehouse" id="filter_warehouse" class="form-control col-6">
+                                            <option value="">-- Pilih Warehouse --</option>
+                                            @foreach ($data['warehouses'] as $warehouse)
+                                                <option value="{{ $warehouse->w_code }}">{{ $warehouse->w_code }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="filter_warehouse_parent"></div>
+                                    </div>
+                                    <div class="col-2">
+                                        <select name="filter_courier" id="filter_courier" class="form-control col-6">
+                                            <option value="">-- Pilih Ekspedisi --</option>
+                                            @foreach ($data['couriers'] as $courier)
+                                                <option value="{{ $courier->cr_name }}">{{ $courier->cr_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="filter_courier_parent"></div>
+                                    </div>
+
                                 </div>
                             </div>
 

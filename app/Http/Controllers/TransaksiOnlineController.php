@@ -96,6 +96,8 @@ class TransaksiOnlineController extends Controller
             'segment' => request()->segment(1),
             'st_id' => Store::where('st_delete', '!=', '1')->where('st_name', 'like', '%ONLINE%')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+            'couriers' => DB::table('couriers')->get(),
+            'warehouses' => WarehouseIndex::all(),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
