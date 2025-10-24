@@ -26,7 +26,7 @@
                             <!--end::Svg Icon-->
                         </span>Export
                     </a>
-                    <button type="button" class="close mt-1" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close mt-1 close_approval_modal" aria-label="Close">
                         <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
                 </div>
@@ -269,7 +269,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal"
+                <button type="button" class="btn btn-light-primary font-weight-bold close_approval_modal"
                     id="close_modal_approve_btn">Tutup
                 </button>
                 <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>

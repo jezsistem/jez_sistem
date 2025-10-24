@@ -694,7 +694,7 @@
             })
         });
 
-        $('#close_modal_approve_btn').on('click', function(e) {
+        $('.close_approval_modal').on('click', function(e) {
             e.preventDefault();
             $('#ApproveModal').modal('hide');
             var po_id = $('#_po_id').val();
