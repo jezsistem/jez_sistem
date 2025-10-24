@@ -491,7 +491,11 @@ class StockTrackingController extends Controller
                     if ($data->plst_status == 'INSTOCK APPROVAL') {
                         return '<a class="btn btn-sm btn-success" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-plst_id="' . $data->plst_id . '" data-pls_id="' . $data->pls_id . '" data-pst_id="' . $data->pst_id . '" data-bin="' . $data->pl_code . '" id="pickup_approval_item">PickUp</a>';
                     } else {
-                        return '<a class="btn btn-sm btn-info" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-plst_id="' . $data->plst_id . '" data-pls_id="' . $data->pls_id . '" data-pst_id="' . $data->pst_id . '" data-pl_code="' . $data->pl_code . '" data-pl_id="' . $data->pl_id . '" id="pick_diplay_btn">Pick Display</a>';
+                        if ($data->pl_code == 'TOKO') {
+                            return '<a class="btn btn-sm btn-secondary disabled" disabled>Pick Display</a>';
+                        } else {
+                            return '<a class="btn btn-sm btn-info" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-plst_id="' . $data->plst_id . '" data-pls_id="' . $data->pls_id . '" data-pst_id="' . $data->pst_id . '" data-pl_code="' . $data->pl_code . '" data-pl_id="' . $data->pl_id . '" id="pick_diplay_btn">Pick Display</a>';
+                        }
                     }
                 })
                 ->rawColumns(['article', 'qty', 'bin', 'datetime', 'user', 'status', 'action', 'article_id'])
