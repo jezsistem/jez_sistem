@@ -130,11 +130,17 @@ class TransaksiOnlineController extends Controller
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('online_transaction_chat_history', function ($join) {
                         $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
-                             ->where('online_transaction_chat_history.is_readed', '=', 0)
-                             ->where('online_transaction_chat_history.is_amp', '=', 0);
+                            ->where('online_transaction_chat_history.is_readed', '=', 0)
+                            ->where('online_transaction_chat_history.is_amp', '=', 0);
                     })
                     ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
+                    ->when($request->has('warehouse') && !empty($request->get('warehouse')), function ($query) use ($request) {
+                        $query->where('online_transaction_details.warehouse', $request->get('warehouse'));
+                    })
+                    ->when($request->has('courier') && !empty($request->get('courier')), function ($query) use ($request) {
+                        $query->where('online_transactions.courier', 'LIKE', '%' . $request->get('courier') . '%');
+                    })
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
@@ -209,7 +215,7 @@ class TransaksiOnlineController extends Controller
                         });
                     }
 
-                    if(!empty($request->get('chat_status'))) {
+                    if (!empty($request->get('chat_status'))) {
                         $instance->where(function ($w) use ($request) {
                             $chat_status = $request->get('chat_status');
 
@@ -373,9 +379,9 @@ class TransaksiOnlineController extends Controller
                     $user_st_id = Auth::user()->st_id;
                     $user_st_code = Store::query()->where('id', $user_st_id)->first()->st_code;
 
-                    $store_id = Store::query()->where('st_code', $user_st_code)->where('st_name','like', 'JEZ%')->first()->id;
+                    $store_id = Store::query()->where('st_code', $user_st_code)->where('st_name', 'like', 'JEZ%')->first()->id;
                     $warehouse_st_id = WarehouseIndex::query()->where('w_code', $data->warehouse)->first()->st_id ?? $store_id;
-                    
+
                     $ps_barcode = $data->ps_barcode;
 
                     $total_stock = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -423,7 +429,7 @@ class TransaksiOnlineController extends Controller
                                         
                                     </div>
                                 </div>
-                                <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty. '\' data-to_id= \'' . $data->to_id . '\' title="Edit">
+                                <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit">
                                     <i class="fas fa-pen"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger ml-4" onclick="deleteItem(\'' . $data->otd_id . '\')" title="Delete">
@@ -513,7 +519,7 @@ class TransaksiOnlineController extends Controller
                 DB::rollBack();
                 return response()->json([
                     'status' => '400',
-                    'message' => 'Transaksi sudah dalam status '.$transaction->internal_order_status.', tidak dapat diubah.'
+                    'message' => 'Transaksi sudah dalam status ' . $transaction->internal_order_status . ', tidak dapat diubah.'
                 ]);
             }
 

@@ -404,6 +404,8 @@
                     d.status = $('#filter_status').val(); // Status aktif dari tab
                     d.tab_status = $('#tab_status').val(); // Status aktif dari tab
                     d.chat_status = $('#filter_status_chat').val(); // Status chat dari filter
+                    d.warehouse = $('#filter_warehouse').val(); // Warehouse dari filter
+                    d.courier = $('#filter_courier').val(); // Courier dari filter
                 }
             },
             columns: [
