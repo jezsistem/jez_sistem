@@ -1,5 +1,4 @@
 <script>
-    var date = '';
     // $('body').addClass('kt-primary--minimize aside-minimize');
 
     var loadFile = function(event) {
@@ -9,6 +8,8 @@
             URL.revokeObjectURL(output.src)
         }
     };
+
+
 
     $(document).ready(function() {
         $.ajaxSetup({
@@ -61,6 +62,10 @@
                     name: 'cust_name'
                 },
                 {
+                    data: 'cust_phone',
+                    name: 'cust_phone'
+                },
+                {
                     data: 'dv_name',
                     name: 'dv_name'
                 },
@@ -108,28 +113,34 @@
 
         $('#status_filter').on('change', function() {
             invoice_tracking_table.draw(false);
+            getTotalTransactions();
         });
 
         $('#std_id').on('change', function() {
             invoice_tracking_table.draw(false);
+            getTotalTransactions();
         });
 
         $('#st_id_filter').on('change', function() {
             invoice_tracking_table.draw(false);
+            getTotalTransactions();
         });
 
         $('#invoice_tracking_search').on('keyup', function() {
             var query = $(this).val();
             if (jQuery.trim(query).length > 3) {
                 invoice_tracking_table.draw(false);
+                getTotalTransactions();
             } else if (jQuery.trim(query).length < 1) {
                 invoice_tracking_table.draw(false);
+                getTotalTransactions();
             }
         });
 
         invoice_tracking_table.buttons().container().appendTo($('#stock_tracking_excel_btn'));
         $('#stock_tracking_search').on('keyup', function() {
             invoice_tracking_table.draw(false);
+            getTotalTransactions();
         });
 
         $(document).delegate('#shipping_number_btn', 'click', function() {
@@ -160,18 +171,23 @@
                 dataType: 'json',
                 success: function(data) {
                     $('#_pt_id').val(pt_id);
-                    $('#total_payment_real_price').text('Rp ' + number_format(data.data.total_sales));
-                    $('#first_payment_amount').text('Rp ' + number_format(data.data.payment_1));
-                    $('#difference_payment').text('Rp ' + number_format(data.data.outstanding));
+                    $('#total_payment_real_price').text('Rp ' + number_format(data.data
+                        .total_sales));
+                    $('#first_payment_amount').text('Rp ' + number_format(data.data
+                        .payment_1));
+                    $('#difference_payment').text('Rp ' + number_format(data.data
+                        .outstanding));
                     $('#dp_date').text(data.data.paydate);
                     $('#dp_method').text(data.data.payment_method_1);
                     $('#dp_notes').text(data.data.notes || '-');
-                    
+
                     // Populate payment methods dropdown
-                    $('#payment_method').empty().append('<option value="">- Pilih Metode Pembayaran -</option>');
-                    
+                    $('#payment_method').empty().append(
+                        '<option value="">- Pilih Metode Pembayaran -</option>');
+
                     $.each(data.data.payment_methods, function(key, value) {
-                        $('#payment_method').append('<option value="' + key + '">' + value + '</option>');
+                        $('#payment_method').append('<option value="' + key + '">' +
+                            value + '</option>');
                     });
 
                     jQuery.noConflict();
@@ -222,6 +238,7 @@
                 dataType: 'html',
                 success: function(data) {
                     invoice_tracking_table.draw(false);
+                    getTotalTransactions();
                     $('#waybill_tracking').html(data);
                 },
                 error: function(data) {
@@ -257,6 +274,7 @@
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
                         $('#f_shipping_number')[0].reset();
                         invoice_tracking_table.draw(false);
+                        getTotalTransactions();
                     } else if (data.status == '400') {
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
@@ -274,7 +292,8 @@
 
             // Validate payment amount
             var paymentDpValue = parseFloat($('#payment_dp').val());
-            var differencePaymentText = $('#difference_payment').text().replace('Rp ', '').replace(/\./g, '');
+            var differencePaymentText = $('#difference_payment').text().replace('Rp ', '').replace(
+                /\./g, '');
             var differencePaymentValue = parseFloat(differencePaymentText);
 
             if (paymentDpValue !== differencePaymentValue) {
@@ -307,6 +326,7 @@
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
                         $('#f_payment_dp')[0].reset();
                         invoice_tracking_table.draw(false);
+                        getTotalTransactions();
                     } else if (data.status == '400') {
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
@@ -363,6 +383,26 @@
         var end = moment();
         var date = '';
 
+        function getTotalTransactions() {
+            $.ajax({
+                type: 'GET',
+                url: "{{ url('get_total_transactions') }}",
+                dataType: 'json',
+                data: {
+                    status: $('#status_filter').val(),
+                    division: $('#std_id').val(),
+                    st_id: $('#st_id_filter').val(),
+                    date: date
+                },
+                success: function(data) {
+                    $('#total_transactions').text(data.total);
+                },
+                error: function(data) {
+                    console.log('Error fetching total transactions:', data);
+                }
+            });
+        }
+
         function cb(start, end, label) {
             var title = '';
             var range = '';
@@ -382,6 +422,7 @@
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
             invoice_tracking_table.draw(false);
+            getTotalTransactions();
         }
 
         picker.daterangepicker({

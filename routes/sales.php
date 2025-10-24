@@ -99,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('all_waybill_tracking', [InvoiceTrackingController::class, 'allWaybillTracking']);
     Route::get('invoice_dp_repayment_details/{id}', [InvoiceTrackingController::class, 'invoiceDpRepaymentDetails']);
     Route::post('invoice_dp_repayment', [InvoiceTrackingController::class, 'invoiceDpRepayment']);
+    Route::get('get_total_transactions', [InvoiceTrackingController::class, 'getTotalTransactions']);
 
     // Artikel Promo
     Route::get('artikel_promo', [ArtikelPromoController::class, 'index']);
