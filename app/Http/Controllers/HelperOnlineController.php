@@ -118,7 +118,7 @@ class HelperOnlineController extends Controller
         $st_id = $request->get('st_id');
         $status_filter = $request->get('status_filter');
         $order_number = $request->get('order_number');
-        $transactions = DB::table('product_location_setup_transactions')
+        $baseQuery = DB::table('product_location_setup_transactions')
             ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
             ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
             ->join('stores', 'online_transactions.st_id', '=', 'stores.id')
@@ -134,7 +134,8 @@ class HelperOnlineController extends Controller
                 'no_resi',
                 DB::raw('SUM(ts_online_transaction_details.qty) AS total_picked'),
                 DB::raw('COUNT(ts_online_transaction_chat_history.id) as unreaded_chat'),
-                DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time')
+                DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
+                'online_print'
             )
             ->leftJoin('online_transaction_chat_history', function ($join) {
                 $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
@@ -142,24 +143,29 @@ class HelperOnlineController extends Controller
                     ->where('online_transaction_chat_history.is_amp', '=', 1);
             })
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
-            ->when($status_filter, function ($query, $status_filter) {
-                $query->where('online_transactions.internal_order_status', $status_filter);
-            })
-            ->when($order_number, function ($query, $order_number) {
-                $query->where('online_transactions.order_number', 'like', '%' . $order_number . '%')
-                    ->orWhere('no_resi', 'like', '%' . $order_number . '%');
-            })
-            // ->where('product_location_setup_transactions.plst_status','!=', 'INSTOCK')
+
+            ->where('product_location_setup_transactions.plst_status','!=', 'REFUND')
             ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
             ->orderByDesc('last_chat_time')
-            ->orderBy('picked_time', 'asc')
-            ->get();
+            ->orderBy('picked_time', 'asc');
 
-        $total_waiting_online = $transactions->where('internal_order_status', 'WAITING ONLINE')->count();
-        $total_under_review = $transactions->where('internal_order_status', 'UNDER REVIEW')->count();
-        $total_waiting_receipt = $transactions->where('internal_order_status', 'WAITING RECEIPT')->count();
-        $total_waiting_packing = $transactions->where('internal_order_status', 'WAITING PACKING')->count();
-        $total_done_online = $transactions->where('internal_order_status', 'DONE ONLINE')->count();
+        $allData = $baseQuery->get();
+
+        $total_waiting_online = $allData->where('internal_order_status', 'WAITING ONLINE')->count();
+        $total_under_review = $allData->where('internal_order_status', 'UNDER REVIEW')->count();
+        $total_waiting_receipt = $allData->where('internal_order_status', 'WAITING RECEIPT')->count();
+        $total_waiting_packing = $allData->where('internal_order_status', 'WAITING PACKING')->count();
+        $total_done_online = $allData->where('internal_order_status', 'DONE ONLINE')->count();
+
+        $transactions = $allData->when($status_filter, function ($collection, $status_filter) {
+            return $collection->where('internal_order_status', $status_filter);
+        })
+            ->when($order_number, function ($collection, $order_number) {
+                return $collection->filter(function ($item) use ($order_number) {
+                    return stripos($item->order_number, $order_number) !== false ||
+                        stripos($item->no_resi, $order_number) !== false;
+                });
+            });
 
         $data = [
             'transactions' => $transactions,

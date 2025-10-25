@@ -685,7 +685,7 @@ class InvoiceEditorController extends Controller
 
                 $existing = PosTransaction::where('id', $id)->first();
 
-                $online_trx_data = OnlineTransactions::where('pos_order_number', $transaction->pos_order_number)->first();
+                $online_trx_data = OnlineTransactions::where('order_number', $transaction->pos_order_number)->first();
 
                 // Tambahan: Cegah jika status sebelumnya belum 'DONE'
                 if ($existing->pos_status !== 'DONE') {
@@ -696,9 +696,9 @@ class InvoiceEditorController extends Controller
                 }
 
                 if ($online_trx_data) {
-                    $update_online = OnlineTransactions::where('pos_order_number', $transaction->pos_order_number)
+                    $update_online = OnlineTransactions::where('order_number', $transaction->pos_order_number)
                         ->update([
-                            'status' => 'NEW TRX',
+                            'internal_order_status' => 'NEW TRX',
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
 
