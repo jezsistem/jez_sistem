@@ -413,7 +413,7 @@ class TransaksiOnlineController extends Controller
                         ->count();
 
 
-                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->whereNotIn('plst_status', ['INSTOCK'])->sum('plst_qty');
+                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->whereNotIn('plst_status', ['INSTOCK','REFUND'])->sum('plst_qty');
                     $can_pick = true;
 
                     if ($data->warehouse == null && $data->is_printed == 1) {
@@ -891,8 +891,8 @@ class TransaksiOnlineController extends Controller
         $to_id = $request->to_id;
 
         $check = PosTransaction::where(['pos_invoice' => $order_number])
-                ->orderByDesc('id')
-                ->value('pos_status') === 'DONE' ? true : false;
+            ->orderByDesc('id')
+            ->value('pos_status') === 'DONE' ? true : false;
 
         if ($check) {
             return response()->json([
@@ -1076,7 +1076,7 @@ class TransaksiOnlineController extends Controller
                         'status' => '500',
                         'message' => 'Gagal memperbarui status pick untuk item dengan PLST ID: ' . $plst_item->id
                     ]);
-                }   
+                }
             }
 
             // jika semua item sudah lengkap dipick, lanjutkan proses cetak invoice
@@ -1768,9 +1768,22 @@ class TransaksiOnlineController extends Controller
         }
     }
 
-    public function clearPrintStatus($to_id) {
+    public function clearPrintStatus($to_id)
+    {
+        $online_transactions = OnlineTransactions::where('id', $to_id)->first();
+        $check = PosTransaction::where(['pos_invoice' => $online_transactions->order_number])
+            ->orderByDesc('id')
+            ->value('pos_status') === 'REFUND' ? true : false;
+
+        if (!$check) {
+            return response()->json([
+                'status' => '400',
+                'message' => 'Bukan transaksi refund, tidak dapat menghapus status cetak.'
+            ]);
+        }
+
         try {
-            $update_print_status = OnlineTransactions::where('id', $to_id)->update(['online_print' => 0, 'time_print' => null]);
+            $update_print_status = $online_transactions->update(['online_print' => 0, 'time_print' => null]);
             if ($update_print_status === false) {
                 return response()->json(['status' => '500', 'message' => 'Failed to clear print status']);
             }
