@@ -986,6 +986,7 @@
                         method: 'POST',
                         data: {
                             orderNumber: numOrder,
+                            to_id : $('#to_id').val(),
                             _token: '{{ csrf_token() }}'
                         },
                         success: function(response) {
@@ -998,7 +999,7 @@
                             } else {
                                 Swal.fire({
                                     title: 'Error!',
-                                    text: 'Harap melakukan Picker di Data Stok.',
+                                    text: response.message || 'There was a problem printing the invoice. Please try again.',
                                     icon: 'error',
                                     confirmButtonColor: '#3085d6'
                                 });
