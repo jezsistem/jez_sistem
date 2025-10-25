@@ -943,4 +943,108 @@ class HelperOnlineController extends Controller
             return response()->json(['status' => '400', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
     }
+
+    public function printManifest()
+    {
+        $manifest_number = 'MN123456789';
+        $manifest_date = date('Y-m-d');
+
+        $expedition_name = 'JNE';
+        $courier_name = 'John Doe';
+        $courier_phone = '08123456789';
+
+        $pickup_address = 'Jl. Example No.123, Jakarta, Indonesia';
+        $store_name = 'Jez Store';
+        $pic_seller = 'Jane Smith';
+        $pic_phone = '08987654321';
+
+        $items = [
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+        ];
+
+        $total_items = count($items);
+
+        return view('app.helper_online.print_manifest', compact(
+            'manifest_number',
+            'manifest_date',
+            'expedition_name',
+            'courier_name',
+            'courier_phone',
+            'pickup_address',
+            'store_name',
+            'pic_seller',
+            'pic_phone',
+            'items',
+            'total_items'
+        ));
+    }
 }
