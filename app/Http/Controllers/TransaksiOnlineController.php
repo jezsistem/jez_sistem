@@ -408,7 +408,7 @@ class TransaksiOnlineController extends Controller
                         ->count();
 
 
-                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->whereNotIn('plst_status', ['INSTOCK'])->sum('plst_qty');
+                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->whereNotIn('plst_status', ['INSTOCK','REFUND'])->sum('plst_qty');
                     $can_pick = true;
 
                     if ($data->warehouse == null && $data->is_printed == 1) {
@@ -1343,7 +1343,7 @@ class TransaksiOnlineController extends Controller
             $total_qty = $items->sum('qty');
 
             $all_picked = ProductLocationSetupTransaction::whereIn('otd_id', $item_ids)
-                ->where('plst_status', 'WAITING ONLINE')
+                ->whereIn('plst_status', ['WAITING ONLINE','WAITING RECEIPT'])
                 ->count();
 
             if ($total_qty == $all_picked) {

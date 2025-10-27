@@ -356,13 +356,55 @@ class HelperOnlineController extends Controller
 
                 $items = OnlineTransactionDetails::query()->where('to_id', $to_id)->get();
                 $item_ids = $items->pluck('id')->toArray();
-                $total_qty = $items->sum('qty');
 
-                $all_picked = ProductLocationSetupTransaction::whereIn('otd_id', $item_ids)
-                    ->where('plst_status', 'WAITING RECEIPT')
-                    ->count();
+                // ambil semua item transaksi online yang masih aktif (belum dihapus)
+                $active_transaction_items = OnlineTransactionDetails::where('to_id', $to_id)
+                    ->whereNull('deleted_at')
+                    ->get();
 
-                if ($total_qty == $all_picked) {
+                if ($active_transaction_items->isEmpty()) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '400',
+                        'message' => 'Tidak ada item aktif pada transaksi online ini.'
+                    ]);
+                }
+                // ambil barang yang sudah dipick oleh helper dan berada di status 'WAITING RECEIPT'
+                $waiting_receipt_items = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                    ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
+                    ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')->where('product_location_setup_transactions.qc_status', ProductLocationSetupTransaction::QC_STATUS_PASSED)
+                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'))
+                    ->groupBy('product_stocks.ps_barcode')
+                    ->get()
+                    ->keyBy('ps_barcode');
+
+                if ($waiting_receipt_items->isEmpty()) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '400',
+                        'message' => 'Belum ada item yang dipick oleh helper.'
+                    ]);
+                }
+
+                // bandingkan qty yang diorder dengan qty yang sudah dipick
+                foreach ($active_transaction_items as $item) {
+                    $picked_item = $waiting_receipt_items->get($item->sku);
+                    $picked_qty = $picked_item ? $picked_item->total_picked : 0;
+
+                    $all_picked = true;
+
+                    if ($picked_qty < $item->qty) {
+                        $all_picked = false;
+
+                    }
+
+                    if ($picked_qty > $item->qty) {
+                        $all_picked = false;
+                    }
+                }
+
+                if ($all_picked) {
                     OnlineTransactions::where('id', $to_id)
                         ->update(['internal_order_status' => 'WAITING RECEIPT', 'updated_at' => date('Y-m-d H:i:s')]);
                 }
