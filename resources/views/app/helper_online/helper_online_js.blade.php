@@ -50,8 +50,9 @@
     }
 
     function renderTransactions(transactions) {
+        
         let html = '';
-        transactions.forEach(transaction => {
+        Object.values(transactions).forEach(transaction => {
             const statusClasses = {
                 'WAITING ONLINE': 'warning',
                 'UNDER REVIEW': 'secondary',
