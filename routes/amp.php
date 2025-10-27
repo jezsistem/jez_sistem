@@ -40,11 +40,13 @@ Route::middleware(['auth'])->group(function () {
      * 1. Transaksi Online Get Data Tables
      * 2. Rekap Resi Page insert
      * 3. Automization Select Shopee / Tiktok Platform
-     * 4. Export per period
+     * 4. Expor t per period
      */
     Route::get('delivery_recap', [DeliveryRecapController::class, 'index']);
     Route::get('delivery_recap_datatables', [DeliveryRecapController::class, 'getDatatables']);
     Route::get('add_delivery_recap', [DeliveryRecapController::class, 'add']);
+    Route::post('/delivery-recaps/store', [DeliveryRecapController::class, 'store'])->name('delivery-recaps.store');
+    Route::post('/signature-upload', [DeliveryRecapController::class, 'uploadSignature'])->name('signature.upload');
 
 
     Route::get('/pdf-import', [PdfSplitController::class, 'index'])->name('pdf.import');

@@ -9,16 +9,40 @@ class DeliveryRecap extends Model
 {
     use HasFactory;
 
-    protected $table = 'delivery_recap';
+    protected $table = 'delivery_recaps';
 
     protected $fillable = [
-        'id',
-        'sender_id',
-        'courier_id',
-        'st_id',
-        'expedition',
-        'note',
-        'created_at',
-        'updated_at'
+        'expedition_id',
+        'courier_name',
+        'courier_phone',
+        'import_file',
+        'signature_pic',
+        'signature_courier',
+        'recap_date',
+        'created_by',
     ];
+
+    /**
+     * Relasi ke user (opsional)
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Relasi ke courier (opsional)
+     */
+    public function courier()
+    {
+        return $this->belongsTo(Courier::class, 'expedition_id');
+    }
+
+    /**
+     * Relasi ke tabel detail (delivery_receipts)
+     */
+    public function receipts()
+    {
+        return $this->hasMany(DeliveryReceipt::class, 'dr_id');
+    }
 }

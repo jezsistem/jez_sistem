@@ -12,6 +12,8 @@ use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class DeliveryRecapController extends Controller
@@ -74,7 +76,7 @@ class DeliveryRecapController extends Controller
             'segment' => request()->segment(1)
 
         ];
-        return view('app.delivery_recap.delivery_recap', compact('data'));
+        return view('app.delivery_reca  p.delivery_recap', compact('data'));
     }
 
     public function getDatatables(Request $request)
@@ -104,27 +106,6 @@ class DeliveryRecapController extends Controller
                 })
 
                 ->rawColumns(['dr_invoice'])
-//                ->filter(function ($instance) use ($request) {
-//                    if (!empty($request->get('search'))) {
-//                        $instance->where(function ($w) use ($request) {
-//                            $search = $request->get('search');
-//                            $w->orWhere('no_resi', 'LIKE', "%$search%")
-//                                ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
-//                        });
-//                    }
-//
-//                    if (!empty($request->get('status'))) {
-//                        $instance->where(function ($w) use ($request) {
-//                            $status = $request->get('status');
-//
-//                            if ($status == 0) {
-//                                $w->orWhere('online_print', '=', "0");
-//                            } else if ($status == 1) {
-//                                $w->orWhere('online_print', '=', "1");
-//                            }
-//                        });
-//                    }
-//                })
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -133,7 +114,6 @@ class DeliveryRecapController extends Controller
 
     public function add()
     {
-//        $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -141,11 +121,73 @@ class DeliveryRecapController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $expeditions = DB::table('couriers')->orderBy('cr_name', 'ASC')->get();
+
         $data = [
             'title' => $title,
             'user' => $user_data,
+            'expeditions' => $expeditions,
         ];
         return view('app.delivery_recap.add_delivery_recap', compact('data'));
     }
 
+    public function store(Request $request)
+    {
+        try {
+            $request->validate([
+                'courier_name' => 'required|string|max:255',
+                'courier_phone' => 'nullable|string|max:20',
+                'expeditions' => 'required',
+                'import_file' => 'required|file|mimes:xlsx,xls,csv',
+                'signature_pic' => 'required|string',
+                'signature_kurir' => 'required|string',
+            ]);
+
+            // Pastikan folder storage/app/public/signatures ada
+            if (!Storage::disk('public')->exists('signatures')) {
+                Storage::disk('public')->makeDirectory('signatures');
+            }
+
+            // === Proses tanda tangan penyerah (PIC) ===
+            $signaturePicName = null;
+            if ($request->signature_pic) {
+                $signaturePicName = 'signature_pic_' . Str::random(10) . '.png';
+                $dataPic = explode(',', $request->signature_pic);
+                $decodedPic = base64_decode(end($dataPic));
+                Storage::disk('public')->put('signatures/' . $signaturePicName, $decodedPic);
+            }
+
+            // === Proses tanda tangan kurir ===
+            $signatureCourierName = null;
+            if ($request->signature_courier) {
+                $signatureCourierName = 'signature_courier_' . Str::random(10) . '.png';
+                $dataCourier = explode(',', $request->signature_courier);
+                $decodedCourier = base64_decode(end($dataCourier));
+                Storage::disk('public')->put('signatures/' . $signatureCourierName, $decodedCourier);
+            }
+
+            // === Simpan ke database ===
+            $recap = DeliveryRecap::create([
+                'courier_name' => $request->courier_name,
+                'courier_phone' => $request->courier_phone,
+                'expedition_id' => $request->courier_id,
+                'signature_pic' => $signaturePicName,
+                'signature_courier' => $signatureCourierName,
+                'recap_date' => now(),
+                'created_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil disimpan!',
+                'data' => $recap
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
