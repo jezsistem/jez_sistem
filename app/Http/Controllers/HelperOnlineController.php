@@ -7,6 +7,7 @@ use App\Models\OnlineTransactions;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
+use App\Models\ProductLocation;
 use App\Models\ProductLocationSetupTransaction;
 use App\Models\ProductStock;
 use App\Models\Store;
@@ -144,7 +145,7 @@ class HelperOnlineController extends Controller
             })
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
 
-            ->where('product_location_setup_transactions.plst_status','!=', 'REFUND')
+            ->where('product_location_setup_transactions.plst_status', '!=', 'REFUND')
             ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
             ->orderByDesc('last_chat_time')
             ->orderBy('picked_time', 'asc');
@@ -374,6 +375,15 @@ class HelperOnlineController extends Controller
                     return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status QC.']);
                 }
             } elseif ($qc_status == 'failed') {
+                $plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $plst_id)
+                    ->first();
+
+                if (!$plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Product location setup transaction not found.']);
+                }
+
                 $update_plst = DB::table('product_location_setup_transactions')
                     ->where('id', $plst_id)
                     ->update([
@@ -383,18 +393,71 @@ class HelperOnlineController extends Controller
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
 
-                $update = DB::table('product_location_setups')
-                    ->where('id', DB::raw("(select pls_id from ts_product_location_setup_transactions where id = $plst_id)"))
-                    ->update([
-                        'pls_qty' => DB::raw("pls_qty + (select plst_qty from ts_product_location_setup_transactions where id = $plst_id)"),
+                if (!$update_plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed to update product location setup transaction.']);
+                }
+
+                $pl_default_failed_qc = ProductLocation::where('st_id', $plst->warehouse_st_id)
+                    ->where('pl_default_failed_qc', 1)
+                    ->get();
+
+                if ($pl_default_failed_qc->count() == 0) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Default bin for failed QC not found.']);
+                }
+
+                if ($pl_default_failed_qc->count() > 1) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Multiple default bins for failed QC found.']);
+                }
+
+                // find pls_id for default failed QC bin
+
+                $pls_default_failed_qc = DB::table('product_location_setups')
+                    ->where('pl_id', $pl_default_failed_qc->first()->id)
+                    ->where('pst_id', $plst->pst_id)
+                    ->first();
+
+                // jika tidak ada, buat baru
+                if (!$pls_default_failed_qc) {
+                    $new_pls_id = DB::table('product_location_setups')->insertGetId([
+                        'pl_id' => $pl_default_failed_qc->first()->id,
+                        'pst_id' => $plst->pst_id,
+                        'pls_qty' => 0,
+                        'created_at' => date('Y-m-d H:i:s'),
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
+
+                    if (!$new_pls_id) {
+                        DB::rollBack();
+                        return response()->json(['status' => '400', 'message' => 'Failed to add new pls.']);
+                    }
+
+                    $pls_default_failed_qc = DB::table('product_location_setups')
+                        ->where('id', $new_pls_id)
+                        ->first();
+                }
+
+                //tambahkan qty pada bin default failed qc
+
+                $add_to_default_failed_qc = DB::table('product_location_setups')
+                    ->where('id', $pls_default_failed_qc->id)
+                    ->update([
+                        'pls_qty' => DB::raw("pls_qty + " . $plst->plst_qty),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                if (!$add_to_default_failed_qc) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed add qty to bin default failed qc.']);
+                }
 
                 OnlineTransactions::where('id', $to_id)
                     ->update(['internal_order_status' => 'UNDER REVIEW', 'updated_at' => date('Y-m-d H:i:s')]);
 
 
-                if ($update && $update_plst) {
+                if ($update_plst) {
                     DB::commit();
                     return response()->json(['status' => '200', 'message' => 'Item gagal melewati QC.']);
                 } else {

@@ -799,7 +799,7 @@
                             } else {
                                 swalWithBootstrapButtons.fire({
                                     title: "Error",
-                                    text: "Gagal menyimpan hasil QC",
+                                    text: response.message || "Gagal update Qc",
                                     icon: "error"
                                 });
                             }
@@ -834,7 +834,7 @@
                             } else {
                                 swalWithBootstrapButtons.fire({
                                     title: "Error",
-                                    text: "Gagal menyimpan hasil QC",
+                                    text: response.message || "Gagal update Qc",
                                     icon: "error"
                                 });
                             }
