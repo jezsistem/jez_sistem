@@ -895,7 +895,7 @@ class TransaksiOnlineController extends Controller
 
         $check = PosTransaction::where(['pos_invoice' => $order_number])
             ->orderByDesc('id')
-            ->value('pos_status') === 'DONE' ? true : false;
+            ->value('pos_status') === 'DONE' ? false : true;
 
         if ($check) {
             return response()->json([
