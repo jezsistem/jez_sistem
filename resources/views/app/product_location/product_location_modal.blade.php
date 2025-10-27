@@ -81,6 +81,13 @@
                             </select>
                         </div>
                         <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">Default Failed QC</label>
+                            <select class="form-control" id="pl_default_failed_qc" name="pl_default_failed_qc">
+                                <option value="0" selected>No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-1 pb-1">
                             <label for="exampleTextarea">Kapasitas Bin (pcs/pairs)</label>
                             <input type="number" class="form-control" id="pl_capacity" name="pl_capacity" />
                         </div>
