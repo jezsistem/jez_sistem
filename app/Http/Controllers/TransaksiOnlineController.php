@@ -434,8 +434,11 @@ class TransaksiOnlineController extends Controller
                                         
                                     </div>
                                 </div>
-                                <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit">
+                                <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit Qty">
                                     <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn btn-sm btn-info ml-4" id="edit_item_warehouse_btn" data-otd_id= \'' . $data->otd_id . '\'' . '\' data-to_id= \'' . $data->to_id . '\' data-warehouse= \'' . $data->warehouse . '\' title="Edit Warehouse">
+                                    <i class="fas fa-warehouse"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger ml-4" onclick="deleteItem(\'' . $data->otd_id . '\')" title="Delete">
                                     <i class="fas fa-trash"></i>
