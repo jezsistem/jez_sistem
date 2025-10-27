@@ -568,7 +568,7 @@ class HelperOnlineController extends Controller
                 'online_transaction_details.price_after_discount'
             )
             ->where('online_transactions.id', $ot_id)
-            ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')
+            ->whereIn('product_location_setup_transactions.plst_status', ['WAITING RECEIPT', 'WAITING PACKING','DONE ONLINE','DONE'])
             ->groupBy(
                 'online_transaction_details.id',
                 'product_stocks.ps_barcode',
