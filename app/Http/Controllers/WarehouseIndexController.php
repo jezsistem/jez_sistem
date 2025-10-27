@@ -143,4 +143,15 @@ class WarehouseIndexController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage()]);
         }
     }
+
+    public function getWarehouseList()
+    {
+        $warehouses = DB::table('warehouse_index')
+            ->leftJoin('stores', 'stores.id', '=', 'warehouse_index.st_id')
+            ->select('warehouse_index.*', 'stores.st_name')
+            ->orderBy('warehouse_index.w_code')
+            ->get();
+
+        return response()->json(['status' => '200', 'data' => $warehouses]);
+    }
 }

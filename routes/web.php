@@ -1099,6 +1099,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/warehouse_index_datatables', [WarehouseIndexController::class, 'getDatatables'])->name('warehouse.index.datatables');
     Route::post('/warehouse_index_save', [WarehouseIndexController::class, 'storeData'])->name('warehouse.index.store');
     Route::post('/warehouse_index_delete', [WarehouseIndexController::class, 'deleteData'])->name('warehouse.index.delete');
+    Route::get('/warehouse_list', [WarehouseIndexController::class, 'getWarehouseList'])->name('warehouse.index.list');
 });
 
 require __DIR__ . '/purchase_order.php';

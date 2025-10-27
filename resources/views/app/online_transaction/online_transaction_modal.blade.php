@@ -414,6 +414,43 @@
 </div>
 <!-- /Modal Tambah Item -->
 
+<!-- Modal Edit Item -->
+
+<div class="modal fade" id="editItemWarehouseModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="editItemWarehouseModalLabel">Edit Item Warehouse</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <form id="f_edit_item_warehouse">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <input type="hidden" name="edit_item_warehouse_otd_id" id="edit_item_warehouse_otd_id" value="">
+                        <input type="hidden" name="edit_item_warehouse_to_id" id="edit_item_warehouse_to_id" value="">
+                        <p>Warehouse Saat ini : <strong><span id="old_warehouse"></span></strong></p>
+                        <label for="warehouse_select">Warehouse Baru <span class="text-danger">*</span></label>
+                        <select class="form-control" id="warehouse_select" name="warehouse" required>
+                            <option value="">Pilih Warehouse</option>
+                            <!-- Options will be populated dynamically via JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold"
+                        data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Modal Tambah Item -->
+
 <style>
     .chat-container {
         height: 70vh;

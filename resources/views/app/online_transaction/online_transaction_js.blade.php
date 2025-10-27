@@ -1030,6 +1030,78 @@
             });
         });
 
+        $(document).delegate('#edit_item_warehouse_btn', 'click', function() {
+            jQuery.noConflict();
+            var otd_id = $(this).data('otd_id');
+            var to_id = $('#to_id').val();
+            var current_warehouse = $(this).data('warehouse');
+
+            $('#edit_item_warehouse_otd_id').val(otd_id);
+            $('#edit_item_warehouse_to_id').val(to_id);
+            $('#old_warehouse').text(current_warehouse);
+
+            $.ajax({
+                url: "{{ url('warehouse_list') }}",
+                type: 'GET',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        var warehouses = response.data;
+                        var select = $('#warehouse_select');
+                        select.empty();
+                        select.append('<option value="">Pilih Warehouse</option>');
+
+                        warehouses.forEach(function(warehouse) {
+                            select.append('<option value="' + warehouse.w_code + '">' + warehouse.w_code + '</option>');
+                        });
+                    } else {
+                        toastr.error('Failed to load warehouses. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('An error occurred while fetching warehouses. Please try again.');
+                    console.error('Error fetching warehouses:', error);
+                }
+            });
+
+            $('#editItemWarehouseModal').modal('show');
+        });
+
+        $('#f_edit_item_warehouse').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+            var otd_id = $(this).data('otd_id');
+
+            $.ajax({
+                url: "{{ url('transaksi_online_edit_item_warehouse') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#editItemWarehouseModal').modal('hide');
+                        toastr.success('Warehouse berhasil diedit!');
+                        $('#f_edit_item')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to edit item. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(response.message ||
+                        'An error occurred while editing the item. Please try again.');
+                    console.error('Error editing item:', error);
+                }
+            });
+        });
+
         $('#f_tambah_item').on('submit', function(e) {
             e.preventDefault();
 

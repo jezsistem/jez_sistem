@@ -33,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('transaksi_online_add_new_item', [TransaksiOnlineController::class, 'addNewItem']);
     Route::post('transaksi_online_delete_item', [TransaksiOnlineController::class, 'deleteItem']);
     Route::post('transaksi_online_edit_item', [TransaksiOnlineController::class, 'editItem']);
+    Route::post('transaksi_online_edit_item_warehouse', [TransaksiOnlineController::class, 'editItemWarehouse']);
 
     // Rekap Resi
     /**
