@@ -33,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('transaksi_online_add_new_item', [TransaksiOnlineController::class, 'addNewItem']);
     Route::post('transaksi_online_delete_item', [TransaksiOnlineController::class, 'deleteItem']);
     Route::post('transaksi_online_edit_item', [TransaksiOnlineController::class, 'editItem']);
+    Route::post('transaksi_online_edit_item_warehouse', [TransaksiOnlineController::class, 'editItemWarehouse']);
 
     // Rekap Resi
     /**
@@ -52,6 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pdf-import', [PdfSplitController::class, 'index'])->name('pdf.import');
     Route::post('/pdf-split', [PdfSplitController::class, 'split'])->name('pdf.split');
     Route::get('/split-resi/history', [PdfSplitController::class, 'getHistory'])->name('split.history.ajax');
+
+    Route::post('/clear_print_status_online_transaction/{to_id}', [TransaksiOnlineController::class, 'clearPrintStatus']);
 });
 
 

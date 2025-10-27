@@ -15,6 +15,7 @@ use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\UserActivity;
 use App\Models\BuyOneGetOne;
+use App\Models\OnlineTransactions;
 
 class InvoiceEditorController extends Controller
 {
@@ -679,9 +680,12 @@ class InvoiceEditorController extends Controller
         } else if ($type == 'pos_status_change') {
             // Refund Baru
             if ($value == 'REFUND' || $value == 'CANCEL') {
-                $pos_invoice = PosTransaction::where('id', $id)->get()->first()->pos_invoice;
+                $transaction = PosTransaction::where('id', $id)->get()->first();
+                $pos_invoice = $transaction->pos_invoice;
 
                 $existing = PosTransaction::where('id', $id)->first();
+
+                $online_trx_data = OnlineTransactions::where('order_number', $transaction->pos_order_number)->first();
 
                 // Tambahan: Cegah jika status sebelumnya belum 'DONE'
                 if ($existing->pos_status !== 'DONE') {
@@ -689,6 +693,22 @@ class InvoiceEditorController extends Controller
                         'status' => 400,
                         'message' => 'Transaksi belum selesai, tidak dapat di-refund atau cancel.'
                     ]);
+                }
+
+                if ($online_trx_data) {
+                    $update_online = OnlineTransactions::where('order_number', $transaction->pos_order_number)
+                        ->update([
+                            'internal_order_status' => 'NEW TRX',
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+
+                    // Logika tambahan jika diperlukan
+                    if (!$update_online) {
+                        return response()->json([
+                            'status' => 500,
+                            'message' => 'Gagal memperbarui status transaksi online.'
+                        ]);
+                    }
                 }
 
                 $ref_check = PosTransaction::where('pos_invoice', $pos_invoice)

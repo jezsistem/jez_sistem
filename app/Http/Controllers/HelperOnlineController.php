@@ -7,6 +7,7 @@ use App\Models\OnlineTransactions;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
+use App\Models\ProductLocation;
 use App\Models\ProductLocationSetupTransaction;
 use App\Models\ProductStock;
 use App\Models\Store;
@@ -118,7 +119,7 @@ class HelperOnlineController extends Controller
         $st_id = $request->get('st_id');
         $status_filter = $request->get('status_filter');
         $order_number = $request->get('order_number');
-        $transactions = DB::table('product_location_setup_transactions')
+        $baseQuery = DB::table('product_location_setup_transactions')
             ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
             ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
             ->join('stores', 'online_transactions.st_id', '=', 'stores.id')
@@ -127,28 +128,56 @@ class HelperOnlineController extends Controller
                 'online_transactions.order_number',
                 'platform_name AS platform',
                 'st_name AS store',
-                DB::raw("GROUP_CONCAT(DISTINCT CONCAT(ts_online_transaction_details.sku, ' (', ts_online_transaction_details.qty, ')') ORDER BY ts_online_transaction_details.sku ASC SEPARATOR ', ') AS sku"),
+                // DB::raw("GROUP_CONCAT(DISTINCT CONCAT(ts_online_transaction_details.sku, ' (', ts_online_transaction_details.qty, ')') ORDER BY ts_online_transaction_details.sku ASC SEPARATOR ', ') AS sku"),
                 'online_transactions.order_date_created AS created_at',
                 'online_transactions.internal_order_status AS internal_order_status',
                 DB::raw('MAX(ts_product_location_setup_transactions.created_at) AS picked_time'),
                 'no_resi',
                 DB::raw('SUM(ts_online_transaction_details.qty) AS total_picked'),
-                DB::raw('(select COUNT(*)
-                from ts_online_transaction_chat_history where is_amp=1 and is_readed=0 and ot_id=ts_online_transactions.id) AS unreaded_chat')
+                DB::raw('COUNT(ts_online_transaction_chat_history.id) as unreaded_chat'),
+                DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
+                'online_print'
             )
+            ->leftJoin('online_transaction_chat_history', function ($join) {
+                $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
+                    ->where('online_transaction_chat_history.is_readed', '=', 0)
+                    ->where('online_transaction_chat_history.is_amp', '=', 1);
+            })
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
-            ->when($status_filter, function ($query, $status_filter) {
-                $query->where('online_transactions.internal_order_status', $status_filter);
-            })
-            ->when($order_number, function ($query, $order_number) {
-                $query->where('online_transactions.order_number', 'like', '%' . $order_number . '%')
-                    ->orWhere('no_resi', 'like', '%' . $order_number . '%');
-            })
-            ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
-            ->orderBy('picked_time', 'asc')
-            ->get();
 
-        return response()->json($transactions);
+            ->where('product_location_setup_transactions.plst_status', '!=', 'REFUND')
+            ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
+            ->orderByDesc('last_chat_time')
+            ->orderBy('picked_time', 'asc');
+
+        $allData = $baseQuery->get();
+
+        $total_waiting_online = $allData->where('internal_order_status', 'WAITING ONLINE')->count();
+        $total_under_review = $allData->where('internal_order_status', 'UNDER REVIEW')->count();
+        $total_waiting_receipt = $allData->where('internal_order_status', 'WAITING RECEIPT')->count();
+        $total_waiting_packing = $allData->where('internal_order_status', 'WAITING PACKING')->count();
+        $total_done_online = $allData->where('internal_order_status', 'DONE ONLINE')->count();
+
+        $transactions = $allData->when($status_filter, function ($collection, $status_filter) {
+            return $collection->where('internal_order_status', $status_filter);
+        })
+            ->when($order_number, function ($collection, $order_number) {
+                return $collection->filter(function ($item) use ($order_number) {
+                    return stripos($item->order_number, $order_number) !== false ||
+                        stripos($item->no_resi, $order_number) !== false;
+                });
+            });
+
+        $data = [
+            'transactions' => $transactions,
+            'total_waiting_online' => $total_waiting_online,
+            'total_under_review' => $total_under_review,
+            'total_waiting_receipt' => $total_waiting_receipt,
+            'total_waiting_packing' => $total_waiting_packing,
+            'total_done_online' => $total_done_online,
+        ];
+
+        return response()->json($data);
     }
 
     public function getOnlineItems(Request $request)
@@ -327,13 +356,55 @@ class HelperOnlineController extends Controller
 
                 $items = OnlineTransactionDetails::query()->where('to_id', $to_id)->get();
                 $item_ids = $items->pluck('id')->toArray();
-                $total_qty = $items->sum('qty');
 
-                $all_picked = ProductLocationSetupTransaction::whereIn('otd_id', $item_ids)
-                    ->where('plst_status', 'WAITING RECEIPT')
-                    ->count();
+                // ambil semua item transaksi online yang masih aktif (belum dihapus)
+                $active_transaction_items = OnlineTransactionDetails::where('to_id', $to_id)
+                    ->whereNull('deleted_at')
+                    ->get();
 
-                if ($total_qty == $all_picked) {
+                if ($active_transaction_items->isEmpty()) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '400',
+                        'message' => 'Tidak ada item aktif pada transaksi online ini.'
+                    ]);
+                }
+                // ambil barang yang sudah dipick oleh helper dan berada di status 'WAITING RECEIPT'
+                $waiting_receipt_items = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                    ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
+                    ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')->where('product_location_setup_transactions.qc_status', ProductLocationSetupTransaction::QC_STATUS_PASSED)
+                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'))
+                    ->groupBy('product_stocks.ps_barcode')
+                    ->get()
+                    ->keyBy('ps_barcode');
+
+                if ($waiting_receipt_items->isEmpty()) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '400',
+                        'message' => 'Belum ada item yang dipick oleh helper.'
+                    ]);
+                }
+
+                // bandingkan qty yang diorder dengan qty yang sudah dipick
+                foreach ($active_transaction_items as $item) {
+                    $picked_item = $waiting_receipt_items->get($item->sku);
+                    $picked_qty = $picked_item ? $picked_item->total_picked : 0;
+
+                    $all_picked = true;
+
+                    if ($picked_qty < $item->qty) {
+                        $all_picked = false;
+
+                    }
+
+                    if ($picked_qty > $item->qty) {
+                        $all_picked = false;
+                    }
+                }
+
+                if ($all_picked) {
                     OnlineTransactions::where('id', $to_id)
                         ->update(['internal_order_status' => 'WAITING RECEIPT', 'updated_at' => date('Y-m-d H:i:s')]);
                 }
@@ -346,6 +417,15 @@ class HelperOnlineController extends Controller
                     return response()->json(['status' => '400', 'message' => 'Gagal memperbarui status QC.']);
                 }
             } elseif ($qc_status == 'failed') {
+                $plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $plst_id)
+                    ->first();
+
+                if (!$plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Product location setup transaction not found.']);
+                }
+
                 $update_plst = DB::table('product_location_setup_transactions')
                     ->where('id', $plst_id)
                     ->update([
@@ -355,18 +435,71 @@ class HelperOnlineController extends Controller
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
 
-                $update = DB::table('product_location_setups')
-                    ->where('id', DB::raw("(select pls_id from ts_product_location_setup_transactions where id = $plst_id)"))
-                    ->update([
-                        'pls_qty' => DB::raw("pls_qty + (select plst_qty from ts_product_location_setup_transactions where id = $plst_id)"),
+                if (!$update_plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed to update product location setup transaction.']);
+                }
+
+                $pl_default_failed_qc = ProductLocation::where('st_id', $plst->warehouse_st_id)
+                    ->where('pl_default_failed_qc', 1)
+                    ->get();
+
+                if ($pl_default_failed_qc->count() == 0) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Default bin for failed QC not found.']);
+                }
+
+                if ($pl_default_failed_qc->count() > 1) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Multiple default bins for failed QC found.']);
+                }
+
+                // find pls_id for default failed QC bin
+
+                $pls_default_failed_qc = DB::table('product_location_setups')
+                    ->where('pl_id', $pl_default_failed_qc->first()->id)
+                    ->where('pst_id', $plst->pst_id)
+                    ->first();
+
+                // jika tidak ada, buat baru
+                if (!$pls_default_failed_qc) {
+                    $new_pls_id = DB::table('product_location_setups')->insertGetId([
+                        'pl_id' => $pl_default_failed_qc->first()->id,
+                        'pst_id' => $plst->pst_id,
+                        'pls_qty' => 0,
+                        'created_at' => date('Y-m-d H:i:s'),
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
+
+                    if (!$new_pls_id) {
+                        DB::rollBack();
+                        return response()->json(['status' => '400', 'message' => 'Failed to add new pls.']);
+                    }
+
+                    $pls_default_failed_qc = DB::table('product_location_setups')
+                        ->where('id', $new_pls_id)
+                        ->first();
+                }
+
+                //tambahkan qty pada bin default failed qc
+
+                $add_to_default_failed_qc = DB::table('product_location_setups')
+                    ->where('id', $pls_default_failed_qc->id)
+                    ->update([
+                        'pls_qty' => DB::raw("pls_qty + " . $plst->plst_qty),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                if (!$add_to_default_failed_qc) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed add qty to bin default failed qc.']);
+                }
 
                 OnlineTransactions::where('id', $to_id)
                     ->update(['internal_order_status' => 'UNDER REVIEW', 'updated_at' => date('Y-m-d H:i:s')]);
 
 
-                if ($update && $update_plst) {
+                if ($update_plst) {
                     DB::commit();
                     return response()->json(['status' => '200', 'message' => 'Item gagal melewati QC.']);
                 } else {
@@ -435,7 +568,7 @@ class HelperOnlineController extends Controller
                 'online_transaction_details.price_after_discount'
             )
             ->where('online_transactions.id', $ot_id)
-            ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')
+            ->whereIn('product_location_setup_transactions.plst_status', ['WAITING RECEIPT', 'WAITING PACKING','DONE ONLINE','DONE'])
             ->groupBy(
                 'online_transaction_details.id',
                 'product_stocks.ps_barcode',
@@ -920,5 +1053,109 @@ class HelperOnlineController extends Controller
             DB::rollBack();
             return response()->json(['status' => '400', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
+    }
+
+    public function printManifest()
+    {
+        $manifest_number = 'MN123456789';
+        $manifest_date = date('Y-m-d');
+
+        $expedition_name = 'JNE';
+        $courier_name = 'John Doe';
+        $courier_phone = '08123456789';
+
+        $pickup_address = 'Jl. Example No.123, Jakarta, Indonesia';
+        $store_name = 'Jez Store';
+        $pic_seller = 'Jane Smith';
+        $pic_phone = '08987654321';
+
+        $items = [
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+        ];
+
+        $total_items = count($items);
+
+        return view('app.helper_online.print_manifest', compact(
+            'manifest_number',
+            'manifest_date',
+            'expedition_name',
+            'courier_name',
+            'courier_phone',
+            'pickup_address',
+            'store_name',
+            'pic_seller',
+            'pic_phone',
+            'items',
+            'total_items'
+        ));
     }
 }

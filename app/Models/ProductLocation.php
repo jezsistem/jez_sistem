@@ -18,6 +18,10 @@ class ProductLocation extends Model
         'pl_freeze',
         'sa_id',
         'st_id',
+        'pl_default',
+        'pl_default_refund',
+        'pl_default_failed_qc',
+        'pl_capacity'
     ];
 
     public function checkData($select, $where)

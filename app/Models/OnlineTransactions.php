@@ -29,6 +29,8 @@ class OnlineTransactions extends Model
         'internal_order_status',
         'courier',
         'scan_manifest',
-        'print_manifest'
+        'print_manifest',
+        'time_print',
+        'online_print'
     ];
 }

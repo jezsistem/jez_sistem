@@ -50,8 +50,9 @@
     }
 
     function renderTransactions(transactions) {
+        
         let html = '';
-        transactions.forEach(transaction => {
+        Object.values(transactions).forEach(transaction => {
             const statusClasses = {
                 'WAITING ONLINE': 'warning',
                 'UNDER REVIEW': 'secondary',
@@ -63,7 +64,7 @@
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
             html += `
-                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING' || transaction.internal_order_status === 'DONE ONLINE'|| transaction.internal_order_status === 'DONE'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" style="cursor: pointer;">
+                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING' || transaction.internal_order_status === 'DONE ONLINE'|| transaction.internal_order_status === 'DONE'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" data-print_status=${transaction.online_print} style="cursor: pointer;">
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
@@ -81,7 +82,6 @@
                             <p class="card-text">Resi: <strong>${transaction.no_resi}</strong></p>
                             <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
                             <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
-                            <p class="card-text">SKU: <code>${transaction.sku}</code></p>
                             <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
                             <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
                             <p class="card-text">Status TRX: 
@@ -500,6 +500,7 @@
             orderNumber = $(this).data('order_number');
             resi_number = $(this).data('resi_number');
             status = $(this).data('internal_order_status');
+            status_print = $(this).data('print_status');
             clearScanners();
             jQuery.noConflict();
             $('#trx_number_title_wr').text('Order Number: ' + orderNumber);
@@ -513,6 +514,13 @@
             if (status == 'DONE' || status == 'DONE ONLINE') {
                 $('#continuePackingBtn').prop('disabled', true);
             }
+
+            if (status_print == 0) {
+                $('#continuePackingBtn').prop('disabled', true);
+            } else {
+                $('#continuePackingBtn').prop('disabled', false);
+            }
+
             waiting_receipt_table.draw();
         });
 
@@ -584,28 +592,64 @@
             });
         });
 
-        $(document).on('click', '#printNotaBtn', function(e) {
-            e.preventDefault();
-            var to_id = $('#to_id_waiting_receipt').text();
+        $(document).delegate('#printNotaBtn', 'click', function() {
+            var numOrder = $('#trx_number_title_wr').text().replace('Order Number: ', '');
 
-            $.ajax({
-                url: "{{ url('helper_online_print_invoice') }}/" + to_id,
-                type: 'POST',
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.status === '200') {
-                        toastr.success('Invoice berhasil dicetak');
-                    } else {
-                        toastr.error('Gagal mencetak Invoice');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    toastr.error('Terjadi kesalahan saat mencetak Invoice');
-                    console.error('Error:', error);
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to print this invoice #" + numOrder + "?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, print it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log(numOrder);
+
+                    $('#loader').show();
+
+                    $.ajax({
+                        url: '{{ url('print_online_invoice') }}',
+                        method: 'POST',
+                        data: {
+                            orderNumber: numOrder,
+                            to_id : $('#to_id_waiting_receipt').text(),
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            console.log(response.status);
+                            if (response.status == 200) {
+                                var printUrl = '{{ url('print_online_nota') }}/' +
+                                    numOrder;
+                                window.open(printUrl, '_blank');
+                                online_transaction_table.draw(false);
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: response.message || 'There was a problem printing the invoice. Please try again.',
+                                    icon: 'error',
+                                    confirmButtonColor: '#3085d6'
+                                });
+                            }
+
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle errors here
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'There was a problem printing the invoice. Please try again.',
+                                icon: 'error',
+                                confirmButtonColor: '#3085d6'
+                            });
+                        },
+                        complete: function() {
+                            $('#loader').hide();
+                        }
+                    });
                 }
             });
+
         });
 
         $(document).on('click', '#cancel_pick', function(e) {
@@ -755,7 +799,7 @@
                             } else {
                                 swalWithBootstrapButtons.fire({
                                     title: "Error",
-                                    text: "Gagal menyimpan hasil QC",
+                                    text: response.message || "Gagal update Qc",
                                     icon: "error"
                                 });
                             }
@@ -776,6 +820,7 @@
                         data: {
                             plst_id: $(this).data('plst_id'),
                             qc_status: 'failed',
+                            to_id: $(this).data('to_id'),
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function(response) {
@@ -789,7 +834,7 @@
                             } else {
                                 swalWithBootstrapButtons.fire({
                                     title: "Error",
-                                    text: "Gagal menyimpan hasil QC",
+                                    text: response.message || "Gagal update Qc",
                                     icon: "error"
                                 });
                             }
@@ -1104,7 +1149,7 @@
                             });
                         } else {
                             toastr.error(response.message ||
-                            'Gagal mengimport manifest'); // Failed to import manifest
+                                'Gagal mengimport manifest'); // Failed to import manifest
                         }
                     }
                 },
@@ -1113,7 +1158,8 @@
                     Swal.close();
 
                     toastr.error(
-                    'Terjadi kesalahan saat mengimport manifest'); // An error occurred while importing the manifest
+                        'Terjadi kesalahan saat mengimport manifest'
+                        ); // An error occurred while importing the manifest
                     console.error('Error:', error);
                 }
             });
