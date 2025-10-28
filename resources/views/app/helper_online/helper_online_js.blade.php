@@ -623,7 +623,6 @@
                                 var printUrl = '{{ url('print_online_nota') }}/' +
                                     numOrder;
                                 window.open(printUrl, '_blank');
-                                online_transaction_table.draw(false);
                             } else {
                                 Swal.fire({
                                     title: 'Error!',
