@@ -600,7 +600,12 @@ class HelperOnlineController extends Controller
 
     public function printResi($to_id)
     {
-        dd("print resi " . $to_id);
+        $order_number = OnlineTransactions::where('id', $to_id)->value('order_number');
+                
+        return response()->json([
+            'status' => '200',
+            'pdf_url' => asset('storage/split_resi/' . $order_number . '.pdf')
+        ]);
     }
 
     public function printInvoice(Request $request, $to_id)

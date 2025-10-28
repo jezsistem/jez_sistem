@@ -581,6 +581,9 @@
                 success: function(response) {
                     if (response.status === '200') {
                         toastr.success('Resi berhasil dicetak');
+                        if (response.pdf_url) {
+                            window.open(response.pdf_url, '_blank');
+                        }
                     } else {
                         toastr.error('Gagal mencetak resi');
                     }
