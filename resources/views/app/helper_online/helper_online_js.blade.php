@@ -68,7 +68,7 @@
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="card-title text-primary" style="font-weight: bold;">Order Number: ${transaction.order_number}</h5>
+                                <h5 class="card-title text-primary copy-order-number" style="font-weight: bold; cursor: pointer;" data-order="${transaction.order_number}">Order Number: ${transaction.order_number}</h5>
 
                                 <button class="btn position-relative" id="open_chat" onclick="openChat(${transaction.transaction_id})" data-trx_number=${transaction.order_number}>
                                     <i class="fas fa-comments"></i>
@@ -79,7 +79,7 @@
                                     ` : ''}
                                 </button>
                             </div>
-                            <p class="card-text">Resi: <strong>${transaction.no_resi}</strong></p>
+                            <p class="card-text copy-resi" style="cursor: pointer;" data-resi="${transaction.no_resi}">Resi: <strong>${transaction.no_resi}</strong></p>
                             <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
                             <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
                             <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
@@ -113,6 +113,34 @@
         }
         return html;
     }
+
+    $(document).on('click', '.copy-order-number', function(e) {
+        e.stopPropagation();
+        const orderNumber = $(this).data('order');
+        navigator.clipboard.writeText(orderNumber).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Copied!',
+                text: `Order Number "${orderNumber}" copied to clipboard`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    });
+
+    $(document).on('click', '.copy-resi', function(e) {
+        e.stopPropagation();
+        const resiNumber = $(this).data('resi');
+        navigator.clipboard.writeText(resiNumber).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Copied!',
+                text: `Resi "${resiNumber}" copied to clipboard`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    });
 
     function closeChat() {
         jQuery.noConflict();
