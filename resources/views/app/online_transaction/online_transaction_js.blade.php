@@ -469,6 +469,7 @@
                     d.chat_status = $('#filter_status_chat').val(); // Status chat dari filter
                     d.warehouse = $('#filter_warehouse').val(); // Warehouse dari filter
                     d.courier = $('#filter_courier').val(); // Courier dari filter
+                    d.platform = $('#filter_platform').val(); // Platform dari filter
                 }
             },
             columns: [{
@@ -589,6 +590,16 @@
         });
 
         $('#filter_warehouse').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_platform').select2({
+            width: "200px",
+            dropdownParent: $('#filter_platform_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_platform').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });

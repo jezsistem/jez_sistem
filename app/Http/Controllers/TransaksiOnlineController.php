@@ -142,6 +142,9 @@ class TransaksiOnlineController extends Controller
                     ->when($request->has('courier') && !empty($request->get('courier')), function ($query) use ($request) {
                         $query->where('online_transactions.courier', 'LIKE', '%' . $request->get('courier') . '%');
                     })
+                    ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
+                        $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
+                    })
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
