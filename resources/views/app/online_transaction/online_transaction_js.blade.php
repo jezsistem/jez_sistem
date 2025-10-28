@@ -1030,7 +1030,7 @@
             });
         });
 
-        $(document).delegate('#edit_item_warehouse_btn', 'click', function() {
+        $(document).delegate('#change_warehouse_btn', 'click', function() {
             jQuery.noConflict();
             var otd_id = $(this).data('otd_id');
             var to_id = $('#to_id').val();

@@ -437,9 +437,9 @@ class TransaksiOnlineController extends Controller
                                 <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit Qty">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button class="btn btn-sm btn-info ml-4" id="edit_item_warehouse_btn" data-otd_id= \'' . $data->otd_id . '\'' . '\' data-to_id= \'' . $data->to_id . '\' data-warehouse= \'' . $data->warehouse . '\' title="Edit Warehouse">
+                                <!--<button class="btn btn-sm btn-info ml-4" id="edit_item_warehouse_btn" data-otd_id= \'' . $data->otd_id . '\'' . '\' data-to_id= \'' . $data->to_id . '\' data-warehouse= \'' . $data->warehouse . '\' title="Edit Warehouse">
                                     <i class="fas fa-warehouse"></i>
-                                </button>
+                                </button>-->
                                 <button class="btn btn-sm btn-danger ml-4" onclick="deleteItem(\'' . $data->otd_id . '\')" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -1426,13 +1426,15 @@ class TransaksiOnlineController extends Controller
             return response()->json(['status' => '404', 'message' => 'Online transaction not found']);
         }
 
-        $is_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->exists();
+        $is_picked = ProductLocationSetupTransaction::query()
+        ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+        ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
 
         if ($is_picked) {
             return response()->json(['status' => '400', 'message' => 'Item sudah dipick, tidak dapat diubah']);
         }
 
-        $update_warehouse = OnlineTransactionDetails::where('id', $otd_id)->update([
+        $update_warehouse = OnlineTransactionDetails::where('to_id', $to_id)->where('deleted_at',null)->update([
             'warehouse' => $new_warehouse,
         ]);
 
