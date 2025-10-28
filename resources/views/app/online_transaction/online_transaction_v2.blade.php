@@ -253,6 +253,7 @@
                                         <th>Tanggal Order</th>
                                         <th>Item</th>
                                         <th>Ongkos Kirim</th>
+                                        <th>Ekspedisi</th>
                                         <th>Total Pembayaran</th>
                                         <th>Status Pengiriman</th>
                                         <th>Status TRX</th>

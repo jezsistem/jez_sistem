@@ -126,6 +126,7 @@ class TransaksiOnlineController extends Controller
                     'internal_order_status',
                     DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
+                    'courier',
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('online_transaction_chat_history', function ($join) {
@@ -531,7 +532,7 @@ class TransaksiOnlineController extends Controller
                 ]);
             }
 
-            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK'])->where('otd_id', $otd_id)->count();
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK','REFUND'])->where('otd_id', $otd_id)->count();
 
             if ($qty < $count_picked) {
                 DB::rollBack();
@@ -1371,7 +1372,7 @@ class TransaksiOnlineController extends Controller
             }
 
             //count picked item with the same otd_id
-            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK'])->where('otd_id', $otd_id)->count();
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK','REFUND'])->where('otd_id', $otd_id)->count();
 
             for ($i = $count_picked; $i < $qty; $i++) {
                 $create_plst = DB::table('product_location_setup_transactions')->insert([

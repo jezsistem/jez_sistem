@@ -504,6 +504,10 @@
                     }
                 },
                 {
+                    data: 'courier',
+                    name: 'courier'
+                },
+                {
                     data: 'total_payment',
                     name: 'total_payment',
                     render: function(data) {
@@ -1054,14 +1058,17 @@
                         select.append('<option value="">Pilih Warehouse</option>');
 
                         warehouses.forEach(function(warehouse) {
-                            select.append('<option value="' + warehouse.w_code + '">' + warehouse.w_code + '</option>');
+                            select.append('<option value="' + warehouse.w_code +
+                                '">' + warehouse.w_code + '</option>');
                         });
                     } else {
                         toastr.error('Failed to load warehouses. Please try again.');
                     }
                 },
                 error: function(xhr, status, error) {
-                    toastr.error('An error occurred while fetching warehouses. Please try again.');
+                    toastr.error(
+                        'An error occurred while fetching warehouses. Please try again.'
+                        );
                     console.error('Error fetching warehouses:', error);
                 }
             });
