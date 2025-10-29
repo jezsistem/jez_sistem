@@ -123,6 +123,7 @@ class TransaksiOnlineController extends Controller
                     'total_payment',
                     'order_status',
                     'online_print',
+                    'print_resi',
                     'internal_order_status',
                     DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
@@ -158,7 +159,15 @@ class TransaksiOnlineController extends Controller
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
-                    return $data->no_resi . '<br>' . ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
+                    $printStatus = '';
+                    if ($data->online_print && $data->print_resi) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT NOTA & RESI</span>';
+                    } elseif ($data->online_print) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT NOTA</span>';
+                    } elseif ($data->print_resi) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT RESI</span>';
+                    }
+                    return $data->no_resi . '<br>' . $printStatus;
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
