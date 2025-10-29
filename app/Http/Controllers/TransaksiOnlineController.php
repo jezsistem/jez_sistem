@@ -138,8 +138,8 @@ class TransaksiOnlineController extends Controller
                     // ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
                     ->where('order_status', 'not like', '%batal%')
-                    ->where('order_status', '!=', '%Belum dibayar%')
-                    ->where('order_status', '!=', '%Belum Bayar%')
+                    ->where('order_status', '!=', 'Belum dibayar')
+                    ->where('order_status', '!=', 'Belum Bayar')
                     ->when($request->has('warehouse') && !empty($request->get('warehouse')), function ($query) use ($request) {
                         $query->where('online_transaction_details.warehouse', $request->get('warehouse'));
                     })
