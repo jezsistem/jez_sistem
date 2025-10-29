@@ -94,6 +94,8 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
     $(document).ready(function () {
@@ -168,6 +170,8 @@
         $('#f_manifest').on('submit', function (e) {
             e.preventDefault();
 
+            console.log($('#expeditions').val())
+
             if (signaturePic.isEmpty() || signatureKurir.isEmpty()) {
                 Swal.fire({
                     icon: 'error',
@@ -195,45 +199,34 @@
 
             console.log()
 
-            {{--$.ajax({--}}
-            {{--    url: "{{ route('delivery-recaps.store') }}",--}}
-            {{--    type: "POST",--}}
-            {{--    data: formData,--}}
-            {{--    processData: false,--}}
-            {{--    contentType: false,--}}
-            {{--    success: function (response) {--}}
-            {{--        Swal.fire({--}}
-            {{--            icon: 'success',--}}
-            {{--            title: 'Success!',--}}
-            {{--            text: 'Delivery recap has been saved successfully.',--}}
-            {{--            showConfirmButton: false,--}}
-            {{--            timer: 1500--}}
-            {{--        });--}}
-            {{--        $('#kt_login_signin_submit').prop('disabled', false).text('Kirim');--}}
-            {{--        $('#f_manifest')[0].reset();--}}
-            {{--        signaturePic.clear();--}}
-            {{--        signatureKurir.clear();--}}
-            {{--    },--}}
-            {{--    error: function (xhr) {--}}
-            {{--        console.error('Response:', xhr.responseText);--}}
-            {{--        let response = xhr.responseJSON;--}}
-            {{--        if (response && response.errors) {--}}
-            {{--            let messages = Object.values(response.errors).flat().join('\n');--}}
-            {{--            Swal.fire({--}}
-            {{--                icon: 'error',--}}
-            {{--                title: 'Validasi Gagal!',--}}
-            {{--                text: messages--}}
-            {{--            });--}}
-            {{--        } else {--}}
-            {{--            Swal.fire({--}}
-            {{--                icon: 'error',--}}
-            {{--                title: 'Terjadi Kesalahan!',--}}
-            {{--                text: xhr.responseText--}}
-            {{--            });--}}
-            {{--        }--}}
-            {{--        $('#kt_login_signin_submit').prop('disabled', false).text('Kirim');--}}
-            {{--    }--}}
-            {{--});--}}
+            $.ajax({
+                url: "{{ route('delivery-recaps.store') }}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    toastr.success('Delivery recap has been saved successfully.', 'Success!', {
+                        timeOut: 1500,
+                        progressBar: true
+                    });
+
+                    $('#kt_login_signin_submit').prop('disabled', false).text('Kirim');
+                    $('#f_manifest')[0].reset();
+                    signaturePic.clear();
+                    signatureKurir.clear();
+                },
+                error: function (xhr) {
+                    console.error('Response:', xhr.responseText);
+                    let response = xhr.responseJSON;
+                    if (response && response.errors) {
+                        let messages = Object.values(response.errors).flat().join('<br>');
+                        toastr.error(messages, 'Validasi Gagal!', {timeOut: 4000, progressBar: true});
+                    } else {
+                        toastr.error(xhr.responseText, 'Terjadi Kesalahan!', {timeOut: 4000, progressBar: true});
+                    }
+                }
+            });
         });
     });
 </script>

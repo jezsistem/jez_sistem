@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\DeliveryRecapImport;
 use App\Models\DeliveryRecap;
+use App\Models\DeliveryReceipt;
 use App\Models\OnlineTransactionDetails;
 use App\Models\OnlineTransactions;
 use App\Models\Size;
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class DeliveryRecapController extends Controller
@@ -160,9 +163,9 @@ class DeliveryRecapController extends Controller
 
             // === Proses tanda tangan kurir ===
             $signatureCourierName = null;
-            if ($request->signature_courier) {
+            if ($request->signature_kurir) {
                 $signatureCourierName = 'signature_courier_' . Str::random(10) . '.png';
-                $dataCourier = explode(',', $request->signature_courier);
+                $dataCourier = explode(',', $request->signature_kurir);
                 $decodedCourier = base64_decode(end($dataCourier));
                 Storage::disk('public')->put('signatures/' . $signatureCourierName, $decodedCourier);
             }
@@ -171,12 +174,43 @@ class DeliveryRecapController extends Controller
             $recap = DeliveryRecap::create([
                 'courier_name' => $request->courier_name,
                 'courier_phone' => $request->courier_phone,
-                'expedition_id' => $request->courier_id,
+                'expedition_id' => $request->expeditions,
                 'signature_pic' => $signaturePicName,
                 'signature_courier' => $signatureCourierName,
                 'recap_date' => now(),
                 'created_by' => auth()->id(),
             ]);
+
+            $import = new DeliveryRecapImport();
+            Excel::import($import, $request->file('import_file'));
+
+            if (count($import->resis) === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File tidak mengandung data resi yang valid.',
+                ], 400);
+            }
+
+            $receipts = [];
+
+            foreach ($import->resis as $resi) {
+                $transaction = OnlineTransactions::where('no_resi', $resi)->first();
+
+                $count_qty = OnlineTransactionDetails::where('order_number', $transaction->order_number)->count();
+
+                $receipts[] = [
+                    'dr_id' => $recap->id,
+                    'resi' => $resi,
+                    'marketplace_name' => $transaction->platform_name ?? '-',
+                    'item_qty' => $count_qty ?? 0,
+                    'city_destinations' => $transaction->city ?? '-',
+                    'note' => $transaction->note ?? '-',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            DeliveryReceipt::insert($receipts);
 
             return response()->json([
                 'success' => true,
