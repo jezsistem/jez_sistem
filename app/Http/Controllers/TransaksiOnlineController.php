@@ -96,7 +96,7 @@ class TransaksiOnlineController extends Controller
             'segment' => request()->segment(1),
             'st_id' => Store::where('st_delete', '!=', '1')->where('st_name', 'like', '%ONLINE%')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
-            'couriers' => DB::table('couriers')->get(),
+            'couriers' => OnlineTransactions::select('courier')->distinct()->where('courier', '!=', '')->orderBy('courier')->get(),
             'warehouses' => WarehouseIndex::all(),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
@@ -543,7 +543,7 @@ class TransaksiOnlineController extends Controller
                 ]);
             }
 
-            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK','REFUND'])->where('otd_id', $otd_id)->count();
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->count();
 
             if ($qty < $count_picked) {
                 DB::rollBack();
@@ -1383,7 +1383,7 @@ class TransaksiOnlineController extends Controller
             }
 
             //count picked item with the same otd_id
-            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK','REFUND'])->where('otd_id', $otd_id)->count();
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->count();
 
             for ($i = $count_picked; $i < $qty; $i++) {
                 $create_plst = DB::table('product_location_setup_transactions')->insert([
@@ -1439,14 +1439,14 @@ class TransaksiOnlineController extends Controller
         }
 
         $is_picked = ProductLocationSetupTransaction::query()
-        ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
-        ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
+            ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+            ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
 
         if ($is_picked) {
             return response()->json(['status' => '400', 'message' => 'Item sudah dipick, tidak dapat diubah']);
         }
 
-        $update_warehouse = OnlineTransactionDetails::where('to_id', $to_id)->where('deleted_at',null)->update([
+        $update_warehouse = OnlineTransactionDetails::where('to_id', $to_id)->where('deleted_at', null)->update([
             'warehouse' => $new_warehouse,
         ]);
 
@@ -1484,12 +1484,8 @@ class TransaksiOnlineController extends Controller
                 $city = $item[17];
                 $province = $item[18];
 
-                // Extract courier from shipping method if it contains SPX
-                if (strpos($item[20], 'SPX') !== false) {
-                    $courier = 'SPX';
-                } else {
-                    $courier = $item[20];
-                }
+                //get courier from ekspedisi column
+                $courier = OnlineTransactions::getCourierAttribute($item[20]);
 
                 $rowData = [
                     'st_id' => 20,
@@ -1628,7 +1624,9 @@ class TransaksiOnlineController extends Controller
                 $total_payment = str_replace(['IDR ', '.'], '', $item[16]);
                 $city = $item[17];
                 $province = $item[18];
-                $courier = $item[20];
+
+                //get courier from ekspedisi column
+                $courier = OnlineTransactions::getCourierAttribute($item[20]);
 
                 $rowData = [
                     'st_id' => '20',

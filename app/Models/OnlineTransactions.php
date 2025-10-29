@@ -33,4 +33,25 @@ class OnlineTransactions extends Model
         'time_print',
         'online_print'
     ];
+
+    public static function getCourierAttribute($courier)
+    {
+        $shippingMethod = $courier;
+        
+        if (stripos($shippingMethod, 'SPX') !== false) {
+            return 'SPX';
+        } elseif (stripos($shippingMethod, 'J&T') !== false || stripos($shippingMethod, 'JNT') !== false) {
+            return 'J&T';
+        } elseif (stripos($shippingMethod, 'Anteraja') !== false) {
+            return 'Anteraja';
+        } elseif (stripos($shippingMethod, 'JNE') !== false) {
+            return 'JNE';
+        } elseif (stripos($shippingMethod, 'Gosend') !== false || stripos($shippingMethod, 'JNT') !== false) {
+            return 'Gojek';
+        } elseif (stripos($shippingMethod, 'Grab') !== false) {
+            return 'Grab';
+        }
+        
+        return $shippingMethod;
+    }
 }

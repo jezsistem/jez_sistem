@@ -203,10 +203,9 @@
                                     <div class="col-2">
                                         <select name="filter_courier" id="filter_courier" class="form-control col-6">
                                             <option value="">-- Pilih Ekspedisi --</option>
-                                            <option value="J&T">J&T</option>
-                                            <option value="JNE">JNE</option>
-                                            <option value="SPX">SPX</option>
-                                            <option value="Gojek">Gojek</option>
+                                            @foreach ($data['couriers'] as $courier)
+                                                <option value="{{ $courier->courier }}">{{ $courier->courier }}</option>
+                                            @endforeach
                                         </select>
                                         <div id="filter_courier_parent"></div>
                                     </div>
