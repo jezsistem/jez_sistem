@@ -207,14 +207,17 @@ class TransaksiOnlineController extends Controller
                                 ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
                         });
                     }
-
-                    if (!empty($request->get('tab_status'))) {
+                    if (!empty($request->get('tab_status')) && $request->get('tab_status') != 'INSTANT') {
                         $instance->where(function ($w) use ($request) {
                             $tab_status = $request->get('tab_status');
                             if ($tab_status != '') {
                                 $w->orWhere('internal_order_status', 'LIKE', "%$tab_status%");
                             }
                         });
+                    } else {
+                        if ($request->get('tab_status') == 'INSTANT') {
+                            $instance->having('is_instant', '=', 1);
+                        }
                     }
 
                     if (!empty($request->get('status'))) {

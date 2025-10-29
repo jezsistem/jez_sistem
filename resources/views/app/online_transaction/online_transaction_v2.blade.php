@@ -229,6 +229,9 @@
                                             <a class="nav-link active" data-status="" href="#">All TRX</a>
                                         </li>
                                         <li class="nav-item">
+                                            <a class="nav-link" data-status="INSTANT" href="#">Instant</a>
+                                        </li>
+                                        <li class="nav-item">
                                             <a class="nav-link" data-status="NEW TRX" href="#">New TRX</a>
                                         </li>
                                         <li class="nav-item">
