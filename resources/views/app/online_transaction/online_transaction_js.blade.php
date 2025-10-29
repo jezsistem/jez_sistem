@@ -469,6 +469,7 @@
                     d.chat_status = $('#filter_status_chat').val(); // Status chat dari filter
                     d.warehouse = $('#filter_warehouse').val(); // Warehouse dari filter
                     d.courier = $('#filter_courier').val(); // Courier dari filter
+                    d.platform = $('#filter_platform').val(); // Platform dari filter
                 }
             },
             columns: [{
@@ -504,6 +505,10 @@
                     }
                 },
                 {
+                    data: 'courier',
+                    name: 'courier'
+                },
+                {
                     data: 'total_payment',
                     name: 'total_payment',
                     render: function(data) {
@@ -528,6 +533,13 @@
                 "className": "text-center",
                 "width": "5%"
             }],
+            rowCallback: function(row, data) {
+                if (data.is_instant == true || data.is_instant == 1) {
+                    $(row).css('background-color', '#d4edda');
+                } else {
+                    $(row).css('background-color', 'white');
+                }
+            },
             language: {
                 "lengthMenu": "Tampilkan _MENU_ data per halaman",
                 "zeroRecords": "Tidak ada data ditemukan",
@@ -585,6 +597,16 @@
         });
 
         $('#filter_warehouse').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_platform').select2({
+            width: "200px",
+            dropdownParent: $('#filter_platform_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_platform').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
@@ -1030,7 +1052,7 @@
             });
         });
 
-        $(document).delegate('#edit_item_warehouse_btn', 'click', function() {
+        $(document).delegate('#change_warehouse_btn', 'click', function() {
             jQuery.noConflict();
             var otd_id = $(this).data('otd_id');
             var to_id = $('#to_id').val();
@@ -1054,14 +1076,17 @@
                         select.append('<option value="">Pilih Warehouse</option>');
 
                         warehouses.forEach(function(warehouse) {
-                            select.append('<option value="' + warehouse.w_code + '">' + warehouse.w_code + '</option>');
+                            select.append('<option value="' + warehouse.w_code +
+                                '">' + warehouse.w_code + '</option>');
                         });
                     } else {
                         toastr.error('Failed to load warehouses. Please try again.');
                     }
                 },
                 error: function(xhr, status, error) {
-                    toastr.error('An error occurred while fetching warehouses. Please try again.');
+                    toastr.error(
+                        'An error occurred while fetching warehouses. Please try again.'
+                    );
                     console.error('Error fetching warehouses:', error);
                 }
             });

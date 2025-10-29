@@ -240,7 +240,7 @@
                             <input type="hidden" id="resi_number">
                         </div>
                         <button type="button" class="btn btn-success" id="continuePackingBtn" data-to_id=""
-                            data-order_number="">
+                            data-order_number="" disabled>
                             Lanjut Packing
                         </button>
                     </div>

@@ -396,7 +396,6 @@ class HelperOnlineController extends Controller
 
                     if ($picked_qty < $item->qty) {
                         $all_picked = false;
-
                     }
 
                     if ($picked_qty > $item->qty) {
@@ -542,10 +541,17 @@ class HelperOnlineController extends Controller
 
     public function waitingReceipt(Request $request)
     {
-
         $ot_id = $request->get('ot_id');
 
-        $query = DB::table('product_location_setup_transactions')
+        $transactions = OnlineTransactions::where('id', $ot_id)->first();
+
+        $trx_status = $transactions->internal_order_status;
+
+        $print_nota = $transactions->online_print;
+
+        $print_resi = $transactions->print_resi;   
+
+        $data = DB::table('product_location_setup_transactions')
             ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
             ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
             ->join('product_stocks', 'product_location_setup_transactions.pst_id', '=', 'product_stocks.id')
@@ -568,7 +574,7 @@ class HelperOnlineController extends Controller
                 'online_transaction_details.price_after_discount'
             )
             ->where('online_transactions.id', $ot_id)
-            ->whereIn('product_location_setup_transactions.plst_status', ['WAITING RECEIPT', 'WAITING PACKING','DONE ONLINE','DONE'])
+            ->whereIn('product_location_setup_transactions.plst_status', ['WAITING RECEIPT', 'WAITING PACKING', 'DONE ONLINE', 'DONE'])
             ->groupBy(
                 'online_transaction_details.id',
                 'product_stocks.ps_barcode',
@@ -583,24 +589,54 @@ class HelperOnlineController extends Controller
                 'online_transaction_details.total_discount',
                 'online_transaction_details.price_after_discount',
                 'online_transactions.order_number'
-            );
+            )
+            ->get()
+            ->map(function ($item) {
+                $item->final_price = $item->qty * $item->price_after_discount;
+                return $item;
+            });
 
-        return datatables()->of($query)
-            ->addColumn('article', function ($data) {
-                return '
-            <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->sku . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>';
-            })
-            ->addColumn('final_price', function ($data) {
-                return $data->qty * $data->price_after_discount;
-            })
-            ->addIndexColumn()
-            ->rawColumns(['article'])
-            ->make(true);
+        $data = [
+            'transactions' => $data,
+            'trx_status' => $trx_status,
+            'print_nota' => $print_nota,
+            'print_resi' => $print_resi,
+        ];
+
+        return response()->json(['status'=>'200','data' => $data]);
     }
 
     public function printResi($to_id)
     {
-        dd("print resi " . $to_id);
+        $order_number = OnlineTransactions::where('id', $to_id)->value('order_number');
+
+        $pdf_path = public_path('storage/split_resi/' . $order_number . '.pdf');
+        
+        if (!file_exists($pdf_path)) {
+            return response()->json([
+            'status' => '400',
+            'message' => 'Resi Tidak Ditemukan'
+            ]);
+        }
+
+        $update_print_resi = OnlineTransactions::where('id', $to_id)
+            ->update([
+                'print_resi' => 1,
+                'time_print_resi' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+        if (!$update_print_resi) {
+            return response()->json([
+                'status' => '400',
+                'message' => 'Gagal memperbarui status cetak resi.'
+            ]);
+        }
+
+        return response()->json([
+            'status' => '200',
+            'pdf_url' => asset('storage/split_resi/' . $order_number . '.pdf')
+        ]);
     }
 
     public function printInvoice(Request $request, $to_id)
@@ -1079,67 +1115,67 @@ class HelperOnlineController extends Controller
             ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
             ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
             ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
-            // ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
+            ['resi' => 'RESI001', 'marketplace' => 'Tokopedia', 'qty' => '2', 'city' => 'Jakarta', 'notes' => ''],
         ];
 
         $total_items = count($items);

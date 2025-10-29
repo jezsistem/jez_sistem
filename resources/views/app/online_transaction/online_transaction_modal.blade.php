@@ -168,20 +168,22 @@
                     <input type="hidden" id="status_pesanan" value="" />
 
                     <button class="btn btn-light-primary font-weight-bolder" id="print_invoice">
-                            <span class="svg-icon svg-icon-md">
-                                <!--begin::Svg Icon | Print Icon-->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24"
-                                     version="1.1">
-                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                        <rect x="0" y="0" width="24" height="24"/>
-                                        <path d="M6,9 L18,9 C19.1045695,9 20,9.8954305 20,11 L20,17 C20,18.1045695 19.1045695,19 18,19 L6,19 C4.8954305,19 4,18.1045695 4,17 L4,11 C4,9.8954305 4.8954305,9 6,9 Z"
-                                              fill="#000000"/>
-                                        <path d="M8,2 L16,2 C17.1045695,2 18,2.8954305 18,4 L18,8 L6,8 L6,4 C6,2.8954305 6.8954305,2 8,2 Z M10,6 L14,6 C14.5522847,6 15,5.55228475 15,5 C15,4.44771525 14.5522847,4 14,4 L10,4 C9.44771525,4 9,4.44771525 9,5 C9,5.55228475 9.44771525,6 10,6 Z"
-                                              fill="#000000" opacity="0.3"/>
-                                    </g>
-                                </svg>
-                                <!--end::Svg Icon-->
-                            </span>
+                        <span class="svg-icon svg-icon-md">
+                            <!--begin::Svg Icon | Print Icon-->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px"
+                                viewBox="0 0 24 24" version="1.1">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <rect x="0" y="0" width="24" height="24" />
+                                    <path
+                                        d="M6,9 L18,9 C19.1045695,9 20,9.8954305 20,11 L20,17 C20,18.1045695 19.1045695,19 18,19 L6,19 C4.8954305,19 4,18.1045695 4,17 L4,11 C4,9.8954305 4.8954305,9 6,9 Z"
+                                        fill="#000000" />
+                                    <path
+                                        d="M8,2 L16,2 C17.1045695,2 18,2.8954305 18,4 L18,8 L6,8 L6,4 C6,2.8954305 6.8954305,2 8,2 Z M10,6 L14,6 C14.5522847,6 15,5.55228475 15,5 C15,4.44771525 14.5522847,4 14,4 L10,4 C9.44771525,4 9,4.44771525 9,5 C9,5.55228475 9.44771525,6 10,6 Z"
+                                        fill="#000000" opacity="0.3" />
+                                </g>
+                            </svg>
+                            <!--end::Svg Icon-->
+                        </span>
                         Print
                     </button>
 
@@ -191,9 +193,17 @@
                             role="alert">
                             <h3> Important!! Harap perhatikan status pick sebelum cetak nota 🐈🐈</h3>
                         </div>
-                        <button type="button" class="btn btn-success font-weight-bold mb-3" id="add_new_item_btn">
-                            <i class="fas fa-plus"></i> Tambah Item
-                        </button>
+                        <div class="d-flex mb-3">
+                            <button type="button" class="btn btn-success font-weight-bold mr-3"
+                                id="add_new_item_btn">
+                                <i class="fas fa-plus"></i> Tambah Item
+                            </button>
+                            <button type="button" class="btn btn-info font-weight-bold"
+                                id="change_warehouse_btn">
+                                <i class="fas fa-warehouse"></i></i> Ganti Warehouse
+                            </button>
+                        </div>
+
                         <thead class="bg-light text-dark">
                             <tr>
                                 <th class="text-dark">No</th>
@@ -416,8 +426,8 @@
 
 <!-- Modal Edit Item -->
 
-<div class="modal fade" id="editItemWarehouseModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+<div class="modal fade" id="editItemWarehouseModal" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -430,9 +440,11 @@
                 @csrf
                 <div class="modal-body">
                     <div class="form-group mb-3">
-                        <input type="hidden" name="edit_item_warehouse_otd_id" id="edit_item_warehouse_otd_id" value="">
-                        <input type="hidden" name="edit_item_warehouse_to_id" id="edit_item_warehouse_to_id" value="">
-                        <p>Warehouse Saat ini : <strong><span id="old_warehouse"></span></strong></p>
+                        <input type="hidden" name="edit_item_warehouse_otd_id" id="edit_item_warehouse_otd_id"
+                            value="">
+                        <input type="hidden" name="edit_item_warehouse_to_id" id="edit_item_warehouse_to_id"
+                            value="">
+                        {{-- <p>Warehouse Saat ini : <strong><span id="old_warehouse"></span></strong></p> --}}
                         <label for="warehouse_select">Warehouse Baru <span class="text-danger">*</span></label>
                         <select class="form-control" id="warehouse_select" name="warehouse" required>
                             <option value="">Pilih Warehouse</option>

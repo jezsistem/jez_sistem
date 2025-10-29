@@ -96,7 +96,7 @@ class TransaksiOnlineController extends Controller
             'segment' => request()->segment(1),
             'st_id' => Store::where('st_delete', '!=', '1')->where('st_name', 'like', '%ONLINE%')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
-            'couriers' => DB::table('couriers')->get(),
+            'couriers' => OnlineTransactions::select('courier')->distinct()->where('courier', '!=', '')->orderBy('courier')->get(),
             'warehouses' => WarehouseIndex::all(),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
@@ -123,9 +123,12 @@ class TransaksiOnlineController extends Controller
                     'total_payment',
                     'order_status',
                     'online_print',
+                    'print_resi',
                     'internal_order_status',
                     DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
+                    'courier',
+                    DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant')
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('online_transaction_chat_history', function ($join) {
@@ -133,14 +136,21 @@ class TransaksiOnlineController extends Controller
                             ->where('online_transaction_chat_history.is_readed', '=', 0)
                             ->where('online_transaction_chat_history.is_amp', '=', 0);
                     })
-                    ->where('no_resi', '!=', '')
+                    // ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
+                    ->where('order_status', 'not like', '%batal%')
+                    ->where('order_status', '!=', 'Belum dibayar')
+                    ->where('order_status', '!=', 'Belum Bayar')
                     ->when($request->has('warehouse') && !empty($request->get('warehouse')), function ($query) use ($request) {
                         $query->where('online_transaction_details.warehouse', $request->get('warehouse'));
                     })
                     ->when($request->has('courier') && !empty($request->get('courier')), function ($query) use ($request) {
                         $query->where('online_transactions.courier', 'LIKE', '%' . $request->get('courier') . '%');
                     })
+                    ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
+                        $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
+                    })
+                    ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 THEN 0 ELSE 1 END')
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
@@ -149,7 +159,15 @@ class TransaksiOnlineController extends Controller
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
-                    return $data->no_resi . '<br>' . ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
+                    $printStatus = '';
+                    if ($data->online_print && $data->print_resi) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT NOTA & RESI</span>';
+                    } elseif ($data->online_print) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT NOTA</span>';
+                    } elseif ($data->print_resi) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT RESI</span>';
+                    }
+                    return $data->no_resi . '<br>' . $printStatus;
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
@@ -198,14 +216,17 @@ class TransaksiOnlineController extends Controller
                                 ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
                         });
                     }
-
-                    if (!empty($request->get('tab_status'))) {
+                    if (!empty($request->get('tab_status')) && $request->get('tab_status') != 'INSTANT') {
                         $instance->where(function ($w) use ($request) {
                             $tab_status = $request->get('tab_status');
                             if ($tab_status != '') {
                                 $w->orWhere('internal_order_status', 'LIKE', "%$tab_status%");
                             }
                         });
+                    } else {
+                        if ($request->get('tab_status') == 'INSTANT') {
+                            $instance->having('is_instant', '=', 1);
+                        }
                     }
 
                     if (!empty($request->get('status'))) {
@@ -437,9 +458,9 @@ class TransaksiOnlineController extends Controller
                                 <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit Qty">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button class="btn btn-sm btn-info ml-4" id="edit_item_warehouse_btn" data-otd_id= \'' . $data->otd_id . '\'' . '\' data-to_id= \'' . $data->to_id . '\' data-warehouse= \'' . $data->warehouse . '\' title="Edit Warehouse">
+                                <!--<button class="btn btn-sm btn-info ml-4" id="edit_item_warehouse_btn" data-otd_id= \'' . $data->otd_id . '\'' . '\' data-to_id= \'' . $data->to_id . '\' data-warehouse= \'' . $data->warehouse . '\' title="Edit Warehouse">
                                     <i class="fas fa-warehouse"></i>
-                                </button>
+                                </button>-->
                                 <button class="btn btn-sm btn-danger ml-4" onclick="deleteItem(\'' . $data->otd_id . '\')" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -531,7 +552,7 @@ class TransaksiOnlineController extends Controller
                 ]);
             }
 
-            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK'])->where('otd_id', $otd_id)->count();
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->count();
 
             if ($qty < $count_picked) {
                 DB::rollBack();
@@ -1371,7 +1392,7 @@ class TransaksiOnlineController extends Controller
             }
 
             //count picked item with the same otd_id
-            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK'])->where('otd_id', $otd_id)->count();
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->count();
 
             for ($i = $count_picked; $i < $qty; $i++) {
                 $create_plst = DB::table('product_location_setup_transactions')->insert([
@@ -1426,13 +1447,15 @@ class TransaksiOnlineController extends Controller
             return response()->json(['status' => '404', 'message' => 'Online transaction not found']);
         }
 
-        $is_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->exists();
+        $is_picked = ProductLocationSetupTransaction::query()
+            ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+            ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
 
         if ($is_picked) {
             return response()->json(['status' => '400', 'message' => 'Item sudah dipick, tidak dapat diubah']);
         }
 
-        $update_warehouse = OnlineTransactionDetails::where('id', $otd_id)->update([
+        $update_warehouse = OnlineTransactionDetails::where('to_id', $to_id)->where('deleted_at', null)->update([
             'warehouse' => $new_warehouse,
         ]);
 
@@ -1470,12 +1493,8 @@ class TransaksiOnlineController extends Controller
                 $city = $item[17];
                 $province = $item[18];
 
-                // Extract courier from shipping method if it contains SPX
-                if (strpos($item[20], 'SPX') !== false) {
-                    $courier = 'SPX';
-                } else {
-                    $courier = $item[20];
-                }
+                //get courier from ekspedisi column
+                $courier = OnlineTransactions::getCourierAttribute($item[20]);
 
                 $rowData = [
                     'st_id' => 20,
@@ -1614,7 +1633,9 @@ class TransaksiOnlineController extends Controller
                 $total_payment = str_replace(['IDR ', '.'], '', $item[16]);
                 $city = $item[17];
                 $province = $item[18];
-                $courier = $item[20];
+
+                //get courier from ekspedisi column
+                $courier = OnlineTransactions::getCourierAttribute($item[20]);
 
                 $rowData = [
                     'st_id' => '20',

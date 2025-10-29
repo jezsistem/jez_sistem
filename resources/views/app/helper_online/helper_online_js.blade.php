@@ -50,7 +50,7 @@
     }
 
     function renderTransactions(transactions) {
-        
+
         let html = '';
         Object.values(transactions).forEach(transaction => {
             const statusClasses = {
@@ -68,7 +68,7 @@
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="card-title text-primary" style="font-weight: bold;">Order Number: ${transaction.order_number}</h5>
+                                <h5 class="card-title text-primary copy-order-number" style="font-weight: bold; cursor: pointer;" data-order="${transaction.order_number}">Order Number: ${transaction.order_number}</h5>
 
                                 <button class="btn position-relative" id="open_chat" onclick="openChat(${transaction.transaction_id})" data-trx_number=${transaction.order_number}>
                                     <i class="fas fa-comments"></i>
@@ -79,7 +79,7 @@
                                     ` : ''}
                                 </button>
                             </div>
-                            <p class="card-text">Resi: <strong>${transaction.no_resi}</strong></p>
+                            <p class="card-text copy-resi" style="cursor: pointer;" data-resi="${transaction.no_resi}">Resi: <strong>${transaction.no_resi}</strong></p>
                             <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
                             <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
                             <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
@@ -113,6 +113,34 @@
         }
         return html;
     }
+
+    $(document).on('click', '.copy-order-number', function(e) {
+        e.stopPropagation();
+        const orderNumber = $(this).data('order');
+        navigator.clipboard.writeText(orderNumber).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Copied!',
+                text: `Order Number "${orderNumber}" copied to clipboard`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    });
+
+    $(document).on('click', '.copy-resi', function(e) {
+        e.stopPropagation();
+        const resiNumber = $(this).data('resi');
+        navigator.clipboard.writeText(resiNumber).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Copied!',
+                text: `Resi "${resiNumber}" copied to clipboard`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    });
 
     function closeChat() {
         jQuery.noConflict();
@@ -392,75 +420,51 @@
             ],
         });
 
-        var waiting_receipt_table = $('#waitingReceiptTable').DataTable({
-            destroy: true,
-            processing: false,
-            serverSide: true,
-            responsive: false,
-            dom: 'rt<"text-right"ip>',
-            deferLoading: 0,
-            ajax: {
-                url: "{{ url('/helper_online_get_waiting_receipt_items') }}",
-                data: function(d) {
-                    d.ot_id = transactionId;
+        function getWaitingReceipt() {
+            $.ajax({
+                url: "{{ url('helper_online_get_waiting_receipt_items') }}",
+                type: 'GET',
+                data: {
+                    ot_id: transactionId
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        var tbody = $('#waitingReceiptTable tbody');
+                        tbody.empty();
+
+                        $.each(response.data.transactions, function(index, item) {
+                            var row = `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td><strong>${item.p_name} ${item.p_color} - ${item.br_name}</strong></td>
+                                    <td>${item.sku}</td>
+                                    <td>${item.plst_qty}</td>
+                                    <td>Rp ${parseInt(item.platform_price).toLocaleString('id-ID')}</td>
+                                    <td>Rp ${parseInt(item.jez_price).toLocaleString('id-ID')}</td>
+                                    <td>Rp ${parseInt(item.seller_discount).toLocaleString('id-ID')}</td>
+                                    <td>Rp ${parseInt(item.final_price).toLocaleString('id-ID')}</td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        });
+
+                        if (response.data.print_nota == 1 && response.data.print_resi == 1 && (
+                                response.data.trx_status == 'WAITING RECEIPT' || response.data
+                                .trx_status == 'WAITING PACKING')) {
+                            $('#continuePackingBtn').prop('disabled', false);
+                        } else {
+                            $('#continuePackingBtn').prop('disabled', true);
+                        }
+                    } else {
+                        toastr.error('Gagal mengambil data waiting receipt');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('Terjadi kesalahan saat mengambil data');
+                    console.error('Error:', error);
                 }
-            },
-            columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'DT_RowIndex',
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: 'article',
-                    name: 'article',
-                },
-                {
-                    data: 'sku',
-                    name: 'sku',
-                },
-                {
-                    data: 'qty',
-                    name: 'qty',
-                },
-                {
-                    data: 'platform_price',
-                    name: 'platform_price',
-                    render: function(data, type, row) {
-                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
-                    }
-                },
-                {
-                    data: 'jez_price',
-                    name: 'jez_price',
-                    render: function(data, type, row) {
-                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
-                    }
-                },
-                {
-                    data: 'seller_discount',
-                    name: 'seller_discount',
-                    render: function(data, type, row) {
-                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
-                    }
-                },
-                {
-                    data: 'final_price',
-                    name: 'final_price',
-                    render: function(data, type, row) {
-                        return 'Rp ' + parseFloat(data).toLocaleString('id-ID');
-                    }
-                },
-            ],
-            columnDefs: [{
-                "targets": 0,
-                "className": "text-left",
-                "width": "0%"
-            }],
-            order: [
-                [0, 'desc']
-            ],
-        });
+            });
+        }
 
         $('#close_scan_out_modal').on('click', function() {
             $('#sku_send').val('');
@@ -511,17 +515,7 @@
             $('#continuePackingBtn').data('resi_number', resi_number);
             $('#continuePackingBtn').data('status', status);
 
-            if (status == 'DONE' || status == 'DONE ONLINE') {
-                $('#continuePackingBtn').prop('disabled', true);
-            }
-
-            if (status_print == 0) {
-                $('#continuePackingBtn').prop('disabled', true);
-            } else {
-                $('#continuePackingBtn').prop('disabled', false);
-            }
-
-            waiting_receipt_table.draw();
+            getWaitingReceipt();
         });
 
         $(document).on('click', '#continuePackingBtn', function(e) {
@@ -581,8 +575,11 @@
                 success: function(response) {
                     if (response.status === '200') {
                         toastr.success('Resi berhasil dicetak');
+                        if (response.pdf_url) {
+                            window.open(response.pdf_url, '_blank');
+                        }
                     } else {
-                        toastr.error('Gagal mencetak resi');
+                        toastr.error(response.message || 'Gagal mencetak resi');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -590,6 +587,7 @@
                     console.error('Error:', error);
                 }
             });
+            getWaitingReceipt();
         });
 
         $(document).delegate('#printNotaBtn', 'click', function() {
@@ -614,7 +612,7 @@
                         method: 'POST',
                         data: {
                             orderNumber: numOrder,
-                            to_id : $('#to_id_waiting_receipt').text(),
+                            to_id: $('#to_id_waiting_receipt').text(),
                             _token: '{{ csrf_token() }}'
                         },
                         success: function(response) {
@@ -623,11 +621,12 @@
                                 var printUrl = '{{ url('print_online_nota') }}/' +
                                     numOrder;
                                 window.open(printUrl, '_blank');
-                                online_transaction_table.draw(false);
+                                getWaitingReceipt();
                             } else {
                                 Swal.fire({
                                     title: 'Error!',
-                                    text: response.message || 'There was a problem printing the invoice. Please try again.',
+                                    text: response.message ||
+                                        'There was a problem printing the invoice. Please try again.',
                                     icon: 'error',
                                     confirmButtonColor: '#3085d6'
                                 });
@@ -799,7 +798,8 @@
                             } else {
                                 swalWithBootstrapButtons.fire({
                                     title: "Error",
-                                    text: response.message || "Gagal update Qc",
+                                    text: response.message ||
+                                        "Gagal update Qc",
                                     icon: "error"
                                 });
                             }
@@ -834,7 +834,8 @@
                             } else {
                                 swalWithBootstrapButtons.fire({
                                     title: "Error",
-                                    text: response.message || "Gagal update Qc",
+                                    text: response.message ||
+                                        "Gagal update Qc",
                                     icon: "error"
                                 });
                             }
@@ -1028,6 +1029,7 @@
                                             icon: 'success',
                                             button: 'OK',
                                         });
+                                        getWaitingReceipt();
                                         getListPicked();
                                     } else {
                                         swal('Gagal', 'Gagal konfirmasi packing',
@@ -1159,7 +1161,7 @@
 
                     toastr.error(
                         'Terjadi kesalahan saat mengimport manifest'
-                        ); // An error occurred while importing the manifest
+                    ); // An error occurred while importing the manifest
                     console.error('Error:', error);
                 }
             });
