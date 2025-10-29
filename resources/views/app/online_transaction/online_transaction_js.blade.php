@@ -533,6 +533,13 @@
                 "className": "text-center",
                 "width": "5%"
             }],
+            rowCallback: function(row, data) {
+                if (data.is_instant == true || data.is_instant == 1) {
+                    $(row).css('background-color', '#d4edda');
+                } else {
+                    $(row).css('background-color', 'white');
+                }
+            },
             language: {
                 "lengthMenu": "Tampilkan _MENU_ data per halaman",
                 "zeroRecords": "Tidak ada data ditemukan",
@@ -1079,7 +1086,7 @@
                 error: function(xhr, status, error) {
                     toastr.error(
                         'An error occurred while fetching warehouses. Please try again.'
-                        );
+                    );
                     console.error('Error fetching warehouses:', error);
                 }
             });

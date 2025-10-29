@@ -127,6 +127,7 @@ class TransaksiOnlineController extends Controller
                     DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
                     'courier',
+                    DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant')
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('online_transaction_chat_history', function ($join) {
@@ -134,8 +135,11 @@ class TransaksiOnlineController extends Controller
                             ->where('online_transaction_chat_history.is_readed', '=', 0)
                             ->where('online_transaction_chat_history.is_amp', '=', 0);
                     })
-                    ->where('no_resi', '!=', '')
+                    // ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
+                    ->where('order_status', 'not like', '%batal%')
+                    ->where('order_status', '!=', '%Belum dibayar%')
+                    ->where('order_status', '!=', '%Belum Bayar%')
                     ->when($request->has('warehouse') && !empty($request->get('warehouse')), function ($query) use ($request) {
                         $query->where('online_transaction_details.warehouse', $request->get('warehouse'));
                     })
@@ -145,6 +149,7 @@ class TransaksiOnlineController extends Controller
                     ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
                         $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
                     })
+                    ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 THEN 0 ELSE 1 END')
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
