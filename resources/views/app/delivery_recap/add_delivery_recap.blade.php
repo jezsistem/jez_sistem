@@ -215,6 +215,10 @@
                     $('#f_manifest')[0].reset();
                     signaturePic.clear();
                     signatureKurir.clear();
+
+                    setTimeout(function () {
+                        window.location.href = "{{ route('helper_online') }}";
+                    }, 1500);
                 },
                 error: function (xhr) {
                     console.error('Response:', xhr.responseText);
