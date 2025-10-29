@@ -79,7 +79,7 @@
                             <div class="row mt-12">
                                 <div class="col-md-12">
                                     <button type="button" class="btn btn-primary mr-2" id="open_modal_scan_manifest_btn">
-                                        Import Scan Manifest
+                                        Data Manifest
                                     </button>
                                 </div>
                             </div>

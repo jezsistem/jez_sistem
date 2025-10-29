@@ -309,8 +309,8 @@
 
 <!-- Modal-->
 <div class="modal fade" id="importManifestModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document"> <!-- Ubah ke modal-xl -->
         <div class="modal-content">
 
             <form id="f_upload_manifest" enctype="multipart/form-data">
@@ -324,24 +324,37 @@
                     </div>
 
                     <div class="modal-body">
-                        <a href="{{ asset('upload/template/template_scan_manifest.xlsx') }}" download
-                            class="btn btn-success mb-3">
-                            <i class="fas fa-download"></i> Download Template
-                        </a>
-                        <div class="form-group">
-                            <label for="importFile">Pilih importFile Scan Manifest</label>
-                            <input type="file" class="form-control" id="importFile" name="importFile"required>
+
+                        <hr>
+
+                        <!-- Tabel hasil import -->
+                        <div class="table-responsive">
+                            <table id="manifestTable" class="table table-bordered table-striped w-100">
+                                <thead class="thead-dark">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Resi</th>
+                                    <th>Marketplace</th>
+                                    <th>Qty</th>
+                                    <th>Kota Tujuan</th>
+                                    <th>Catatan</th>
+                                    <th>Tanggal Dibuat</th>
+                                </tr>
+                                </thead>
+                            </table>
                         </div>
                     </div>
 
                     <div class="modal-footer">
-                        <button type="submit" id="uploadBtn" class="btn btn-dark mt-3">Upload</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
                     </div>
                 </div>
             </form>
+
         </div>
     </div>
 </div>
+
 
 <style>
     .chat-container {

@@ -495,6 +495,26 @@
             $('#importManifestModal').modal('show');
         })
 
+        $(function () {
+            $('#manifestTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('manifest.data') }}',
+                columns: [
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'recap_code', name: 'recap_code' },
+                    { data: 'resi', name: 'resi' },
+                    { data: 'marketplace_name', name: 'marketplace_name' },
+                    { data: 'item_qty', name: 'item_qty' },
+                    { data: 'city_destinations', name: 'city_destinations' },
+                    { data: 'note', name: 'note' },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false }
+                ],
+                order: [[7, 'desc']]
+            });
+        });
+
         $(document).on('click', '.close_scanner', function(e) {
             clearScanners();
         })

@@ -224,4 +224,42 @@ class DeliveryRecapController extends Controller
             ], 500);
         }
     }
+
+    public function getData(Request $request)
+    {
+        // Ambil semua data dari ts_delivery_receipts + relasi ke delivery_recaps
+        $query = DeliveryReceipt::with('confirmation')
+            ->select([
+                'id',
+                'dr_id',
+                'resi',
+                'marketplace_name',
+                'item_qty',
+                'city_destinations',
+                'note',
+                'created_at'
+            ]);
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('recap_code', function ($row) {
+                return $row->confirmation ? $row->confirmation->code ?? '-' : '-';
+            })
+            ->addColumn('action', function ($row) {
+                $url = route('manifest.print', $row->id);
+                return '<button class="btn btn-sm btn-primary" onclick="window.open(\'' . $url . '\', \'_blank\')">
+                            <i class="fas fa-print"></i> Print
+                        </button>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    public function print($id)
+    {
+        $receipt = DeliveryReceipt::with('confirmation')->findOrFail($id);
+        $recap = $receipt->confirmation;
+
+        return view('delivery_recap.print', compact('receipt', 'recap'));
+    }
 }
