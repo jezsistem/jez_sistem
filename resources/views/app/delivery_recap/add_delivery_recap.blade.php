@@ -18,7 +18,7 @@
         height: 100%;
     }
 </style>
-<!--end::Head-->
+<!--end::Head hehehhehehehe-->
 
 <body id="device_background_panel">
 <div class="d-flex flex-column-fluid flex-center" id="device_background">
