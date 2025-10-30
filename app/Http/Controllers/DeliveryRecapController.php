@@ -337,7 +337,6 @@ class DeliveryRecapController extends Controller
     {
         $st_id = Auth::user()->st_id;
 
-        // Ambil data header dari tabel ts_delivery_recaps
         $header = DB::table('delivery_recaps')
             ->leftJoin('couriers', 'couriers.id', '=', 'delivery_recaps.expedition_id')
             ->leftJoin('users', 'users.id', '=', 'delivery_recaps.created_by')
@@ -358,7 +357,6 @@ class DeliveryRecapController extends Controller
             abort(404, 'Data manifest tidak ditemukan.');
         }
 
-        // Ambil detail resi dari tabel ts_delivery_receipts
         $items = DB::table('delivery_receipts')
             ->select(
                 'delivery_receipts.resi',
@@ -367,24 +365,30 @@ class DeliveryRecapController extends Controller
                 'delivery_receipts.city_destinations'
             )
             ->where('delivery_receipts.dr_id', $id)
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'resi' => $item->resi,
-                    'marketplace_name' => $item->marketplace_name,
-                    'item_qty' => $item->item_qty,
-                    'city_destinations' => $item->city_destinations,
-                ];
-            })
-            ->toArray();
+            ->get();
+
+        if ($items->count() > 0) {
+            foreach ($items as $item) {
+                DB::table('online_transactions')
+                    ->where('resi', $item->resi)
+                    ->update(['internal_order_status' => 'DONE']);
+            }
+        }
+
+        // Ubah hasil ke array untuk view
+        $itemsArray = $items->map(function ($item) {
+            return [
+                'resi' => $item->resi,
+                'marketplace_name' => $item->marketplace_name,
+                'item_qty' => $item->item_qty,
+                'city_destinations' => $item->city_destinations,
+            ];
+        })->toArray();
 
         $manifest_date = date('Y-m-d');
-
         $address = DB::table('stores')->where('id', $st_id)->first();
-
         $user = DB::table('users')->where('id', Auth::user()->id)->first();
 
-        // Buat URL publik tanda tangan jika ada
         $signature_pic_url = $header->signature_pic
             ? asset('storage/signatures/' . $header->signature_pic)
             : null;
@@ -393,7 +397,6 @@ class DeliveryRecapController extends Controller
             ? asset('storage/signatures/' . $header->signature_courier)
             : null;
 
-        // Kirim data ke view print_manifest.blade.php
         return view('app.helper_online.print_manifest', [
             'recap_id' => $header->id,
             'manifest_date' => $manifest_date,
@@ -408,7 +411,7 @@ class DeliveryRecapController extends Controller
             'courier_phone' => $header->courier_phone,
             'expedition_name' => $header->expedition_name ?? '-',
             'pic_name' => $header->pic_name ?? '-',
-            'items' => $items,
+            'items' => $itemsArray,
             'signature_pic_url' => $signature_pic_url,
             'signature_courier_url' => $signature_courier_url,
         ]);
