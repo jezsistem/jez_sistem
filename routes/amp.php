@@ -56,7 +56,7 @@ Route::middleware(['auth'])->group(function () {
      */
     Route::get('delivery_recap', [DeliveryRecapController::class, 'index']);
     Route::get('delivery_recap_datatables', [DeliveryRecapController::class, 'getDatatables']);
-    Route::get('add_delivery_recap', [DeliveryRecapController::class, 'add']);
+    Route::get('add_delivery_recap', [DeliveryRecapController::class, 'add'])->name('add_delivery_recap');
     Route::post('/delivery-recaps/store', [DeliveryRecapController::class, 'store'])->name('delivery-recaps.store');
     Route::post('/signature-upload', [DeliveryRecapController::class, 'uploadSignature'])->name('signature.upload');
 

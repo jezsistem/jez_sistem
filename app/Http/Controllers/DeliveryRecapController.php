@@ -227,23 +227,37 @@ class DeliveryRecapController extends Controller
 
     public function getData(Request $request)
     {
-        // Ambil semua data dari ts_delivery_receipts + relasi ke delivery_recaps
-        $query = DeliveryReceipt::with('confirmation')
-            ->select([
-                'id',
-                'dr_id',
-                'resi',
-                'marketplace_name',
-                'item_qty',
-                'city_destinations',
-                'note',
-                'created_at'
-            ]);
+        $query = DB::table('delivery_recaps')
+            ->leftJoin('delivery_receipts', 'delivery_receipts.dr_id', '=', 'delivery_recaps.id')
+            ->leftJoin('couriers', 'couriers.id', '=', 'delivery_recaps.expedition_id')
+            ->leftJoin('users', 'users.id', '=', 'delivery_recaps.created_by')
+            ->select(
+                'delivery_recaps.id',
+//                'dr.document_number',
+                'delivery_recaps.courier_name',
+                'delivery_recaps.courier_phone',
+                'couriers.cr_name',
+                'users.u_name as pic',
+                'delivery_recaps.created_at',
+                DB::raw('COUNT(ts_delivery_receipts.resi) as qty_resi')
+            )
+            ->groupBy(
+                'delivery_recaps.id',
+//                'delivery_recaps.document_number',
+                'delivery_recaps.courier_name',
+                'delivery_recaps.courier_phone',
+                'couriers.cr_name',
+                'pic',
+                'delivery_recaps.created_at'
+            )
+            ->orderByDesc('delivery_recaps.created_at')->get();
+
+//        dd($query);
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('recap_code', function ($row) {
-                return $row->confirmation ? $row->confirmation->code ?? '-' : '-';
+            ->addColumn('qty_resi', function ($row) {
+                return $row->delivery_receipts_count ?? 0;
             })
             ->addColumn('action', function ($row) {
                 $url = route('manifest.print', $row->id);
@@ -257,9 +271,82 @@ class DeliveryRecapController extends Controller
 
     public function print($id)
     {
-        $receipt = DeliveryReceipt::with('confirmation')->findOrFail($id);
-        $recap = $receipt->confirmation;
+        $st_id = Auth::user()->id;
 
-        return view('delivery_recap.print', compact('receipt', 'recap'));
+        // Ambil data header dari tabel ts_delivery_recaps
+        $header = DB::table('delivery_recaps')
+            ->leftJoin('couriers', 'couriers.id', '=', 'delivery_recaps.expedition_id')
+            ->leftJoin('users', 'users.id', '=', 'delivery_recaps.created_by')
+            ->select(
+                'delivery_recaps.id',
+                'delivery_recaps.recap_date',
+                'delivery_recaps.courier_name',
+                'delivery_recaps.courier_phone',
+                'delivery_recaps.signature_pic',
+                'delivery_recaps.signature_courier',
+                'couriers.cr_name as expedition_name',
+                'users.u_name as pic_name'
+            )
+            ->where('delivery_recaps.id', $id)
+            ->first();
+
+        if (!$header) {
+            abort(404, 'Data manifest tidak ditemukan.');
+        }
+
+        // Ambil detail resi dari tabel ts_delivery_receipts
+        $items = DB::table('delivery_receipts')
+            ->select(
+                'delivery_receipts.resi',
+                'delivery_receipts.marketplace_name',
+                'delivery_receipts.item_qty',
+                'delivery_receipts.city_destinations'
+            )
+            ->where('delivery_receipts.dr_id', $id)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'resi' => $item->resi,
+                    'marketplace_name' => $item->marketplace_name,
+                    'item_qty' => $item->item_qty,
+                    'city_destinations' => $item->city_destinations,
+                ];
+            })
+            ->toArray();
+
+        $manifest_date = date('Y-m-d');
+
+        $address = DB::table('stores')->where('id', $st_id)->first();
+
+        $user = DB::table('users')->where('id', Auth::user()->id)->first();
+
+        // Buat URL publik tanda tangan jika ada
+        $signature_pic_url = $header->signature_pic
+            ? asset('storage/signatures/' . $header->signature_pic)
+            : null;
+
+        $signature_courier_url = $header->signature_courier
+            ? asset('storage/signatures/' . $header->signature_courier)
+            : null;
+
+        // Kirim data ke view print_manifest.blade.php
+        return view('app.helper_online.print_manifest', [
+            'recap_id' => $header->id,
+            'manifest_date' => $manifest_date,
+            'pickup_address' => $address->st_address ?? '-',
+            'store_name' => $address->st_name ?? '-',
+            'pic_seller' => $user->u_name ?? '-',
+            'pic_phone' => $user->u_phone ?? '-',
+            'recap_date' => $header->recap_date
+                ? \Carbon\Carbon::parse($header->recap_date)->format('d/m/Y H:i')
+                : '-',
+            'courier_name' => $header->courier_name,
+            'courier_phone' => $header->courier_phone,
+            'expedition_name' => $header->expedition_name ?? '-',
+            'pic_name' => $header->pic_name ?? '-',
+            'items' => $items,
+            'signature_pic_url' => $signature_pic_url,
+            'signature_courier_url' => $signature_courier_url,
+        ]);
     }
 }

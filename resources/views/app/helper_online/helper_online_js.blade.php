@@ -28,7 +28,7 @@
                 status_filter: $('#status_filter').val(),
                 order_number: $('#order_number').val()
             },
-            success: function(r) {
+            success: function (r) {
                 $("#picked_online_trx").html(renderTransactions(r.transactions)); // Removed animation
                 setTotalStatuses(
                     r.total_done_online,
@@ -64,7 +64,7 @@
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
             html += `
-                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING' || transaction.internal_order_status === 'DONE ONLINE'|| transaction.internal_order_status === 'DONE'? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" data-print_status=${transaction.online_print} style="cursor: pointer;">
+                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING' || transaction.internal_order_status === 'DONE ONLINE' || transaction.internal_order_status === 'DONE' ? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" data-print_status=${transaction.online_print} style="cursor: pointer;">
                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
                         <div class="card-body" style="background-color: #f8f9fa;">
                             <div class="d-flex justify-content-between align-items-center">
@@ -111,10 +111,11 @@
                     return '#000'; // Default color
             }
         }
+
         return html;
     }
 
-    $(document).on('click', '.copy-order-number', function(e) {
+    $(document).on('click', '.copy-order-number', function (e) {
         e.stopPropagation();
         const orderNumber = $(this).data('order');
         navigator.clipboard.writeText(orderNumber).then(() => {
@@ -128,7 +129,7 @@
         });
     });
 
-    $(document).on('click', '.copy-resi', function(e) {
+    $(document).on('click', '.copy-resi', function (e) {
         e.stopPropagation();
         const resiNumber = $(this).data('resi');
         navigator.clipboard.writeText(resiNumber).then(() => {
@@ -158,7 +159,7 @@
     }
 
     function startChatPolling() {
-        setInterval(function() {
+        setInterval(function () {
             if (chat_status === 'opened' && ot_id !== null) {
                 getChatData(ot_id);
             }
@@ -173,13 +174,13 @@
                 is_amp: 0,
                 _token: $('meta[name="csrf-token"]').attr('content')
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.status === '200') {
                     var chatHistory = response.data;
                     var chatContainer = $('.chat-messages');
                     chatContainer.empty(); // Clear existing messages
 
-                    chatHistory.forEach(function(chat) {
+                    chatHistory.forEach(function (chat) {
                         var messageElement;
 
                         if (chat.is_amp == 0) {
@@ -189,7 +190,10 @@
                                     <div class="bg-danger text-white rounded px-6 py-2" style="max-width: 70%;">
                                         <small class="text-light font-weight-bold">${chat.u_name ? chat.u_name : 'You'}</small>
                                         <p class="mb-1">${chat.messages}</p>
-                                        <small class="text-light">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                                        <small class="text-light">${new Date(chat.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</small>
                                     </div>
                                 </div>
                             `);
@@ -200,7 +204,10 @@
                                     <div class="bg-secondary border rounded px-6 py-2" style="max-width: 70%;">
                                         <small class="text-muted font-weight-bold">${chat.u_name ? chat.u_name : 'User'}</small>
                                         <p class="mb-1">${chat.messages}</p>
-                                        <small class="text-muted">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                                        <small class="text-muted">${new Date(chat.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</small>
                                     </div>
                                 </div>
                             `);
@@ -215,7 +222,7 @@
                     toastr.error('Failed to load chat history. Please try again.');
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 toastr.error('An error occurred while fetching chat history. Please try again.');
                 console.error('Error fetching chat history:', error);
             }
@@ -240,7 +247,7 @@
                 is_amp: 0,
                 _token: $('meta[name="csrf-token"]').attr('content')
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.status === '200') {
                     // Show success toast
                     toastr.success('Message sent successfully!');
@@ -249,7 +256,7 @@
                     getChatData(ot_id);
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 toastr.error('Failed to send message. Please try again.');
                 console.error('Error sending message:', error);
             }
@@ -280,7 +287,7 @@
             clearTimeout(scan_timer);
         }
 
-        scan_timer = setTimeout(function() {
+        scan_timer = setTimeout(function () {
             var hasil = result;
 
             if (hasil.startsWith(']C1')) {
@@ -324,6 +331,7 @@
     function error(err) {
         console.error(err);
     }
+
     //
     // function console_log(result) {
     //     console.log(result);
@@ -335,7 +343,7 @@
     }
 
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -350,22 +358,21 @@
         startChatPolling();
 
 
-
         var helper_online_table = $('#helper_online_table').DataTable({
             processing: true,
             serverSide: true,
             ajax: {
                 url: "{{ url('/helper_online_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.st_id = $('#st_id').val();
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'DT_RowIndex',
-                    orderable: false,
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'DT_RowIndex',
+                orderable: false,
+                searchable: false
+            },
                 {
                     data: 'order_number',
                     name: 'order_number'
@@ -402,7 +409,7 @@
             deferLoading: 0,
             ajax: {
                 url: "{{ url('/helper_online_get_online_items') }}",
-                data: function(d) {
+                data: function (d) {
                     d.ot_id = transactionId;
                 }
             },
@@ -427,12 +434,12 @@
                 data: {
                     ot_id: transactionId
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.status === '200') {
                         var tbody = $('#waitingReceiptTable tbody');
                         tbody.empty();
 
-                        $.each(response.data.transactions, function(index, item) {
+                        $.each(response.data.transactions, function (index, item) {
                             var row = `
                                 <tr>
                                     <td>${index + 1}</td>
@@ -449,7 +456,7 @@
                         });
 
                         if (response.data.print_nota == 1 && response.data.print_resi == 1 && (
-                                response.data.trx_status == 'WAITING RECEIPT' || response.data
+                            response.data.trx_status == 'WAITING RECEIPT' || response.data
                                 .trx_status == 'WAITING PACKING')) {
                             $('#continuePackingBtn').prop('disabled', false);
                         } else {
@@ -459,14 +466,14 @@
                         toastr.error('Gagal mengambil data waiting receipt');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     toastr.error('Terjadi kesalahan saat mengambil data');
                     console.error('Error:', error);
                 }
             });
         }
 
-        $('#close_scan_out_modal').on('click', function() {
+        $('#close_scan_out_modal').on('click', function () {
             $('#sku_send').val('');
             $('#bin_out_search').val('');
             $('#binTable tbody').empty();
@@ -474,11 +481,11 @@
             $('#bin_out_search').prop('disabled', false);
         });
 
-        $(document).on('click', '#open_chat', function(e) {
+        $(document).on('click', '#open_chat', function (e) {
             e.stopPropagation();
         });
 
-        $(document).on('click', '#transaction_card', function(e) {
+        $(document).on('click', '#transaction_card', function (e) {
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
             clearScanners();
@@ -490,36 +497,49 @@
             online_items_table.draw();
         });
 
-        $(document).on('click', '#open_modal_scan_manifest_btn', function(e) {
+        $(document).on('click', '#open_modal_scan_manifest_btn', function (e) {
             jQuery.noConflict();
             $('#importManifestModal').modal('show');
         })
 
-        $(function () {
-            $('#manifestTable').DataTable({
+        $(document).ready(function () {
+            let table = $('#manifestTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('manifest.data') }}',
+                ajax: {
+                    url: "{{ route('manifest.data') }}",
+                    type: "GET"
+                },
                 columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                    { data: 'recap_code', name: 'recap_code' },
-                    { data: 'resi', name: 'resi' },
-                    { data: 'marketplace_name', name: 'marketplace_name' },
-                    { data: 'item_qty', name: 'item_qty' },
-                    { data: 'city_destinations', name: 'city_destinations' },
-                    { data: 'note', name: 'note' },
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false },
+                    // { data: 'document_number', name: 'document_number' }, // kalau nanti mau ditambah
+                    { data: 'courier_name', name: 'courier_name' },
+                    { data: 'courier_phone', name: 'courier_phone' },
+                    { data: 'cr_name', name: 'cr_name' },
+                    { data: 'qty_resi', name: 'qty_resi', className: 'text-center' },
+                    { data: 'pic', name: 'pic' },
                     { data: 'created_at', name: 'created_at' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false }
+                    { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
                 ],
-                order: [[7, 'desc']]
+                order: [[6, 'desc']], // urut berdasarkan created_at
+                language: {
+                    processing: '<img src="{{ asset('pos/jez.gif') }}" width="50"> Loading...'
+                },
+                responsive: true,
+                pageLength: 10
+            });
+
+            // Refresh tabel ketika modal dibuka
+            $('#importManifestModal').on('shown.bs.modal', function () {
+                table.ajax.reload();
             });
         });
 
-        $(document).on('click', '.close_scanner', function(e) {
+        $(document).on('click', '.close_scanner', function (e) {
             clearScanners();
         })
 
-        $(document).on('click', '#waiting_receipt_card', function(e) {
+        $(document).on('click', '#waiting_receipt_card', function (e) {
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
             resi_number = $(this).data('resi_number');
@@ -538,7 +558,7 @@
             getWaitingReceipt();
         });
 
-        $(document).on('click', '#continuePackingBtn', function(e) {
+        $(document).on('click', '#continuePackingBtn', function (e) {
             // $('#waitingReceiptModal').modal('hide');
             transactionId = $(this).data('to_id');
             orderNumber = $(this).data('order_number');
@@ -552,14 +572,14 @@
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.status === '200') {
                             toastr.success('Status diupdate ke WAITING PACKING');
                         } else {
                             toastr.error('Gagal mengupdate status');
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         toastr.error('Terjadi kesalahan saat mengupdate status');
                         console.error('Error:', error);
                     }
@@ -578,11 +598,11 @@
             $('#scanPackingModal').modal('show');
         })
 
-        $(document).on('click', '#close_scan_packing_modal_btn', function(e) {
+        $(document).on('click', '#close_scan_packing_modal_btn', function (e) {
             $('#scanPackingModal').modal('hide');
         });
 
-        $(document).on('click', '#printResiBtn', function(e) {
+        $(document).on('click', '#printResiBtn', function (e) {
             e.preventDefault();
             var to_id = $('#to_id_waiting_receipt').text();
 
@@ -592,7 +612,7 @@
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.status === '200') {
                         toastr.success('Resi berhasil dicetak');
                         if (response.pdf_url) {
@@ -602,7 +622,7 @@
                         toastr.error(response.message || 'Gagal mencetak resi');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     toastr.error('Terjadi kesalahan saat mencetak resi');
                     console.error('Error:', error);
                 }
@@ -610,7 +630,7 @@
             getWaitingReceipt();
         });
 
-        $(document).delegate('#printNotaBtn', 'click', function() {
+        $(document).delegate('#printNotaBtn', 'click', function () {
             var numOrder = $('#trx_number_title_wr').text().replace('Order Number: ', '');
 
             Swal.fire({
@@ -635,7 +655,7 @@
                             to_id: $('#to_id_waiting_receipt').text(),
                             _token: '{{ csrf_token() }}'
                         },
-                        success: function(response) {
+                        success: function (response) {
                             console.log(response.status);
                             if (response.status == 200) {
                                 var printUrl = '{{ url('print_online_nota') }}/' +
@@ -653,7 +673,7 @@
                             }
 
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             // Handle errors here
                             Swal.fire({
                                 title: 'Error!',
@@ -662,7 +682,7 @@
                                 confirmButtonColor: '#3085d6'
                             });
                         },
-                        complete: function() {
+                        complete: function () {
                             $('#loader').hide();
                         }
                     });
@@ -671,7 +691,7 @@
 
         });
 
-        $(document).on('click', '#cancel_pick', function(e) {
+        $(document).on('click', '#cancel_pick', function (e) {
             e.preventDefault();
             var plst_id = $(this).data('plst_id');
 
@@ -681,7 +701,7 @@
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.status === '200') {
                         toastr.success('Pick berhasil dibatalkan');
                         online_items_table.draw();
@@ -689,14 +709,14 @@
                         toastr.error('Gagal membatalkan pick');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     toastr.error('Terjadi kesalahan saat membatalkan pick');
                     console.error('Error:', error);
                 }
             });
         });
 
-        $(document).on('click', '.ambil-dari-bin', function(e) {
+        $(document).on('click', '.ambil-dari-bin', function (e) {
             var pl_code = $(this).data('pl_code');
             var bin_id = $(this).data('bin_id');
             $('#bin_out_search').focus().val(pl_code).data('bin_id', bin_id);
@@ -712,7 +732,7 @@
             document.getElementById('bin_out_search').dispatchEvent(event);
         });
 
-        $(document).on('click', '#pick_get_bin_products', function(e) {
+        $(document).on('click', '#pick_get_bin_products', function (e) {
             e.preventDefault();
 
             let plst_id = $(this).data('plst_id');
@@ -732,12 +752,12 @@
                     warehouse_id: $(this).data('warehouse_st_id'),
                     pst_id: $(this).data('pst_id'),
                 },
-                success: function(response) {
+                success: function (response) {
                     // Kosongkan isi tabel
                     $('#binTable tbody').empty();
 
                     // Masukkan data BIN ke tabel
-                    $.each(response.data, function(index, bin) {
+                    $.each(response.data, function (index, bin) {
                         $('#binTable tbody').append(`
                         <tr>
                             <td>${bin.pl_code}</td>
@@ -768,7 +788,7 @@
             });
         });
 
-        $(document).on('click', '#submit_qc', function(e) {
+        $(document).on('click', '#submit_qc', function (e) {
             e.preventDefault();
 
             const swalWithBootstrapButtons = Swal.mixin({
@@ -807,7 +827,7 @@
                             qc_status: 'passed',
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.status === '200') {
                                 swalWithBootstrapButtons.fire({
                                     title: "Success",
@@ -824,7 +844,7 @@
                                 });
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             swalWithBootstrapButtons.fire({
                                 title: "Error",
                                 text: "Terjadi kesalahan saa    t menyimpan hasil QC",
@@ -843,7 +863,7 @@
                             to_id: $(this).data('to_id'),
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.status === '200') {
                                 swalWithBootstrapButtons.fire({
                                     title: "Info",
@@ -860,7 +880,7 @@
                                 });
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             swalWithBootstrapButtons.fire({
                                 title: "Error",
                                 text: "Terjadi kesalahan saat menyimpan hasil QC",
@@ -873,7 +893,7 @@
             });
         });
 
-        $('#bin_out_search').on('keyup', function(event) {
+        $('#bin_out_search').on('keyup', function (event) {
             let searchText = $(this).val().toLowerCase();
             let bin_search = $(this).val();
             let bin_id = $(this).data('bin_id');
@@ -881,7 +901,7 @@
 
             let bin = bin_search;
 
-            $('#binTable tbody tr').each(function() {
+            $('#binTable tbody tr').each(function () {
                 let binText = $(this).find('td:first').text().toLowerCase();
 
                 if (binText.includes(searchText)) {
@@ -914,7 +934,7 @@
 
                     // var sku_send = $('#sku_send').val(validSku)
 
-                    $('#sku_search').focus().on('keyup', function(e) {
+                    $('#sku_search').focus().on('keyup', function (e) {
                         if (e.key === 'Enter') {
                             let enteredSku = $(this).val();
 
@@ -929,7 +949,7 @@
                                         'Yakin'
                                     ],
                                     dangerMode: false,
-                                }).then(function(isConfirm) {
+                                }).then(function (isConfirm) {
                                     if (isConfirm) {
                                         $.ajaxSetup({
                                             headers: {
@@ -952,7 +972,7 @@
                                             },
                                             dataType: 'json',
                                             url: "{{ url('helper_online_pick_item') }}",
-                                            success: function(r) {
+                                            success: function (r) {
                                                 if (r.status == '200') {
                                                     online_items_table
                                                         .draw();
@@ -1014,7 +1034,7 @@
             }
         });
 
-        $('#scan_packing_result').focus().on('keyup', function(e) {
+        $('#scan_packing_result').focus().on('keyup', function (e) {
             if (e.key === 'Enter') {
                 let enteredResi = $(this).val();
                 let validResi = $('#resi_number_holder').text();
@@ -1029,7 +1049,7 @@
                             'Yakin'
                         ],
                         dangerMode: false,
-                    }).then(function(isConfirm) {
+                    }).then(function (isConfirm) {
                         if (isConfirm) {
                             $.ajax({
                                 type: "POST",
@@ -1039,7 +1059,7 @@
                                 },
                                 dataType: 'json',
                                 url: "{{ url('helper_online_scan_packing_single') }}",
-                                success: function(r) {
+                                success: function (r) {
                                     if (r.status == '200') {
                                         $('#scanPackingModal').modal('hide');
                                         $('#scan_packing_result').val('');
@@ -1070,7 +1090,7 @@
             }
         });
 
-        $(document).on('submit', '#f_upload_manifest', function(e) {
+        $(document).on('submit', '#f_upload_manifest', function (e) {
             e.preventDefault();
 
             var formData = new FormData(this);
@@ -1091,7 +1111,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function(response) {
+                success: function (response) {
                     // 2. Dismiss Loading Swal on success
                     Swal.close();
 
@@ -1129,7 +1149,7 @@
                                 didOpen: () => {
                                     let tbody = document.getElementById(
                                         'error-table-body');
-                                    response.failed_resi.forEach(function(
+                                    response.failed_resi.forEach(function (
                                         resi) {
                                         let row = document
                                             .createElement('tr');
@@ -1141,17 +1161,17 @@
 
                                     // Export to Excel button
                                     document.getElementById(
-                                            'export_failed_resi')
-                                        .addEventListener('click', function() {
+                                        'export_failed_resi')
+                                        .addEventListener('click', function () {
                                             let wb = XLSX.utils.book_new();
                                             let ws_data = [
                                                 [
                                                     "Nomor Resi Gagal"
                                                 ], // Header
                                                 ...response.failed_resi
-                                                .map(resi => [
-                                                    resi
-                                                ]) // Each resi in its own array
+                                                    .map(resi => [
+                                                        resi
+                                                    ]) // Each resi in its own array
                                             ];
                                             let ws = XLSX.utils
                                                 .aoa_to_sheet(ws_data);
@@ -1164,7 +1184,7 @@
 
                                     // Close button
                                     document.getElementById('close_error_alert')
-                                        .addEventListener('click', function() {
+                                        .addEventListener('click', function () {
                                             Swal.close();
                                         });
                                 }
@@ -1175,7 +1195,7 @@
                         }
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // 3. Dismiss Loading Swal on error
                     Swal.close();
 

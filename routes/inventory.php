@@ -398,7 +398,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('helper_online_scan_packing_single', [HelperOnlineController::class, 'scanPackingSingle']);
     Route::post('helper_online_scan_packing_bulk', [HelperOnlineController::class, 'scanPackingBulk']);
     Route::post('helper_online_scan_manifest_bulk', [HelperOnlineController::class, 'scanManifestBulk']);
-    Route::get('helper_online_print_manifest', [HelperOnlineController::class, 'printManifest']);
+//    Route::get('helper_online_print_manifest', [HelperOnlineController::class, 'printManifest']);
 
     Route::get('/manifest/data', [DeliveryRecapController::class, 'getData'])->name('manifest.data');
     Route::get('/manifest/print/{id}', [DeliveryRecapController::class, 'print'])->name('manifest.print');

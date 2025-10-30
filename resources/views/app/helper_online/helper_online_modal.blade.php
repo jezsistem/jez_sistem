@@ -325,20 +325,29 @@
 
                     <div class="modal-body">
 
+                        <!-- Tombol Add -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <a href="{{ route('add_delivery_recap') }}" class="btn btn-success btn-sm" target="_blank">
+                                <i class="fas fa-plus"></i> Add Delivery Recap
+                            </a>
+                        </div>
+
                         <hr>
 
                         <!-- Tabel hasil import -->
                         <div class="table-responsive">
                             <table id="manifestTable" class="table table-bordered table-striped w-100">
-                                <thead class="thead-dark">
+                                <thead class="bg-light text-dark">
                                 <tr>
                                     <th>No</th>
-                                    <th>Resi</th>
-                                    <th>Marketplace</th>
-                                    <th>Qty</th>
-                                    <th>Kota Tujuan</th>
-                                    <th>Catatan</th>
-                                    <th>Tanggal Dibuat</th>
+                                    <th>Document Number</th>
+                                    <th>Courier</th>
+                                    <th>Number Phone</th>
+                                    <th>Expeditions</th>
+                                    <th>Qty Resi</th>
+                                    <th>PIC</th>
+                                    <th>Created At</th>
+                                    <th>Action</th>
                                 </tr>
                                 </thead>
                             </table>
@@ -354,7 +363,6 @@
         </div>
     </div>
 </div>
-
 
 <style>
     .chat-container {
