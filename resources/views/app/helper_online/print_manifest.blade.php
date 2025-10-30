@@ -91,25 +91,25 @@
                 $chunks = [];
                 $currentIndex = 0;
 
-                if ($totalItems <= 15) {
+                if ($totalItems <= 38) {
                     $chunks[] = $items;
                 } else {
-                    $chunks[] = array_slice($items, 0, 15);
-                    $currentIndex = 15;
+                    $chunks[] = array_slice($items, 0, 38);
+                    $currentIndex = 38;
 
                     while ($currentIndex < $totalItems) {
                         $remaining = $totalItems - $currentIndex;
 
-                        if ($remaining <= 15) {
+                        if ($remaining <= 38) {
                             $chunks[] = array_slice($items, $currentIndex);
                             break;
-                        } elseif ($remaining <= 39) {
-                            $chunks[] = array_slice($items, $currentIndex, 24);
-                            $chunks[] = array_slice($items, $currentIndex + 24);
+                        } elseif ($remaining <= 50) {
+                            $chunks[] = array_slice($items, $currentIndex, 45);
+                            $chunks[] = array_slice($items, $currentIndex + 45);
                             break;
                         } else {
-                            $chunks[] = array_slice($items, $currentIndex, 24);
-                            $currentIndex += 24;
+                            $chunks[] = array_slice($items, $currentIndex, 45);
+                            $currentIndex += 45;
                         }
                     }
                 }
