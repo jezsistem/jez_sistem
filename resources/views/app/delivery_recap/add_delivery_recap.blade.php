@@ -4,6 +4,11 @@
 @include('app._partials.head')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
+
+    .swal2-center-icon .swal2-icon {
+        margin: 0 auto 1rem auto !important;
+    }
+
     /* Style for the signature pad */
     .signature-pad-container {
         border: 2px solid #ddd;
@@ -170,13 +175,14 @@
         $('#f_manifest').on('submit', function (e) {
             e.preventDefault();
 
-            console.log($('#expeditions').val())
-
             if (signaturePic.isEmpty() || signatureKurir.isEmpty()) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Signatures Required',
                     text: 'Please provide both signatures (PIC & Kurir).',
+                    customClass: {
+                        popup: 'swal2-center-icon'
+                    }
                 });
                 return;
             }
@@ -194,44 +200,111 @@
 
             $('#kt_login_signin_submit').prop('disabled', true).text('Submitting...');
 
-            console.log('Signature PIC:', signaturePic.toDataURL('image/png').substring(0,50));
-            console.log('Signature Kurir:', signatureKurir.toDataURL('image/png').substring(0,50));
-
-            console.log()
-
             $.ajax({
                 url: "{{ route('delivery-recaps.store') }}",
                 type: "POST",
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (response) {
-                    toastr.success('Delivery recap has been saved successfully.', 'Success!', {
-                        timeOut: 1500,
-                        progressBar: true
+                beforeSend: function () {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Mohon tunggu sebentar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
                     });
+                },
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                popup: 'swal2-center-icon'
+                            }
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Import Dibatalkan!',
+                            html: response.message,
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'Tutup',
+                            iconHtml: '', // penting agar icon tetap di tengah
+                            customClass: {
+                                popup: 'swal2-center-icon'
+                            }
+                        });
+                    }
 
                     $('#kt_login_signin_submit').prop('disabled', false).text('Kirim');
                     $('#f_manifest')[0].reset();
                     signaturePic.clear();
                     signatureKurir.clear();
 
-                    setTimeout(function () {
+                    setTimeout(() => {
                         window.location.href = "{{ route('helper_online') }}";
                     }, 1500);
                 },
                 error: function (xhr) {
-                    console.error('Response:', xhr.responseText);
+                    $('#kt_login_signin_submit').prop('disabled', false).text('Kirim');
                     let response = xhr.responseJSON;
+
+                    if (response && response.success === false && response.list) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: response.title || 'Import Dibatalkan',
+                            html: `
+                        ${response.message}
+                        <br>
+                        <button id="exportCsvBtn" class="swal2-confirm swal2-styled"
+                            style="background:#28a745;margin-top:10px;">
+                            Export CSV
+                        </button>
+                    `,
+                            iconHtml: '',
+                            customClass: {
+                                popup: 'swal2-center-icon'
+                            },
+                            didOpen: () => {
+                                document.getElementById('exportCsvBtn').addEventListener('click', function () {
+                                    exportCSV(response.list);
+                                });
+                            }
+                        });
+                        return;
+                    }
+
                     if (response && response.errors) {
                         let messages = Object.values(response.errors).flat().join('<br>');
-                        toastr.error(messages, 'Validasi Gagal!', {timeOut: 4000, progressBar: true});
+                        toastr.error(messages, 'Validasi Gagal!', { timeOut: 4000, progressBar: true });
                     } else {
-                        toastr.error(xhr.responseText, 'Terjadi Kesalahan!', {timeOut: 4000, progressBar: true});
+                        toastr.error(xhr.responseText, 'Terjadi Kesalahan!', { timeOut: 4000, progressBar: true });
                     }
                 }
             });
         });
+
+        function exportCSV(data) {
+            let csv = "No,No Resi,Status Saat Ini\n";
+            data.forEach((item, i) => {
+                csv += `${i + 1},${item.resi},${item.status}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'resi_belum_done_online.csv';
+            link.click();
+        }
     });
 </script>
 

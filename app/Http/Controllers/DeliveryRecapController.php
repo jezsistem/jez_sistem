@@ -137,6 +137,8 @@ class DeliveryRecapController extends Controller
 
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         try {
             $request->validate([
                 'courier_name' => 'required|string|max:255',
@@ -147,12 +149,12 @@ class DeliveryRecapController extends Controller
                 'signature_kurir' => 'required|string',
             ]);
 
-            // Pastikan folder storage/app/public/signatures ada
+            // Pastikan folder signature ada
             if (!Storage::disk('public')->exists('signatures')) {
                 Storage::disk('public')->makeDirectory('signatures');
             }
 
-            // === Proses tanda tangan penyerah (PIC) ===
+            // === Simpan tanda tangan penyerah (PIC) ===
             $signaturePicName = null;
             if ($request->signature_pic) {
                 $signaturePicName = 'signature_pic_' . Str::random(10) . '.png';
@@ -161,7 +163,7 @@ class DeliveryRecapController extends Controller
                 Storage::disk('public')->put('signatures/' . $signaturePicName, $decodedPic);
             }
 
-            // === Proses tanda tangan kurir ===
+            // === Simpan tanda tangan kurir ===
             $signatureCourierName = null;
             if ($request->signature_kurir) {
                 $signatureCourierName = 'signature_courier_' . Str::random(10) . '.png';
@@ -170,7 +172,7 @@ class DeliveryRecapController extends Controller
                 Storage::disk('public')->put('signatures/' . $signatureCourierName, $decodedCourier);
             }
 
-            // === Simpan ke database ===
+            // === Simpan ke database recap ===
             $recap = DeliveryRecap::create([
                 'courier_name' => $request->courier_name,
                 'courier_phone' => $request->courier_phone,
@@ -181,10 +183,12 @@ class DeliveryRecapController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
+            // === Proses import file Excel ===
             $import = new DeliveryRecapImport();
             Excel::import($import, $request->file('import_file'));
 
             if (count($import->resis) === 0) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'File tidak mengandung data resi yang valid.',
@@ -192,9 +196,26 @@ class DeliveryRecapController extends Controller
             }
 
             $receipts = [];
+            $invalidResi = [];
 
             foreach ($import->resis as $resi) {
                 $transaction = OnlineTransactions::where('no_resi', $resi)->first();
+
+                if (!$transaction) {
+                    $invalidResi[] = [
+                        'resi' => $resi,
+                        'status' => 'Tidak ditemukan di database'
+                    ];
+                    continue;
+                }
+
+                if (strtoupper(trim($transaction->internal_order_status)) !== 'DONE ONLINE') {
+                    $invalidResi[] = [
+                        'resi' => $resi,
+                        'status' => $transaction->internal_order_status ?? '-'
+                    ];
+                    continue;
+                }
 
                 $count_qty = OnlineTransactionDetails::where('order_number', $transaction->order_number)->count();
 
@@ -210,20 +231,63 @@ class DeliveryRecapController extends Controller
                 ];
             }
 
+            // === Jika ada resi invalid, rollback semua ===
+            if (count($invalidResi) > 0) {
+                DB::rollBack();
+
+                // Hapus recap dan signature supaya tidak ada sisa data
+                if ($signaturePicName) Storage::disk('public')->delete('signatures/' . $signaturePicName);
+                if ($signatureCourierName) Storage::disk('public')->delete('signatures/' . $signatureCourierName);
+                $recap->delete();
+
+                // Buat tabel HTML untuk SweetAlert
+                $htmlTable = '
+                <table border="1" cellspacing="0" cellpadding="6" style="width:100%;border-collapse:collapse;text-align:left;">
+                    <thead>
+                        <tr style="background:#f8f9fa;">
+                            <th>No</th>
+                            <th>No Resi</th>
+                            <th>Status Saat Ini</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                foreach ($invalidResi as $i => $item) {
+                    $htmlTable .= "<tr>
+                    <td>".($i+1)."</td>
+                    <td>{$item['resi']}</td>
+                    <td>{$item['status']}</td>
+                </tr>";
+                }
+                $htmlTable .= '</tbody></table>';
+
+                return response()->json([
+                    'success' => false,
+                    'title' => 'Import Dibatalkan',
+                    'message' => "Beberapa resi belum berstatus <b>DONE ONLINE</b>:<br><br>{$htmlTable}",
+                    'list' => $invalidResi
+                ], 400);
+            }
+
+            // === Insert semua data resi valid ===
             DeliveryReceipt::insert($receipts);
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil disimpan!',
                 'data' => $recap
             ]);
+
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
     }
+
 
     public function getData(Request $request)
     {
