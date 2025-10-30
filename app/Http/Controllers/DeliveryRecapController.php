@@ -271,7 +271,7 @@ class DeliveryRecapController extends Controller
 
     public function print($id)
     {
-        $st_id = Auth::user()->id;
+        $st_id = Auth::user()->st_id;
 
         // Ambil data header dari tabel ts_delivery_recaps
         $header = DB::table('delivery_recaps')
