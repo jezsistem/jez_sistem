@@ -172,8 +172,41 @@ class DeliveryRecapController extends Controller
                 Storage::disk('public')->put('signatures/' . $signatureCourierName, $decodedCourier);
             }
 
-            // === Simpan ke database recap ===
+            $store = DB::table('stores')->where('id', Auth::user()->st_id)->first();
+            $storeDesc = strtoupper($store->st_code ?? '-');
+
+            $storeCode = 'UNK'; // default jika tidak cocok
+            $mapping = [
+                'MALANG' => 'MLG',
+                'SURABAYA' => 'SBY',
+                'KEDIRI' => 'KDR',
+                'JEMBER' => 'JBR',
+                'SIDOARJO' => 'SDA',
+                'SEMARANG' => 'SMG',
+            ];
+
+// cari singkatan berdasarkan deskripsi store
+            foreach ($mapping as $desc => $code) {
+                if (Str::contains($storeDesc, $desc)) {
+                    $storeCode = $code;
+                    break;
+                }
+            }
+
+            $courier = DB::table('couriers')->where('id', $request->expeditions)->first();
+            $courierCode = strtoupper(substr(preg_replace('/\s+/', '', $courier->cr_name ?? 'UNK'), 0, 3));
+
+            $dateNow = now()->format('Ymd');
+
+            $countToday = DB::table('delivery_recaps')
+                    ->whereDate('created_at', now()->toDateString())
+                    ->count() + 1;
+            $sequence = str_pad($countToday, 3, '0', STR_PAD_LEFT);
+
+            $manifestNumber = "MANIFEST/AMP-{$storeCode}/{$courierCode}/{$dateNow}/{$sequence}";
+
             $recap = DeliveryRecap::create([
+                'manifest_number' => $manifestNumber,
                 'courier_name' => $request->courier_name,
                 'courier_phone' => $request->courier_phone,
                 'expedition_id' => $request->expeditions,

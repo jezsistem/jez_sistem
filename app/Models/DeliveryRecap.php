@@ -13,6 +13,7 @@ class DeliveryRecap extends Model
 
     protected $fillable = [
         'expedition_id',
+        'manifest_number',
         'courier_name',
         'courier_phone',
         'import_file',
