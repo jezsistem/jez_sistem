@@ -509,6 +509,10 @@
                     name: 'courier'
                 },
                 {
+                    data: 'shipping_method',
+                    name: 'shipping_method'
+                },
+                {
                     data: 'total_payment',
                     name: 'total_payment',
                     render: function(data) {

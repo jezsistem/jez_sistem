@@ -266,6 +266,7 @@
                                             <th>Item</th>
                                             <th>Ongkos Kirim</th>
                                             <th>Ekspedisi</th>
+                                            <th>Metode Pengiriman</th>
                                             <th>Total Pembayaran</th>
                                             <th>Status Pengiriman</th>
                                             <th>Status TRX</th>

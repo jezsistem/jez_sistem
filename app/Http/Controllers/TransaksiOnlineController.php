@@ -128,7 +128,8 @@ class TransaksiOnlineController extends Controller
                     DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
                     'courier',
-                    DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant')
+                    DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
+                    'shipping_method'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('online_transaction_chat_history', function ($join) {
@@ -151,7 +152,7 @@ class TransaksiOnlineController extends Controller
                     ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
                         $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
                     })
-                    ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 THEN 0 ELSE 1 END')
+                    ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 AND order_status not in ("selesai","Telah dikirim","dikirim","completed") AND order_status not like "%Pesanan diterima%" THEN 0 ELSE 1 END')
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
