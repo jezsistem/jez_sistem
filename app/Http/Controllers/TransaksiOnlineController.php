@@ -90,7 +90,7 @@ class TransaksiOnlineController extends Controller
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $data = [
             'title' => $title,
-            'subtitle' => 'Transaksi Online',
+            'subtitle' => 'Transaksi Online V2',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),

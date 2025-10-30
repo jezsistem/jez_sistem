@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeliveryRecapController;
 use App\Models\TransaksiOnline;
 use App\Http\Controllers\PdfSplitController;
+use App\Http\Controllers\TransaksiOnlineV1Controller;
 
 Route::middleware(['auth'])->group(function () {
 
@@ -17,6 +18,16 @@ Route::middleware(['auth'])->group(function () {
      * 3. Automization Select Shopee / Tiktok Platform
      * 4. Export per period
      */
+    Route::get('transaksi_online_v1', [TransaksiOnlineV1Controller::class, 'index']);
+    Route::get('transaksi_online_datatables_v1', [TransaksiOnlineV1Controller::class, 'getDatatables']);
+    Route::get('transaksi_online_datatables_detail_v1', [TransaksiOnlineV1Controller::class, 'detailDatatables']);
+    Route::post('transaksi_online_detail_v1', [TransaksiOnlineV1Controller::class, 'detail']);
+    Route::post('transaksi_online_import_v1', [TransaksiOnlineV1Controller::class, 'importData']);
+    Route::post('transaksi_online_delete_v1', [TransaksiOnlineV1Controller::class, 'delete']);
+    Route::post('print_online_invoice_v1', [TransaksiOnlineV1Controller::class, 'cetak_invoice']);
+    Route::get('print_online_nota_v1/{orderNum}', [TransaksiOnlineV1Controller::class, 'cetak_nota'])->name('print_online_nota_v1');
+
+
     Route::get('transaksi_online', [TransaksiOnlineController::class, 'index']);
     Route::get('transaksi_online_datatables', [TransaksiOnlineController::class, 'getDatatables']);
     Route::get('transaksi_online_datatables_detail', [TransaksiOnlineController::class, 'detailDatatables']);
@@ -56,5 +67,3 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/clear_print_status_online_transaction/{to_id}', [TransaksiOnlineController::class, 'clearPrintStatus']);
 });
-
-

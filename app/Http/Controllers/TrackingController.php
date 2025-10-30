@@ -958,22 +958,14 @@ class TrackingController extends Controller
 
 //            dd($branch);
 
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'plst_status', 'p_name', 'br_name', 'p_color', 'pl_code', 'pl_name', 'sz_name', 'product_location_setup_transactions.created_at as TanggalTrx', 'pt_id','order_number', 'pos_order_number', 'to_id')
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'plst_status', 'p_name', 'br_name', 'p_color', 'pl_code', 'pl_name', 'sz_name', 'product_location_setup_transactions.created_at as TanggalTrx', 'pt_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->leftJoin('product_stocks', function($join) {
-                    $join->on('product_stocks.id', '=', 'product_location_setups.pst_id')
-                         ->orOn('product_stocks.id', '=', 'product_location_setup_transactions.pst_id');
-                })
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->leftJoin('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'product_location_setup_transactions.pt_id')
-                ->join('stores', function($join) {
-                    $join->on('stores.id', '=', 'product_locations.st_id')
-                         ->orOn('stores.id', '=', 'product_location_setup_transactions.st_id');
-                })
+                ->join('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->where(function ($w) use ($branch) {
                     $w->where('stores.st_code', '=', $branch);
                 })
@@ -1003,30 +995,13 @@ class TrackingController extends Controller
                     } else {
                         $cross_order = 'No';
                     }
-                    $order_number = $data->order_number ?? $data->pos_order_number ?? '-';
-                    $unreadCount = OnlineTransactionChat::where('ot_id', $data->to_id)
-                    ->where('is_readed', 0)
-                    ->where('is_amp', 1)
-                    ->count();
+                    $returnHtml = '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
+                                    <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span> | ' . $time . ' <br/>
+                                    <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
+                                    <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
+                                    <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">POS TRX: ' . $cross_order . '</a>';
 
-                    $returnHtml = '<div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                    <div>
-                                        <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
-                                        <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-sm btn-info position-relative" style="white-space: nowrap;" title="Chat" onclick="openChat(' . $data->to_id . ')" data-trx_number="' . $order_number . '">
-                                            <i class="fas fa-comment"></i>
-                                            ' . ($unreadCount > 0 ? '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">' . $unreadCount . '</span>' : '') . '
-                                        </button>
-                                    </div>
-                                </div>
-                                <span style="white-space: nowrap; font-weight:bold; color: green;">Order: ' . $order_number . '</span> | ' . $time . ' <br/>
-                                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
-                                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . ($data->pl_code ?? '-') . '</span>
-                                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">POS TRX: ' . $cross_order . '</a>';
-
-                    if ($cross_order == 'No' && $data->pl_code != null) {
+                    if ($cross_order == 'No') {
                         $returnHtml .= '<a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" 
                                         data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" 
                                         data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" 
