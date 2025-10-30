@@ -370,7 +370,7 @@ class DeliveryRecapController extends Controller
         if ($items->count() > 0) {
             foreach ($items as $item) {
                 DB::table('online_transactions')
-                    ->where('resi', $item->resi)
+                    ->where('no_resi', $item->resi)
                     ->update(['internal_order_status' => 'DONE']);
             }
         }
