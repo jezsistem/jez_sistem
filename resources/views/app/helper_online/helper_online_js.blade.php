@@ -512,7 +512,7 @@
                 },
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false },
-                    // { data: 'document_number', name: 'document_number' }, // kalau nanti mau ditambah
+                    { data: 'manifest_number', name: 'manifest_number' },
                     { data: 'courier_name', name: 'courier_name' },
                     { data: 'courier_phone', name: 'courier_phone' },
                     { data: 'cr_name', name: 'cr_name' },

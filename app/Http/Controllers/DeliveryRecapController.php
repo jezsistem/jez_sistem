@@ -330,7 +330,7 @@ class DeliveryRecapController extends Controller
             ->leftJoin('users', 'users.id', '=', 'delivery_recaps.created_by')
             ->select(
                 'delivery_recaps.id',
-//                'dr.document_number',
+                'delivery_recaps.manifest_number',
                 'delivery_recaps.courier_name',
                 'delivery_recaps.courier_phone',
                 'couriers.cr_name',
