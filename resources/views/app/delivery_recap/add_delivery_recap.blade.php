@@ -31,6 +31,15 @@
         @csrf
         <!-- Courier Name -->
         <h3 class="font-weight-bolder text-white font-size-h1-lg text-center" style="font-size:22px; margin-top: 20px;">Add New Recap Manifest</h3><hr>
+
+        <div class="form-group">
+            <label class="font-size-h6 font-weight-bolder text-white float-left">Order Type</label>'
+            <select name="order_type" id="order_type" class="form-control">
+                <option value="Reguler">Reguler</option>
+                <option value="Instan">Instan</option>
+            </select>
+        </div>
+
         <div class="form-group">
             <label class="font-size-h6 font-weight-bolder text-white float-left">Courier Name</label>
             <input type="text" class="form-control form-control-solid h-auto py-5 px-5 rounded-lg mb-2" name="courier_name" id="courier_name" placeholder="Enter Courier Name">
@@ -58,6 +67,13 @@
         <div class="form-group">
             <label class="font-size-h6 font-weight-bolder text-white float-left">Import File</label>
             <input type="file" class="form-control form-control-solid h-auto py-5 px-5 rounded-lg mb-2" name="import_file" id="import_file">
+        </div>
+
+        <!-- Input Resi (muncul hanya jika Instan) -->
+        <div class="form-group" id="resi-field" style="display:none;">
+            <label class="font-size-h6 font-weight-bolder text-white float-left">Nomor Resi / Nomor Order</label>
+            <input type="text" class="form-control form-control-solid h-auto py-5 px-5 rounded-lg mb-2"
+                   name="resi_number" id="resi_number" placeholder="Masukkan nomor resi">
         </div>
 
         <!-- Signature Pad: PIC -->
@@ -104,6 +120,24 @@
 
 <script>
     $(document).ready(function () {
+        function toggleFields() {
+            var orderType = $('#order_type').val();
+
+            if (orderType === 'Reguler') {
+                // tampilkan input file
+                $('#import_file').closest('.form-group').show();
+                // sembunyikan input resi
+                $('#resi-field').hide();
+            } else if (orderType === 'Instan') {
+                // tampilkan input resi
+                $('#resi-field').show();
+                // sembunyikan input file
+                $('#import_file').closest('.form-group').hide();
+            }
+        }
+        toggleFields();
+
+        $('#order_type').on('change', toggleFields);
 
         const canvasPic = document.getElementById('signature-pad-pic');
         const canvasKurir = document.getElementById('signature-pad-kurir');

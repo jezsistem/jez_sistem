@@ -185,11 +185,10 @@
                         <thead>
                         <tr style="background-color: #f0f0f0;">
                             <th style="border: 1px solid #000; padding: 6px; width: 5%;">No.</th>
-                            <th style="border: 1px solid #000; padding: 6px; width: 15%;">No. Resi</th>
+                            <th style="border: 1px solid #000; padding: 6px; width: 15%;">No. Resi / No. Order</th>
                             <th style="border: 1px solid #000; padding: 6px; width: 20%;">Marketplace</th>
                             <th style="border: 1px solid #000; padding: 6px; width: 15%;">Qty</th>
                             <th style="border: 1px solid #000; padding: 6px; width: 25%;">Kota Tujuan</th>
-                            <th style="border: 1px solid #000; padding: 6px; width: 20%;">Keterangan</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -206,7 +205,6 @@
                                 <td style="border: 1px solid #000; text-align: center;">
                                     {{ $item['item_qty'] }}</td>
                                 <td style="border: 1px solid #000;">{{ $item['city_destinations'] }}</td>
-                                <td style="border: 1px solid #000;"></td>
                             </tr>
                         @endforeach
                         </tbody>

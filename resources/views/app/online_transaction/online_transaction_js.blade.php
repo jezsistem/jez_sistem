@@ -553,6 +553,12 @@
             }
         });
 
+        $('#btn_input_resi').on('click', function(e) {
+            console.log('jajajajajajja');
+            $('#DetailModal').modal('hide');
+            $('#InputResiModal').modal('show');
+        });
+
         $('#trxTabs .nav-link').on('click', function(e) {
             e.preventDefault();
 

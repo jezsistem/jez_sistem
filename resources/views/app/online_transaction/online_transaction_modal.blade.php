@@ -109,6 +109,40 @@
     </div>
 </div>
 
+
+<!-- Modal Per file-->
+<div class="modal fade" id="InputResiModal" tabindex="0" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="resiFileForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Import & Split Resi</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="pdf_file">Pilih File PDF Resi</label>
+                            <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept=".pdf"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" id="uploadBtn" class="btn btn-primary mt-3">Upload & Split</button>
+                        <button type="button" class="btn btn-info mt-3" id="historyBtn">Upload History</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Riwayat -->
 <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -197,6 +231,10 @@
                             <button type="button" class="btn btn-success font-weight-bold mr-3"
                                 id="add_new_item_btn">
                                 <i class="fas fa-plus"></i> Tambah Item
+                            </button>
+                            <button type="button" class="btn btn-warning font-weight-bold mr-3"
+                                    id="btn_input_resi">
+                                <i class="fas fa-plus"></i> Import Resi
                             </button>
                             <button type="button" class="btn btn-info font-weight-bold"
                                 id="change_warehouse_btn">

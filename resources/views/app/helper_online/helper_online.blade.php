@@ -104,6 +104,7 @@
                                     <option value="WAITING RECEIPT">WAITING RECEIPT</option>
                                     <option value="WAITING PACKING">WAITING PACKING</option>
                                     <option value="DONE ONLINE">DONE ONLINE</option>
+                                    <option value="DONE">DONE</option>
                                     <option value="">SEMUA STATUS</option>
                                 </select>
                                 <div id="status_filter_parent"></div>

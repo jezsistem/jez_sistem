@@ -139,8 +139,7 @@
 
 
                                     <div class="dropdown dropdown-inline mr-2">
-                                        <button type="button" class="btn btn-light-primary font-weight-bolder"
-                                            data-toggle="modal" data-target="#ImportResiModal" aria-haspopup="true"
+                                        <button type="button" class="btn btn-light-primary font-weight-bolder" data-toggle="modal" data-target="#ImportResiModal" aria-haspopup="true"
                                             aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -158,7 +157,7 @@
                                                             fill="#000000" />
                                                     </g>
                                                 </svg>
-                                            </span>Import Resi
+                                            </span>Mass Import Resi
                                         </button>
                                     </div>
 
