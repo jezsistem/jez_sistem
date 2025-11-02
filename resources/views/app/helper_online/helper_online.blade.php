@@ -95,7 +95,8 @@
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <label for="order_number">Order Number/No Resi</label>
-                                <input type="text" class="form-control" id="order_number" name="order_number" placeholder="Enter Order Number/No Resi/SKU">
+                                <input type="text" class="form-control" id="order_number" name="order_number"
+                                    placeholder="Enter Order Number/No Resi/SKU">
 
                                 <label for="status_filter" class="mt-3">Status</label>
                                 <select class="form-control" id="status_filter" name="status_filter" required>
@@ -108,13 +109,21 @@
                                     <option value="">SEMUA STATUS</option>
                                 </select>
                                 <div id="status_filter_parent"></div>
+
+                                <label for="status_pick" class="mt-3">Status Pick</label>
+                                <select class="form-control" id="status_pick" name="status_pick" required>
+                                    <option value="">SEMUA STATUS PICK</option>
+                                    <option value="PICKED">PICKED</option>
+                                    <option value="NOT PICKED">NOT PICKED</option>
+                                </select>
+                                <div id="status_pick_parent"></div>
                             </div>
 
                             <!--end: Datatable-->
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">

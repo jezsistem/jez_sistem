@@ -26,7 +26,8 @@
             data: {
                 st_id: $('#st_id').val(),
                 status_filter: $('#status_filter').val(),
-                order_number: $('#order_number').val()
+                order_number: $('#order_number').val(),
+                status_pick: $('#status_pick').val(),
             },
             success: function (r) {
                 $("#picked_online_trx").html(renderTransactions(r.transactions)); // Removed animation
@@ -84,6 +85,10 @@
                             <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
                             <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
                             <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
+                            ${transaction.sku_on_going ? `
+                            <p class="card-text">On Going QC:
+                                <span class="badge badge-info">${transaction.sku_on_going}</span>
+                            </p>` : ''}
                             <p class="card-text">Status TRX: 
                                 <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span>
                             </p>

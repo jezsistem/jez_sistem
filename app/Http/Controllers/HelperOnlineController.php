@@ -119,6 +119,8 @@ class HelperOnlineController extends Controller
         $st_id = $request->get('st_id');
         $status_filter = $request->get('status_filter');
         $order_number = $request->get('order_number');
+        $status_pick = $request->get('status_pick');
+
         $baseQuery = DB::table('product_location_setup_transactions')
             ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
             ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
@@ -128,7 +130,7 @@ class HelperOnlineController extends Controller
                 'online_transactions.order_number',
                 'platform_name AS platform',
                 'st_name AS store',
-                // DB::raw("GROUP_CONCAT(DISTINCT CONCAT(ts_online_transaction_details.sku, ' (', ts_online_transaction_details.qty, ')') ORDER BY ts_online_transaction_details.sku ASC SEPARATOR ', ') AS sku"),
+                DB::raw("GROUP_CONCAT(DISTINCT CASE WHEN ts_product_location_setup_transactions.qc_status = '" . ProductLocationSetupTransaction::QC_STATUS_ON_GOING . "' THEN CONCAT(ts_online_transaction_details.sku, ' = ', ts_product_location_setup_transactions.plst_qty) END ORDER BY ts_online_transaction_details.sku ASC SEPARATOR ', ') AS sku_on_going"),
                 'online_transactions.order_date_created AS created_at',
                 'online_transactions.internal_order_status AS internal_order_status',
                 DB::raw('MAX(ts_product_location_setup_transactions.created_at) AS picked_time'),
@@ -182,6 +184,19 @@ class HelperOnlineController extends Controller
 
                     return $orderNumberMatch || $resiMatch || $skuMatch;
                 });
+            })
+            ->when($status_pick, function ($collection, $status_pick) {
+                if ($status_pick === 'PICKED') {
+                    return $collection->filter(function ($item) {
+                        return trim((string) ($item->sku_on_going ?? '')) !== '';
+                    });
+                }
+                if ($status_pick === 'NOT PICKED') {
+                    return $collection->filter(function ($item) {
+                        return trim((string) ($item->sku_on_going ?? '')) === '';
+                    });
+                }
+                return $collection;
             });
 
         $data = [
@@ -220,7 +235,7 @@ class HelperOnlineController extends Controller
                 'sizes.sz_name',
                 'brands.br_name',
                 'product_location_setup_transactions.id as plst_id',
-                DB::raw('(select SUM(pls_qty) from ts_product_location_setups join ts_product_locations on ts_product_locations.id = pl_id where ts_product_location_setups.pst_id = ts_product_location_setup_transactions.pst_id and ts_product_locations.st_id = warehouse_st_id and pl_freeze=0) as current_qty'),
+                DB::raw('(select SUM(pls_qty) from ts_product_location_setups join ts_product_locations on ts_product_locations.id = pl_id where ts_product_location_setups.pst_id = ts_product_location_setup_transactions.pst_id and ts_product_locations.st_id = warehouse_st_id) as current_qty'),
                 'product_location_setup_transactions.warehouse_st_id',
                 'product_location_setup_transactions.pst_id as pst_id',
                 'product_location_setup_transactions.pls_id as pls_id',
