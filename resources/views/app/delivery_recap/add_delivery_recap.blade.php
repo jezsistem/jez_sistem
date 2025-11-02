@@ -72,7 +72,15 @@
         <!-- Input Resi (muncul hanya jika Instan) -->
         <div class="form-group" id="resi-field" style="display:none;">
             <label class="font-size-h6 font-weight-bolder text-white float-left">Nomor Resi / Nomor Order</label>
-            <input type="text" class="form-control form-control-solid h-auto py-5 px-5 rounded-lg mb-2"
+            <br>
+            <div class="d-flex justify-content-center mt-5">
+                <div>
+                    <div id="reader_scan_resi_instan" class="rounded" style="max-width: 500px; min-width:300px; background: white;">
+                    </div>
+                    <div id="result"></div>
+                </div>
+            </div>
+            <input type="text" class="form-control form-control-solid h-auto py-5 px-5 rounded-lg mb-2 mt-5"
                    name="resi_number" id="resi_number" placeholder="Masukkan nomor resi">
         </div>
 
@@ -119,18 +127,70 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
+    var modal_opened = '';
     $(document).ready(function () {
+        function initializeScanner(elementId) {
+        return new Html5QrcodeScanner(elementId, {
+            // Scanner will be initialized in DOM inside the element with the given id
+            qrbox: {
+                width: 200,
+                height: 200,
+            },
+            fps: 30,
+            });
+        }
+
+        // Example usage for multiple modals
+        // let scanner_scan_out = initializeScanner('reader_scan_out');
+        let scanner_resi_instan = initializeScanner('reader_scan_resi_instan');
+        //
+
+        var scan_timer = null;
+
+        function success(result) {
+            if (scan_timer) {
+                clearTimeout(scan_timer);
+            }
+
+            scan_timer = setTimeout(function () {
+                var hasil = result;
+
+                if (hasil.startsWith(']C1')) {
+                    hasil = hasil.replace(']C1', '');
+                }
+
+                $('#resi_number').focus().val(hasil);
+
+            }, 1000); // Add a delay of 1s to prevent spamming
+        }
+
+        function error(err) {
+            console.error(err);
+        }
+
+        //
+        // function console_log(result) {
+        //     console.log(result);
+        // }
+
+        function clearScanners() {
+            scanner_resi_instan.clear();
+        }
+
         function toggleFields() {
             var orderType = $('#order_type').val();
 
             if (orderType === 'Reguler') {
                 // tampilkan input file
                 $('#import_file').closest('.form-group').show();
+                clearScanners();
                 // sembunyikan input resi
                 $('#resi-field').hide();
             } else if (orderType === 'Instan') {
                 // tampilkan input resi
                 $('#resi-field').show();
+                modal_opened = 'instantRecap';
+                scanner_resi_instan.render(success, error);
                 // sembunyikan input file
                 $('#import_file').closest('.form-group').hide();
             }
