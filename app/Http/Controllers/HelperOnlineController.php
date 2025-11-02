@@ -130,7 +130,13 @@ class HelperOnlineController extends Controller
                 'online_transactions.order_number',
                 'platform_name AS platform',
                 'st_name AS store',
-                DB::raw("GROUP_CONCAT(DISTINCT CASE WHEN ts_product_location_setup_transactions.qc_status = '" . ProductLocationSetupTransaction::QC_STATUS_ON_GOING . "' THEN CONCAT(ts_online_transaction_details.sku, ' = ', ts_product_location_setup_transactions.plst_qty) END ORDER BY ts_online_transaction_details.sku ASC SEPARATOR ', ') AS sku_on_going"),
+                DB::raw("CASE
+                    WHEN SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = 'WAITING ONLINE' THEN 1 ELSE 0 END) > 0
+                     AND SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = 'WAITING ONLINE' AND ts_product_location_setup_transactions.qc_status = '" . ProductLocationSetupTransaction::QC_STATUS_ON_GOING . "' THEN 1 ELSE 0 END)
+                         = SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = 'WAITING ONLINE' THEN 1 ELSE 0 END)
+                    THEN TRUE
+                    ELSE FALSE
+                END AS all_picked"),
                 'online_transactions.order_date_created AS created_at',
                 'online_transactions.internal_order_status AS internal_order_status',
                 DB::raw('MAX(ts_product_location_setup_transactions.created_at) AS picked_time'),
@@ -187,14 +193,10 @@ class HelperOnlineController extends Controller
             })
             ->when($status_pick, function ($collection, $status_pick) {
                 if ($status_pick === 'PICKED') {
-                    return $collection->filter(function ($item) {
-                        return trim((string) ($item->sku_on_going ?? '')) !== '';
-                    });
+                    return $collection->filter(fn($item) => (bool) $item->all_picked);
                 }
                 if ($status_pick === 'NOT PICKED') {
-                    return $collection->filter(function ($item) {
-                        return trim((string) ($item->sku_on_going ?? '')) === '';
-                    });
+                    return $collection->filter(fn($item) => ! (bool) $item->all_picked);
                 }
                 return $collection;
             });
@@ -419,18 +421,15 @@ class HelperOnlineController extends Controller
                 }
 
                 // bandingkan qty yang diorder dengan qty yang sudah dipick
+                $all_picked = true;
+
                 foreach ($active_transaction_items as $item) {
                     $picked_item = $waiting_receipt_items->get($item->sku);
                     $picked_qty = $picked_item ? $picked_item->total_picked : 0;
 
-                    $all_picked = true;
-
-                    if ($picked_qty < $item->qty) {
+                    if ($picked_qty != $item->qty) {
                         $all_picked = false;
-                    }
-
-                    if ($picked_qty > $item->qty) {
-                        $all_picked = false;
+                        break;
                     }
                 }
 

@@ -85,12 +85,8 @@
                             <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
                             <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
                             <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
-                            ${transaction.sku_on_going ? `
-                            <p class="card-text">On Going QC:
-                                <span class="badge badge-info">${transaction.sku_on_going}</span>
-                            </p>` : ''}
                             <p class="card-text">Status TRX: 
-                                <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span>
+                                <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span> ${transaction.all_picked ? ' <span class="badge badge-info">ALL PICKED</span>' : ''}
                             </p>
                         </div>
                     </div>
