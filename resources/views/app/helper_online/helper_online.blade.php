@@ -95,7 +95,7 @@
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <label for="order_number">Order Number/No Resi</label>
-                                <input type="text" class="form-control" id="order_number" name="order_number" placeholder="Enter Order Number/No Resi">
+                                <input type="text" class="form-control" id="order_number" name="order_number" placeholder="Enter Order Number/No Resi/SKU">
 
                                 <label for="status_filter" class="mt-3">Status</label>
                                 <select class="form-control" id="status_filter" name="status_filter" required>

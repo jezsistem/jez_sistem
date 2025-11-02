@@ -158,13 +158,29 @@ class HelperOnlineController extends Controller
         $total_waiting_packing = $allData->where('internal_order_status', 'WAITING PACKING')->count();
         $total_done_online = $allData->where('internal_order_status', 'DONE ONLINE')->count();
 
-        $transactions = $allData->when($status_filter, function ($collection, $status_filter) {
-            return $collection->where('internal_order_status', $status_filter);
-        })
+        $transactions = $allData
+            ->when($status_filter, function ($collection, $status_filter) {
+                return $collection->where('internal_order_status', $status_filter);
+            })
             ->when($order_number, function ($collection, $order_number) {
-                return $collection->filter(function ($item) use ($order_number) {
-                    return stripos($item->order_number, $order_number) !== false ||
-                        stripos($item->no_resi, $order_number) !== false;
+                $order_number = trim($order_number);
+                if ($order_number === '') {
+                    return $collection;
+                }
+
+                $matchedTransactionIds = OnlineTransactionDetails::query()
+                    ->whereIn('to_id', $collection->pluck('transaction_id')->filter())
+                    ->where('sku', 'like', '%' . $order_number . '%')
+                    ->pluck('to_id')
+                    ->unique()
+                    ->all();
+
+                return $collection->filter(function ($item) use ($order_number, $matchedTransactionIds) {
+                    $orderNumberMatch = stripos($item->order_number, $order_number) !== false;
+                    $resiMatch = stripos((string) ($item->no_resi ?? ''), $order_number) !== false;
+                    $skuMatch = in_array($item->transaction_id, $matchedTransactionIds, true);
+
+                    return $orderNumberMatch || $resiMatch || $skuMatch;
                 });
             });
 
@@ -549,7 +565,7 @@ class HelperOnlineController extends Controller
 
         $print_nota = $transactions->online_print;
 
-        $print_resi = $transactions->print_resi;   
+        $print_resi = $transactions->print_resi;
 
         $data = DB::table('product_location_setup_transactions')
             ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
@@ -603,7 +619,7 @@ class HelperOnlineController extends Controller
             'print_resi' => $print_resi,
         ];
 
-        return response()->json(['status'=>'200','data' => $data]);
+        return response()->json(['status' => '200', 'data' => $data]);
     }
 
     public function printResi($to_id)
@@ -611,11 +627,11 @@ class HelperOnlineController extends Controller
         $order_number = OnlineTransactions::where('id', $to_id)->value('order_number');
 
         $pdf_path = public_path('storage/split_resi/' . $order_number . '.pdf');
-        
+
         if (!file_exists($pdf_path)) {
             return response()->json([
-            'status' => '400',
-            'message' => 'Resi Tidak Ditemukan'
+                'status' => '400',
+                'message' => 'Resi Tidak Ditemukan'
             ]);
         }
 
