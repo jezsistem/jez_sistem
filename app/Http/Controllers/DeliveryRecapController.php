@@ -107,7 +107,6 @@ class DeliveryRecapController extends Controller
                 ->editColumn('dr_invoice', function ($data) {
                     return '<a class="text-white" href="#" data-dr_id="' . $data->dr_id . '"  data-dr_invoice="' . $data->dr_invoice . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->dr_invoice . '</span></a><br>';
                 })
-
                 ->rawColumns(['dr_invoice'])
                 ->addIndexColumn()
                 ->make(true);
@@ -147,6 +146,7 @@ class DeliveryRecapController extends Controller
                 'import_file' => 'required|file|mimes:xlsx,xls,csv',
                 'signature_pic' => 'required|string',
                 'signature_kurir' => 'required|string',
+                'order_type' => 'required',
             ]);
 
             // Pastikan folder signature ada
@@ -185,7 +185,6 @@ class DeliveryRecapController extends Controller
                 'SEMARANG' => 'SMG',
             ];
 
-// cari singkatan berdasarkan deskripsi store
             foreach ($mapping as $desc => $code) {
                 if (Str::contains($storeDesc, $desc)) {
                     $storeCode = $code;
@@ -216,65 +215,67 @@ class DeliveryRecapController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
-            // === Proses import file Excel ===
-            $import = new DeliveryRecapImport();
-            Excel::import($import, $request->file('import_file'));
+            if ($request->order_type == 'Reguler') {
 
-            if (count($import->resis) === 0) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'File tidak mengandung data resi yang valid.',
-                ], 400);
-            }
 
-            $receipts = [];
-            $invalidResi = [];
+                $import = new DeliveryRecapImport();
+                Excel::import($import, $request->file('import_file'));
 
-            foreach ($import->resis as $resi) {
-                $transaction = OnlineTransactions::where('no_resi', $resi)->first();
-
-                if (!$transaction) {
-                    $invalidResi[] = [
-                        'resi' => $resi,
-                        'status' => 'Tidak ditemukan di database'
-                    ];
-                    continue;
+                if (count($import->resis) === 0) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File tidak mengandung data resi yang valid.',
+                    ], 400);
                 }
 
-                if (strtoupper(trim($transaction->internal_order_status)) !== 'DONE ONLINE') {
-                    $invalidResi[] = [
+                $receipts = [];
+                $invalidResi = [];
+
+                foreach ($import->resis as $resi) {
+                    $transaction = OnlineTransactions::where('no_resi', $resi)->first();
+
+                    if (!$transaction) {
+                        $invalidResi[] = [
+                            'resi' => $resi,
+                            'status' => 'Tidak ditemukan di database'
+                        ];
+                        continue;
+                    }
+
+                    if (strtoupper(trim($transaction->internal_order_status)) !== 'DONE ONLINE') {
+                        $invalidResi[] = [
+                            'resi' => $resi,
+                            'status' => $transaction->internal_order_status ?? '-'
+                        ];
+                        continue;
+                    }
+
+                    $count_qty = OnlineTransactionDetails::where('order_number', $transaction->order_number)->count();
+
+                    $receipts[] = [
+                        'dr_id' => $recap->id,
                         'resi' => $resi,
-                        'status' => $transaction->internal_order_status ?? '-'
+                        'marketplace_name' => $transaction->platform_name ?? '-',
+                        'item_qty' => $count_qty ?? 0,
+                        'city_destinations' => $transaction->city ?? '-',
+                        'note' => $transaction->note ?? '-',
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
-                    continue;
                 }
 
-                $count_qty = OnlineTransactionDetails::where('order_number', $transaction->order_number)->count();
+                // === Jika ada resi invalid, rollback semua ===
+                if (count($invalidResi) > 0) {
+                    DB::rollBack();
 
-                $receipts[] = [
-                    'dr_id' => $recap->id,
-                    'resi' => $resi,
-                    'marketplace_name' => $transaction->platform_name ?? '-',
-                    'item_qty' => $count_qty ?? 0,
-                    'city_destinations' => $transaction->city ?? '-',
-                    'note' => $transaction->note ?? '-',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
+                    // Hapus recap dan signature supaya tidak ada sisa data
+                    if ($signaturePicName) Storage::disk('public')->delete('signatures/' . $signaturePicName);
+                    if ($signatureCourierName) Storage::disk('public')->delete('signatures/' . $signatureCourierName);
+                    $recap->delete();
 
-            // === Jika ada resi invalid, rollback semua ===
-            if (count($invalidResi) > 0) {
-                DB::rollBack();
-
-                // Hapus recap dan signature supaya tidak ada sisa data
-                if ($signaturePicName) Storage::disk('public')->delete('signatures/' . $signaturePicName);
-                if ($signatureCourierName) Storage::disk('public')->delete('signatures/' . $signatureCourierName);
-                $recap->delete();
-
-                // Buat tabel HTML untuk SweetAlert
-                $htmlTable = '
+                    // Buat tabel HTML untuk SweetAlert
+                    $htmlTable = '
                 <table border="1" cellspacing="0" cellpadding="6" style="width:100%;border-collapse:collapse;text-align:left;">
                     <thead>
                         <tr style="background:#f8f9fa;">
@@ -284,21 +285,42 @@ class DeliveryRecapController extends Controller
                         </tr>
                     </thead>
                     <tbody>';
-                foreach ($invalidResi as $i => $item) {
-                    $htmlTable .= "<tr>
-                    <td>".($i+1)."</td>
+                    foreach ($invalidResi as $i => $item) {
+                        $htmlTable .= "<tr>
+                    <td>" . ($i + 1) . "</td>
                     <td>{$item['resi']}</td>
                     <td>{$item['status']}</td>
                 </tr>";
-                }
-                $htmlTable .= '</tbody></table>';
+                    }
+                    $htmlTable .= '</tbody></table>';
 
-                return response()->json([
-                    'success' => false,
-                    'title' => 'Import Dibatalkan',
-                    'message' => "Beberapa resi belum berstatus <b>DONE ONLINE</b>:<br><br>{$htmlTable}",
-                    'list' => $invalidResi
-                ], 400);
+                    return response()->json([
+                        'success' => false,
+                        'title' => 'Import Dibatalkan',
+                        'message' => "Beberapa resi belum berstatus <b>DONE ONLINE</b>:<br><br>{$htmlTable}",
+                        'list' => $invalidResi
+                    ], 400);
+                }
+
+
+            } else {
+                $resiList = array_filter(array_map('trim', explode(',', $request->resi_number)));
+
+                $receipts = [];
+                foreach ($resiList as $resi) {
+                    $receipts[] = [
+                        'dr_id' => $recap->id,
+                        'resi' => $resi,
+                        'marketplace_name' => '-',
+                        'item_qty' => 1,
+                        'city_destinations' => '-',
+                        'note' => 'Order Instan',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                DeliveryReceipt::insert($receipts);
             }
 
             // === Insert semua data resi valid ===
