@@ -31,7 +31,9 @@ class OnlineTransactions extends Model
         'scan_manifest',
         'print_manifest',
         'time_print',
-        'online_print'
+        'online_print',
+        'print_resi',
+        'time_print_resi',
     ];
 
     public static function getCourierAttribute($courier)

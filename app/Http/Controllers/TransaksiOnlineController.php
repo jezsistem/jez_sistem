@@ -1838,7 +1838,7 @@ class TransaksiOnlineController extends Controller
         }
 
         try {
-            $update_print_status = $online_transactions->update(['online_print' => 0, 'time_print' => null]);
+            $update_print_status = $online_transactions->update(['online_print' => 0, 'time_print' => null, 'print_resi'=>0, 'time_print_resi'=>null]);
             if ($update_print_status === false) {
                 return response()->json(['status' => '500', 'message' => 'Failed to clear print status']);
             }
