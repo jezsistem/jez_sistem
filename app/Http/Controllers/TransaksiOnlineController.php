@@ -14,6 +14,7 @@ use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use App\Models\Product;
+use App\Models\ProductLocation;
 use App\Models\ProductLocationSetup;
 use App\Models\ProductLocationSetupTransaction;
 use App\Models\ProductStock;
@@ -187,11 +188,14 @@ class TransaksiOnlineController extends Controller
                                 <button class="btn btn-sm btn-warning ms-1 mr-2" onclick="clearPrintStatus(' . $data->to_id . ')" title="Clear Print Status">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
-                                <div class="position-relative d-inline-block">
+                                <div class="position-relative d-inline-block mr-2">
                                     <button class="btn btn-sm btn-info ms-1" onclick="openChat(' . $data->to_id . ')" data-trx_number="' . $data->to_order_number . '" title="Chat">
                                         <i class="fas fa-comment"></i>
                                     </button>' . $badge . '
                                 </div>
+                                <button class="btn btn-sm btn-danger ms-1" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>';
                 })
                 ->editColumn('internal_order_status', function ($data) {
@@ -1838,7 +1842,7 @@ class TransaksiOnlineController extends Controller
         }
 
         try {
-            $update_print_status = $online_transactions->update(['online_print' => 0, 'time_print' => null, 'print_resi'=>0, 'time_print_resi'=>null]);
+            $update_print_status = $online_transactions->update(['online_print' => 0, 'time_print' => null, 'print_resi' => 0, 'time_print_resi' => null]);
             if ($update_print_status === false) {
                 return response()->json(['status' => '500', 'message' => 'Failed to clear print status']);
             }
@@ -1847,6 +1851,137 @@ class TransaksiOnlineController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error clearing print status: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => 'An error occurred while clearing the print status']);
+        }
+    }
+
+    public function cancelTran($to_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $online_transactions = OnlineTransactions::where('id', $to_id)->first();
+
+            if (!$online_transactions) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Transaksi tidak ditemukan.'
+                ]);
+            }
+
+            //check status must be under review and not have active pick items
+            if ($online_transactions->internal_order_status != 'UNDER REVIEW') {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Status transaksi harus UNDER REVIEW untuk dibatalkan.'
+                ]);
+            }
+
+            //get all item that already picked and pass qc then return it to staging failed qc
+            $waiting_receipt_items = ProductLocationSetupTransaction::query()
+                ->select('product_location_setup_transactions.*')
+                ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+                ->where('plst_status', 'WAITING RECEIPT')->where('to_id', $to_id)->get();
+
+            foreach ($waiting_receipt_items as $item) {
+                $plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $item->id)
+                    ->first();
+
+                if (!$plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Product location setup transaction not found.']);
+                }
+
+                $update_plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $item->id)
+                    ->update([
+                        'plst_type' => 'IN',
+                        'plst_status' => 'INSTOCK',
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                if (!$update_plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed to update product location setup transaction.']);
+                }
+
+                $pl_default_failed_qc = ProductLocation::where('st_id', $plst->warehouse_st_id)
+                    ->where('pl_default_failed_qc', 1)
+                    ->get();
+
+                if ($pl_default_failed_qc->count() == 0) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Default bin for failed QC not found.']);
+                }
+
+                if ($pl_default_failed_qc->count() > 1) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Multiple default bins for failed QC found.']);
+                }
+
+                $pls_default_failed_qc = DB::table('product_location_setups')
+                    ->where('pl_id', $pl_default_failed_qc->first()->id)
+                    ->where('pst_id', $plst->pst_id)
+                    ->first();
+
+                if (!$pls_default_failed_qc) {
+                    $new_pls_id = DB::table('product_location_setups')->insertGetId([
+                        'pl_id' => $pl_default_failed_qc->first()->id,
+                        'pst_id' => $plst->pst_id,
+                        'pls_qty' => 0,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    if (!$new_pls_id) {
+                        DB::rollBack();
+                        return response()->json(['status' => '400', 'message' => 'Failed to add new pls.']);
+                    }
+
+                    $pls_default_failed_qc = DB::table('product_location_setups')
+                        ->where('id', $new_pls_id)
+                        ->first();
+                }
+
+                $add_to_default_failed_qc = DB::table('product_location_setups')
+                    ->where('id', $pls_default_failed_qc->id)
+                    ->update([
+                        'pls_qty' => DB::raw("pls_qty + " . $plst->plst_qty),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                if (!$add_to_default_failed_qc) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed add qty to bin default failed qc.']);
+                }
+            }
+
+            $is_picked = ProductLocationSetupTransaction::query()
+                ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+                ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
+
+            if ($is_picked) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Transaksi memiliki item yang sudah dipick, tidak dapat dibatalkan.'
+                ]);
+            }
+
+            $update_status = $online_transactions->update(['internal_order_status' => 'NEW TRX']);
+            if ($update_status === false) {
+                DB::rollBack();
+                return response()->json(['status' => '500', 'message' => 'Failed to cancel transaction']);
+            }
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Transaction canceled successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error canceling transaction: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while canceling the transaction']);
         }
     }
 }

@@ -66,4 +66,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/split-resi/history', [PdfSplitController::class, 'getHistory'])->name('split.history.ajax');
 
     Route::post('/clear_print_status_online_transaction/{to_id}', [TransaksiOnlineController::class, 'clearPrintStatus']);
+    Route::post('/cancel_online_transaction/{to_id}', [TransaksiOnlineController::class, 'cancelTran']);
 });

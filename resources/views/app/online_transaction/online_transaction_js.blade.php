@@ -337,6 +337,51 @@
         });
     }
 
+    function cancelTransaction(ot_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Transaksi akan dikembalikan ke NEW TRX!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, kembalikan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('cancel_online_transaction') }}/" + ot_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        Swal.fire('Berhasil!', 'Transaksi telah dikembalikan ke NEW TRX.', 'success');
+                        online_transaction_table.draw(false);
+                    } else {
+                        Swal.fire(
+                            'Gagal!',
+                            response.message || 'Terjadi kesalahan saat membatalkan transaksi.',
+                            'error'
+                        );
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire(
+                        'Error!',
+                        'Terjadi kesalahan saat membatalkan transaksi.',
+                        'error'
+                    );
+                    console.error('Error canceling transaction:', error);
+                }
+            });
+        });
+    }
+
     $(document).ready(function() {
         startChatPolling();
         $.ajaxSetup({
