@@ -23,6 +23,7 @@
                 data: function(d) {
                     d.search = $('#artikel_promo_search').val();
                     d.date_start = $('#artikelpromo_date').val();
+                    d.artikel_promo_store = $('#artikel_promo_store').val();
                 }
             },
             columns: [{
@@ -90,6 +91,9 @@
             data_article_promo_tb.draw();
         });
 
+        $('#artikel_promo_store').on('change', function() {
+            data_article_promo_tb.draw();
+        });
 
         $('#ArtikelPromotb tbody').on('click', 'tr td:not(:nth-child(12))', function() {
             var row = data_article_promo_tb.row(this).data();

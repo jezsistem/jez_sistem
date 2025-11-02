@@ -54,6 +54,10 @@
                     name: 'pl_refund'
                 },
                 {
+                    data: 'pl_default_failed_qc',
+                    name: 'pl_default_failed_qc'
+                },
+                {
                     data: 'pl_freeze',
                     name: 'pl_freeze'
                 },
@@ -120,6 +124,7 @@
             $('#pl_description').val(data.pl_description);
             $('#pl_default').val(data.pl_default);
             $('#pl_refund').val(data.pl_refund);
+            $('#pl_failed_qc').val(data.pl_failed_qc);
             $('#pl_freeze').val(data.pl_freeze);
             $('#pl_capacity').val(data.pl_capacity);
             // jQuery('#pl_freeze').val(data.pl_freeze).trigger('change');

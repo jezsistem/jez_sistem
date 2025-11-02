@@ -7,11 +7,14 @@ use App\Exports\OnlineReportExport;
 use App\Imports\PurchaseOrderExcelImport;
 use App\Imports\StockLocationImport;
 use App\Imports\TransactionOnlineImport;
+use App\Models\OnlineTransactionChat;
 use App\Models\OnlineTransactionDetails;
 use App\Models\OnlineTransactions;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
+use App\Models\Product;
+use App\Models\ProductLocation;
 use App\Models\ProductLocationSetup;
 use App\Models\ProductLocationSetupTransaction;
 use App\Models\ProductStock;
@@ -27,6 +30,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\WebConfig;
 use App\Models\User;
+use App\Models\WarehouseIndex;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Carbon\Carbon;
@@ -87,12 +91,14 @@ class TransaksiOnlineController extends Controller
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $data = [
             'title' => $title,
-            'subtitle' => 'Transaksi Online',
+            'subtitle' => 'Transaksi Online V2',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
             'st_id' => Store::where('st_delete', '!=', '1')->where('st_name', 'like', '%ONLINE%')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+            'couriers' => OnlineTransactions::select('courier')->distinct()->where('courier', '!=', '')->orderBy('courier')->get(),
+            'warehouses' => WarehouseIndex::all(),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
@@ -117,21 +123,54 @@ class TransaksiOnlineController extends Controller
                     'shipping_fee',
                     'total_payment',
                     'order_status',
-                    'online_print'
+                    'online_print',
+                    'print_resi',
+                    'internal_order_status',
+                    DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
+                    DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
+                    'courier',
+                    DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
+                    'shipping_method'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-                    // ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
-                    // ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                    ->where('no_resi', '!=', '')
+                    ->leftJoin('online_transaction_chat_history', function ($join) {
+                        $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
+                            ->where('online_transaction_chat_history.is_readed', '=', 0)
+                            ->where('online_transaction_chat_history.is_amp', '=', 0);
+                    })
+                    // ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
-                    ->orderBy('online_transactions.created_at', 'DESC')
+                    ->where('order_status', 'not like', '%batal%')
+                    ->where('order_status', 'not like', '%cancel%')
+                    ->where('order_status', '!=', 'Belum dibayar')
+                    ->where('order_status', '!=', 'Belum Bayar')
+                    ->when($request->has('warehouse') && !empty($request->get('warehouse')), function ($query) use ($request) {
+                        $query->where('online_transaction_details.warehouse', $request->get('warehouse'));
+                    })
+                    ->when($request->has('courier') && !empty($request->get('courier')), function ($query) use ($request) {
+                        $query->where('online_transactions.courier', 'LIKE', '%' . $request->get('courier') . '%');
+                    })
+                    ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
+                        $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
+                    })
+                    ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 AND order_status not in ("selesai","Telah dikirim","dikirim","completed") AND order_status not like "%Pesanan diterima%" THEN 0 ELSE 1 END')
+                    ->orderByDesc('last_chat_time')
+                    ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
             )
                 ->editColumn('order_number', function ($data) {
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
-                    return $data->no_resi . '<br>' . ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
+                    $printStatus = '';
+                    if ($data->online_print && $data->print_resi) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT NOTA & RESI</span>';
+                    } elseif ($data->online_print) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT NOTA</span>';
+                    } elseif ($data->print_resi) {
+                        $printStatus = '<span style="color: red;" class="text-center">DONE PRINT RESI</span>';
+                    }
+                    return $data->no_resi . '<br>' . $printStatus;
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
@@ -140,7 +179,41 @@ class TransaksiOnlineController extends Controller
                 ->editColumn('order_status', function ($data) {
                     return '<a class="text-white" href="#" data-pt_id="' . $data->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $data->order_status . '</span></a>';
                 })
-                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status'])
+                ->addColumn('action', function ($data) {
+                    $unreadCount = $data->unread_count;
+
+                    $badge = $unreadCount > 0 ? '<span class="badge badge-danger position-absolute top-0 start-100 translate-middle">' . $unreadCount . '</span>' : '';
+
+                    return '<div class="d-flex">
+                                <button class="btn btn-sm btn-warning ms-1 mr-2" onclick="clearPrintStatus(' . $data->to_id . ')" title="Clear Print Status">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <div class="position-relative d-inline-block mr-2">
+                                    <button class="btn btn-sm btn-info ms-1" onclick="openChat(' . $data->to_id . ')" data-trx_number="' . $data->to_order_number . '" title="Chat">
+                                        <i class="fas fa-comment"></i>
+                                    </button>' . $badge . '
+                                </div>
+                                <button class="btn btn-sm btn-danger ms-1" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>';
+                })
+                ->editColumn('internal_order_status', function ($data) {
+                    $statusClasses = [
+                        'NEW TRX' => 'badge badge-info',
+                        'WAITING ONLINE' => 'badge badge-warning',
+                        'UNDER REVIEW' => 'badge badge-secondary',
+                        'WAITING RECEIPT' => 'badge badge-primary',
+                        'WAITING PACKING' => 'badge badge-light',
+                        'DONE' => 'badge badge-success',
+                    ];
+
+                    $status = $data->internal_order_status; // Assuming this is the field name
+                    $class = $statusClasses[$status] ?? 'badge badge-default';
+
+                    return '<span class="' . $class . '">' . $status . '</span>';
+                })
+                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -148,6 +221,18 @@ class TransaksiOnlineController extends Controller
                             $w->orWhere('no_resi', 'LIKE', "%$search%")
                                 ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
                         });
+                    }
+                    if (!empty($request->get('tab_status')) && $request->get('tab_status') != 'INSTANT') {
+                        $instance->where(function ($w) use ($request) {
+                            $tab_status = $request->get('tab_status');
+                            if ($tab_status != '') {
+                                $w->orWhere('internal_order_status', 'LIKE', "%$tab_status%");
+                            }
+                        });
+                    } else {
+                        if ($request->get('tab_status') == 'INSTANT') {
+                            $instance->having('is_instant', '=', 1);
+                        }
                     }
 
                     if (!empty($request->get('status'))) {
@@ -158,6 +243,30 @@ class TransaksiOnlineController extends Controller
                                 $w->orWhere('online_print', '=', "0");
                             } else if ($status == 1) {
                                 $w->orWhere('online_print', '=', "1");
+                            }
+                        });
+                    }
+
+                    if (!empty($request->get('chat_status'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $chat_status = $request->get('chat_status');
+
+                            if ($chat_status == 'unreaded') {
+                                $w->whereExists(function ($query) {
+                                    $query->select(DB::raw(1))
+                                        ->from('online_transaction_chat_history')
+                                        ->whereRaw('ts_online_transaction_chat_history.ot_id = ts_online_transactions.id')
+                                        ->where('online_transaction_chat_history.is_readed', 0)
+                                        ->where('online_transaction_chat_history.is_amp', 0);
+                                });
+                            } else if ($chat_status == 'readed') {
+                                $w->whereNotExists(function ($query) {
+                                    $query->select(DB::raw(1))
+                                        ->from('online_transaction_chat_history')
+                                        ->whereRaw('ts_online_transaction_chat_history.ot_id = ts_online_transactions.id')
+                                        ->where('online_transaction_chat_history.is_readed', 1)
+                                        ->where('online_transaction_chat_history.is_amp', 0);
+                                });
                             }
                         });
                     }
@@ -197,13 +306,55 @@ class TransaksiOnlineController extends Controller
     public function detailDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_price_tag as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller', 'platform_name')
+            return datatables()->of(OnlineTransactionDetails::select(
+                'online_transaction_details.id as otd_id',
+                'to_id',
+                'products.p_name',
+                'ps_barcode',
+                'online_transaction_details.sku',
+                'brands.br_name',
+                'p_color',
+                'sz_name',
+                'online_transaction_details.qty as to_qty',
+                'original_price as shopee_price',
+                'products.p_price_tag as jez_price',
+                'total_discount',
+                'price_after_discount as final_price',
+                'discount_seller',
+                'platform_name',
+                'online_transactions.st_id as trx_store_id',
+                'online_transactions.internal_order_status as jezpro_status',
+                'warehouse',
+                'online_transactions.online_print as is_printed',
+                DB::raw('CONCAT_WS(", ", 
+                IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING ONLINE" THEN 1 ELSE 0 END) > 0, 
+                    CONCAT("WAITING ONLINE => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING ONLINE" THEN 1 ELSE 0 END)), 
+                    NULL),
+                IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "UNDER REVIEW" THEN 1 ELSE 0 END) > 0, 
+                    CONCAT("UNDER REVIEW => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "UNDER REVIEW" THEN 1 ELSE 0 END)), 
+                    NULL),
+                IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING RECEIPT" THEN 1 ELSE 0 END) > 0, 
+                    CONCAT("WAITING RECEIPT => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING RECEIPT" THEN 1 ELSE 0 END)), 
+                    NULL),
+                IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING PACKING" THEN 1 ELSE 0 END) > 0, 
+                    CONCAT("WAITING PACKING => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING PACKING" THEN 1 ELSE 0 END)), 
+                    NULL),
+                IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "INSTOCK" THEN 1 ELSE 0 END) > 0, 
+                    CONCAT("INSTOCK => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "INSTOCK" THEN 1 ELSE 0 END)), 
+                    NULL),
+                IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "DONE" THEN 1 ELSE 0 END) > 0, 
+                    CONCAT("DONE => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "DONE" THEN 1 ELSE 0 END)), 
+                    NULL)
+            ) as pick_status')
+            )
                 ->Join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->Join('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                 ->Join('products', 'products.id', '=', 'product_stocks.p_id')
                 ->Join('brands', 'brands.id', '=', 'products.br_id')
                 ->Join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->where('online_transactions.id', '=', $request->to_id))
+                ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
+                ->where('online_transactions.id', '=', $request->to_id)
+                ->groupBy('online_transaction_details.id'))
                 ->editColumn('article', function ($data) {
                     return '<span class="btn btn-primary">[' . $data->br_name . '] ' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })
@@ -217,13 +368,7 @@ class TransaksiOnlineController extends Controller
                     $st_id = Auth::user()->st_id;
                     $requiredQty = $data->to_qty;
 
-                    $cek_pick = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                        ->where('product_stocks.ps_barcode', '=', $data->ps_barcode)
-                        ->where('product_location_setup_transactions.st_id', '=', $st_id)
-                        ->where('product_location_setup_transactions.plst_status', '=', 'WAITING ONLINE')
-                        ->limit($requiredQty) // Limit results to required quantity
-                        ->count();
+                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->sum('plst_qty');
 
                     // Determine status and class based on cek_pick
                     $status_pick = ($cek_pick > $requiredQty) ? 'Done Pick' : 'Not taken';
@@ -233,13 +378,231 @@ class TransaksiOnlineController extends Controller
 
                     return '<span class="btn ' . $btnClass . '">' . $show_status . '</span>';
                 })
-                ->rawColumns(['article', 'status_pick'])
+                ->editColumn('pick_status', function ($data) {
+                    $statuses = explode(', ', $data->pick_status);
+                    $badges = [];
+
+                    $statusClasses = [
+                        'WAITING ONLINE' => 'warning',
+                        'UNDER REVIEW' => 'secondary',
+                        'WAITING RECEIPT' => 'primary',
+                        'WAITING PACKING' => 'danger',
+                        'INSTOCK' => 'info',
+                        'DONE' => 'success'
+                    ];
+
+                    foreach ($statuses as $status) {
+                        if (empty(trim($status))) continue;
+
+                        $badgeClass = 'secondary'; // default
+                        foreach ($statusClasses as $statusKey => $className) {
+                            if (strpos($status, $statusKey) !== false) {
+                                $badgeClass = $className;
+                                break;
+                            }
+                        }
+
+                        $badges[] = '<span class="mb-2 badge badge-' . $badgeClass . '">' . str_replace(' => ', ' : ', $status) . '</span>';
+                    }
+
+                    return implode('<br>', $badges);
+                })
+                ->addColumn('action', function ($data) {
+                    $user_st_id = Auth::user()->st_id;
+                    $user_st_code = Store::query()->where('id', $user_st_id)->first()->st_code;
+
+                    $store_id = Store::query()->where('st_code', $user_st_code)->where('st_name', 'like', 'JEZ%')->first()->id;
+                    $warehouse_st_id = WarehouseIndex::query()->where('w_code', $data->warehouse)->first()->st_id ?? $store_id;
+
+                    $ps_barcode = $data->ps_barcode;
+
+                    $total_stock = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->where('stores.id', '=', $warehouse_st_id)
+                        ->where('product_stocks.ps_barcode', '=', $data->ps_barcode)
+                        ->sum('product_location_setups.pls_qty');
+
+                    $total_waiting = ProductLocationSetupTransaction::leftjoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                        ->leftjoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                        ->leftjoin('product_stocks as ps2', 'ps2.id', '=', 'product_location_setup_transactions.pst_id')
+                        ->leftjoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->where(function ($query) use ($warehouse_st_id) {
+                            $query->where('product_location_setup_transactions.st_id', '=', $warehouse_st_id)
+                                ->orWhere('product_location_setup_transactions.warehouse_st_id', '=', $warehouse_st_id);
+                        })
+                        ->where(function ($query) use ($ps_barcode) {
+                            $query->where('product_stocks.ps_barcode', '=', $ps_barcode)
+                                ->orWhere('ps2.ps_barcode', '=', $ps_barcode);
+                        })
+                        ->whereIn('product_location_setup_transactions.plst_status', ['WAITING ONLINE', 'WAITING TO TAKE'])
+                        ->whereNull('product_location_setup_transactions.pls_id')
+                        ->count();
+
+
+                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->whereNotIn('plst_status', ['INSTOCK', 'REFUND'])->sum('plst_qty');
+                    $can_pick = true;
+
+                    if ($data->warehouse == null && $data->is_printed == 1) {
+                        $can_pick = false;
+                    }
+
+                    if ($data->internal_order_status == 'WAITING RECEIPT' || $data->internal_order_status == 'WAITING PACKING' || $data->internal_order_status == 'DONE ONLINE' || $data->internal_order_status == 'DONE') {
+                        $can_pick = false;
+                    }
+
+                    return '<div class="d-flex">
+                                <div class="d-flex flex-column align-items-center">
+                                    <span class="badge badge-warning mb-1">Stock: ' . $total_stock - $total_waiting . '</span>
+                                    <div>
+                                        <button class="btn btn-sm btn-secondary me-1" onclick="pickItems(\'' . $warehouse_st_id . '\',\'' . $data->to_id . '\', \'' . $data->ps_barcode . '\', \'' . $data->otd_id . '\', \'' . $data->to_qty . '\')" ' . ($cek_pick >= $data->to_qty || $can_pick == false ? 'disabled' : '') . '>
+                                            <i class="fas fa-hand-paper"></i> Pick
+                                        </button>
+                                        
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit Qty">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <!--<button class="btn btn-sm btn-info ml-4" id="edit_item_warehouse_btn" data-otd_id= \'' . $data->otd_id . '\'' . '\' data-to_id= \'' . $data->to_id . '\' data-warehouse= \'' . $data->warehouse . '\' title="Edit Warehouse">
+                                    <i class="fas fa-warehouse"></i>
+                                </button>-->
+                                <button class="btn btn-sm btn-danger ml-4" onclick="deleteItem(\'' . $data->otd_id . '\')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>';
+                })
+                ->rawColumns(['article', 'status_pick', 'action', 'pick_status'])
                 ->addIndexColumn()
                 ->make(true);
         }
     }
 
-    public function cetak_invoice(Request $request)
+    public function deleteItem(Request $request)
+    {
+        $otd_id = $request->otd_id;
+
+        try {
+            DB::beginTransaction();
+
+            $plst_list = ProductLocationSetupTransaction::query()->where('otd_id', $otd_id);
+
+            // get data item that already picked by helper
+            $already_picked = ProductLocationSetupTransaction::where('otd_id', $otd_id)
+                ->where('plst_status', 'WAITING ONLINE')
+                ->whereNotNull('pls_id')
+                ->exists();
+
+            if ($already_picked) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Item sudah dipick oleh helper, tidak dapat dihapus.'
+                ]);
+            }
+
+            // cancel taking item
+            $plst_list->update([
+                'plst_type' => 'IN',
+                'plst_status' => 'INSTOCK',
+                'cancel_pickup_time' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // delete online transaction detail
+            $update = OnlineTransactionDetails::query()->where('id', $otd_id)->update([
+                'deleted_at' => now(),
+                'deleted_by' => Auth::user()->id,
+            ]);
+
+            if ($update) {
+                DB::commit();
+                return response()->json([
+                    'status' => '200',
+                    'message' => 'Item berhasil dihapus.'
+                ]);
+            } else {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Gagal menghapus item.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in deleteItem: ' . $e->getMessage());
+            return response()->json([
+                'status' => '400',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function editItem(Request $request)
+    {
+        $otd_id = $request->edit_item_otd_id;
+        $qty = $request->qty;
+        $to_id = $request->edit_item_to_id;
+
+        try {
+            DB::beginTransaction();
+
+            // // get data item that already picked by helper
+            $transaction = OnlineTransactions::where('id', $to_id)->get()->first();
+
+            if ($transaction->internal_order_status == 'WAITING RECEIPT' || $transaction->internal_order_status == 'WAITING PACKING' || $transaction->internal_order_status == 'DONE ONLINE' || $transaction->internal_order_status == 'DONE') {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Transaksi sudah dalam status ' . $transaction->internal_order_status . ', tidak dapat diubah.'
+                ]);
+            }
+
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->count();
+
+            if ($qty < $count_picked) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Jumlah qty tidak boleh kurang dari jumlah item yang sudah dipick. Minta Helper untuk cancel pick'
+                ]);
+            }
+
+            $update = OnlineTransactionDetails::query()->where('id', $otd_id)->update([
+                'qty' => $qty,
+                'updated_at' => now(),
+                'updated_by' => Auth::user()->id,
+            ]);
+
+            $update_status = $transaction->update([
+                'internal_order_status' => 'WAITING ONLINE',
+                'updated_at' => now(),
+            ]);
+
+            if ($update && $update_status) {
+                DB::commit();
+                return response()->json([
+                    'status' => '200',
+                    'message' => 'Item berhasil diupdate.'
+                ]);
+            } else {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Gagal mengupdate item.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in editItem: ' . $e->getMessage());
+            return response()->json([
+                'status' => '400',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function cetak_invoice2(Request $request)
     {
         try {
             DB::beginTransaction();
@@ -256,12 +619,37 @@ class TransaksiOnlineController extends Controller
 
             if ($check) {
                 $trx = PosTransaction::select(
-                    'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
-                    'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
-                    'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
-                    'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
-                    'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
-                    'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name')
+                    'pos_transactions.id as pt_id',
+                    'cust_id',
+                    'pos_cc_charge',
+                    'cust_province',
+                    'cust_city',
+                    'cust_subdistrict',
+                    'sub_cust_id',
+                    'u_name',
+                    'pm_name',
+                    'pm_id_partial',
+                    'dv_name',
+                    'cr_name',
+                    'pos_another_cost',
+                    'pos_payment',
+                    'pos_payment_partial',
+                    'pos_ref_number',
+                    'pos_card_number',
+                    'cust_name',
+                    'cust_phone',
+                    'cust_address',
+                    'pos_invoice',
+                    'st_name',
+                    'st_phone',
+                    'st_address',
+                    'pos_shipping',
+                    'cr_id',
+                    'pos_transactions.created_at as pos_created',
+                    'pos_transactions.pos_total_vouchers',
+                    'pos_total_discount',
+                    'cust_name'
+                )
                     ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
                     ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
                     ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
@@ -271,8 +659,7 @@ class TransaksiOnlineController extends Controller
                     ->where(['pos_invoice' => $invoice])
                     ->first();
 
-                $check_transaction_detail = PosTransactionDetail::
-                leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                $check_transaction_detail = PosTransactionDetail::leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
@@ -332,17 +719,17 @@ class TransaksiOnlineController extends Controller
                             ->where('product_stocks.ps_barcode', '=', $data->sku)
                             ->where('st_id', '=', $st_id)
                             ->whereNull('pt_id')
-                            ->where('plst_status', '=', 'WAITING ONLINE')
+                            ->where('plst_status', '=', 'WAITING RECEIPT')
                             ->count();
 
-                        // Fetch the first record of waiting online transactions
+                        // Fetch the first record of WAITING RECEIPT transactions
                         $data_keep_online = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id')
                             ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                             ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                             ->where('product_stocks.ps_barcode', '=', $data->sku)
                             ->where('st_id', '=', $st_id)
                             ->whereNull('pt_id')
-                            ->where('plst_status', '=', 'WAITING ONLINE')
+                            ->where('plst_status', '=', 'WAITING RECEIPT')
                             ->first();
 
                         // If there are any waiting transactions, store them for further processing
@@ -361,7 +748,7 @@ class TransaksiOnlineController extends Controller
                         $pos_transaction_check = PosTransaction::where(['pos_invoice' => $invoice])
                             ->orderByDesc('id')
                             ->first();
-                        
+
                         $is_trx_done = $pos_transaction_check && $pos_transaction_check->pos_status === 'DONE';
 
                         if ($is_trx_done) {
@@ -489,8 +876,8 @@ class TransaksiOnlineController extends Controller
                                     throw new \Exception('Failed to create POS transaction detail');
                                 }
                             }
-                            
-                            $updateResult = ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
+
+                            // $updateResult = ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
                             if (!$updateResult) {
                                 throw new \Exception('Failed to update product location setup transaction');
                             }
@@ -517,7 +904,6 @@ class TransaksiOnlineController extends Controller
             }
 
             return $response;
-
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error in cetak_invoice: ' . $e->getMessage());
@@ -525,6 +911,233 @@ class TransaksiOnlineController extends Controller
                 'status' => 500,
                 'message' => 'An error occurred while processing the invoice: ' . $e->getMessage()
             ];
+        }
+    }
+
+    public function cetak_invoice(Request $request)
+    {
+
+        $order_number = $request->orderNumber;
+        $to_id = $request->to_id;
+
+        $check = PosTransaction::where(['pos_invoice' => $order_number])
+            ->orderByDesc('id')
+            ->value('pos_status') === 'DONE' ? true : false;
+
+        if ($check) {
+            return response()->json([
+                'status' => '200',
+                'message' => 'Invoice sudah pernah dicetak.'
+            ]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+
+            $is_trx_online_exists = OnlineTransactions::where('id', $to_id)->exists();
+
+            if (!$is_trx_online_exists) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Transaksi online tidak ditemukan.'
+                ]);
+            }
+
+            // ambil semua item transaksi online yang masih aktif (belum dihapus)
+            $active_transaction_items = OnlineTransactionDetails::where('to_id', $to_id)
+                ->whereNull('deleted_at')
+                ->get();
+
+            if ($active_transaction_items->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Tidak ada item aktif pada transaksi online ini.'
+                ]);
+            }
+
+            // ambil barang yang sudah dipick oleh helper dan berada di status 'WAITING RECEIPT'
+            $waiting_receipt_items = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
+                ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')
+                ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'))
+                ->groupBy('product_stocks.ps_barcode')
+                ->get()
+                ->keyBy('ps_barcode');
+
+            if ($waiting_receipt_items->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Belum ada item yang dipick oleh helper.'
+                ]);
+            }
+
+            // bandingkan qty yang diorder dengan qty yang sudah dipick
+            foreach ($active_transaction_items as $item) {
+                $picked_item = $waiting_receipt_items->get($item->sku);
+                $picked_qty = $picked_item ? $picked_item->total_picked : 0;
+
+                if ($picked_qty < $item->qty) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '400',
+                        'message' => 'Item dengan SKU ' . $item->sku . ' belum lengkap dipick. Qty diorder: ' . $item->qty . ', Qty dipick: ' . $picked_qty
+                    ]);
+                }
+
+                if ($picked_qty > $item->qty) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '400',
+                        'message' => 'Item dengan SKU ' . $item->sku . ' melebihi qty yang diorder. Qty diorder: ' . $item->qty . ', Qty dipick: ' . $picked_qty
+                    ]);
+                }
+            }
+
+            $trx_data = OnlineTransactions::where('id', $to_id)->get()->first();
+
+            if (!$trx_data) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Data transaksi online tidak ditemukan.'
+                ]);
+            }
+
+            $std_id = StoreTypeDivision::where('dv_name', strtoupper($trx_data->platform_name))->value('id');
+
+            if (!$std_id) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Platform toko tidak dikenali.'
+                ]);
+            }
+
+            //buat pos_transaction jika semua item sudah lengkap dipick
+            $pos_transaction_id = DB::table('pos_transactions')->insertGetId([
+                'u_id' => Auth::user()->id,
+                'kasir_id' => Auth::user()->id,
+                'stt_id' => Auth::user()->stt_id,
+                'std_id' => $std_id,
+                'st_id' => $trx_data->st_id,
+                'pos_online_payment' => '',
+                'cust_id' => 1,
+                'pos_admin_cost' => 0,
+                'pos_another_cost' => 0,
+                'pos_real_price' => $trx_data->total_payment,
+                'pos_order_number' => $trx_data->order_number,
+                'pos_invoice' => $trx_data->order_number,
+                'pos_unique_code' => 0,
+                'pos_shipping' => $trx_data->shipping_fee,
+                'pos_total_discount' => 0,
+                'pos_discount_seller' => 0,
+                'created_at' => date('Y-m-d H:i:s'),
+                'pos_status' => 'DONE',
+                'pos_payment' => $trx_data->total_payment
+            ]);
+
+            if (!$pos_transaction_id) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '500',
+                    'message' => 'Gagal membuat transaksi POS.'
+                ]);
+            }
+
+            // Insert pos_transaction_details
+            foreach ($active_transaction_items as $item) {
+                $price_before_discount = $item->original_price * $item->qty;
+                $price_after_discount = $item->price_after_discount * $item->qty;
+
+                $product_stock = ProductStock::where('ps_barcode', $item->sku)->get()->first();
+
+                $insert_details = PosTransactionDetail::create([
+                    'pt_id' =>  $pos_transaction_id,
+                    'pst_id' => $product_stock->id,
+                    'pl_id' => $item->pl_id,
+                    'pos_td_qty' => $item->qty,
+                    'pos_td_sell_price' => $price_after_discount,
+                    'pos_td_discount_number' => $price_before_discount - $price_after_discount,
+                    'pos_td_discount' => NULL,
+                    'pos_td_discount_price' => $item->price_after_discount * $item->qty,
+                    'pos_td_marketplace_price' => 0,
+                    'pos_td_nameset_price' => 0,
+                    'pos_td_nameset' => 0,
+                    'pos_td_description' => '',
+                    'pos_td_price_item_discount' => 0,
+                    'pos_td_total_price' => $price_before_discount,
+                    'pos_td_item_cogs' => $product_stock->ps_purchase_price,
+                    'pos_td_item_price_tag' => $product_stock->ps_price_tag,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+
+                if (!$insert_details) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '500',
+                        'message' => 'Gagal menambahkan detail transaksi untuk SKU: ' . $item->sku
+                    ]);
+                }
+            }
+
+            // tambah pt_id di product_location_setup_transactions
+            $plst_list = ProductLocationSetupTransaction::whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
+                ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')
+                ->get();
+
+
+            foreach ($plst_list as $plst_item) {
+                $update_plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $plst_item->id)
+                    ->update([
+                        'updated_at' => now(),
+                        'u_id_packer' => Auth::user()->id,
+                        'pt_id' => $pos_transaction_id,
+                    ]);
+
+                if (!$update_plst) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => '500',
+                        'message' => 'Gagal memperbarui status pick untuk item dengan PLST ID: ' . $plst_item->id
+                    ]);
+                }
+            }
+
+            // jika semua item sudah lengkap dipick, lanjutkan proses cetak invoice
+            $params = [
+                'online_print' => true,
+                'u_print' => Auth::user()->id,
+                'time_print' => now(),
+                'updated_at' => now(),
+            ];
+            $update_print_status = OnlineTransactions::where('order_number', $order_number)->update($params);
+            if ($update_print_status === false) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '500',
+                    'message' => 'Gagal memperbarui status cetak invoice.'
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => '200',
+                'message' => 'Invoice berhasil dicetak.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in cetak_invoice: ' . $e->getMessage());
+            return response()->json([
+                'status' => '500',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -539,10 +1152,11 @@ class TransaksiOnlineController extends Controller
             $check_transaction_detail = OnlineTransactionDetails::leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-//                ->leftjoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-//                ->leftjoin('stores', 'stores.id', '=', 'online_transactions.st_id')
+                //                ->leftjoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+                //                ->leftjoin('stores', 'stores.id', '=', 'online_transactions.st_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->where(['to_id' => $trx->id])->get();
+                ->where(['to_id' => $trx->id])
+                ->where('online_transaction_details.deleted_at', null)->get();
 
 
             if (!empty($check_transaction_detail)) {
@@ -551,7 +1165,7 @@ class TransaksiOnlineController extends Controller
             }
         }
 
-        $stores = Auth::user()->st_id;
+        $stores = $trx->st_id;
 
         $st_name = Store::where('id', $stores)->first()->st_name;
 
@@ -561,7 +1175,7 @@ class TransaksiOnlineController extends Controller
 
         $cashier = User::query()->select('u_name')->where('id', $trx->u_print)->value('u_name');
 
-        
+
         $data = [
             'title' => 'Invoice ' . $orderNumber,
             'invoice' => $orderNumber,
@@ -578,11 +1192,11 @@ class TransaksiOnlineController extends Controller
     {
         $user_store_id = Auth::user()->st_id;
         $online_store_ids = Store::where('st_name', 'like', '%ONLINE%')->pluck('id')->toArray();
-        
+
         if (!in_array($user_store_id, $online_store_ids)) {
             return response()->json([
-            'status' => '403',
-            'message' => 'Anda tidak memiliki izin untuk import data.'
+                'status' => '403',
+                'message' => 'Anda tidak memiliki izin untuk import data.'
             ]);
         }
 
@@ -610,7 +1224,7 @@ class TransaksiOnlineController extends Controller
                 // Validate header structure
                 $expectedHeaders = [
                     "Order ID",
-                    "Order Status", 
+                    "Order Status",
                     "Cancel Reason",
                     "Tracking ID",
                     "Delivery Option",
@@ -627,7 +1241,9 @@ class TransaksiOnlineController extends Controller
                     "Shipping Fee After Discount",
                     "Order Amount",
                     "Regency and City",
-                    "Province"
+                    "Province",
+                    "Warehouse",
+                    'Ekspedisi'
                 ];
 
                 if (!isset($data[0][0]) || $data[0][0] !== $expectedHeaders) {
@@ -640,7 +1256,6 @@ class TransaksiOnlineController extends Controller
                     $processData = $this->processImportData($data[0], $original_name, $st_id_form);
                     $r['data'] = $file->getClientOriginalName();
                     $r['status'] = '200';
-
                 } else {
                     $r['status'] = '419';
                 }
@@ -658,6 +1273,205 @@ class TransaksiOnlineController extends Controller
         }
     }
 
+    public function sendChatHistoryOnlineTransaction(Request $request)
+    {
+        $ot_id = $request->ot_id;
+        $message = $request->message;
+        $user = Auth::user();
+        $is_amp = $request->is_amp;
+
+        try {
+            $ot = OnlineTransactions::where('id', $ot_id)->first();
+
+            if (!$ot) {
+                return response()->json(['status' => '404', 'message' => 'Transaction not found']);
+            }
+
+            $send = OnlineTransactionChat::create([
+                'ot_id' => $ot_id,
+                'user_id' => $user->id,
+                'messages' => $message,
+                'is_amp' => $is_amp ? 1 : 0,
+                'created_at' => now(),
+            ]);
+
+            return response()->json(['status' => '200', 'message' => 'Message sent successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Error sending chat message: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while sending the message']);
+        }
+    }
+
+    public function getChatHistoryOnlineTransaction($id, Request $request)
+    {
+        $is_amp = $request->is_amp;
+        try {
+            $chatHistory = OnlineTransactionChat::where('ot_id', $id)
+                ->leftJoin('users', 'users.id', '=', 'online_transaction_chat_history.user_id')
+                ->select('online_transaction_chat_history.*', 'users.u_name')
+                ->orderBy('online_transaction_chat_history.created_at', 'ASC')
+                ->get();
+
+            if ($is_amp == 1) {
+                // Mark messages as read if is_amp is true
+                OnlineTransactionChat::where('ot_id', $id)
+                    ->where('is_readed', 0)
+                    ->where('is_amp', 0)
+                    ->update(['is_readed' => 1]);
+            } else {
+                // Mark AMP messages as read if is_amp is false
+                OnlineTransactionChat::where('ot_id', $id)
+                    ->where('is_amp', 1)
+                    ->where('is_readed', 0)
+                    ->update(['is_readed' => 1]);
+            }
+
+            return response()->json(['status' => '200', 'data' => $chatHistory]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching chat history: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while fetching chat history']);
+        }
+    }
+
+    public function pickItems(Request $request)
+    {
+        $warehouse_st_id = $request->warehouse_st_id;
+        $to_id = $request->to_id;
+        $ps_barcode = $request->sku;
+        $otd_id = $request->to_detail_id;
+        $qty = $request->qty;
+        $st_id = Auth::user()->st_id;
+        $user_id = Auth::user()->id;
+
+        $st_code = Store::where('id', $st_id)->first()->st_code;
+
+        try {
+            DB::beginTransaction();
+
+            $to = OnlineTransactions::where('id', $to_id)->first();
+            if (!$to) {
+                DB::rollback();
+                return response()->json(['status' => '404', 'message' => 'Online transaction not found']);
+            }
+
+            $otd = OnlineTransactionDetails::where('id', $otd_id)->first();
+            if (!$otd) {
+                DB::rollback();
+                return response()->json(['status' => '404', 'message' => 'Online transaction detail not found']);
+            }
+
+            $ps = ProductStock::where('ps_barcode', $ps_barcode)->first();
+            if (!$ps) {
+                DB::rollback();
+                return response()->json(['status' => '404', 'message' => 'Product stock not found']);
+            }
+
+
+            $availableQty = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('stores.id', '=', $warehouse_st_id)
+                ->where('product_stocks.ps_barcode', '=', $ps_barcode)
+                ->sum('product_location_setups.pls_qty');
+
+            $waitingQty = ProductLocationSetupTransaction::leftjoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftjoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftjoin('product_stocks as ps2', 'ps2.id', '=', 'product_location_setup_transactions.pst_id')
+                ->leftjoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->where(function ($query) use ($warehouse_st_id) {
+                    $query->where('product_location_setup_transactions.st_id', '=', $warehouse_st_id)
+                        ->orWhere('product_location_setup_transactions.warehouse_st_id', '=', $warehouse_st_id);
+                })
+                ->where(function ($query) use ($ps_barcode) {
+                    $query->where('product_stocks.ps_barcode', '=', $ps_barcode)
+                        ->orWhere('ps2.ps_barcode', '=', $ps_barcode);
+                })
+                ->whereIn('product_location_setup_transactions.plst_status', ['WAITING ONLINE', 'WAITING TO TAKE'])
+                ->whereNull('product_location_setup_transactions.pls_id')
+                ->count();
+
+            $readyQty = $availableQty - $waitingQty;
+
+            if ($readyQty < $qty) {
+                DB::rollback();
+                return response()->json(['status' => '400', 'message' => 'Jumlah stok tidak mencukupi']);
+            }
+
+            //count picked item with the same otd_id
+            $count_picked = ProductLocationSetupTransaction::query()->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('otd_id', $otd_id)->count();
+
+            for ($i = $count_picked; $i < $qty; $i++) {
+                $create_plst = DB::table('product_location_setup_transactions')->insert([
+                    'pst_id' => $ps->id,
+                    'u_id' => $user_id,
+                    'otd_id' => $otd_id,
+                    'st_id' => $st_id,
+                    'warehouse_st_id' => $warehouse_st_id,
+                    'plst_qty' => 1,
+                    'plst_type' => 'OUT',
+                    'plst_status' => 'WAITING ONLINE',
+                    'created_at' => now(),
+                ]);
+
+                if (!$create_plst) {
+                    DB::rollback();
+                    return response()->json(['status' => '500', 'message' => 'Failed to create pick item record']);
+                }
+            }
+
+            $items = OnlineTransactionDetails::query()->where('to_id', $to_id)->get();
+            $item_ids = $items->pluck('id')->toArray();
+            $total_qty = $items->sum('qty');
+
+            $all_picked = ProductLocationSetupTransaction::whereIn('otd_id', $item_ids)
+                ->where('plst_status', 'WAITING ONLINE')
+                ->count();
+
+            if ($total_qty == $all_picked) {
+                OnlineTransactions::where('id', $to->id)
+                    ->update(['internal_order_status' => 'WAITING ONLINE']);
+            }
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Items picked successfully']);
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Error in pickItems: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while processing the request']);
+        }
+    }
+
+    public function editItemWarehouse(Request $request)
+    {
+        $otd_id = $request->edit_item_warehouse_otd_id;
+        $to_id = $request->edit_item_warehouse_to_id;
+        $new_warehouse = $request->warehouse;
+
+        $transaction = OnlineTransactions::where('id', $to_id)->get()->first();
+
+        if (!$transaction) {
+            return response()->json(['status' => '404', 'message' => 'Online transaction not found']);
+        }
+
+        $is_picked = ProductLocationSetupTransaction::query()
+            ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+            ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
+
+        if ($is_picked) {
+            return response()->json(['status' => '400', 'message' => 'Item sudah dipick, tidak dapat diubah']);
+        }
+
+        $update_warehouse = OnlineTransactionDetails::where('to_id', $to_id)->where('deleted_at', null)->update([
+            'warehouse' => $new_warehouse,
+        ]);
+
+        if ($update_warehouse) {
+            return response()->json(['status' => '200', 'message' => 'Warehouse updated successfully']);
+        } else {
+            return response()->json(['status' => '500', 'message' => 'Failed to update warehouse']);
+        }
+    }
+
     private function processImportData($data, $original_name, $st_id_form)
     {
         $processedData = [];
@@ -665,6 +1479,9 @@ class TransaksiOnlineController extends Controller
         $platform = $type;
 
         $st_id = $st_id_form;
+
+        $store_id = Auth::user()->st_id;
+        $st_code = Store::where('id', $store_id)->first()->st_code;
 
         if ($type === 'Shopee') {
             foreach ($data as $item) {
@@ -682,6 +1499,9 @@ class TransaksiOnlineController extends Controller
                 $city = $item[17];
                 $province = $item[18];
 
+                //get courier from ekspedisi column
+                $courier = OnlineTransactions::getCourierAttribute($item[20]);
+
                 $rowData = [
                     'st_id' => 20,
                     'order_number' => $order_number,
@@ -697,6 +1517,8 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
+                    'internal_order_status' => 'NEW TRX',
+                    'courier' => $courier,
                 ];
 
                 try {
@@ -721,6 +1543,7 @@ class TransaksiOnlineController extends Controller
                             'total_payment' => $total_payment,
                             'city' => $city,
                             'province' => $province,
+                            'courier' => $courier,
                         ];
 
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
@@ -749,6 +1572,7 @@ class TransaksiOnlineController extends Controller
                 $total_discount = str_replace('.', '', $item[13]);
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
+                $warehouse = $item[19] ?? $st_code;
 
 
                 try {
@@ -769,8 +1593,9 @@ class TransaksiOnlineController extends Controller
                                 'return_qty' => $return_qty,
                                 'total_discount' => $total_discount,
                                 'discount_seller' => $discount_seller,
-//                                'ns_before_admin' => $ns_before_admin,
+                                //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
+                                'warehouse' => $warehouse,
                             ];
 
                             if (!$sku_exists) {
@@ -799,7 +1624,6 @@ class TransaksiOnlineController extends Controller
                     \Log::error('Error processing TikTok SKU data: ' . $e->getMessage());
                 }
             }
-
         } else { // TikTok
             foreach ($data as $item) {
                 $order_number = $item[0];
@@ -816,6 +1640,9 @@ class TransaksiOnlineController extends Controller
                 $city = $item[17];
                 $province = $item[18];
 
+                //get courier from ekspedisi column
+                $courier = OnlineTransactions::getCourierAttribute($item[20]);
+
                 $rowData = [
                     'st_id' => '20',
                     'order_number' => $order_number,
@@ -831,6 +1658,8 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
+                    'internal_order_status' => 'NEW TRX',
+                    'courier' => $courier,
                 ];
 
                 try {
@@ -855,6 +1684,7 @@ class TransaksiOnlineController extends Controller
                             'total_payment' => $total_payment,
                             'city' => $city,
                             'province' => $province,
+                            'courier' => $courier,
                         ];
 
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
@@ -883,6 +1713,7 @@ class TransaksiOnlineController extends Controller
                 $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
+                $warehouse = $item[19] ?? $st_code;
 
 
                 try {
@@ -903,8 +1734,9 @@ class TransaksiOnlineController extends Controller
                                 'return_qty' => $return_qty,
                                 'total_discount' => $total_discount,
                                 'discount_seller' => $discount_seller,
-//                                'ns_before_admin' => $ns_before_admin,
+                                //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
+                                'warehouse' => $warehouse,
                             ];
 
                             if (!$sku_exists) {
@@ -938,6 +1770,218 @@ class TransaksiOnlineController extends Controller
         return [
             'processedData' => $processedData
         ];
+    }
 
+    public function getOnlineTransactionItems(Request $request)
+    {
+        $to_id = $request->to_id;
+
+        try {
+            $items = OnlineTransactionDetails::where('to_id', $to_id)->get();
+
+            return response()->json(['status' => '200', 'data' => $items]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching online transaction items: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while fetching the items']);
+        }
+    }
+
+    public function addNewItem(Request $request)
+    {
+        $sku = $request->sku;
+        $otd_id = $request->item_sejenis;
+        $qty = $request->qty;
+
+        $similar_item = OnlineTransactionDetails::where('id', $otd_id)->first();
+
+        $sku_exist = ProductStock::where('ps_barcode', $sku)->exists();
+
+        if (!$sku_exist) {
+            return response()->json(['status' => '404', 'message' => 'SKU not found in product stock']);
+        }
+
+        if (!$similar_item) {
+            return response()->json(['status' => '404', 'message' => 'Similar item not found']);
+        }
+
+        try {
+            OnlineTransactionDetails::create([
+                'to_id' => $similar_item->to_id,
+                'order_number' => $similar_item->order_number,
+                'warehouse' => $similar_item->warehouse,
+                'sku' => $sku,
+                'qty' => $qty,
+                'return_qty' => 0,
+                'original_price' => $similar_item->original_price,
+                'discount_seller' => $similar_item->discount_seller,
+                'discount_platform' => $similar_item->discount_platform,
+                'total_discount' => $similar_item->total_discount,
+                'price_after_discount' => $similar_item->price_after_discount,
+                'created_at' => now(),
+                'created_by' => Auth::user()->id,
+            ]);
+            return response()->json(['status' => '200', 'message' => 'Items added successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Error adding new items: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while adding the items']);
+        }
+    }
+
+    public function clearPrintStatus($to_id)
+    {
+        $online_transactions = OnlineTransactions::where('id', $to_id)->first();
+        $check = PosTransaction::where(['pos_invoice' => $online_transactions->order_number])
+            ->orderByDesc('id')
+            ->value('pos_status') === 'REFUND' ? true : false;
+
+        if (!$check) {
+            return response()->json([
+                'status' => '400',
+                'message' => 'Bukan transaksi refund, tidak dapat menghapus status cetak.'
+            ]);
+        }
+
+        try {
+            $update_print_status = $online_transactions->update(['online_print' => 0, 'time_print' => null, 'print_resi' => 0, 'time_print_resi' => null]);
+            if ($update_print_status === false) {
+                return response()->json(['status' => '500', 'message' => 'Failed to clear print status']);
+            }
+
+            return response()->json(['status' => '200', 'message' => 'Print status cleared successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Error clearing print status: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while clearing the print status']);
+        }
+    }
+
+    public function cancelTran($to_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $online_transactions = OnlineTransactions::where('id', $to_id)->first();
+
+            if (!$online_transactions) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Transaksi tidak ditemukan.'
+                ]);
+            }
+
+            //check status must be under review and not have active pick items
+            if ($online_transactions->internal_order_status != 'UNDER REVIEW') {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Status transaksi harus UNDER REVIEW untuk dibatalkan.'
+                ]);
+            }
+
+            //get all item that already picked and pass qc then return it to staging failed qc
+            $waiting_receipt_items = ProductLocationSetupTransaction::query()
+                ->select('product_location_setup_transactions.*')
+                ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+                ->where('plst_status', 'WAITING RECEIPT')->where('to_id', $to_id)->get();
+
+            foreach ($waiting_receipt_items as $item) {
+                $plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $item->id)
+                    ->first();
+
+                if (!$plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Product location setup transaction not found.']);
+                }
+
+                $update_plst = DB::table('product_location_setup_transactions')
+                    ->where('id', $item->id)
+                    ->update([
+                        'plst_type' => 'IN',
+                        'plst_status' => 'INSTOCK',
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                if (!$update_plst) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed to update product location setup transaction.']);
+                }
+
+                $pl_default_failed_qc = ProductLocation::where('st_id', $plst->warehouse_st_id)
+                    ->where('pl_default_failed_qc', 1)
+                    ->get();
+
+                if ($pl_default_failed_qc->count() == 0) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Default bin for failed QC not found.']);
+                }
+
+                if ($pl_default_failed_qc->count() > 1) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Multiple default bins for failed QC found.']);
+                }
+
+                $pls_default_failed_qc = DB::table('product_location_setups')
+                    ->where('pl_id', $pl_default_failed_qc->first()->id)
+                    ->where('pst_id', $plst->pst_id)
+                    ->first();
+
+                if (!$pls_default_failed_qc) {
+                    $new_pls_id = DB::table('product_location_setups')->insertGetId([
+                        'pl_id' => $pl_default_failed_qc->first()->id,
+                        'pst_id' => $plst->pst_id,
+                        'pls_qty' => 0,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    if (!$new_pls_id) {
+                        DB::rollBack();
+                        return response()->json(['status' => '400', 'message' => 'Failed to add new pls.']);
+                    }
+
+                    $pls_default_failed_qc = DB::table('product_location_setups')
+                        ->where('id', $new_pls_id)
+                        ->first();
+                }
+
+                $add_to_default_failed_qc = DB::table('product_location_setups')
+                    ->where('id', $pls_default_failed_qc->id)
+                    ->update([
+                        'pls_qty' => DB::raw("pls_qty + " . $plst->plst_qty),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                if (!$add_to_default_failed_qc) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400', 'message' => 'Failed add qty to bin default failed qc.']);
+                }
+            }
+
+            $is_picked = ProductLocationSetupTransaction::query()
+                ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+                ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
+
+            if ($is_picked) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Transaksi memiliki item yang sudah dipick, tidak dapat dibatalkan.'
+                ]);
+            }
+
+            $update_status = $online_transactions->update(['internal_order_status' => 'NEW TRX']);
+            if ($update_status === false) {
+                DB::rollBack();
+                return response()->json(['status' => '500', 'message' => 'Failed to cancel transaction']);
+            }
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Transaction canceled successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error canceling transaction: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while canceling the transaction']);
+        }
     }
 }

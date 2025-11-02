@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\StockTrackingExport;
 use App\Models\Customer;
+use App\Models\OnlineTransactionChat;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

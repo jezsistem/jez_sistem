@@ -2,99 +2,79 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SplitResiLog;
 use Illuminate\Http\Request;
-use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
-use setasign\Fpdi\PdfParser\Filter\FilterException;
-use setasign\Fpdi\PdfParser\PdfParserException;
-use setasign\Fpdi\PdfParser\Type\PdfTypeException;
-use setasign\Fpdi\PdfReader\PdfReaderException;
+use Illuminate\Support\Facades\DB;
 use Smalot\PdfParser\Parser;
 use setasign\Fpdi\Fpdi;
 use Illuminate\Support\Facades\Storage;
 
 class PdfSplitController extends Controller
 {
-    public function index()
-    {
-        return view('pdf_import');
-    }
-
-    /**
-     * @throws CrossReferenceException
-     * @throws PdfReaderException
-     * @throws PdfParserException
-     * @throws PdfTypeException
-     * @throws FilterException
-     */
     public function split(Request $request)
     {
         $request->validate([
-            'pdf_file' => 'required|mimes:pdf|max:20480',
+            'pdf_file' => 'required|mimes:pdf|max:20480', // maks 20MB
         ]);
 
-        // Simpan file upload sementara
-        $pdf = $request->file('pdf_file');
-        $pdfPath = $pdf->storeAs('uploads', 'resi_semua.pdf');
+        $file = $request->file('pdf_file');
+        $originalName = $file->getClientOriginalName();
+        $path = $file->storeAs('public/split_resi/original', $originalName);
 
-        $fullPath = storage_path('app/' . $pdfPath);
-
-        // Parsing teks untuk mendapatkan nomor resi
+        $pdfPath = storage_path('app/' . $path);
         $parser = new Parser();
-        $pdfData = $parser->parseFile($fullPath);
-        $text = $pdfData->getText();
-
-        // Split PDF berdasarkan halaman
-        $pdf = new Fpdi();
-        $pageCount = $pdf->setSourceFile($fullPath);
+        $pdf = $parser->parseFile($pdfPath);
+        $pages = $pdf->getPages();
 
         $outputDir = storage_path('app/public/split_resi/');
         if (!file_exists($outputDir)) {
             mkdir($outputDir, 0777, true);
         }
 
-        $results = [];
-        for ($i = 1; $i <= $pageCount; $i++) {
-            $pdf = new Fpdi();
-            $pdf->AddPage();
-            $pdf->setSourceFile($fullPath);
-            $tplIdx = $pdf->importPage($i);
-            $pdf->useTemplate($tplIdx, 0, 0, 210);
+        $savedFiles = [];
 
-            // Ambil teks halaman ini
-            $pageText = $this->getPageText($text, $i, $pageCount);
+        foreach ($pages as $index => $page) {
+            $text = $page->getText();
 
-            // Cari nama file (berdasarkan No. Pesanan / Order Id / nomor panjang)
-            $fileName = $this->extractFileName($pageText);
+            // Cari Order Id, No. Pesanan, atau 15–20 digit angka
+            preg_match('/No\.\s*Pesanan\s*[:\-]?\s*([A-Z0-9\-]+)/i', $text, $pesananMatch);
+            preg_match('/\b\d{15,20}\b/', $text, $resiMatch);
 
-            $savePath = $outputDir . $fileName . '.pdf';
-            $pdf->Output($savePath, 'F');
+            $fileName = $orderMatch[1] ?? $pesananMatch[1] ?? $resiMatch[0] ?? ('page_' . ($index + 1));
+            $outputFile = $outputDir . $fileName . '.pdf';
 
-            $results[] = $fileName . '.pdf';
+            // Split halaman
+            $fpdi = new Fpdi();
+            $fpdi->AddPage();
+            $fpdi->setSourceFile($pdfPath);
+            $fpdi->useTemplate($fpdi->importPage($index + 1), 0, 0, 210, 297);
+            $fpdi->Output($outputFile, 'F');
+
+            // Update kolom files_resi di table online_transactions
+            DB::table('online_transactions')
+                ->where('no_resi', $fileName)
+                ->update(['files_resi' => 'split_resi/' . $fileName . '.pdf']);
+
+            // Simpan log upload
+            SplitResiLog::create([
+                'original_file' => $originalName,
+                'split_file' => $fileName . '.pdf',
+                'uploaded_by' => auth()->id(),
+            ]);
+
+            $savedFiles[] = $fileName;
         }
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'PDF berhasil di-split!',
-            'files' => $results,
+            'message' => 'Split berhasil',
+            'files' => $savedFiles,
         ]);
     }
 
-    private function getPageText($text, $pageNumber, $totalPages)
+    public function getHistory()
     {
-        $pages = preg_split("/(?=Pengirim\s*:)/", $text);
-        return $pages[$pageNumber - 1] ?? '';
-    }
+        $logs = SplitResiLog::latest()->take(50)->get();
 
-    private function extractFileName($pageText)
-    {
-        if (preg_match('/No\.?\s*Pesanan\s*[:\-]?\s*([A-Z0-9\-]+)/i', $pageText, $m)) {
-            return trim($m[1]);
-        }
-
-        if (preg_match('/\b\d{15,20}\b/', $pageText, $m)) {
-            return trim($m[0]);
-        }
-
-        return 'page_' . time();
+        return view('app.online_transaction.history_upload', compact('logs'));
     }
 }

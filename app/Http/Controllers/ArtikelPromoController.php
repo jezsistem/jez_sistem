@@ -87,6 +87,7 @@ class ArtikelPromoController extends Controller
                 ->orderByDesc('sid')->pluck('store', 'sid'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
             'segment' => request()->segment(1),
+            'stores' => Store::where('st_delete', '!=', '1')->orderBy('st_name')->get(),
         ];
         return view('app.artikel_promo.artikel_promo', compact('data'));
         //        return 'aaaa';
@@ -121,6 +122,9 @@ class ArtikelPromoController extends Controller
                         } else {
                             $instance->whereDate('date_start', $dates[0]);
                         }
+                    }
+                    if (!empty($request->get('artikel_promo_store'))) {
+                        $instance->where('st_id', $request->get('artikel_promo_store'));
                     }
                 })
                 ->addColumn('article_id', function ($row) {

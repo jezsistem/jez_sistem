@@ -25,6 +25,35 @@ class OnlineTransactions extends Model
         'payment_method',
         'total_payment',
         'city',
-        'province'
+        'province',
+        'internal_order_status',
+        'courier',
+        'scan_manifest',
+        'print_manifest',
+        'time_print',
+        'online_print',
+        'print_resi',
+        'time_print_resi',
     ];
+
+    public static function getCourierAttribute($courier)
+    {
+        $shippingMethod = $courier;
+        
+        if (stripos($shippingMethod, 'SPX') !== false) {
+            return 'SPX';
+        } elseif (stripos($shippingMethod, 'J&T') !== false || stripos($shippingMethod, 'JNT') !== false) {
+            return 'J&T';
+        } elseif (stripos($shippingMethod, 'Anteraja') !== false) {
+            return 'Anteraja';
+        } elseif (stripos($shippingMethod, 'JNE') !== false) {
+            return 'JNE';
+        } elseif (stripos($shippingMethod, 'Gosend') !== false || stripos($shippingMethod, 'JNT') !== false) {
+            return 'Gojek';
+        } elseif (stripos($shippingMethod, 'Grab') !== false) {
+            return 'Grab';
+        }
+        
+        return $shippingMethod;
+    }
 }

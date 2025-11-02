@@ -15,6 +15,7 @@ use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\UserActivity;
 use App\Models\BuyOneGetOne;
+use App\Models\OnlineTransactions;
 
 class InvoiceEditorController extends Controller
 {
@@ -148,7 +149,7 @@ class InvoiceEditorController extends Controller
         $pt_id = $request->get('pt_id');
         if (request()->ajax()) {
             return datatables()->of(DB::table('pos_transactions')
-                ->select('pos_transactions.id', 'pos_invoice', 'u_id', 'stt_id', 'std_id', 'pm_id', 'pos_payment', 'pm_id_partial', 'pos_payment_partial', 'pos_admin_cost', 'pos_real_price', 'pos_status', 'created_at')
+                ->select('pos_transactions.id', 'st_id as trx_store_id', 'pos_invoice', 'u_id', 'stt_id', 'std_id', 'pm_id', 'pos_payment', 'pm_id_partial', 'pos_payment_partial', 'pos_admin_cost', 'pos_real_price', 'pos_status', 'created_at')
                 ->where(function ($w) use ($pt_id) {
                     if (!empty($pt_id)) {
                         $w->where('pos_transactions.id', '=', $pt_id);
@@ -205,19 +206,24 @@ class InvoiceEditorController extends Controller
                 })
                 ->editColumn('method', function ($d) {
                     $method = '';
-                    $mtd = DB::table('payment_methods')->select('id', 'pm_name')
+                    $mtd = DB::table('payment_methods')
+                        ->select('payment_methods.id', 'pm_name', 'st_name')
+                        ->join('stores', 'stores.id', '=', 'payment_methods.st_id')
                         ->where('pm_delete', '!=', '1')
+                        ->where('payment_methods.st_id', '=', $d->trx_store_id)
                         ->get();
+
                     $method .= "<select data-pt_id='" . $d->id . "' id='method'>";
+                    $method .= "<option value='' " . (empty($d->pm_id) ? 'selected' : '') . ">-- Pilih Metode --</option>";
+
                     if (!empty($mtd->first())) {
                         foreach ($mtd as $row) {
-                            if ($d->pm_id == $row->id) {
-                                $method .= "<option value='" . $row->id . "' selected>" . $row->pm_name . "</option>";
-                            } else {
-                                $method .= "<option value='" . $row->id . "'>" . $row->pm_name . "</option>";
-                            }
+                            $label = trim($row->pm_name . ' - ' . $row->st_name);
+                            $selected = ($d->pm_id == $row->id) ? 'selected' : '';
+                            $method .= "<option value='" . $row->id . "' $selected>" . $label . "</option>";
                         }
                     }
+
                     $method .= "</select>";
                     return $method;
                 })
@@ -226,19 +232,24 @@ class InvoiceEditorController extends Controller
                 })
                 ->editColumn('method_two', function ($d) {
                     $method_two = '';
-                    $mtd = DB::table('payment_methods')->select('id', 'pm_name')
+                    $mtd = DB::table('payment_methods')
+                        ->select('payment_methods.id', 'pm_name', 'st_name')
+                        ->join('stores', 'stores.id', '=', 'payment_methods.st_id')
                         ->where('pm_delete', '!=', '1')
+                        ->where('payment_methods.st_id', '=', $d->trx_store_id)
                         ->get();
+
                     $method_two .= "<select data-pt_id='" . $d->id . "' id='method'>";
+                    $method_two .= "<option value='' " . (empty($d->pm_id_partial) ? 'selected' : '') . ">-- Pilih Metode --</option>";
+
                     if (!empty($mtd->first())) {
                         foreach ($mtd as $row) {
-                            if ($d->pm_id_partial == $row->id) {
-                                $method_two .= "<option value='" . $row->id . "' selected>" . $row->pm_name . "</option>";
-                            } else {
-                                $method_two .= "<option value='" . $row->id . "'>" . $row->pm_name . "</option>";
-                            }
+                            $label = trim($row->pm_name . ' - ' . $row->st_name);
+                            $selected = ($d->pm_id_partial == $row->id) ? 'selected' : '';
+                            $method_two .= "<option value='" . $row->id . "' $selected>" . $label . "</option>";
                         }
                     }
+
                     $method_two .= "</select>";
                     return $method_two;
                 })
@@ -679,9 +690,12 @@ class InvoiceEditorController extends Controller
         } else if ($type == 'pos_status_change') {
             // Refund Baru
             if ($value == 'REFUND' || $value == 'CANCEL') {
-                $pos_invoice = PosTransaction::where('id', $id)->get()->first()->pos_invoice;
+                $transaction = PosTransaction::where('id', $id)->get()->first();
+                $pos_invoice = $transaction->pos_invoice;
 
                 $existing = PosTransaction::where('id', $id)->first();
+
+                $online_trx_data = OnlineTransactions::where('order_number', $transaction->pos_order_number)->first();
 
                 // Tambahan: Cegah jika status sebelumnya belum 'DONE'
                 if ($existing->pos_status !== 'DONE') {
@@ -689,6 +703,22 @@ class InvoiceEditorController extends Controller
                         'status' => 400,
                         'message' => 'Transaksi belum selesai, tidak dapat di-refund atau cancel.'
                     ]);
+                }
+
+                if ($online_trx_data) {
+                    $update_online = OnlineTransactions::where('order_number', $transaction->pos_order_number)
+                        ->update([
+                            'internal_order_status' => 'NEW TRX',
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+
+                    // Logika tambahan jika diperlukan
+                    if (!$update_online) {
+                        return response()->json([
+                            'status' => 500,
+                            'message' => 'Gagal memperbarui status transaksi online.'
+                        ]);
+                    }
                 }
 
                 $ref_check = PosTransaction::where('pos_invoice', $pos_invoice)

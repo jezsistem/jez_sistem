@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\B1g1Controller;
 use App\Http\Controllers\CycleCountController;
+use App\Http\Controllers\DeliveryRecapController;
 use App\Http\Controllers\ExceptionLocationController;
 use App\Http\Controllers\InstockApprovalController;
 use App\Http\Controllers\InstockListController;
@@ -31,6 +32,7 @@ use Illuminate\Support\Facades\Route;
 
 /* new 25-09-2024*/
 use App\Http\Controllers\AllstockController;
+use App\Http\Controllers\HelperOnlineController;
 use App\Http\Controllers\StorageAreaController;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -380,4 +382,26 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reload_storage_area', [StorageAreaController::class, 'reloadStorageArea']);
 
     Route::post('mass_update_product', [ProductController::class, 'massUpdateProductImport'])->name('mass_update_product');
+
+    Route::get('helper_online', [HelperOnlineController::class, 'index'])->name('helper_online');
+    Route::get('helper_online_datatables', [HelperOnlineController::class, 'getDatatables']);
+    Route::get('helper_online_get_picked_item', [HelperOnlineController::class, 'getListPickedOnline']);
+    Route::get('helper_online_get_online_items', [HelperOnlineController::class, 'getOnlineItems']);
+    Route::get('helper_online_get_bin', [HelperOnlineController::class, 'getBin']);
+    Route::post('helper_online_pick_item', [HelperOnlineController::class, 'pickItem']);
+    Route::post('helper_online_quality_check_item', [HelperOnlineController::class, 'qualityCheckItem']);
+    Route::post('helper_online_cancel_pick/{plst_id}', [HelperOnlineController::class, 'cancelPickItem']);
+    Route::get('helper_online_get_waiting_receipt_items', [HelperOnlineController::class, 'waitingReceipt']);
+    Route::post('helper_online_print_resi/{to_id}', [HelperOnlineController::class, 'printResi']);
+    Route::post('helper_online_print_invoice/{to_id}', [HelperOnlineController::class, 'printInvoice']);
+    Route::post('helper_online_done_print/{to_id}', [HelperOnlineController::class, 'donePrint']);
+    Route::post('helper_online_scan_packing_single', [HelperOnlineController::class, 'scanPackingSingle']);
+    Route::post('helper_online_scan_packing_bulk', [HelperOnlineController
+    ::class, 'scanPackingBulk']);
+    Route::post('helper_online_scan_manifest_bulk', [HelperOnlineController::class, 'scanManifestBulk']);
+//    Route::get('helper_online_print_manifest', [HelperOnlineController::class, 'printManifest']);
+
+    Route::get('/manifest/data', [DeliveryRecapController::class, 'getData'])->name('manifest.data');
+    Route::get('/manifest/print/{id}', [DeliveryRecapController::class, 'print'])->name('manifest.print');
+
 });
