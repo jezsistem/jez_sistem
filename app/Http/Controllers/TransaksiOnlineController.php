@@ -1582,7 +1582,14 @@ class TransaksiOnlineController extends Controller
                     if ($order_status != 'Batal' || $order_status != 'Cancel') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->exists();
+                            
+                            $otd_warehouse = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->value('warehouse');
 
+                            if ($to_id->internal_order_status != 'NEW TRX') {
+                                $warehouse = $otd_warehouse;
+                            } else {
+                                $warehouse = $warehouse = $item[19] ?? $st_code;
+                            }
                             $rowSku = [
                                 'order_number' => $order_number,
                                 'to_id' => $to_id->id,
@@ -1719,10 +1726,18 @@ class TransaksiOnlineController extends Controller
                 try {
                     $to_id = OnlineTransactions::where('order_number', $order_number)->get()->first();
 
+
+
                     if ($order_status != 'Batal' || $order_status != 'Canceled') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->exists();
+                            $otd_warehouse = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->value('warehouse');
 
+                            if ($to_id->internal_order_status != 'NEW TRX') {
+                                $warehouse = $otd_warehouse;
+                            } else {
+                                $warehouse = $warehouse = $item[19] ?? $st_code;
+                            }
 
                             $rowSku = [
                                 'order_number' => $order_number,
