@@ -122,7 +122,7 @@
                             <u><strong>
                                     <h2 style="margin-bottom: 0px;">DELIVERY MANIFEST</h2>
                                 </strong></u>
-                            <h2 style="font-weight: 100; margin-top:0px">INV/AMP-MLG/JNT/20251029/001</h2>
+                            <h2 style="font-weight: 100; margin-top:0px">{{ $manifest_number }}</h2>
                         </center>
                         <h3 style="font-weight: 100; margin-top:1cm">
                             Tanggal Manifest: {{ $recap_date }}

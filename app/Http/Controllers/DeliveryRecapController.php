@@ -425,6 +425,7 @@ class DeliveryRecapController extends Controller
                 'delivery_recaps.id',
                 'delivery_recaps.recap_date',
                 'delivery_recaps.courier_name',
+                'delivery_recaps.manifest_number',
                 'delivery_recaps.courier_phone',
                 'delivery_recaps.signature_pic',
                 'delivery_recaps.signature_courier',
@@ -488,6 +489,7 @@ class DeliveryRecapController extends Controller
             'pic_seller' => $user->u_name ?? '-',
             'pic_phone' => $user->u_phone ?? '-',
             'note' => $header->note ?? '-',
+            'manifest_number' => $header->manifest_number ?? '-',
             'recap_date' => $header->recap_date
                 ? \Carbon\Carbon::parse($header->recap_date)->format('d/m/Y H:i')
                 : '-',
