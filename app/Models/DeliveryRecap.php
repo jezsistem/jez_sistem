@@ -17,6 +17,8 @@ class DeliveryRecap extends Model
         'courier_name',
         'courier_phone',
         'import_file',
+        'note',
+        'proof_image',
         'signature_pic',
         'signature_courier',
         'recap_date',

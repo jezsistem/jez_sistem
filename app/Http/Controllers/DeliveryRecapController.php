@@ -79,7 +79,7 @@ class DeliveryRecapController extends Controller
             'segment' => request()->segment(1)
 
         ];
-        return view('app.delivery_reca  p.delivery_recap', compact('data'));
+        return view('app.delivery_recap.delivery_recap', compact('data'));
     }
 
     public function getDatatables(Request $request)
@@ -147,11 +147,19 @@ class DeliveryRecapController extends Controller
                 'signature_pic' => 'required|string',
                 'signature_kurir' => 'required|string',
                 'order_type' => 'required',
+                'import_proof_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
+
+//            dd($request->all());
 
             // Pastikan folder signature ada
             if (!Storage::disk('public')->exists('signatures')) {
                 Storage::disk('public')->makeDirectory('signatures');
+            }
+
+            // Pastikan folder import_proof_image ada
+            if (!Storage::disk('public')->exists('proof_image')) {
+                Storage::disk('public')->makeDirectory('proof_image');
             }
 
             // === Simpan tanda tangan penyerah (PIC) ===
@@ -163,13 +171,19 @@ class DeliveryRecapController extends Controller
                 Storage::disk('public')->put('signatures/' . $signaturePicName, $decodedPic);
             }
 
-            // === Simpan tanda tangan kurir ===
             $signatureCourierName = null;
             if ($request->signature_kurir) {
                 $signatureCourierName = 'signature_courier_' . Str::random(10) . '.png';
                 $dataCourier = explode(',', $request->signature_kurir);
                 $decodedCourier = base64_decode(end($dataCourier));
                 Storage::disk('public')->put('signatures/' . $signatureCourierName, $decodedCourier);
+            }
+
+            $proofImageName = null;
+            if ($request->hasFile('import_proof_image')) {
+                $file = $request->file('import_proof_image');
+                $proofImageName = 'proof_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('proof_image', $proofImageName, 'public');
             }
 
             $store = DB::table('stores')->where('id', Auth::user()->st_id)->first();
@@ -204,6 +218,8 @@ class DeliveryRecapController extends Controller
 
             $manifestNumber = "MANIFEST/AMP-{$storeCode}/{$courierCode}/{$dateNow}/{$sequence}";
 
+
+
             $recap = DeliveryRecap::create([
                 'manifest_number' => $manifestNumber,
                 'courier_name' => $request->courier_name,
@@ -211,6 +227,8 @@ class DeliveryRecapController extends Controller
                 'expedition_id' => $request->expeditions,
                 'signature_pic' => $signaturePicName,
                 'signature_courier' => $signatureCourierName,
+                'note' => $request->content,
+                'proof_image' => $proofImageName,
                 'recap_date' => now(),
                 'created_by' => auth()->id(),
             ]);
@@ -337,7 +355,12 @@ class DeliveryRecapController extends Controller
                 'data' => $recap
             ]);
 
-        } catch (\Exception $e) {
+        }
+//        catch (\Illuminate\Validation\ValidationException $e) {
+//            // Dump pesan error validasi
+//            dd($e->errors());
+//        }
+        catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,

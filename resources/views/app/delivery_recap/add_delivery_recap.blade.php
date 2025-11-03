@@ -84,6 +84,17 @@
                    name="resi_number" id="resi_number" placeholder="Masukkan nomor resi">
         </div>
 
+        <div class="form-group">
+            <label class="font-size-h6 font-weight-bolder text-white float-left">Bukti Penyerahan</label>
+            <input type="file" class="form-control form-control-solid h-auto py-5 px-5 rounded-lg mb-2" name="import_proof_image" id="import_proof_image">
+        </div>
+
+
+        <div class="form-group mt-3">
+            <label class="font-size-h6 font-weight-bolder text-white">Note (optional)</label>
+            <textarea name="content" id="editor" rows="10" class="form-control"></textarea>
+        </div>
+
         <!-- Signature Pad: PIC -->
         <div class="form-group">
             <label style="color: white; font-size: 15px; font-weight: bold; display: block; margin-bottom: 5px;">
@@ -125,9 +136,29 @@
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+{{-- CKEditor 5 Classic build --}}
+<script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
 
 <script>
     var modal_opened = '';
+
+    // Inisialisasi CKEditor
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            toolbar: [
+                'heading', '|',
+                'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                'insertTable', 'blockQuote', 'undo', 'redo'
+            ],
+            height: '300px'
+        })
+        .then(editor => {
+            console.log('CKEditor 5 initialized', editor);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
     $(document).ready(function () {
         function initializeScanner(elementId) {
         return new Html5QrcodeScanner(elementId, {
