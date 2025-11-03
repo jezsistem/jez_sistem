@@ -407,7 +407,7 @@ class DeliveryRecapController extends Controller
                 'delivery_recaps.signature_courier',
                 'couriers.cr_name as expedition_name',
                 'users.u_name as pic_name',
-                'created_by as u_id'
+                'delivery_recaps.created_by as u_id'
             )
             ->where('delivery_recaps.id', $id)
             ->first();
