@@ -181,8 +181,8 @@
         .create(document.querySelector('#editor'), {
             toolbar: [
                 'heading', '|',
-                'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-                'insertTable', 'blockQuote', 'undo', 'redo'
+                'bold', 'italic', 'bulletedList', 'numberedList', '|',
+                'undo', 'redo'
             ],
             height: '300px'
         })
