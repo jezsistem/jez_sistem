@@ -185,7 +185,7 @@ class TransaksiOnlineController extends Controller
                     $badge = $unreadCount > 0 ? '<span class="badge badge-danger position-absolute top-0 start-100 translate-middle">' . $unreadCount . '</span>' : '';
 
                     return '<div class="d-flex">
-                                <button class="btn btn-sm btn-danger ms-1" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
+                                <button class="btn btn-sm btn-danger ms-1 mr-2" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
                                     <i class="fas fa-times"></i>
                                 </button>
                                 <button class="btn btn-sm btn-warning ms-1 mr-2" onclick="clearPrintStatus(' . $data->to_id . ')" title="Clear Print Status">
