@@ -83,6 +83,11 @@
                             <p class="card-text copy-resi" style="cursor: pointer;" data-resi="${transaction.no_resi}">Resi: <strong>${transaction.no_resi}</strong></p>
                             <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
                             <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
+                            <p class="card-text">Metode Pengiriman: 
+                                <span style="background-color: ${transaction.shipping_method && transaction.shipping_method.toLowerCase().includes('instant') ? '#28a745' : '#6c757d'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                    ${transaction.shipping_method}
+                                </span>
+                            </p>
                             <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
                             <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
                             <p class="card-text">Status TRX: 

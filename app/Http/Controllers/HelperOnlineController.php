@@ -144,7 +144,9 @@ class HelperOnlineController extends Controller
                 DB::raw('SUM(ts_online_transaction_details.qty) AS total_picked'),
                 DB::raw('COUNT(ts_online_transaction_chat_history.id) as unreaded_chat'),
                 DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
-                'online_print'
+                DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
+                'online_print',
+                'shipping_method'
             )
             ->leftJoin('online_transaction_chat_history', function ($join) {
                 $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
@@ -155,6 +157,7 @@ class HelperOnlineController extends Controller
 
             ->where('product_location_setup_transactions.plst_status', '!=', 'REFUND')
             ->groupBy('online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created')
+            ->orderByRaw('CASE WHEN is_instant = 1 THEN 0 ELSE 1 END')
             ->orderByDesc('last_chat_time')
             ->orderBy('picked_time', 'asc');
 
