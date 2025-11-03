@@ -406,7 +406,8 @@ class DeliveryRecapController extends Controller
                 'delivery_recaps.signature_pic',
                 'delivery_recaps.signature_courier',
                 'couriers.cr_name as expedition_name',
-                'users.u_name as pic_name'
+                'users.u_name as pic_name',
+                'created_by as u_id'
             )
             ->where('delivery_recaps.id', $id)
             ->first();
@@ -445,7 +446,7 @@ class DeliveryRecapController extends Controller
 
         $manifest_date = date('Y-m-d');
         $address = DB::table('stores')->where('id', $st_id)->first();
-        $user = DB::table('users')->where('id', Auth::user()->id)->first();
+        $user = DB::table('users')->where('id', $header->u_id)->first();
 
         $signature_pic_url = $header->signature_pic
             ? asset('storage/signatures/' . $header->signature_pic)
