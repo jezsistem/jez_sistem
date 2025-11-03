@@ -5,6 +5,40 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
 
+    /* Pastikan CKEditor responsif di mobile */
+    .ck-editor__editable {
+        min-height: 200px;
+        max-height: 400px;
+    }
+
+    .ck-editor {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* Agar toolbar CKEditor tidak keluar layar */
+    .ck.ck-toolbar {
+        flex-wrap: wrap !important;
+    }
+
+    /* Perbaiki tampilan di HP */
+    @media (max-width: 768px) {
+        .ck-editor__editable {
+            font-size: 14px !important;
+            min-height: 150px !important;
+        }
+
+        .ck.ck-toolbar {
+            font-size: 12px !important;
+            flex-wrap: wrap !important;
+        }
+
+        .ck.ck-content {
+            padding: 10px !important;
+        }
+    }
+
     .swal2-center-icon .swal2-icon {
         margin: 0 auto 1rem auto !important;
     }
@@ -84,6 +118,17 @@
                    name="resi_number" id="resi_number" placeholder="Masukkan nomor resi">
         </div>
 
+        <div class="form-group">
+            <label class="font-size-h6 font-weight-bolder text-white float-left">Bukti Penyerahan</label>
+            <input type="file" class="form-control form-control-solid h-auto py-5 px-5 rounded-lg mb-2" name="import_proof_image" id="import_proof_image">
+        </div>
+
+
+        <div class="form-group mt-3">
+            <label class="font-size-h6 font-weight-bolder text-white">Note (optional)</label>
+            <textarea name="content" id="editor" rows="10" class="form-control"></textarea>
+        </div>
+
         <!-- Signature Pad: PIC -->
         <div class="form-group">
             <label style="color: white; font-size: 15px; font-weight: bold; display: block; margin-bottom: 5px;">
@@ -125,9 +170,29 @@
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+{{-- CKEditor 5 Classic build --}}
+<script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
 
 <script>
     var modal_opened = '';
+
+    // Inisialisasi CKEditor
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            toolbar: [
+                'heading', '|',
+                'bold', 'italic', 'bulletedList', 'numberedList', '|',
+                'undo', 'redo'
+            ],
+            height: '300px'
+        })
+        .then(editor => {
+            console.log('CKEditor 5 initialized', editor);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
     $(document).ready(function () {
         function initializeScanner(elementId) {
         return new Html5QrcodeScanner(elementId, {
