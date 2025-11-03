@@ -143,7 +143,7 @@ class DeliveryRecapController extends Controller
                 'courier_name' => 'required|string|max:255',
                 'courier_phone' => 'nullable|string|max:20',
                 'expeditions' => 'required',
-                'import_file' => 'required|file|mimes:xlsx,xls,csv',
+                'import_file'     => 'required_if:order_type,Reguler|file|mimes:xlsx,xls,csv',
                 'signature_pic' => 'required|string',
                 'signature_kurir' => 'required|string',
                 'order_type' => 'required',
@@ -302,19 +302,26 @@ class DeliveryRecapController extends Controller
                     ], 400);
                 }
 
+                DeliveryReceipt::insert($receipts);
 
-            } else {
-                $resiList = array_filter(array_map('trim', explode(',', $request->resi_number)));
+
+            } else if ($request->order_type == 'Instan') {
+                $resiList = is_array($request->resi_number) ? $request->resi_number : [$request->resi_number];
 
                 $receipts = [];
                 foreach ($resiList as $resi) {
+                    $transaction = OnlineTransactions::where('no_resi', $resi)->first();
+                    if (!$transaction) continue;
+
+                    $count_qty = OnlineTransactionDetails::where('order_number', $transaction->order_number)->count();
+
                     $receipts[] = [
                         'dr_id' => $recap->id,
                         'resi' => $resi,
-                        'marketplace_name' => '-',
-                        'item_qty' => 1,
-                        'city_destinations' => '-',
-                        'note' => 'Order Instan',
+                        'marketplace_name' => $transaction->platform_name ?? '-',
+                        'item_qty' => $count_qty ?? 0,
+                        'city_destinations' => $transaction->city ?? '-',
+                        'note' => $transaction->note ?? '-',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -322,10 +329,6 @@ class DeliveryRecapController extends Controller
 
                 DeliveryReceipt::insert($receipts);
             }
-
-            // === Insert semua data resi valid ===
-            DeliveryReceipt::insert($receipts);
-
             DB::commit();
 
             return response()->json([
