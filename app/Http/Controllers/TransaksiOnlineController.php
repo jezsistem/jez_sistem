@@ -1582,13 +1582,13 @@ class TransaksiOnlineController extends Controller
                     if ($order_status != 'Batal' || $order_status != 'Cancel') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->exists();
-                            
+
                             $otd_warehouse = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->value('warehouse');
 
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $otd_warehouse;
                             } else {
-                                $warehouse = $warehouse = $item[19] ?? $st_code;
+                                $warehouse = $item[19] ?? $st_code;
                             }
                             $rowSku = [
                                 'order_number' => $order_number,
@@ -1736,7 +1736,7 @@ class TransaksiOnlineController extends Controller
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $otd_warehouse;
                             } else {
-                                $warehouse = $warehouse = $item[19] ?? $st_code;
+                                $warehouse = $item[19] ?? $st_code;
                             }
 
                             $rowSku = [
