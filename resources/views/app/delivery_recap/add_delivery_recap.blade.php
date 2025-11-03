@@ -5,6 +5,40 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
 
+    /* Pastikan CKEditor responsif di mobile */
+    .ck-editor__editable {
+        min-height: 200px;
+        max-height: 400px;
+    }
+
+    .ck-editor {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* Agar toolbar CKEditor tidak keluar layar */
+    .ck.ck-toolbar {
+        flex-wrap: wrap !important;
+    }
+
+    /* Perbaiki tampilan di HP */
+    @media (max-width: 768px) {
+        .ck-editor__editable {
+            font-size: 14px !important;
+            min-height: 150px !important;
+        }
+
+        .ck.ck-toolbar {
+            font-size: 12px !important;
+            flex-wrap: wrap !important;
+        }
+
+        .ck.ck-content {
+            padding: 10px !important;
+        }
+    }
+
     .swal2-center-icon .swal2-icon {
         margin: 0 auto 1rem auto !important;
     }
