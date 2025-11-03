@@ -122,7 +122,7 @@
                             <u><strong>
                                     <h2 style="margin-bottom: 0px;">DELIVERY MANIFEST</h2>
                                 </strong></u>
-                            <h2 style="font-weight: 100; margin-top:0px">INV/AMP-MLG/JNT/20251029/001</h2>
+                            <h2 style="font-weight: 100; margin-top:0px">{{ $manifest_number }}</h2>
                         </center>
                         <h3 style="font-weight: 100; margin-top:1cm">
                             Tanggal Manifest: {{ $recap_date }}
@@ -210,9 +210,17 @@
                         </tbody>
                     </table>
 
+                        @if ($pageIndex === count($chunks) - 1)
+                            <div style="margin-top: 1cm; font-size: 8pt;">
+                                <p><strong>Note Penjual:</strong></p>
+                                {!! $note ?? '<em>Tidak ada catatan.</em>' !!}
+
+                            </div>
+                        @endif
+
                     @if ($pageIndex === count($chunks) - 1)
                         <div style="margin-top: 1cm; font-size: 8pt;">
-                            <p><strong>Note:</strong></p>
+                            <p><strong>Caution:</strong></p>
                             <ol>
                                 <li>Pastikan seluruh paket telah sesuai dengan daftar manifest sebelum diserahkan.</li>
                                 <li>Nomor manifest ini menjadi bukti sah serah terima antara pihak Seller dan Ekspedisi.</li>
