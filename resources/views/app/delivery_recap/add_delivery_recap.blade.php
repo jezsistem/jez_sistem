@@ -294,6 +294,8 @@
 
             $('#kt_login_signin_submit').prop('disabled', true).text('Submitting...');
 
+            console.log($('#resi_number').val());
+
             $.ajax({
                 url: "{{ route('delivery-recaps.store') }}",
                 type: "POST",
