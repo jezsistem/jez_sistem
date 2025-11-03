@@ -1287,13 +1287,28 @@ class TransaksiOnlineController extends Controller
                 return response()->json(['status' => '404', 'message' => 'Transaction not found']);
             }
 
+            DB::beginTransaction();
+
+            // Handle file upload if present
+            $attachment_path = null;
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $timestamp = Carbon::now()->format('Ymd_His');
+                $extension = $file->getClientOriginalExtension();
+                $fileName = $timestamp . '_ot' . $ot_id . '.' . $extension;
+                $attachment_path = $file->storeAs('chat_online_attachment', $fileName, 'public');
+            }
+
             $send = OnlineTransactionChat::create([
                 'ot_id' => $ot_id,
                 'user_id' => $user->id,
                 'messages' => $message,
                 'is_amp' => $is_amp ? 1 : 0,
+                'file_path' => $attachment_path,
                 'created_at' => now(),
             ]);
+
+            DB::commit();
 
             return response()->json(['status' => '200', 'message' => 'Message sent successfully']);
         } catch (\Exception $e) {
