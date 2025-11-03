@@ -210,9 +210,17 @@
                         </tbody>
                     </table>
 
+                        @if ($pageIndex === count($chunks) - 1)
+                            <div style="margin-top: 1cm; font-size: 8pt;">
+                                <p><strong>Note Penjual:</strong></p>
+                                {!! $note ?? '<em>Tidak ada catatan.</em>' !!}
+
+                            </div>
+                        @endif
+
                     @if ($pageIndex === count($chunks) - 1)
                         <div style="margin-top: 1cm; font-size: 8pt;">
-                            <p><strong>Note:</strong></p>
+                            <p><strong>Caution:</strong></p>
                             <ol>
                                 <li>Pastikan seluruh paket telah sesuai dengan daftar manifest sebelum diserahkan.</li>
                                 <li>Nomor manifest ini menjadi bukti sah serah terima antara pihak Seller dan Ekspedisi.</li>

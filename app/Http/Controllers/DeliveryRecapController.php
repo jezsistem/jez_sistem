@@ -430,7 +430,8 @@ class DeliveryRecapController extends Controller
                 'delivery_recaps.signature_courier',
                 'couriers.cr_name as expedition_name',
                 'users.u_name as pic_name',
-                'delivery_recaps.created_by as u_id'
+                'delivery_recaps.created_by as u_id',
+                'note'
             )
             ->where('delivery_recaps.id', $id)
             ->first();
@@ -486,6 +487,7 @@ class DeliveryRecapController extends Controller
             'store_name' => $address->st_name ?? '-',
             'pic_seller' => $user->u_name ?? '-',
             'pic_phone' => $user->u_phone ?? '-',
+            'note' => $header->note ?? '-',
             'recap_date' => $header->recap_date
                 ? \Carbon\Carbon::parse($header->recap_date)->format('d/m/Y H:i')
                 : '-',
