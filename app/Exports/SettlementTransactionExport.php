@@ -150,6 +150,7 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
             ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_order_number')
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
             ->leftJoin('online_funds', 'online_funds.order_number', '=', 'pos_transactions.pos_order_number')
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->whereBetween(DB::raw('DATE(ts_pos_transactions.created_at)'), [$this->start_date, $this->end_date]);
 
         // Apply filters if provided
