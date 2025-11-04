@@ -64,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pdf-import', [PdfSplitController::class, 'index'])->name('pdf.import');
     Route::post('/pdf-split', [PdfSplitController::class, 'split'])->name('pdf.split');
     Route::get('/split-resi/history', [PdfSplitController::class, 'getHistory'])->name('split.history.ajax');
+    Route::post('/input_single_resi', [TransaksiOnlineController::class, 'inputSingleResi'])->name('input.single.resi');
+    Route::post('/transaksi_online_pin', [TransaksiOnlineController::class, 'togglePinOnlineTransaction']);
 
     Route::post('/clear_print_status_online_transaction/{to_id}', [TransaksiOnlineController::class, 'clearPrintStatus']);
     Route::post('/cancel_online_transaction/{to_id}', [TransaksiOnlineController::class, 'cancelTran']);

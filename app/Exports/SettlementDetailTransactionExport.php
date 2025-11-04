@@ -197,7 +197,8 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
             ->leftJoin('brands', 'brands.id', '=', 'br_id')
             ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
             ->leftJoin('payment_methods as pm_partial', 'pm_partial.id', '=', 'pm_id_partial')
-            ->whereBetween(DB::raw('DATE(ts_pos_transactions.created_at)'), [$this->start_date, $this->end_date]);
+            ->whereBetween(DB::raw('DATE(ts_pos_transactions.created_at)'), [$this->start_date, $this->end_date])
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED');
 
         // Apply filters if provided
         if ($this->st_id) {

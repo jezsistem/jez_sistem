@@ -1,102 +1,7 @@
 <script>
-    let chat_status = 'closed';
-    let ot_id = null;
     var detail_table = '';
     var online_transaction_table = '';
-
-    function openChat($trx_id) {
-        jQuery.noConflict();
-        $('#chatModal').modal('show');
-        // Get trx_number from the button's data attribute and update the modal title
-        var trx_number = $(event.target).closest('button').data('trx_number');
-        $('.trx_number_title').text(trx_number);
-        setChatOpenStatus();
-        ot_id = $trx_id;
-        getChatData(ot_id);
-    }
-
-    function closeChat() {
-        jQuery.noConflict();
-        $('#chatModal').modal('hide');
-        setChatOpenStatus();
-        ot_id = null;
-        $('.close-modal').trigger('click');
-
-    }
-
-    function setChatOpenStatus() {
-        if (chat_status == 'closed') {
-            chat_status = 'opened'
-        } else {
-            chat_status = 'closed'
-        }
-    }
-
-    function startChatPolling() {
-        setInterval(function() {
-            if (chat_status === 'opened' && ot_id !== null) {
-                getChatData(ot_id);
-            }
-        }, 5000);
-    }
-
-    function getChatData($ot_id) {
-        $.ajax({
-            url: "{{ url('get_chat_history_online_transaction') }}/" + $ot_id,
-            type: 'GET',
-            data: {
-                is_amp: 1,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                if (response.status === '200') {
-                    var chatHistory = response.data;
-                    var chatContainer = $('.chat-messages');
-                    chatContainer.empty(); // Clear existing messages
-
-                    chatHistory.forEach(function(chat) {
-                        var messageElement;
-
-                        if (chat.is_amp == 1) {
-                            // Sent message (You)
-                            messageElement = $(`
-                                <div class="d-flex justify-content-end mb-3">
-                                    <div class="bg-danger text-white rounded px-6 py-2" style="max-width: 70%;">
-                                        <small class="text-light font-weight-bold">${chat.u_name ? chat.u_name : 'You'}</small>
-                                        <p class="mb-1">${chat.messages}</p>
-                                        <small class="text-light">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                                    </div>
-                                </div>
-                            `);
-                        } else {
-                            // Received message (Other user)
-                            messageElement = $(`
-                                <div class="d-flex justify-content-start mb-3">
-                                    <div class="bg-secondary border rounded px-6 py-2" style="max-width: 70%;">
-                                        <small class="text-muted font-weight-bold">${chat.u_name ? chat.u_name : 'User'}</small>
-                                        <p class="mb-1">${chat.messages}</p>
-                                        <small class="text-muted">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                                    </div>
-                                </div>
-                            `);
-                        }
-
-                        chatContainer.append(messageElement);
-                    });
-
-                    // Scroll to the bottom of the chat container
-                    chatContainer.scrollTop(chatContainer[0].scrollHeight);
-                } else {
-                    toastr.error('Failed to load chat history. Please try again.');
-                }
-            },
-            error: function(xhr, status, error) {
-                toastr.error('An error occurred while fetching chat history. Please try again.');
-                console.error('Error fetching chat history:', error);
-            }
-        });
-
-    }
+    var is_amp = 1;
 
     function deleteItem(otd_id) {
         Swal.fire({
@@ -360,7 +265,8 @@
                 },
                 success: function(response) {
                     if (response.status === '200') {
-                        Swal.fire('Berhasil!', 'Transaksi telah dikembalikan ke NEW TRX.', 'success');
+                        Swal.fire('Berhasil!', 'Transaksi telah dikembalikan ke NEW TRX.',
+                            'success');
                         online_transaction_table.draw(false);
                     } else {
                         Swal.fire(
@@ -523,6 +429,10 @@
                     searchable: false
                 },
                 {
+                    data: 'pin',
+                    name: 'pin'
+                },
+                {
                     data: 'order_number',
                     name: 'to_order_number'
                 },
@@ -583,7 +493,9 @@
                 "width": "5%"
             }],
             rowCallback: function(row, data) {
-                if (data.is_instant == true || data.is_instant == 1) {
+                if (data.is_pinned == true || data.is_pinned == 1) {
+                    $(row).css('background-color', '#fff3cd');
+                } else if (data.is_instant == true || data.is_instant == 1) {
                     $(row).css('background-color', '#d4edda');
                 } else {
                     $(row).css('background-color', 'white');
@@ -596,12 +508,6 @@
                 "infoEmpty": "Tidak ada data yang tersedia",
                 "infoFiltered": "(disaring dari total _MAX_ data)"
             }
-        });
-
-        $('#btn_input_resi').on('click', function(e) {
-            console.log('jajajajajajja');
-            $('#DetailModal').modal('hide');
-            $('#InputResiModal').modal('show');
         });
 
         $('#trxTabs .nav-link').on('click', function(e) {
@@ -1214,6 +1120,46 @@
             });
         });
 
+        $(document).delegate('#btn_input_resi', 'click', function() {
+            jQuery.noConflict();
+            var to_id = $('#to_id').val();
+
+            $('#input_single_resi_to_id').val(to_id);
+
+            $('#InputResiModal').modal('show');
+        });
+
+        $('#f_input_single_resi').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "{{ url('input_single_resi') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#InputResiModal').modal('hide');
+                        toastr.success('Resi berhasil diupload!');
+                        $('#f_input_single_resi')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to upload resi. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('An error occurred while uploading the resi. Please try again.');
+                    console.error('Error uploading resi:', error);
+                }
+            });
+        });
+
         $(document).delegate('#print_invoice', 'click', function() {
             var numOrder = document.getElementById('num_order').textContent;
 
@@ -1273,6 +1219,33 @@
                 }
             });
 
+        });
+
+        $(document).delegate('#pin_btn', 'click', function() {
+            var to_id = $(this).data('to_id');
+            var is_pinned = $(this).data('pinned');
+            
+            $.ajax({
+                url: "{{ url('transaksi_online_pin') }}",
+                type: 'POST',
+                data: {
+                    to_id: to_id,
+                    is_pinned: is_pinned,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        toastr.success(response.message || 'Pin status updated successfully!');
+                        online_transaction_table.draw(false);
+                    } else {
+                        toastr.error(response.message || 'Failed to update pin status. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('An error occurred while updating pin status. Please try again.');
+                    console.error('Error updating pin status:', error);
+                }
+            });
         });
 
 

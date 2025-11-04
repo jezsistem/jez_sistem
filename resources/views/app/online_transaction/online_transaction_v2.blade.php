@@ -258,6 +258,7 @@
                                     <thead class="bg-light text-dark">
                                         <tr>
                                             <th>No</th>
+                                            <th>Pin</th>
                                             <th>Nomer Order</th>
                                             <th>Nomer Resi</th>
                                             <th>Platform Name</th>

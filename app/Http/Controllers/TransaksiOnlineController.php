@@ -19,6 +19,7 @@ use App\Models\ProductLocationSetup;
 use App\Models\ProductLocationSetupTransaction;
 use App\Models\ProductStock;
 use App\Models\Size;
+use App\Models\SplitResiLog;
 use App\Models\Store;
 use App\Models\StoreTypeDivision;
 use App\Models\TempMutasi;
@@ -126,11 +127,12 @@ class TransaksiOnlineController extends Controller
                     'online_print',
                     'print_resi',
                     'internal_order_status',
-                    DB::raw('COUNT(ts_online_transaction_chat_history.id) as unread_count'),
+                    DB::raw('COUNT(DISTINCT ts_online_transaction_chat_history.id) as unread_count'),
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
                     'courier',
                     DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
-                    'shipping_method'
+                    'shipping_method',
+                    'is_pinned'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('online_transaction_chat_history', function ($join) {
@@ -154,11 +156,21 @@ class TransaksiOnlineController extends Controller
                     ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
                         $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
                     })
+                    ->orderByDesc('is_pinned')
                     ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 AND order_status not in ("selesai","Telah dikirim","dikirim","completed") AND order_status not like "%Pesanan diterima%" THEN 0 ELSE 1 END')
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
             )
+                ->addColumn('pin', function ($data) {
+                    $icon = $data->is_pinned ? 'fas fa-thumbtack' : 'far fa-thumbtack';
+                    return '<button class="btn btn-sm btn-' . ($data->is_pinned ? 'warning' : 'secondary') . ' pin-toggle" 
+                            data-to_id="' . $data->to_id . '" 
+                            data-pinned="' . $data->is_pinned . '" 
+                            title="' . ($data->is_pinned ? 'Unpin' : 'Pin') . '" id="pin_btn">
+                            <i class="' . $icon . '"></i>
+                        </button>';
+                })
                 ->editColumn('order_number', function ($data) {
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
@@ -214,7 +226,7 @@ class TransaksiOnlineController extends Controller
 
                     return '<span class="' . $class . '">' . $status . '</span>';
                 })
-                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status'])
+                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status','pin'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -1288,13 +1300,28 @@ class TransaksiOnlineController extends Controller
                 return response()->json(['status' => '404', 'message' => 'Transaction not found']);
             }
 
+            DB::beginTransaction();
+
+            // Handle file upload if present
+            $attachment_path = null;
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $timestamp = Carbon::now()->format('Ymd_His');
+                $extension = $file->getClientOriginalExtension();
+                $fileName = $timestamp . '_ot' . $ot_id . '.' . $extension;
+                $attachment_path = $file->storeAs('chat_online_attachment', $fileName, 'public');
+            }
+
             $send = OnlineTransactionChat::create([
                 'ot_id' => $ot_id,
                 'user_id' => $user->id,
                 'messages' => $message,
                 'is_amp' => $is_amp ? 1 : 0,
+                'file_path' => $attachment_path,
                 'created_at' => now(),
             ]);
+
+            DB::commit();
 
             return response()->json(['status' => '200', 'message' => 'Message sent successfully']);
         } catch (\Exception $e) {
@@ -1583,7 +1610,7 @@ class TransaksiOnlineController extends Controller
                     if ($order_status != 'Batal' || $order_status != 'Cancel') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
-                            
+
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
                             } else {
@@ -1730,7 +1757,7 @@ class TransaksiOnlineController extends Controller
                     if ($order_status != 'Batal' || $order_status != 'Canceled') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
-                            
+
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
                             } else {
@@ -1995,6 +2022,121 @@ class TransaksiOnlineController extends Controller
             DB::rollBack();
             \Log::error('Error canceling transaction: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => 'An error occurred while canceling the transaction']);
+        }
+    }
+
+    public function inputSingleResi(Request $request)
+    {
+        $to_id = $request->input_single_resi_to_id;
+
+        try {
+            DB::beginTransaction();
+
+            // Validate file upload
+            if (!$request->hasFile('resi_file')) {
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'File resi harus diupload.'
+                ]);
+            }
+
+            $file = $request->file('resi_file');
+
+            // Validate file type
+            if ($file->getClientOriginalExtension() !== 'pdf') {
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'File harus berformat PDF.'
+                ]);
+            }
+
+            // Get transaction data
+            $transaction = OnlineTransactions::find($to_id);
+
+            if (!$transaction) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Transaksi tidak ditemukan.'
+                ]);
+            }
+
+            // Generate filename using order_number
+            $fileName = $transaction->order_number . '.pdf';
+            $storagePath = 'split_resi/' . $fileName;
+            $publicPath = storage_path('app/public/' . $storagePath);
+
+            // Check if file already exists and delete it
+            if (file_exists($publicPath)) {
+                unlink($publicPath);
+            }
+
+            // Delete existing log entry if exists
+            SplitResiLog::where('split_file', $fileName)->delete();
+
+            // Store file in public/split_resi directory
+            $filePath = $file->storeAs('public/split_resi', $fileName);
+
+            // Update transaction with file path
+            $update_resi = OnlineTransactions::where('id', $to_id)->update([
+                'files_resi' => $filePath,
+                'updated_at' => now(),
+            ]);
+
+            // Simpan log upload
+            SplitResiLog::create([
+                'original_file' => $fileName,
+                'split_file' => $fileName,
+                'uploaded_by' => auth()->id(),
+            ]);
+
+            if (!$update_resi) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '500',
+                    'message' => 'Gagal mengupload file resi.'
+                ]);
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => '200',
+                'message' => 'File resi berhasil diupload.',
+                'file' => $fileName
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error uploading resi file: ' . $e->getMessage());
+            return response()->json([
+                'status' => '500',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function togglePinOnlineTransaction(Request $request)
+    {
+        $to_id = $request->to_id;
+
+        try {
+            $transaction = OnlineTransactions::find($to_id);
+
+            if (!$transaction) {
+                return response()->json(['status' => '404', 'message' => 'Transaksi tidak ditemukan']);
+            }
+
+            $new_pin_status = !$transaction->is_pinned;
+
+            $transaction->update([
+                'is_pinned' => $new_pin_status
+            ]);
+
+            $message = $new_pin_status ? 'Transaksi berhasil dipin' : 'Transaksi berhasil diunpin';
+
+            return response()->json(['status' => '200', 'message' => $message]);
+        } catch (\Exception $e) {
+            \Log::error('Error toggling pin status: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat mengubah status pin']);
         }
     }
 }
