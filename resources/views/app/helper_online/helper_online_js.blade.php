@@ -88,7 +88,7 @@
                                     ${transaction.shipping_method}
                                 </span>
                             </p>
-                            <p class="card-text">Tanggal TRX: <em>${new Date(transaction.created_at).toLocaleDateString()}</em></p>
+                            <p class="card-text">Tanggal Order: <em>${new Date(transaction.created_at).toLocaleString()}</em></p>
                             <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
                             <p class="card-text">Status TRX: 
                                 <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span> ${transaction.all_picked ? ' <span class="badge badge-info">ALL PICKED</span>' : ''}
