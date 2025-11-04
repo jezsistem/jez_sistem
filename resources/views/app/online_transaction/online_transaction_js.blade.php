@@ -265,7 +265,8 @@
                 },
                 success: function(response) {
                     if (response.status === '200') {
-                        Swal.fire('Berhasil!', 'Transaksi telah dikembalikan ke NEW TRX.', 'success');
+                        Swal.fire('Berhasil!', 'Transaksi telah dikembalikan ke NEW TRX.',
+                            'success');
                         online_transaction_table.draw(false);
                     } else {
                         Swal.fire(
@@ -501,12 +502,6 @@
                 "infoEmpty": "Tidak ada data yang tersedia",
                 "infoFiltered": "(disaring dari total _MAX_ data)"
             }
-        });
-
-        $('#btn_input_resi').on('click', function(e) {
-            console.log('jajajajajajja');
-            $('#DetailModal').modal('hide');
-            $('#InputResiModal').modal('show');
         });
 
         $('#trxTabs .nav-link').on('click', function(e) {
@@ -1115,6 +1110,46 @@
                     toastr.error(response.message ||
                         'An error occurred while adding the item. Please try again.');
                     console.error('Error adding item:', error);
+                }
+            });
+        });
+
+        $(document).delegate('#btn_input_resi', 'click', function() {
+            jQuery.noConflict();
+            var to_id = $('#to_id').val();
+
+            $('#input_single_resi_to_id').val(to_id);
+
+            $('#InputResiModal').modal('show');
+        });
+
+        $('#f_input_single_resi').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "{{ url('input_single_resi') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#InputResiModal').modal('hide');
+                        toastr.success('Resi berhasil diupload!');
+                        $('#f_input_single_resi')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to upload resi. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('An error occurred while uploading the resi. Please try again.');
+                    console.error('Error uploading resi:', error);
                 }
             });
         });

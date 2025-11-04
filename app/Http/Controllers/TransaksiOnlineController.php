@@ -19,6 +19,7 @@ use App\Models\ProductLocationSetup;
 use App\Models\ProductLocationSetupTransaction;
 use App\Models\ProductStock;
 use App\Models\Size;
+use App\Models\SplitResiLog;
 use App\Models\Store;
 use App\Models\StoreTypeDivision;
 use App\Models\TempMutasi;
@@ -1598,7 +1599,7 @@ class TransaksiOnlineController extends Controller
                     if ($order_status != 'Batal' || $order_status != 'Cancel') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
-                            
+
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
                             } else {
@@ -1745,7 +1746,7 @@ class TransaksiOnlineController extends Controller
                     if ($order_status != 'Batal' || $order_status != 'Canceled') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
-                            
+
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
                             } else {
@@ -2010,6 +2011,95 @@ class TransaksiOnlineController extends Controller
             DB::rollBack();
             \Log::error('Error canceling transaction: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => 'An error occurred while canceling the transaction']);
+        }
+    }
+
+    public function inputSingleResi(Request $request)
+    {
+        $to_id = $request->input_single_resi_to_id;
+
+        try {
+            DB::beginTransaction();
+
+            // Validate file upload
+            if (!$request->hasFile('resi_file')) {
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'File resi harus diupload.'
+                ]);
+            }
+
+            $file = $request->file('resi_file');
+
+            // Validate file type
+            if ($file->getClientOriginalExtension() !== 'pdf') {
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'File harus berformat PDF.'
+                ]);
+            }
+
+            // Get transaction data
+            $transaction = OnlineTransactions::find($to_id);
+
+            if (!$transaction) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Transaksi tidak ditemukan.'
+                ]);
+            }
+
+            // Generate filename using order_number
+            $fileName = $transaction->order_number . '.pdf';
+            $storagePath = 'split_resi/' . $fileName;
+            $publicPath = storage_path('app/public/' . $storagePath);
+
+            // Check if file already exists and delete it
+            if (file_exists($publicPath)) {
+                unlink($publicPath);
+            }
+
+            // Delete existing log entry if exists
+            SplitResiLog::where('split_file', $fileName)->delete();
+
+            // Store file in public/split_resi directory
+            $filePath = $file->storeAs('public/split_resi', $fileName);
+
+            // Update transaction with file path
+            $update_resi = OnlineTransactions::where('id', $to_id)->update([
+                'files_resi' => $filePath,
+                'updated_at' => now(),
+            ]);
+
+            // Simpan log upload
+            SplitResiLog::create([
+                'original_file' => $fileName,
+                'split_file' => $fileName,
+                'uploaded_by' => auth()->id(),
+            ]);
+
+            if (!$update_resi) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '500',
+                    'message' => 'Gagal mengupload file resi.'
+                ]);
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => '200',
+                'message' => 'File resi berhasil diupload.',
+                'file' => $fileName
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error uploading resi file: ' . $e->getMessage());
+            return response()->json([
+                'status' => '500',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ]);
         }
     }
 }
