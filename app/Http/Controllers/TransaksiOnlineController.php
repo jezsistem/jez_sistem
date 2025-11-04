@@ -1597,12 +1597,10 @@ class TransaksiOnlineController extends Controller
                     //cek current status
                     if ($order_status != 'Batal' || $order_status != 'Cancel') {
                         if ($to_id != null) {
-                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->exists();
-
-                            $otd_warehouse = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->value('warehouse');
-
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
+                            
                             if ($to_id->internal_order_status != 'NEW TRX') {
-                                $warehouse = $otd_warehouse;
+                                $warehouse = $sku_exists->first()->warehouse;
                             } else {
                                 $warehouse = $item[19] ?? $st_code;
                             }
@@ -1621,7 +1619,7 @@ class TransaksiOnlineController extends Controller
                                 'warehouse' => $warehouse,
                             ];
 
-                            if (!$sku_exists) {
+                            if ($sku_exists->count() == 0) {
                                 OnlineTransactionDetails::create($rowSku);
                             } else {
                                 OnlineTransactionDetails::where('to_id', '=', $to_id->id)
@@ -1746,11 +1744,10 @@ class TransaksiOnlineController extends Controller
 
                     if ($order_status != 'Batal' || $order_status != 'Canceled') {
                         if ($to_id != null) {
-                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->exists();
-                            $otd_warehouse = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->value('warehouse');
-
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
+                            
                             if ($to_id->internal_order_status != 'NEW TRX') {
-                                $warehouse = $otd_warehouse;
+                                $warehouse = $sku_exists->first()->warehouse;
                             } else {
                                 $warehouse = $item[19] ?? $st_code;
                             }
@@ -1770,7 +1767,7 @@ class TransaksiOnlineController extends Controller
                                 'warehouse' => $warehouse,
                             ];
 
-                            if (!$sku_exists) {
+                            if ($sku_exists->count() == 0) {
                                 OnlineTransactionDetails::create($rowSku);
                             } else {
                                 OnlineTransactionDetails::where('to_id', $to_id->id)
