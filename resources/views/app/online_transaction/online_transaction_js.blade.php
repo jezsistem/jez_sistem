@@ -429,6 +429,10 @@
                     searchable: false
                 },
                 {
+                    data: 'pin',
+                    name: 'pin'
+                },
+                {
                     data: 'order_number',
                     name: 'to_order_number'
                 },
@@ -489,7 +493,9 @@
                 "width": "5%"
             }],
             rowCallback: function(row, data) {
-                if (data.is_instant == true || data.is_instant == 1) {
+                if (data.is_pinned == true || data.is_pinned == 1) {
+                    $(row).css('background-color', '#fff3cd');
+                } else if (data.is_instant == true || data.is_instant == 1) {
                     $(row).css('background-color', '#d4edda');
                 } else {
                     $(row).css('background-color', 'white');
@@ -1213,6 +1219,33 @@
                 }
             });
 
+        });
+
+        $(document).delegate('#pin_btn', 'click', function() {
+            var to_id = $(this).data('to_id');
+            var is_pinned = $(this).data('pinned');
+            
+            $.ajax({
+                url: "{{ url('transaksi_online_pin') }}",
+                type: 'POST',
+                data: {
+                    to_id: to_id,
+                    is_pinned: is_pinned,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        toastr.success(response.message || 'Pin status updated successfully!');
+                        online_transaction_table.draw(false);
+                    } else {
+                        toastr.error(response.message || 'Failed to update pin status. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('An error occurred while updating pin status. Please try again.');
+                    console.error('Error updating pin status:', error);
+                }
+            });
         });
 
 

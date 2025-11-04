@@ -131,7 +131,8 @@ class TransaksiOnlineController extends Controller
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
                     'courier',
                     DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
-                    'shipping_method'
+                    'shipping_method',
+                    'is_pinned'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('online_transaction_chat_history', function ($join) {
@@ -155,11 +156,21 @@ class TransaksiOnlineController extends Controller
                     ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
                         $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
                     })
+                    ->orderByDesc('is_pinned')
                     ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 AND order_status not in ("selesai","Telah dikirim","dikirim","completed") AND order_status not like "%Pesanan diterima%" THEN 0 ELSE 1 END')
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
             )
+                ->addColumn('pin', function ($data) {
+                    $icon = $data->is_pinned ? 'fas fa-thumbtack' : 'far fa-thumbtack';
+                    return '<button class="btn btn-sm btn-' . ($data->is_pinned ? 'warning' : 'secondary') . ' pin-toggle" 
+                            data-to_id="' . $data->to_id . '" 
+                            data-pinned="' . $data->is_pinned . '" 
+                            title="' . ($data->is_pinned ? 'Unpin' : 'Pin') . '" id="pin_btn">
+                            <i class="' . $icon . '"></i>
+                        </button>';
+                })
                 ->editColumn('order_number', function ($data) {
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
@@ -215,7 +226,7 @@ class TransaksiOnlineController extends Controller
 
                     return '<span class="' . $class . '">' . $status . '</span>';
                 })
-                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status'])
+                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status','pin'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -2100,6 +2111,32 @@ class TransaksiOnlineController extends Controller
                 'status' => '500',
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    public function togglePinOnlineTransaction(Request $request)
+    {
+        $to_id = $request->to_id;
+
+        try {
+            $transaction = OnlineTransactions::find($to_id);
+
+            if (!$transaction) {
+                return response()->json(['status' => '404', 'message' => 'Transaksi tidak ditemukan']);
+            }
+
+            $new_pin_status = !$transaction->is_pinned;
+
+            $transaction->update([
+                'is_pinned' => $new_pin_status
+            ]);
+
+            $message = $new_pin_status ? 'Transaksi berhasil dipin' : 'Transaksi berhasil diunpin';
+
+            return response()->json(['status' => '200', 'message' => $message]);
+        } catch (\Exception $e) {
+            \Log::error('Error toggling pin status: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat mengubah status pin']);
         }
     }
 }
