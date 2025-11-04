@@ -17,5 +17,6 @@ class OnlineTransactionChat extends Model
         'is_amp',
         'is_readed',
         'messages',
+        'file_path',
     ];
 }
