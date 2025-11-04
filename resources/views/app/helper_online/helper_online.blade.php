@@ -117,6 +117,14 @@
                                     <option value="NOT PICKED">NOT PICKED</option>
                                 </select>
                                 <div id="status_pick_parent"></div>
+
+{{--                                <label for="status_pick" class="mt-3">Status Pick</label>--}}
+{{--                                <select class="form-control" id="status_pick" name="status_pick" required>--}}
+{{--                                    <option value="">SEMUA STATUS PICK</option>--}}
+{{--                                    <option value="PICKED">PICKED</option>--}}
+{{--                                    <option value="NOT PICKED">NOT PICKED</option>--}}
+{{--                                </select>--}}
+{{--                                <div id="status_pick_parent"></div>--}}
                             </div>
 
                             <!--end: Datatable-->

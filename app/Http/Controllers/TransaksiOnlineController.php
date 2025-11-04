@@ -140,6 +140,7 @@ class TransaksiOnlineController extends Controller
                     })
                     // ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
+                    ->whereNotIn('order_status', ['Dibatalkan', 'Belum dibayar']) //tambahan ku req mbak lily
                     // ->where('order_status', 'not like', '%batal%')
                     // ->where('order_status', 'not like', '%cancel%')
                     // ->where('order_status', '!=', 'Belum dibayar')
