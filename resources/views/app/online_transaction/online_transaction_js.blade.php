@@ -421,6 +421,7 @@
                     d.warehouse = $('#filter_warehouse').val(); // Warehouse dari filter
                     d.courier = $('#filter_courier').val(); // Courier dari filter
                     d.platform = $('#filter_platform').val(); // Platform dari filter
+                    d.order_status = $('#filter_order_status').val(); // Order status dari filter
                 }
             },
             columns: [{
@@ -579,6 +580,17 @@
 
         $('#filter_courier').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_order_status').select2({
+            width: "50%",
+            dropdownParent: $('#filter_order_status_parent'),
+            minimumResultsForSearch: 0
+        });
+
+        $('#filter_order_status').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (array)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 

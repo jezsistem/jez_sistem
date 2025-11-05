@@ -139,7 +139,8 @@
 
 
                                     <div class="dropdown dropdown-inline mr-2">
-                                        <button type="button" class="btn btn-light-primary font-weight-bolder" data-toggle="modal" data-target="#ImportResiModal" aria-haspopup="true"
+                                        <button type="button" class="btn btn-light-primary font-weight-bolder"
+                                            data-toggle="modal" data-target="#ImportResiModal" aria-haspopup="true"
                                             aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -215,6 +216,20 @@
                                             <option value="TikTok">TikTok</option>
                                         </select>
                                         <div id="filter_platform_parent"></div>
+                                    </div>
+                                </div>
+                                <div class="row mt-5">
+                                    <div class="col-12">
+                                        <div class="">
+                                            <label for="filter_order_status" class="d-block mb-2">Status Order:</label>
+                                            <select name="filter_order_status[]" id="filter_order_status" class="form-control" multiple="multiple" style="width:100%; height: 150px;">
+                                                <option value="">-- Pilih Status Order --</option>
+                                                @foreach ($data['order_statuses'] as $status)
+                                                    <option value="{{ $status }}">{{ $status }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div id="filter_order_status_parent"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
