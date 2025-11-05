@@ -100,6 +100,11 @@ class TransaksiOnlineController extends Controller
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
             'couriers' => OnlineTransactions::select('courier')->distinct()->where('courier', '!=', '')->orderBy('courier')->get(),
             'warehouses' => WarehouseIndex::all(),
+            'order_statuses' => OnlineTransactions::select(DB::raw("DISTINCT(CASE WHEN order_status LIKE '%Pesanan diterima%' THEN 'Pesanan Diterima' ELSE order_status END) as order_status"))
+                            ->whereNotNull('order_status')
+                            ->where('order_status', '!=', '')
+                            ->orderBy('order_status')
+                            ->get()->pluck('order_status')->toArray(),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
@@ -112,6 +117,8 @@ class TransaksiOnlineController extends Controller
         } else {
             $st_id = Auth::user()->st_id;
         }
+
+        $status_order = $request->get('order_status');
         if (request()->ajax()) {
             return DataTables::of(
                 OnlineTransactions::select([
@@ -142,7 +149,8 @@ class TransaksiOnlineController extends Controller
                     })
                     // ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
-                    ->whereNotIn('order_status', ['Dibatalkan', 'Belum dibayar', 'Batal', 'Cancel']) //tambahan ku req mbak lily
+                    ->where('internal_order_status', '!=', null)
+                    // ->whereNotIn('order_status', ['Dibatalkan', 'Belum dibayar', 'Batal', 'Cancel']) //tambahan ku req mbak lily
                     // ->where('order_status', 'not like', '%batal%')
                     // ->where('order_status', 'not like', '%cancel%')
                     // ->where('order_status', '!=', 'Belum dibayar')
@@ -156,8 +164,21 @@ class TransaksiOnlineController extends Controller
                     ->when($request->has('platform') && !empty($request->get('platform')), function ($query) use ($request) {
                         $query->where('online_transactions.platform_name', 'LIKE', '%' . $request->get('platform') . '%');
                     })
+                    ->when($status_order && !empty($status_order), function ($query) use ($status_order) {
+                        if (in_array('Pesanan Diterima', $status_order)) {
+                            $query->where(function($q) use ($status_order) {
+                                $q->where('order_status', 'LIKE', '%Pesanan diterima%');
+                                $otherStatuses = array_diff($status_order, ['Pesanan Diterima']);
+                                if (!empty($otherStatuses)) {
+                                    $q->orWhereIn('order_status', $otherStatuses);
+                                }
+                            });
+                        } else {
+                            $query->whereIn('order_status', $status_order);
+                        }
+                    })
                     ->orderByDesc('is_pinned')
-                    ->orderByRaw('CASE WHEN is_instant = 1 AND online_print = 0 AND order_status not in ("selesai","Telah dikirim","dikirim","completed") AND order_status not like "%Pesanan diterima%" THEN 0 ELSE 1 END')
+                    ->orderByRaw('CASE WHEN is_instant = 1 AND internal_order_status is not null AND online_print = 0 AND order_status not in ("selesai","Telah dikirim","dikirim","completed") AND order_status not like "%Pesanan diterima%" THEN 0 ELSE 1 END')
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
                     ->groupBy('to_id')
