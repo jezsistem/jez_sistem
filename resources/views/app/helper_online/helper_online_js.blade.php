@@ -449,26 +449,45 @@
                         if (response.status === '200') {
                             toastr.success('Status diupdate ke WAITING PACKING');
                         } else {
-                            toastr.error('Gagal mengupdate status');
+                            if (response.status === '200') {
+                                toastr.success('Status diupdate ke WAITING PACKING');
+                                
+                                // Continue with scanner logic only if successful
+                                clearScanners();
+                                scanner_scan_resi.render(success, error);
+                                e.preventDefault();
+                                modal_opened = 'ScanPackingModal';
+                                jQuery.noConflict();
+                                $('#order_number_scan_packing').text(orderNumber);
+                                $('#plst_id_scan_packing').text(transactionId);
+                                $('#resi_number_holder').text(resi_number);
+                                $('#scan_packing_result').val('');
+                                $('#scanPackingModal').modal('show');
+                            } else {
+                                toastr.error(response.message || 'Gagal mengupdate status');
+                                // Don't proceed with scanner - exit early
+                                return;
+                            }
+                            toastr.error(response.message || 'Gagal mengupdate status');
                         }
                     },
                     error: function (xhr, status, error) {
-                        toastr.error('Terjadi kesalahan saat mengupdate status');
+                        toastr.error(response.message || 'Terjadi kesalahan saat mengupdate status');
                         console.error('Error:', error);
                     }
                 });
+            } else if (status == 'WAITING PACKING') {
+                clearScanners();
+                scanner_scan_resi.render(success, error);
+                e.preventDefault();
+                modal_opened = 'ScanPackingModal';
+                jQuery.noConflict();
+                $('#order_number_scan_packing').text(orderNumber);
+                $('#plst_id_scan_packing').text(transactionId);
+                $('#resi_number_holder').text(resi_number);
+                $('#scan_packing_result').val('');
+                $('#scanPackingModal').modal('show');
             }
-
-            clearScanners();
-            scanner_scan_resi.render(success, error);
-            e.preventDefault();
-            modal_opened = 'ScanPackingModal';
-            jQuery.noConflict();
-            $('#order_number_scan_packing').text(orderNumber);
-            $('#plst_id_scan_packing').text(transactionId);
-            $('#resi_number_holder').text(resi_number);
-            $('#scan_packing_result').val('');
-            $('#scanPackingModal').modal('show');
         })
 
         $(document).on('click', '#close_scan_packing_modal_btn', function (e) {

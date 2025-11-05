@@ -1049,6 +1049,11 @@ class HelperOnlineController extends Controller
                 return response()->json(['status' => '400', 'message' => 'Transaksi tidak ditemukan.']);
             }
 
+            //check already printed
+            if (!$transaction->online_print || !$transaction->online_print) {
+                return response()->json(['status' => '403', 'message' => 'Transaksi belum dicetak.']);
+            }
+
             $transaction_items = OnlineTransactionDetails::where('to_id', $to_id)->get();
 
             if ($transaction_items->isEmpty()) {
