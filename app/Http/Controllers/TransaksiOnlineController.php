@@ -1652,12 +1652,26 @@ class TransaksiOnlineController extends Controller
                                 'warehouse' => $warehouse,
                             ];
 
+                            $rowSKUUpdate = [
+                                'order_number' => $order_number,
+                                'to_id' => $to_id->id,
+                                'sku' => $sku,
+                                'original_price' => $original_price,
+                                'price_after_discount' => $price_after_discount,
+                                'return_qty' => $return_qty,
+                                'total_discount' => $total_discount,
+                                'discount_seller' => $discount_seller,
+                                //                                'ns_before_admin' => $ns_before_admin,
+                                'discount_platform' => $discount_platform,
+                                'warehouse' => $warehouse,
+                            ];
+
                             if ($sku_exists->count() == 0) {
                                 OnlineTransactionDetails::create($rowSku);
                             } else {
                                 OnlineTransactionDetails::where('to_id', '=', $to_id->id)
                                     ->where('sku', $sku)
-                                    ->update($rowSku);
+                                    ->update($rowSKUUpdate);
                             }
                         }
                         // Delete duplicates using Eloquent
@@ -1800,12 +1814,26 @@ class TransaksiOnlineController extends Controller
                                 'warehouse' => $warehouse,
                             ];
 
+                            $rowSKUUpdate = [
+                                'order_number' => $order_number,
+                                'to_id' => $to_id->id,
+                                'sku' => $sku,
+                                'original_price' => $original_price,
+                                'price_after_discount' => $price_after_discount,
+                                'return_qty' => $return_qty,
+                                'total_discount' => $total_discount,
+                                'discount_seller' => $discount_seller,
+                                //                                'ns_before_admin' => $ns_before_admin,
+                                'discount_platform' => $discount_platform,
+                                'warehouse' => $warehouse,
+                            ];
+
                             if ($sku_exists->count() == 0) {
                                 OnlineTransactionDetails::create($rowSku);
                             } else {
                                 OnlineTransactionDetails::where('to_id', $to_id->id)
                                     ->where('sku', $sku)
-                                    ->update($rowSku);
+                                    ->update($rowSKUUpdate);
                             }
                         }
 
