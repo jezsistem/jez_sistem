@@ -247,10 +247,13 @@ class DeliveryRecapController extends Controller
                     ], 400);
                 }
 
+
+                $uniqueResi = array_unique($import->resis);
+
                 $receipts = [];
                 $invalidResi = [];
 
-                foreach ($import->resis as $resi) {
+                foreach ($uniqueResi as $resi) {
                     $transaction = OnlineTransactions::where('no_resi', $resi)->first();
 
                     if (!$transaction) {
@@ -270,6 +273,7 @@ class DeliveryRecapController extends Controller
                     }
 
                     $count_qty = OnlineTransactionDetails::where('order_number', $transaction->order_number)->count();
+
 
                     $receipts[] = [
                         'dr_id' => $recap->id,
