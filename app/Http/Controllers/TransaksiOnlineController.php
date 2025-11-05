@@ -1609,7 +1609,7 @@ class TransaksiOnlineController extends Controller
                     //cek current status
                     if ($order_status != 'Batal' || $order_status != 'Cancel') {
                         if ($to_id != null) {
-                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->withTrashed()->get();
 
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
@@ -1756,7 +1756,7 @@ class TransaksiOnlineController extends Controller
 
                     if ($order_status != 'Batal' || $order_status != 'Canceled') {
                         if ($to_id != null) {
-                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->get();
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->withTrashed()->get();
 
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
