@@ -147,7 +147,7 @@ class DeliveryRecapController extends Controller
                 'signature_pic' => 'required|string',
                 'signature_kurir' => 'required|string',
                 'order_type' => 'required',
-                'import_proof_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'import_proof_image' => 'nullable|image|mimes:jpg,jpeg,png',
             ]);
 
 //            dd($request->all());
