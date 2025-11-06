@@ -69,4 +69,5 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/clear_print_status_online_transaction/{to_id}', [TransaksiOnlineController::class, 'clearPrintStatus']);
     Route::post('/cancel_online_transaction/{to_id}', [TransaksiOnlineController::class, 'cancelTran']);
+    Route::post('/delete_online_transaction/{to_id}', [TransaksiOnlineController::class, 'deleteTran']);
 });

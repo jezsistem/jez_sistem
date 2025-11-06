@@ -288,6 +288,52 @@
         });
     }
 
+    function deleteTransaction(ot_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Transaksi akan dihapus secara permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('delete_online_transaction') }}/" + ot_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        Swal.fire('Berhasil!', 'Transaksi telah dihapus.',
+                            'success');
+                        online_transaction_table.draw(false);
+                    } else {
+                        Swal.fire(
+                            'Gagal!',
+                            response.message || 'Terjadi kesalahan saat menghapus transaksi.',
+                            'error'
+                        );
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire(
+                        'Error!',
+                        'Terjadi kesalahan saat menghapus transaksi.',
+                        'error'
+                    );
+                    console.error('Error canceling transaction:', error);
+                }
+            });
+        });
+    }
+
     $(document).ready(function() {
         startChatPolling();
         $.ajaxSetup({
