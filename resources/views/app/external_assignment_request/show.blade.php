@@ -408,6 +408,19 @@
                                         <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
+                                <tr>
+                                    <th colspan="4" style="text-align: right;">Total Cash:</th>
+                                    <th style="text-align: right;">
+                                        Rp {{ number_format($detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                    </th>
+                                </tr>
+                                <tr></tr>
+                                <tr>
+                                    <th colspan="4" style="text-align: right;">Plus Minus Cash:</th>
+                                    <th style="text-align: right;">
+                                        Rp {{ number_format($detail->ear_cash_advance - $detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                    </th>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -437,6 +450,19 @@
                                         <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
+                                <tr>
+                                    <th colspan="4" style="text-align: right;">Total Cash:</th>
+                                    <th style="text-align: left;">
+                                        Rp {{ number_format($detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                    </th>
+                                </tr>
+                                <tr></tr>
+                                <tr>
+                                    <th colspan="4" style="text-align: right;">Plus Minus Cash:</th>
+                                    <th style="text-align: left;">
+                                        Rp {{ number_format($detail->ear_cash_advance - $detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                    </th>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
