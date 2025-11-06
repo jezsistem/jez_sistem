@@ -93,8 +93,7 @@ class ExternalAssignmentRequestController extends Controller
         $users = DB::table('users')->where('u_delete', '0')->orderBy('u_name')->get();
 
         // Get leave types for filter
-        $leaveType = new LeaveType();
-        $leaveTypes = $leaveType->getActiveLeaveTypes();
+        $externalAssignType = ExternalAssignmentType::orderBy('ea_name')->get();
 
         $data = [
             'title' => $title,
@@ -107,7 +106,7 @@ class ExternalAssignmentRequestController extends Controller
             'dateFilter' => $dateFilter
         ];
 
-        return view('app.external_assignment_request.index', compact('leaveRequests', 'users', 'leaveTypes', 'startDate', 'endDate', 'dateFilter', 'userId', 'status', 'leaveTypeId', 'data'));
+        return view('app.external_assignment_request.index', compact('leaveRequests', 'users', 'externalAssignType', 'startDate', 'endDate', 'dateFilter', 'userId', 'status', 'leaveTypeId', 'data'));
 //        return view('app.external_assignment_request.index', compact('data'));
     }
 
@@ -1304,7 +1303,7 @@ class ExternalAssignmentRequestController extends Controller
             $endDate   = $request->get('end_date');
             $userId    = $request->get('user_id');
             $status    = $request->get('status');
-            $eaId      = $request->get('ea_id');
+            $eaTypeID      = $request->get('ea_type_id');
 
             $query = ExternalAssignmentRequest::select([
                 'ear.*',
@@ -1333,8 +1332,8 @@ class ExternalAssignmentRequestController extends Controller
             if ($status) {
                 $query->where('ear.ear_status', $status);
             }
-            if ($eaId) {
-                $query->where('ear.ea_id', $eaId);
+            if ($eaTypeID) {
+                $query->where('ear.ea_id', $eaTypeID);
             }
 
             if ($request->filled('search')) {
