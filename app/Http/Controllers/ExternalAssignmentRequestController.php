@@ -468,7 +468,7 @@ class ExternalAssignmentRequestController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             \Log::error('Failed to update External Assignment Request', [
                 'id' => $id,
                 'error' => $e->getMessage(),
@@ -1345,17 +1345,14 @@ class ExternalAssignmentRequestController extends Controller
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
 
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="' . url('/external-assignment-requests/edit/' . $row->id) . '" class="menu-link px-3">Edit</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
-
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="deleteExternalAssignment(' . $row->id . ')" class="menu-link px-3 text-danger">Delete</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
+                    if ($row->ear_status == 'Pending Approval') {
+                        $btn .= '        <!--begin::Menu item-->';
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="' . url('/external-assignment-requests/edit/' . $row->id) . '" class="menu-link px-3">Edit</a>';
+                        $btn .= '        </div>';
+                        $btn .= '        <!--end::Menu item-->';
+                    }
+                    
                     $btn .= '    </div>';
                     $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
