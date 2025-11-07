@@ -126,6 +126,7 @@ class HelperOnlineController extends Controller
             ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
             ->join('stores', 'online_transactions.st_id', '=', 'stores.id')
             ->select(
+                'product_location_setup_transactions.id as plst_id',
                 'online_transactions.id as transaction_id',
                 'online_transactions.order_number',
                 'platform_name AS platform',
@@ -298,6 +299,30 @@ class HelperOnlineController extends Controller
             })
             ->rawColumns(['item'])
             ->make(true);
+    }
+
+    public function getPickHistory($transactionId)
+    {
+        $data = DB::table('product_location_setup_transactions')
+            ->leftJoin('users', 'product_location_setup_transactions.u_id', '=', 'users.id')
+            ->leftJoin('users as helper', 'product_location_setup_transactions.u_id_helper', '=', 'helper.id')
+            ->leftJoin('users as packer', 'product_location_setup_transactions.u_id_packer', '=', 'packer.id')
+            ->select(
+                'users.u_name as request_by',
+                'helper.u_name as pick_by',
+                'packer.u_name as packing_by',
+                DB::raw('COALESCE(ts_product_location_setup_transactions.pick_time, ts_product_location_setup_transactions.updated_at) as pick_time'),
+                DB::raw('COALESCE(ts_product_location_setup_transactions.pack_time, ts_product_location_setup_transactions.updated_at) as pack_time'),
+                'product_location_setup_transactions.created_at as request_time'
+            )
+            ->where('product_location_setup_transactions.id', $transactionId)
+            ->first();
+
+        if (!$data) {
+            return response()->json(['message' => 'Data tidak ditemukan.'], 404);
+        }
+
+        return response()->json($data);
     }
 
     public function getBin(Request $request)
