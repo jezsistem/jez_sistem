@@ -308,7 +308,7 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4 mb-4">
-                    <div class="card card-custom rounded-lg bg-other">
+                    <div class="card card-custom rounded-lg" style="background-color: #C9F7F5;">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40  mr-4">

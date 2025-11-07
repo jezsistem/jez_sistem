@@ -88,7 +88,7 @@ class ExternalAssignmentRequestController extends Controller
 
         $AssignmentRequest = new ExternalAssignmentRequest();
         $leaveRequests = $AssignmentRequest->getAssignmentRequestsByFilters($startDate, $endDate, $userId, $status, $leaveTypeId);
-//        dd($leaveRequests);
+        //        dd($leaveRequests);
         // Get users for filter
         $users = DB::table('users')->where('u_delete', '0')->orderBy('u_name')->get();
 
@@ -107,7 +107,7 @@ class ExternalAssignmentRequestController extends Controller
         ];
 
         return view('app.external_assignment_request.index', compact('leaveRequests', 'users', 'externalAssignType', 'startDate', 'endDate', 'dateFilter', 'userId', 'status', 'leaveTypeId', 'data'));
-//        return view('app.external_assignment_request.index', compact('data'));
+        //        return view('app.external_assignment_request.index', compact('data'));
     }
 
 
@@ -250,7 +250,7 @@ class ExternalAssignmentRequestController extends Controller
     public function approve(Request $request, $id)
     {
 
-//        dd();
+        //        dd();
         $ear = ExternalAssignmentRequest::findOrFail($id);
         $user = auth()->user();
 
@@ -294,7 +294,7 @@ class ExternalAssignmentRequestController extends Controller
                     mkdir($uploadDir, 0775, true);
                 }
 
-                    $filePath = $file->storeAs('uploads/finance', $filename, 'public');
+                $filePath = $file->storeAs('uploads/finance', $filename, 'public');
             }
 
             $ear->ear_finance_by = $user->id;
@@ -302,9 +302,7 @@ class ExternalAssignmentRequestController extends Controller
             $ear->ear_finance_note = $request->ear_finance_note ?? null;
             $ear->ear_finance_uploads = $filePath;
             $ear->ear_status = $request->action;
-        }
-
-        else {
+        } else {
             return back()->with('error', 'Request ini tidak dapat di-approve pada tahap ini.');
         }
 
@@ -355,176 +353,132 @@ class ExternalAssignmentRequestController extends Controller
     {
         // $this->validateAccess();
 
-        $title = 'Edit Leave Request';
+        $title = 'Edit External Assignment Request';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
-        $leaveRequest = LeaveRequest::with('attachments')->findOrFail($id);
-
-        // Debug: Log the leave request data
-        \Log::info('Leave Request Edit Debug', [
-            'id' => $leaveRequest->id,
-            'lr_start_date' => $leaveRequest->lr_start_date,
-            'lr_end_date' => $leaveRequest->lr_end_date,
-            'lr_start_date_formatted' => $leaveRequest->lr_start_date ? $leaveRequest->lr_start_date->format('Y-m-d') : null,
-            'lr_end_date_formatted' => $leaveRequest->lr_end_date ? $leaveRequest->lr_end_date->format('Y-m-d') : null,
-            'attachments_count' => $leaveRequest->attachments->count()
-        ]);
+        $externalAssignmentRequest = ExternalAssignmentRequest::with(['rundowns', 'cashDetails'])->findOrFail($id);
 
         // Check if user can edit this request
-        if ($leaveRequest->user_id != auth()->user()->id) {
-            return redirect()->route('leave-requests.index')->with('error', 'You can only edit your own leave requests');
+        if ($externalAssignmentRequest->request_by != auth()->user()->id) {
+            return redirect()->route('external-assignments.index')->with('error', 'You can only edit your own external assignment requests');
         }
 
         // Check if request can be edited
-        if ($leaveRequest->lr_status != 'pending') {
-            return redirect()->route('leave-requests.index')->with('error', 'Only pending requests can be edited');
+        if ($externalAssignmentRequest->ear_status != 'Pending Approval') {
+            return redirect()->route('external-assignments.index')->with('error', 'Only pending requests can be edited');
         }
 
-        // Get active leave types
-        $leaveType = new LeaveType();
-        $leaveTypes = $leaveType->getActiveLeaveTypes();
+        // Get active external assignment types
+        $types = ExternalAssignmentType::orderBy('ea_name')->get();
 
         $data = [
             'title' => $title,
-            'subtitle' => 'Edit Leave Request',
-        
+            'subtitle' => 'Edit External Assignment Request',
+            'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1)
         ];
 
-        return view('app.leave_request.edit', compact('leaveRequest', 'leaveTypes', 'data'));
+        return view('app.external_assignment_request.edit', compact('externalAssignmentRequest', 'types', 'data'));
     }
 
     public function update(Request $request, $id)
     {
         // $this->validateAccess();
 
-        $leaveRequest = LeaveRequest::findOrFail($id);
+        $externalAssignmentRequest = ExternalAssignmentRequest::findOrFail($id);
 
         // Check if user can edit this request
-        if ($leaveRequest->user_id != auth()->user()->id) {
-            return redirect()->route('leave-requests.index')->with('error', 'You can only edit your own leave requests');
+        if ($externalAssignmentRequest->request_by != auth()->user()->id) {
+            return redirect()->route('external-assignments.index')->with('error', 'You can only edit your own external assignment requests');
         }
 
         // Check if request can be edited
-        if ($leaveRequest->lr_status != 'pending') {
-            return redirect()->route('leave-requests.index')->with('error', 'Only pending requests can be edited');
+        if ($externalAssignmentRequest->ear_status != 'Pending Approval') {
+            return redirect()->route('external-assignments.index')->with('error', 'Only pending requests can be edited');
         }
 
         $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
-            'lr_start_date' => 'required|date',
-            'lr_end_date' => 'nullable|date|after_or_equal:lr_start_date',
-            'lr_start_time' => 'nullable|date_format:H:i',
-            'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
-            'lr_unit' => 'required|in:days,hours',
-            'lr_reason' => 'required|string',
-            'lr_attachments.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240', // Max 10MB per file
-            'remove_attachments.*' => 'nullable|integer|exists:leave_request_attachments,id'
+            'ea_id' => 'required|exists:external_assignment_types,id',
+            'ear_date_start' => 'required|date',
+            'ear_date_end' => 'nullable|date|after_or_equal:ear_date_start',
+            'ear_locations' => 'required|string',
+            'ear_cash_advance' => 'nullable|numeric|min:0',
+            'ear_note' => 'nullable|string',
+            'rundowns.*.activity' => 'required|string',
+            'rundowns.*.date' => 'nullable|date',
+            'rundowns.*.start_time' => 'nullable|date_format:H:i',
+            'rundowns.*.end_time' => 'nullable|date_format:H:i',
+            'rundowns.*.description' => 'nullable|string',
+            'cash_details.*.cash_purpose' => 'nullable|string',
+            'cash_details.*.cash_amount' => 'nullable|numeric|min:0',
         ]);
 
-        // Calculate total days/hours
-        $startDate = $request->lr_start_date;
-        $endDate = $request->lr_end_date ?: $startDate;
-
-        $startDateObj = Carbon::parse($startDate);
-        $endDateObj = Carbon::parse($endDate);
-
-        if ($request->lr_unit == 'hours') {
-            $startTime = $request->lr_start_time ? Carbon::parse($request->lr_start_time) : Carbon::parse('00:00:00');
-            $endTime = $request->lr_end_time ? Carbon::parse($request->lr_end_time) : Carbon::parse('23:59:59');
-
-            $totalHours = $startDateObj->diffInDays($endDateObj) * 24;
-            $totalHours += $startTime->diffInHours($endTime);
-            $totalDays = 0;
-        } else {
-            $totalDays = $startDateObj->diffInDays($endDateObj) + 1;
-            $totalHours = 0;
-        }
-
-        // Handle removal of existing attachments
-        if ($request->has('remove_attachments')) {
-            foreach ($request->remove_attachments as $attachmentId) {
-                $attachment = DB::table('leave_request_attachments')->where('id', $attachmentId)->first();
-                if ($attachment) {
-                    // Delete file from storage
-                    $filePath = storage_path('app/public/' . $attachment->file_path);
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
-                    // Delete from database
-                    DB::table('leave_request_attachments')->where('id', $attachmentId)->delete();
-                }
-            }
-        }
-
-        // Handle new file uploads
-        $attachmentData = null;
-        if ($request->hasFile('lr_attachments')) {
-            $files = $request->file('lr_attachments');
-            $attachmentData = [];
-
-            foreach ($files as $file) {
-                $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
-
-                $attachmentData[] = [
-                    'file_path' => $filePath,
-                    'original_name' => $file->getClientOriginalName(),
-                    'file_type' => $file->getClientMimeType(),
-                    'file_size' => $file->getSize()
-                ];
-            }
-        }
-
-        $data = [
-            'leave_type_id' => $request->leave_type_id,
-            'lr_start_date' => $startDate,
-            'lr_end_date' => $endDate,
-            'lr_start_time' => $request->lr_start_time,
-            'lr_end_time' => $request->lr_end_time,
-            'lr_total_days' => $totalDays,
-            'lr_total_hours' => $totalHours,
-            'lr_unit' => $request->lr_unit,
-            'lr_reason' => $request->lr_reason
-        ];
-
-        // Use direct Eloquent update instead of custom storeData method
+        DB::beginTransaction();
         try {
-            $leaveRequest->update($data);
+            // Update master record
+            $externalAssignmentRequest->update([
+                'ea_id' => $request->ea_id,
+                'ear_cash_advance' => $request->ear_cash_advance ?? 0,
+                'ear_date_start' => $request->ear_date_start,
+                'ear_date_end' => $request->ear_date_end,
+                'ear_locations' => $request->ear_locations,
+                'ear_note' => $request->ear_note,
+                'updated_at' => Carbon::now(),
+            ]);
 
-            // Handle new attachments if any
-            if ($attachmentData) {
-                foreach ($attachmentData as $attachment) {
-                    DB::table('leave_request_attachments')->insert([
-                        'leave_request_id' => $id,
-                        'file_path' => $attachment['file_path'],
-                        'original_name' => $attachment['original_name'],
-                        'file_type' => $attachment['file_type'],
-                        'file_size' => $attachment['file_size'],
-                        'created_at' => now(),
-                        'updated_at' => now()
+            // Delete existing rundown details and recreate
+            ExternalAssignmentRequestDetail::where('ear_id', $id)->delete();
+            if ($request->has('rundowns')) {
+                foreach ($request->rundowns as $r) {
+                    ExternalAssignmentRequestDetail::create([
+                        'ear_id' => $id,
+                        'activity' => $r['activity'] ?? null,
+                        'rundown_date' => $r['rundown_date'] ?? null,
+                        'start_time' => $r['start_time'] ?? null,
+                        'end_time' => $r['end_time'] ?? null,
+                        'notes' => $r['description'] ?? null,
                     ]);
                 }
             }
 
-            \Log::info('Leave request updated successfully', [
+            // Delete existing cash details and recreate
+            ExternalAssignmentRequestCashDetail::where('ear_id', $id)->delete();
+            if ($request->has('cashDetails')) {
+                foreach ($request->cashDetails as $c) {
+                    ExternalAssignmentRequestCashDetail::create([
+                        'ear_id' => $id,
+                        'cash_purpose' => $c['cash_purpose'] ?? null,
+                        'cash_amount' => $c['cash_amount'] ?? 0,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            \Log::info('External Assignment Request updated successfully', [
                 'id' => $id,
-                'data' => $data,
                 'user_id' => auth()->user()->id
             ]);
 
-            return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'External Assignment Request updated successfully'
+            ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to update leave request', [
+            DB::rollBack();
+            
+            \Log::error('Failed to update External Assignment Request', [
                 'id' => $id,
-                'data' => $data,
                 'error' => $e->getMessage(),
                 'user_id' => auth()->user()->id
             ]);
 
-            return back()->with('error', 'Failed to update leave request: ' . $e->getMessage())->withInput();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update external assignment request: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -586,270 +540,270 @@ class ExternalAssignmentRequestController extends Controller
     }
 
     // Admin approval methods
-//    public function approve(Request $request, $id)
-//    {
-//        \Log::info('Leave Request Approval Attempt', [
-//            'request_id' => $id,
-//            'user_id' => auth()->user()->id,
-//            'request_data' => $request->all(),
-//            'is_ajax' => $request->ajax()
-//        ]);
-//
-//        // $this->validateAccess();
-//
-//        $leaveRequest = LeaveRequest::findOrFail($id);
-//
-//        // Check if user can approve (must be supervisor or higher in same division)
-//        $currentUser = auth()->user();
-//
-////        dd($approver_div);
-//        \Log::info('Current user info', [
-//            'user_id' => $currentUser->id,
-//            'position_id' => $currentUser->up_id,
-//            'division_id' => $currentUser->ud_id
-//        ]);
-//
-//        // Get leave requester info first to check if they're trying to approve their own request
-//        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
-//
-//        $approver_div = DB::table('store_types')->where('id', $leaveRequester->ud_id)->first();
-//
-//
-//        // Check if user is trying to approve their own leave request
-//        if ($currentUser->id == $leaveRequest->user_id) {
-//            \Log::warning('User trying to approve their own leave request');
-//            if ($request->ajax()) {
-//                return response()->json([
-//                    'success' => false,
-//                    'message' => 'You cannot approve your own leave request'
-//                ]);
-//            }
-//            return back()->with('error', 'You cannot approve your own leave request');
-//        }
-//
-//        $currentUserPosition = DB::table('user_positions')
-//            ->where('id', $currentUser->up_id ?? 0)
-//            ->where('up_is_active', true)
-//            ->where('up_can_approve_leave', true)
-//            ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
-//            ->first();
-//
-//        \Log::info('Position check result', [
-//            'position_found' => $currentUserPosition ? true : false,
-//            'position_data' => $currentUserPosition,
-//            'required_level' => 'Supervisor (level 2) or above'
-//        ]);
-//
-//        if (!$currentUserPosition) {
-//            \Log::warning('User does not have approval permission - must be Supervisor or above');
-//            if ($request->ajax()) {
-//                return response()->json([
-//                    'success' => false,
-//                    'message' => 'Only Supervisor level and above can approve leave requests'
-//                ]);
-//            }
-//            return back()->with('error', 'Only Supervisor level and above can approve leave requests');
-//        }
-//
-//        $countSpvOnDivision = DB::table('users')
-//            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
-//            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
-//            ->where('users.ud_id', $leaveRequester->ud_id)
-//            ->where('user_positions.up_level', '>=', 2)
-//            ->where('user_positions.up_can_approve_leave', true)
-//            ->where('user_positions.up_is_active', true)
-//            ->count();
-//
-//        if ($countSpvOnDivision > 0) {
-//            // Leave requester already retrieved above for self-approval check
-//
-//            \Log::info('Division check', [
-//                'current_user_division' => $currentUser->ud_id,
-//                'requester_division' => $leaveRequester->ud_id,
-//                'same_division' => $currentUser->ud_id == $leaveRequester->ud_id
-//            ]);
-//
-//            // Check if user is in same division as the leave requester
-//            if ($currentUser->ud_id != $leaveRequester->ud_id) {
-//                \Log::warning('User not in same division as requester');
-//                if ($request->ajax()) {
-//                    return response()->json([
-//                        'success' => false,
-//                        'message' => 'You can only approve leave requests from your division'
-//                    ]);
-//                }
-//                return back()->with('error', 'You can only approve leave requests from your division');
-//            }
-//        }
-//        // Check hierarchy - user cannot approve someone with higher or equal level
-//        $requesterPosition = DB::table('user_positions')
-//            ->where('id', $leaveRequester->up_id ?? 0)
-//            ->where('up_is_active', true)
-//            ->first();
-//
-//        if ($requesterPosition) {
-//            $currentUserLevel = $currentUserPosition->up_level;
-//            $requesterLevel = $requesterPosition->up_level;
-//
-//            \Log::info('Hierarchy check', [
-//                'current_user_level' => $currentUserLevel,
-//                'requester_level' => $requesterLevel,
-//                'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
-//                'requester_position' => $requesterPosition->up_name ?? 'Unknown'
-//            ]);
-//
-//            // User can only approve someone with lower level
-//            if ($currentUserLevel <= $requesterLevel) {
-//                \Log::warning('User trying to approve someone with higher or equal level');
-//                if ($request->ajax()) {
-//                    return response()->json([
-//                        'success' => false,
-//                        'message' => 'You cannot approve leave requests from someone with higher or equal position level'
-//                    ]);
-//                }
-//                return back()->with('error', 'You cannot approve leave requests from someone with higher or equal position level');
-//            }
-//        }
-//
-//        // Check if leave request is pending
-//        \Log::info('Leave request status check', [
-//            'current_status' => $leaveRequest->lr_status,
-//            'is_pending' => $leaveRequest->lr_status === 'pending'
-//        ]);
-//
-//        if ($leaveRequest->lr_status !== 'pending') {
-//            \Log::warning('Leave request is not pending');
-//            if ($request->ajax()) {
-//                return response()->json([
-//                    'success' => false,
-//                    'message' => 'Only pending leave requests can be approved'
-//                ]);
-//            }
-//            return back()->with('error', 'Only pending leave requests can be approved');
-//        }
-//
-//        $request->validate([
-//            'lr_admin_notes' => 'nullable|string'
-//        ]);
-//
-//        try {
-//            DB::beginTransaction();
-//
-//            \Log::info('Updating leave request', [
-//                'old_status' => $leaveRequest->lr_status,
-//                'new_status' => 'approved',
-//                'admin_notes' => $request->lr_admin_notes,
-//                'approved_by' => $currentUser->id,
-//                'approved_at' => date('Y-m-d H:i:s')
-//            ]);
-//
-//            // Update leave request status
-//            $leaveRequest->lr_status = 'approved';
-//            $leaveRequest->lr_admin_notes = $request->lr_admin_notes;
-//            $leaveRequest->lr_approved_by = $currentUser->id;
-//            $leaveRequest->lr_approved_at = date('Y-m-d H:i:s');
-//            $leaveRequest->save();
-//
-//            \Log::info('Leave request updated successfully', [
-//                'leave_request_id' => $leaveRequest->id,
-//                'new_status' => $leaveRequest->lr_status
-//            ]);
-//
-//            // If it's annual leave, update leave balance
-//            if ($leaveRequest->leaveType->lt_code === 'ANNUAL') {
-//                $leaveBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
-//                    ->where('leave_type_id', $leaveRequest->leave_type_id)
-//                    ->where('lb_year', date('Y'))
-//                    ->first();
-//
-//                if ($leaveBalance) {
-//                    $leaveBalance->lb_used_balance += $leaveRequest->lr_total_days;
-//                    $leaveBalance->lb_remaining_balance = $leaveBalance->lb_initial_balance - $leaveBalance->lb_used_balance;
-//                    $leaveBalance->save();
-//                }
-//            }
-//
-//            // Create attendance records for each day of leave
-//            \Log::info('Creating attendance records for leave', [
-//                'leave_request_id' => $leaveRequest->id,
-//                'user_id' => $leaveRequest->user_id,
-//                'start_date' => $leaveRequest->lr_start_date,
-//                'end_date' => $leaveRequest->lr_end_date,
-//                'leave_type_code' => $leaveRequest->leaveType->lt_code
-//            ]);
-//
-//            $startDate = Carbon::parse($leaveRequest->lr_start_date);
-//            $endDate = $leaveRequest->lr_end_date ? Carbon::parse($leaveRequest->lr_end_date) : $startDate;
-//
-//            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
-//                // Check if attendance record already exists for this date
-//                $existingAttendance = DB::table('attendance')
-//                    ->where('user_id', $leaveRequest->user_id)
-//                    ->where('at_date', $date->format('Y-m-d'))
-//                    ->first();
-//
-//                if (!$existingAttendance) {
-//                    // Create attendance record for leave
-//                    $attendanceId = DB::table('attendance')->insertGetId([
-//                        'user_id' => $leaveRequest->user_id,
-//                        'at_date' => $date->format('Y-m-d'),
-//                        'at_status' => 'leave_' . $leaveRequest->leaveType->lt_code,
-//                        'at_notes' => $leaveRequest->lr_reason,
-//                        'at_source' => 'system',
-//                        'created_by' => $currentUser->id,
-//                        'created_at' => now(),
-//                        'updated_at' => now()
-//                    ]);
-//
-//                    \Log::info('Attendance record created for leave', [
-//                        'attendance_id' => $attendanceId,
-//                        'user_id' => $leaveRequest->user_id,
-//                        'date' => $date->format('Y-m-d'),
-//                        'status' => 'leave_' . $leaveRequest->leaveType->lt_code
-//                    ]);
-//                } else {
-//                    \Log::info('Attendance record already exists for date', [
-//                        'user_id' => $leaveRequest->user_id,
-//                        'date' => $date->format('Y-m-d'),
-//                        'existing_status' => $existingAttendance->at_status
-//                    ]);
-//                }
-//            }
-//
-//            DB::commit();
-//            \Log::info('Database transaction committed successfully');
-//
-//            // Send notification to the requester
-//            $this->sendLeaveStatusChangeNotification($leaveRequest->id, 'approved', $currentUser->u_name);
-//
-//            if ($request->ajax()) {
-//                \Log::info('Sending AJAX response', ['success' => true]);
-//                return response()->json([
-//                    'success' => true,
-//                    'message' => 'Leave request approved successfully'
-//                ]);
-//            }
-//
-//            \Log::info('Sending redirect response');
-//            return redirect()->route('leave-requests.index')->with('success', 'Leave request approved successfully');
-//        } catch (\Exception $e) {
-//            \Log::error('Error approving leave request', [
-//                'error' => $e->getMessage(),
-//                'trace' => $e->getTraceAsString()
-//            ]);
-//
-//            DB::rollback();
-//
-//            if ($request->ajax()) {
-//                return response()->json([
-//                    'success' => false,
-//                    'message' => 'Failed to approve leave request: ' . $e->getMessage()
-//                ]);
-//            }
-//
-//            return back()->with('error', 'Failed to approve leave request: ' . $e->getMessage());
-//        }
-//    }
+    //    public function approve(Request $request, $id)
+    //    {
+    //        \Log::info('Leave Request Approval Attempt', [
+    //            'request_id' => $id,
+    //            'user_id' => auth()->user()->id,
+    //            'request_data' => $request->all(),
+    //            'is_ajax' => $request->ajax()
+    //        ]);
+    //
+    //        // $this->validateAccess();
+    //
+    //        $leaveRequest = LeaveRequest::findOrFail($id);
+    //
+    //        // Check if user can approve (must be supervisor or higher in same division)
+    //        $currentUser = auth()->user();
+    //
+    ////        dd($approver_div);
+    //        \Log::info('Current user info', [
+    //            'user_id' => $currentUser->id,
+    //            'position_id' => $currentUser->up_id,
+    //            'division_id' => $currentUser->ud_id
+    //        ]);
+    //
+    //        // Get leave requester info first to check if they're trying to approve their own request
+    //        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
+    //
+    //        $approver_div = DB::table('store_types')->where('id', $leaveRequester->ud_id)->first();
+    //
+    //
+    //        // Check if user is trying to approve their own leave request
+    //        if ($currentUser->id == $leaveRequest->user_id) {
+    //            \Log::warning('User trying to approve their own leave request');
+    //            if ($request->ajax()) {
+    //                return response()->json([
+    //                    'success' => false,
+    //                    'message' => 'You cannot approve your own leave request'
+    //                ]);
+    //            }
+    //            return back()->with('error', 'You cannot approve your own leave request');
+    //        }
+    //
+    //        $currentUserPosition = DB::table('user_positions')
+    //            ->where('id', $currentUser->up_id ?? 0)
+    //            ->where('up_is_active', true)
+    //            ->where('up_can_approve_leave', true)
+    //            ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
+    //            ->first();
+    //
+    //        \Log::info('Position check result', [
+    //            'position_found' => $currentUserPosition ? true : false,
+    //            'position_data' => $currentUserPosition,
+    //            'required_level' => 'Supervisor (level 2) or above'
+    //        ]);
+    //
+    //        if (!$currentUserPosition) {
+    //            \Log::warning('User does not have approval permission - must be Supervisor or above');
+    //            if ($request->ajax()) {
+    //                return response()->json([
+    //                    'success' => false,
+    //                    'message' => 'Only Supervisor level and above can approve leave requests'
+    //                ]);
+    //            }
+    //            return back()->with('error', 'Only Supervisor level and above can approve leave requests');
+    //        }
+    //
+    //        $countSpvOnDivision = DB::table('users')
+    //            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+    //            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+    //            ->where('users.ud_id', $leaveRequester->ud_id)
+    //            ->where('user_positions.up_level', '>=', 2)
+    //            ->where('user_positions.up_can_approve_leave', true)
+    //            ->where('user_positions.up_is_active', true)
+    //            ->count();
+    //
+    //        if ($countSpvOnDivision > 0) {
+    //            // Leave requester already retrieved above for self-approval check
+    //
+    //            \Log::info('Division check', [
+    //                'current_user_division' => $currentUser->ud_id,
+    //                'requester_division' => $leaveRequester->ud_id,
+    //                'same_division' => $currentUser->ud_id == $leaveRequester->ud_id
+    //            ]);
+    //
+    //            // Check if user is in same division as the leave requester
+    //            if ($currentUser->ud_id != $leaveRequester->ud_id) {
+    //                \Log::warning('User not in same division as requester');
+    //                if ($request->ajax()) {
+    //                    return response()->json([
+    //                        'success' => false,
+    //                        'message' => 'You can only approve leave requests from your division'
+    //                    ]);
+    //                }
+    //                return back()->with('error', 'You can only approve leave requests from your division');
+    //            }
+    //        }
+    //        // Check hierarchy - user cannot approve someone with higher or equal level
+    //        $requesterPosition = DB::table('user_positions')
+    //            ->where('id', $leaveRequester->up_id ?? 0)
+    //            ->where('up_is_active', true)
+    //            ->first();
+    //
+    //        if ($requesterPosition) {
+    //            $currentUserLevel = $currentUserPosition->up_level;
+    //            $requesterLevel = $requesterPosition->up_level;
+    //
+    //            \Log::info('Hierarchy check', [
+    //                'current_user_level' => $currentUserLevel,
+    //                'requester_level' => $requesterLevel,
+    //                'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
+    //                'requester_position' => $requesterPosition->up_name ?? 'Unknown'
+    //            ]);
+    //
+    //            // User can only approve someone with lower level
+    //            if ($currentUserLevel <= $requesterLevel) {
+    //                \Log::warning('User trying to approve someone with higher or equal level');
+    //                if ($request->ajax()) {
+    //                    return response()->json([
+    //                        'success' => false,
+    //                        'message' => 'You cannot approve leave requests from someone with higher or equal position level'
+    //                    ]);
+    //                }
+    //                return back()->with('error', 'You cannot approve leave requests from someone with higher or equal position level');
+    //            }
+    //        }
+    //
+    //        // Check if leave request is pending
+    //        \Log::info('Leave request status check', [
+    //            'current_status' => $leaveRequest->lr_status,
+    //            'is_pending' => $leaveRequest->lr_status === 'pending'
+    //        ]);
+    //
+    //        if ($leaveRequest->lr_status !== 'pending') {
+    //            \Log::warning('Leave request is not pending');
+    //            if ($request->ajax()) {
+    //                return response()->json([
+    //                    'success' => false,
+    //                    'message' => 'Only pending leave requests can be approved'
+    //                ]);
+    //            }
+    //            return back()->with('error', 'Only pending leave requests can be approved');
+    //        }
+    //
+    //        $request->validate([
+    //            'lr_admin_notes' => 'nullable|string'
+    //        ]);
+    //
+    //        try {
+    //            DB::beginTransaction();
+    //
+    //            \Log::info('Updating leave request', [
+    //                'old_status' => $leaveRequest->lr_status,
+    //                'new_status' => 'approved',
+    //                'admin_notes' => $request->lr_admin_notes,
+    //                'approved_by' => $currentUser->id,
+    //                'approved_at' => date('Y-m-d H:i:s')
+    //            ]);
+    //
+    //            // Update leave request status
+    //            $leaveRequest->lr_status = 'approved';
+    //            $leaveRequest->lr_admin_notes = $request->lr_admin_notes;
+    //            $leaveRequest->lr_approved_by = $currentUser->id;
+    //            $leaveRequest->lr_approved_at = date('Y-m-d H:i:s');
+    //            $leaveRequest->save();
+    //
+    //            \Log::info('Leave request updated successfully', [
+    //                'leave_request_id' => $leaveRequest->id,
+    //                'new_status' => $leaveRequest->lr_status
+    //            ]);
+    //
+    //            // If it's annual leave, update leave balance
+    //            if ($leaveRequest->leaveType->lt_code === 'ANNUAL') {
+    //                $leaveBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
+    //                    ->where('leave_type_id', $leaveRequest->leave_type_id)
+    //                    ->where('lb_year', date('Y'))
+    //                    ->first();
+    //
+    //                if ($leaveBalance) {
+    //                    $leaveBalance->lb_used_balance += $leaveRequest->lr_total_days;
+    //                    $leaveBalance->lb_remaining_balance = $leaveBalance->lb_initial_balance - $leaveBalance->lb_used_balance;
+    //                    $leaveBalance->save();
+    //                }
+    //            }
+    //
+    //            // Create attendance records for each day of leave
+    //            \Log::info('Creating attendance records for leave', [
+    //                'leave_request_id' => $leaveRequest->id,
+    //                'user_id' => $leaveRequest->user_id,
+    //                'start_date' => $leaveRequest->lr_start_date,
+    //                'end_date' => $leaveRequest->lr_end_date,
+    //                'leave_type_code' => $leaveRequest->leaveType->lt_code
+    //            ]);
+    //
+    //            $startDate = Carbon::parse($leaveRequest->lr_start_date);
+    //            $endDate = $leaveRequest->lr_end_date ? Carbon::parse($leaveRequest->lr_end_date) : $startDate;
+    //
+    //            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+    //                // Check if attendance record already exists for this date
+    //                $existingAttendance = DB::table('attendance')
+    //                    ->where('user_id', $leaveRequest->user_id)
+    //                    ->where('at_date', $date->format('Y-m-d'))
+    //                    ->first();
+    //
+    //                if (!$existingAttendance) {
+    //                    // Create attendance record for leave
+    //                    $attendanceId = DB::table('attendance')->insertGetId([
+    //                        'user_id' => $leaveRequest->user_id,
+    //                        'at_date' => $date->format('Y-m-d'),
+    //                        'at_status' => 'leave_' . $leaveRequest->leaveType->lt_code,
+    //                        'at_notes' => $leaveRequest->lr_reason,
+    //                        'at_source' => 'system',
+    //                        'created_by' => $currentUser->id,
+    //                        'created_at' => now(),
+    //                        'updated_at' => now()
+    //                    ]);
+    //
+    //                    \Log::info('Attendance record created for leave', [
+    //                        'attendance_id' => $attendanceId,
+    //                        'user_id' => $leaveRequest->user_id,
+    //                        'date' => $date->format('Y-m-d'),
+    //                        'status' => 'leave_' . $leaveRequest->leaveType->lt_code
+    //                    ]);
+    //                } else {
+    //                    \Log::info('Attendance record already exists for date', [
+    //                        'user_id' => $leaveRequest->user_id,
+    //                        'date' => $date->format('Y-m-d'),
+    //                        'existing_status' => $existingAttendance->at_status
+    //                    ]);
+    //                }
+    //            }
+    //
+    //            DB::commit();
+    //            \Log::info('Database transaction committed successfully');
+    //
+    //            // Send notification to the requester
+    //            $this->sendLeaveStatusChangeNotification($leaveRequest->id, 'approved', $currentUser->u_name);
+    //
+    //            if ($request->ajax()) {
+    //                \Log::info('Sending AJAX response', ['success' => true]);
+    //                return response()->json([
+    //                    'success' => true,
+    //                    'message' => 'Leave request approved successfully'
+    //                ]);
+    //            }
+    //
+    //            \Log::info('Sending redirect response');
+    //            return redirect()->route('leave-requests.index')->with('success', 'Leave request approved successfully');
+    //        } catch (\Exception $e) {
+    //            \Log::error('Error approving leave request', [
+    //                'error' => $e->getMessage(),
+    //                'trace' => $e->getTraceAsString()
+    //            ]);
+    //
+    //            DB::rollback();
+    //
+    //            if ($request->ajax()) {
+    //                return response()->json([
+    //                    'success' => false,
+    //                    'message' => 'Failed to approve leave request: ' . $e->getMessage()
+    //                ]);
+    //            }
+    //
+    //            return back()->with('error', 'Failed to approve leave request: ' . $e->getMessage());
+    //        }
+    //    }
 
 
     protected function deny(Request $request, string $message)
@@ -880,7 +834,7 @@ class ExternalAssignmentRequestController extends Controller
 
         $user_req_divisions = DB::table('users')->first();
 
-//        $spv_id = DB::table('store_types')->where
+        //        $spv_id = DB::table('store_types')->where
 
 
         // Check if user can reject (must be supervisor or higher in same division)
@@ -929,27 +883,27 @@ class ExternalAssignmentRequestController extends Controller
             }
             return back()->with('error', 'You can only reject leave requests from your division');
         }
-//        $countSpvOnDivision = DB::table('users')
-//            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
-//            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
-//            ->where('users.ud_id', $leaveRequester->ud_id)
-//            ->where('user_positions.up_level', '>=', 2)
-//            ->where('user_positions.up_can_approve_leave', true)
-//            ->where('user_positions.up_is_active', true)
-//            ->count();
+        //        $countSpvOnDivision = DB::table('users')
+        //            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+        //            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+        //            ->where('users.ud_id', $leaveRequester->ud_id)
+        //            ->where('user_positions.up_level', '>=', 2)
+        //            ->where('user_positions.up_can_approve_leave', true)
+        //            ->where('user_positions.up_is_active', true)
+        //            ->count();
 
-//        if ($countSpvOnDivision > 0) {
-//            // Check if user is in same division as the leave requester
-//            if ($currentUser->ud_id != $leaveRequester->ud_id) {
-//                if ($request->ajax()) {
-//                    return response()->json([
-//                        'success' => false,
-//                        'message' => 'You can only reject leave requests from your division'
-//                    ]);
-//                }
-//                return back()->with('error', 'You can only reject leave requests from your division');
-//            }
-//        }
+        //        if ($countSpvOnDivision > 0) {
+        //            // Check if user is in same division as the leave requester
+        //            if ($currentUser->ud_id != $leaveRequester->ud_id) {
+        //                if ($request->ajax()) {
+        //                    return response()->json([
+        //                        'success' => false,
+        //                        'message' => 'You can only reject leave requests from your division'
+        //                    ]);
+        //                }
+        //                return back()->with('error', 'You can only reject leave requests from your division');
+        //            }
+        //        }
 
         // Check hierarchy - user cannot reject someone with higher or equal level
         $requesterPosition = DB::table('user_positions')
@@ -1088,213 +1042,213 @@ class ExternalAssignmentRequestController extends Controller
         }
     }
 
-//    public function getDatatables(Request $request)
-//    {
-//        if (request()->ajax()) {
-//            $startDate = $request->get('start_date', date('Y-m-d'));
-//            $endDate = $request->get('end_date', date('Y-m-d'));
-//            $dateFilter = $request->get('date_filter', 'this_month');
-//            $userId = $request->get('user_id');
-//            $status = $request->get('status');
-//            $leaveTypeId = $request->get('leave_type_id');
-//
-//            // Apply date filter if not custom
-//            if ($dateFilter && $dateFilter !== 'custom') {
-//                $dateRange = $this->getDateRangeFromFilter($dateFilter);
-//                $startDate = $dateRange['startDate'];
-//                $endDate = $dateRange['endDate'];
-//            }
-//
-//            $query = LeaveRequest::with(['attachments', 'user', 'leaveType', 'approver'])
-//                ->select([
-//                    'leave_requests.*',
-//                    'users.u_name',
-//                    'users.u_nip',
-//                    'user_divisions.ud_name',
-//                    'leave_types.lt_name',
-//                    'leave_types.lt_code',
-//                    'leave_types.lt_color',
-//                    'approvers.u_name as approver_name'
-//                ])
-//                ->leftJoin('users', 'users.id', '=', 'leave_requests.user_id')
-//                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-//                ->leftJoin('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
-//                ->leftJoin('users as approvers', 'approvers.id', '=', 'leave_requests.lr_approved_by')
-//                ->orderBy('leave_requests.created_at', 'desc');
-//
-//            // Apply filters
-//            if ($request->filled('start_date')) {
-//                $query->where('leave_requests.lr_start_date', '>=', $startDate);
-//            }
-//            if ($request->filled('end_date')) {
-//                $query->where('leave_requests.lr_start_date', '<=', $endDate);
-//            }
-//            if ($request->filled('user_id')) {
-//                $query->where('leave_requests.user_id', $userId);
-//            }
-//            if ($request->filled('status')) {
-//                $query->where('leave_requests.lr_status', $status);
-//            }
-//            if ($request->filled('leave_type_id')) {
-//                $query->where('leave_requests.leave_type_id', $leaveTypeId);
-//            }
-//
-//            // Apply search filter
-//            if ($request->filled('search')) {
-//                $search = $request->search;
-//                $query->where(function ($q) use ($search) {
-//                    $q->where('users.u_name', 'like', '%' . $search . '%')
-//                        ->orWhere('users.u_nip', 'like', '%' . $search . '%')
-//                        ->orWhere('leave_types.lt_name', 'like', '%' . $search . '%')
-//                        ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
-//                });
-//            }
-//
-//            return datatables()->eloquent($query)
-//                ->addIndexColumn()
-//                ->addColumn('lr_date', function ($row) {
-//                    $requestDate = date('d/m/Y', strtotime($row->created_at));
-//                    $requestTime = date('H:i', strtotime($row->created_at));
-//                    return '<span title="Request submitted on ' . $requestDate . ' at ' . $requestTime . '">' . $requestDate . '</span>';
-//                })
-//                ->addColumn('action', function ($row) {
-//                    $btn = '<div class="dropdown">';
-//                    $btn .= '    <!--begin::Toggle-->';
-//                    $btn .= '    <button type="button" class="btn btn-sm btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
-//                    $btn .= '        Actions';
-//                    $btn .= '    </button>';
-//                    $btn .= '    <!--end::Toggle-->';
-//
-//                    $btn .= '    <!--begin::Menu-->';
-//                    $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
-//                    $btn .= '        <!--begin::Menu item-->';
-//                    $btn .= '        <div class="menu-item px-3">';
-//                    $btn .= '            <a href="' . route('leave-requests.show', $row->id) . '" class="menu-link px-3">View</a>';
-//                    $btn .= '        </div>';
-//                    $btn .= '        <!--end::Menu item-->';
-//
-//                    $btn .= '        <!--begin::Menu item-->';
-//                    $btn .= '        <div class="menu-item px-3">';
-//                    $btn .= '            <a href="' . route('leave-requests.edit', $row->id) . '" class="menu-link px-3">Edit</a>';
-//                    $btn .= '        </div>';
-//                    $btn .= '        <!--end::Menu item-->';
-//
-//                    if ($row->lr_status == 'pending') {
-//                        $btn .= '        <!--begin::Menu item-->';
-//                        $btn .= '        <div class="menu-item px-3">';
-//                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal(' . $row->id . ', \'approve\')" class="menu-link px-3 text-success">Approve</a>';
-//                        $btn .= '        </div>';
-//                        $btn .= '        <!--end::Menu item-->';
-//
-//                        $btn .= '        <!--begin::Menu item-->';
-//                        $btn .= '        <div class="menu-item px-3">';
-//                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal(' . $row->id . ', \'reject\')" class="menu-link px-3 text-danger">Reject</a>';
-//                        $btn .= '        </div>';
-//                        $btn .= '        <!--end::Menu item-->';
-//                    }
-//
-//                    // Add delete button only for the request owner
-//                    if (auth()->check() && auth()->id() == $row->user_id) {
-//                        $btn .= '        <!--begin::Menu item-->';
-//                        $btn .= '        <div class="menu-item px-3">';
-//                        $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveRequest(' . $row->id . ', \'' . $row->u_name . '\')" class="menu-link px-3 text-danger">Delete</a>';
-//                        $btn .= '        </div>';
-//                        $btn .= '        <!--end::Menu item-->';
-//                    }
-//                    $btn .= '    </div>';
-//                    $btn .= '    <!--end::Menu-->';
-//                    $btn .= '</div>';
-//
-//                    return $btn;
-//                })
-//                ->addColumn('lr_attachment', function ($row) {
-//                    // Use Eloquent relationship to get attachments
-//                    if ($row->attachments && $row->attachments->count() > 0) {
-//                        $attachmentHtml = '<div class="text-center">';
-//
-//                        foreach ($row->attachments as $index => $attachment) {
-//                            $fileIcon = '';
-//                            $fileType = strtolower($attachment->file_type ?? '');
-//
-//                            if (strpos($fileType, 'pdf') !== false) {
-//                                $fileIcon = '<i class="fas fa-file-pdf text-danger"></i>';
-//                            } elseif (strpos($fileType, 'image') !== false) {
-//                                $fileIcon = '<i class="fas fa-file-image text-primary"></i>';
-//                            } elseif (strpos($fileType, 'word') !== false) {
-//                                $fileIcon = '<i class="fas fa-file-word text-info"></i>';
-//                            } else {
-//                                $fileIcon = '<i class="fas fa-file text-secondary"></i>';
-//                            }
-//
-//                            $fileName = $attachment->original_name ?: 'Attachment';
-//                            $fileSize = $attachment->file_size ? $this->formatFileSize($attachment->file_size) : '';
-//
-//                            $attachmentHtml .= '<div class="mb-1">' .
-//                                '<button type="button" class="btn btn-sm btn-light-primary" onclick="viewAttachment(' . $row->id . ', \'' . $attachment->file_path . '\', \'' . $attachment->original_name . '\', \'' . $attachment->file_type . '\')">' .
-//                                $fileIcon . ' ' . substr($fileName, 0, 5) . (strlen($fileName) > 5 ? '...' : '') . '</button>' .
-//                                '</div>';
-//                        }
-//
-//                        $attachmentHtml .= '</div>';
-//                        return $attachmentHtml;
-//                    }
-//                    return '<span class="text-muted">-</span>';
-//                })
-//                ->editColumn('lr_start_date', function ($row) {
-//                    return date('d/m/Y', strtotime($row->lr_start_date));
-//                })
-//                ->editColumn('lr_end_date', function ($row) {
-//                    return $row->lr_end_date ? date('d/m/Y', strtotime($row->lr_end_date)) : '-';
-//                })
-//                ->editColumn('lr_start_time', function ($row) {
-//                    return $row->lr_start_time ? date('H:i', strtotime($row->lr_start_time)) : '-';
-//                })
-//                ->editColumn('lr_end_time', function ($row) {
-//                    return $row->lr_end_time ? date('H:i', strtotime($row->lr_end_time)) : '-';
-//                })
-//                ->editColumn('lr_total_days', function ($row) {
-//                    if ($row->lr_unit == 'days') {
-//                        return $row->lr_total_days . ' hari';
-//                    } else {
-//                        return $row->lr_total_hours . ' jam';
-//                    }
-//                })
-//                ->editColumn('lr_status', function ($row) {
-//                    $statusClass = '';
-//                    $statusText = '';
-//
-//                    switch ($row->lr_status) {
-//                        case 'pending':
-//                            $statusClass = 'badge badge-primary';
-//                            $statusText = 'PENDING';
-//                            break;
-//                        case 'approved':
-//                            $statusClass = 'badge bg-success';
-//                            $statusText = 'APPROVED';
-//                            break;
-//                        case 'rejected':
-//                            $statusClass = 'badge badge-danger';
-//                            $statusText = 'REJECTED';
-//                            break;
-//                        case 'cancelled':
-//                            $statusClass = 'badge badge-warning';
-//                            $statusText = 'CANCELLED';
-//                            break;
-//                        default:
-//                            $statusClass = 'badge badge-secondary';
-//                            $statusText = ucfirst($row->lr_status);
-//                    }
-//
-//                    return '<span class="' . $statusClass . '">' . $statusText . '</span>';
-//                })
-//                ->editColumn('lt_name', function ($row) {
-//                    $color = $row->lt_color ?: '#007bff';
-//                    return '<span style="color: ' . $color . ';">' . $row->lt_name . '</span>';
-//                })
-//                ->rawColumns(['action', 'lr_status', 'lt_name', 'lr_attachment', 'lr_date'])
-//                ->make(true);
-//        }
-//    }
+    //    public function getDatatables(Request $request)
+    //    {
+    //        if (request()->ajax()) {
+    //            $startDate = $request->get('start_date', date('Y-m-d'));
+    //            $endDate = $request->get('end_date', date('Y-m-d'));
+    //            $dateFilter = $request->get('date_filter', 'this_month');
+    //            $userId = $request->get('user_id');
+    //            $status = $request->get('status');
+    //            $leaveTypeId = $request->get('leave_type_id');
+    //
+    //            // Apply date filter if not custom
+    //            if ($dateFilter && $dateFilter !== 'custom') {
+    //                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+    //                $startDate = $dateRange['startDate'];
+    //                $endDate = $dateRange['endDate'];
+    //            }
+    //
+    //            $query = LeaveRequest::with(['attachments', 'user', 'leaveType', 'approver'])
+    //                ->select([
+    //                    'leave_requests.*',
+    //                    'users.u_name',
+    //                    'users.u_nip',
+    //                    'user_divisions.ud_name',
+    //                    'leave_types.lt_name',
+    //                    'leave_types.lt_code',
+    //                    'leave_types.lt_color',
+    //                    'approvers.u_name as approver_name'
+    //                ])
+    //                ->leftJoin('users', 'users.id', '=', 'leave_requests.user_id')
+    //                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+    //                ->leftJoin('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+    //                ->leftJoin('users as approvers', 'approvers.id', '=', 'leave_requests.lr_approved_by')
+    //                ->orderBy('leave_requests.created_at', 'desc');
+    //
+    //            // Apply filters
+    //            if ($request->filled('start_date')) {
+    //                $query->where('leave_requests.lr_start_date', '>=', $startDate);
+    //            }
+    //            if ($request->filled('end_date')) {
+    //                $query->where('leave_requests.lr_start_date', '<=', $endDate);
+    //            }
+    //            if ($request->filled('user_id')) {
+    //                $query->where('leave_requests.user_id', $userId);
+    //            }
+    //            if ($request->filled('status')) {
+    //                $query->where('leave_requests.lr_status', $status);
+    //            }
+    //            if ($request->filled('leave_type_id')) {
+    //                $query->where('leave_requests.leave_type_id', $leaveTypeId);
+    //            }
+    //
+    //            // Apply search filter
+    //            if ($request->filled('search')) {
+    //                $search = $request->search;
+    //                $query->where(function ($q) use ($search) {
+    //                    $q->where('users.u_name', 'like', '%' . $search . '%')
+    //                        ->orWhere('users.u_nip', 'like', '%' . $search . '%')
+    //                        ->orWhere('leave_types.lt_name', 'like', '%' . $search . '%')
+    //                        ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
+    //                });
+    //            }
+    //
+    //            return datatables()->eloquent($query)
+    //                ->addIndexColumn()
+    //                ->addColumn('lr_date', function ($row) {
+    //                    $requestDate = date('d/m/Y', strtotime($row->created_at));
+    //                    $requestTime = date('H:i', strtotime($row->created_at));
+    //                    return '<span title="Request submitted on ' . $requestDate . ' at ' . $requestTime . '">' . $requestDate . '</span>';
+    //                })
+    //                ->addColumn('action', function ($row) {
+    //                    $btn = '<div class="dropdown">';
+    //                    $btn .= '    <!--begin::Toggle-->';
+    //                    $btn .= '    <button type="button" class="btn btn-sm btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
+    //                    $btn .= '        Actions';
+    //                    $btn .= '    </button>';
+    //                    $btn .= '    <!--end::Toggle-->';
+    //
+    //                    $btn .= '    <!--begin::Menu-->';
+    //                    $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
+    //                    $btn .= '        <!--begin::Menu item-->';
+    //                    $btn .= '        <div class="menu-item px-3">';
+    //                    $btn .= '            <a href="' . route('leave-requests.show', $row->id) . '" class="menu-link px-3">View</a>';
+    //                    $btn .= '        </div>';
+    //                    $btn .= '        <!--end::Menu item-->';
+    //
+    //                    $btn .= '        <!--begin::Menu item-->';
+    //                    $btn .= '        <div class="menu-item px-3">';
+    //                    $btn .= '            <a href="' . route('leave-requests.edit', $row->id) . '" class="menu-link px-3">Edit</a>';
+    //                    $btn .= '        </div>';
+    //                    $btn .= '        <!--end::Menu item-->';
+    //
+    //                    if ($row->lr_status == 'pending') {
+    //                        $btn .= '        <!--begin::Menu item-->';
+    //                        $btn .= '        <div class="menu-item px-3">';
+    //                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal(' . $row->id . ', \'approve\')" class="menu-link px-3 text-success">Approve</a>';
+    //                        $btn .= '        </div>';
+    //                        $btn .= '        <!--end::Menu item-->';
+    //
+    //                        $btn .= '        <!--begin::Menu item-->';
+    //                        $btn .= '        <div class="menu-item px-3">';
+    //                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal(' . $row->id . ', \'reject\')" class="menu-link px-3 text-danger">Reject</a>';
+    //                        $btn .= '        </div>';
+    //                        $btn .= '        <!--end::Menu item-->';
+    //                    }
+    //
+    //                    // Add delete button only for the request owner
+    //                    if (auth()->check() && auth()->id() == $row->user_id) {
+    //                        $btn .= '        <!--begin::Menu item-->';
+    //                        $btn .= '        <div class="menu-item px-3">';
+    //                        $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveRequest(' . $row->id . ', \'' . $row->u_name . '\')" class="menu-link px-3 text-danger">Delete</a>';
+    //                        $btn .= '        </div>';
+    //                        $btn .= '        <!--end::Menu item-->';
+    //                    }
+    //                    $btn .= '    </div>';
+    //                    $btn .= '    <!--end::Menu-->';
+    //                    $btn .= '</div>';
+    //
+    //                    return $btn;
+    //                })
+    //                ->addColumn('lr_attachment', function ($row) {
+    //                    // Use Eloquent relationship to get attachments
+    //                    if ($row->attachments && $row->attachments->count() > 0) {
+    //                        $attachmentHtml = '<div class="text-center">';
+    //
+    //                        foreach ($row->attachments as $index => $attachment) {
+    //                            $fileIcon = '';
+    //                            $fileType = strtolower($attachment->file_type ?? '');
+    //
+    //                            if (strpos($fileType, 'pdf') !== false) {
+    //                                $fileIcon = '<i class="fas fa-file-pdf text-danger"></i>';
+    //                            } elseif (strpos($fileType, 'image') !== false) {
+    //                                $fileIcon = '<i class="fas fa-file-image text-primary"></i>';
+    //                            } elseif (strpos($fileType, 'word') !== false) {
+    //                                $fileIcon = '<i class="fas fa-file-word text-info"></i>';
+    //                            } else {
+    //                                $fileIcon = '<i class="fas fa-file text-secondary"></i>';
+    //                            }
+    //
+    //                            $fileName = $attachment->original_name ?: 'Attachment';
+    //                            $fileSize = $attachment->file_size ? $this->formatFileSize($attachment->file_size) : '';
+    //
+    //                            $attachmentHtml .= '<div class="mb-1">' .
+    //                                '<button type="button" class="btn btn-sm btn-light-primary" onclick="viewAttachment(' . $row->id . ', \'' . $attachment->file_path . '\', \'' . $attachment->original_name . '\', \'' . $attachment->file_type . '\')">' .
+    //                                $fileIcon . ' ' . substr($fileName, 0, 5) . (strlen($fileName) > 5 ? '...' : '') . '</button>' .
+    //                                '</div>';
+    //                        }
+    //
+    //                        $attachmentHtml .= '</div>';
+    //                        return $attachmentHtml;
+    //                    }
+    //                    return '<span class="text-muted">-</span>';
+    //                })
+    //                ->editColumn('lr_start_date', function ($row) {
+    //                    return date('d/m/Y', strtotime($row->lr_start_date));
+    //                })
+    //                ->editColumn('lr_end_date', function ($row) {
+    //                    return $row->lr_end_date ? date('d/m/Y', strtotime($row->lr_end_date)) : '-';
+    //                })
+    //                ->editColumn('lr_start_time', function ($row) {
+    //                    return $row->lr_start_time ? date('H:i', strtotime($row->lr_start_time)) : '-';
+    //                })
+    //                ->editColumn('lr_end_time', function ($row) {
+    //                    return $row->lr_end_time ? date('H:i', strtotime($row->lr_end_time)) : '-';
+    //                })
+    //                ->editColumn('lr_total_days', function ($row) {
+    //                    if ($row->lr_unit == 'days') {
+    //                        return $row->lr_total_days . ' hari';
+    //                    } else {
+    //                        return $row->lr_total_hours . ' jam';
+    //                    }
+    //                })
+    //                ->editColumn('lr_status', function ($row) {
+    //                    $statusClass = '';
+    //                    $statusText = '';
+    //
+    //                    switch ($row->lr_status) {
+    //                        case 'pending':
+    //                            $statusClass = 'badge badge-primary';
+    //                            $statusText = 'PENDING';
+    //                            break;
+    //                        case 'approved':
+    //                            $statusClass = 'badge bg-success';
+    //                            $statusText = 'APPROVED';
+    //                            break;
+    //                        case 'rejected':
+    //                            $statusClass = 'badge badge-danger';
+    //                            $statusText = 'REJECTED';
+    //                            break;
+    //                        case 'cancelled':
+    //                            $statusClass = 'badge badge-warning';
+    //                            $statusText = 'CANCELLED';
+    //                            break;
+    //                        default:
+    //                            $statusClass = 'badge badge-secondary';
+    //                            $statusText = ucfirst($row->lr_status);
+    //                    }
+    //
+    //                    return '<span class="' . $statusClass . '">' . $statusText . '</span>';
+    //                })
+    //                ->editColumn('lt_name', function ($row) {
+    //                    $color = $row->lt_color ?: '#007bff';
+    //                    return '<span style="color: ' . $color . ';">' . $row->lt_name . '</span>';
+    //                })
+    //                ->rawColumns(['action', 'lr_status', 'lt_name', 'lr_attachment', 'lr_date'])
+    //                ->make(true);
+    //        }
+    //    }
 
     public function getDatatables(Request $request)
     {
@@ -1357,7 +1311,7 @@ class ExternalAssignmentRequestController extends Controller
                     return $row->ear_date_end ? date('d/m/Y', strtotime($row->ear_date_end)) : '-';
                 })
                 ->editColumn('ear_status', function ($row) {
-                    $class = match($row->ear_status) {
+                    $class = match ($row->ear_status) {
                         'Pending' => 'badge badge-primary',
                         'Approved'         => 'badge bg-success',
                         'Rejected'         => 'badge bg-danger',
@@ -1367,14 +1321,48 @@ class ExternalAssignmentRequestController extends Controller
                         'DONE'             => 'badge bg-success',
                         default            => 'badge badge-light'
                     };
-                    return '<span class="'.$class.'">'.$row->ear_status.'</span>';
+                    return '<span class="' . $class . '">' . $row->ear_status . '</span>';
                 })
                 ->addColumn('action', function ($row) {
-                    $btn = '<a href="'.route('external-assignment-requests.show', $row->id).'" class="btn btn-sm btn-primary">View</a>';
-//                    $btn .= ' <a href="'.route('external-assignment-requests.edit', $row->id).'" class="btn btn-sm btn-warning">Edit</a>';
+                    $btn = '<div class="dropdown">';
+                    $btn .= '    <!--begin::Toggle-->';
+                    $btn .= '    <button type="button" class="btn btn-sm text-dark btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
+                    $btn .= '        Actions';
+                    $btn .= '        <span class="svg-icon fs-5 m-0">';
+                    $btn .= '            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                    $btn .= '                <rect opacity="0.5" x="11" y="18" width="12" height="2" rx="1" transform="rotate(-90 11 18)" fill="currentColor"></rect>';
+                    $btn .= '                <rect x="6" y="11" width="12" height="2" rx="1" fill="currentColor"></rect>';
+                    $btn .= '            </svg>';
+                    $btn .= '        </span>';
+                    $btn .= '    </button>';
+                    $btn .= '    <!--end::Toggle-->';
+
+                    $btn .= '    <!--begin::Menu-->';
+                    $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="' . url('/external-assignment-requests/' . $row->id) . '" class="menu-link px-3">View</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="' . url('/external-assignment-requests/edit/' . $row->id) . '" class="menu-link px-3">Edit</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="deleteExternalAssignment(' . $row->id . ')" class="menu-link px-3 text-danger">Delete</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    $btn .= '    </div>';
+                    $btn .= '    <!--end::Menu-->';
+                    $btn .= '</div>';
+
                     return $btn;
                 })
-                ->rawColumns(['ear_status','action'])
+                ->rawColumns(['ear_status', 'action'])
                 ->make(true);
         }
     }
@@ -1386,7 +1374,7 @@ class ExternalAssignmentRequestController extends Controller
     {
         // $this->validateAccess();
 
-//        dd('kontol');
+        //        dd('kontol');
 
         $title = 'Leave Summary Report';
         $user = auth()->user();
@@ -1626,19 +1614,19 @@ class ExternalAssignmentRequestController extends Controller
     {
         if ($request->ajax()) {
 
-//            $startDate = $request->get('start_date', date('Y-m-01'));
-//            $endDate = $request->get('end_date', date('Y-m-t'));
-//            $dateFilter = $request->get('date_filter', 'this_month');
-//
-//            if ($dateFilter && $dateFilter !== 'custom') {
-//                $dateRange = $this->getDateRangeFromFilter($dateFilter);
-//                $startDate = $dateRange['startDate'];
-//                $endDate = $dateRange['endDate'];
-//            }
-//            $divisionId = $request->get('division_id');
-//            $summaryData = $this->getExternalAssignmentSummary($startDate, $endDate, $divisionId);
-//
-//            dd($summaryData);
+            //            $startDate = $request->get('start_date', date('Y-m-01'));
+            //            $endDate = $request->get('end_date', date('Y-m-t'));
+            //            $dateFilter = $request->get('date_filter', 'this_month');
+            //
+            //            if ($dateFilter && $dateFilter !== 'custom') {
+            //                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            //                $startDate = $dateRange['startDate'];
+            //                $endDate = $dateRange['endDate'];
+            //            }
+            //            $divisionId = $request->get('division_id');
+            //            $summaryData = $this->getExternalAssignmentSummary($startDate, $endDate, $divisionId);
+            //
+            //            dd($summaryData);
             try {
                 $startDate = $request->get('start_date', date('Y-m-01'));
                 $endDate = $request->get('end_date', date('Y-m-t'));
@@ -1654,7 +1642,7 @@ class ExternalAssignmentRequestController extends Controller
 
                 $summaryData = $this->getExternalAssignmentSummary($startDate, $endDate, $divisionId);
 
-//                dd($summaryData);
+                //                dd($summaryData);
                 // Filter pencarian
                 if ($request->filled('search')) {
                     $search = $request->get('search');
@@ -2514,7 +2502,7 @@ class ExternalAssignmentRequestController extends Controller
             $approvers = User::where('ud_id', $requestingUser->ud_id)
                 ->whereHas('userPosition', function ($query) {
                     $query->where('up_level', '>=', 2) // Supervisor level or higher
-                    ->where('up_can_approve_leave', true);
+                        ->where('up_can_approve_leave', true);
                 })
                 ->where('id', '!=', $userId) // Don't notify the requester
                 ->get();

@@ -1118,4 +1118,77 @@
             });
         });
     });
+    $(document).ready(function() {
+        $('#externalAssignmentFormUpdate').on('submit', function(e) {
+            e.preventDefault();
+
+            let rundowns = [];
+            $('#detailsTable tbody tr').each(function(index) {
+                rundowns.push({
+                    activity: $(this).find(
+                        'input[name^="details["][name$="[activity]"]').val(),
+                    rundown_date: $(this).find('input[name^="details["][name$="[date]"]').val(),
+                    start_time: $(this).find(
+                        'input[name^="details["][name$="[start_time]"]').val(),
+                    end_time: $(this).find(
+                        'input[name^="details["][name$="[end_time]"]').val(),
+                    description: $(this).find(
+                        'textarea[name^="details["][name$="[description]"]').val(),
+                });
+            });
+
+            // Ambil data cash detail (pakai #cashDetailTable)
+            let cashDetails = [];
+            $('#cashDetailTable tbody tr').each(function(index) {
+                cashDetails.push({
+                    cash_purpose: $(this).find(
+                        'input[name^="cash_details["][name$="[cash_purpose]"]')
+                    .val(),
+                    cash_amount: $(this).find(
+                            'input[name^="cash_details["][name$="[cash_amount]"]')
+                    .val(),
+                });
+            });
+
+
+            // Buat payload
+            let payload = {
+                _token: "{{ csrf_token() }}",
+                ea_id: $('#ea_id').val(),
+                ear_cash_advance: $('#ear_cash_advance').val(),
+                ear_date_start: $('#ear_date_start').val(),
+                ear_time_start: $('#ear_time_start').val(),
+                ear_date_end: $('#ear_date_end').val(),
+                ear_time_end: $('#ear_time_end').val(),
+                ear_locations: $('#ear_locations').val(),
+                ear_note: $('#ear_note').val(),
+                rundowns: rundowns,
+                cashDetails: cashDetails,
+            };
+
+            console.log("Data yang akan dikirim:", payload);
+
+            // Kalau mau disable submit ke backend dulu saat debugging:
+            // return;
+
+            $.ajax({
+                url: "{{ route('external-assignment-requests.update', '') }}/" + $('#external_assignment_request_id').val(),
+                type: "POST",
+                data: payload,
+                success: function(res) {
+                    console.log("Response dari server:", res);
+                    if (res.status === 'success') {
+                        toastr.success(res.message);
+                        window.location.href = "{{ url('external-assignment') }}";
+                    } else {
+                        toastr.error(res.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error("Error response:", xhr.responseText);
+                    toastr.error('Something went wrong');
+                }
+            });
+        });
+    });
 </script>
