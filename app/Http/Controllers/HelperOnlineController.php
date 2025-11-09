@@ -121,6 +121,8 @@ class HelperOnlineController extends Controller
         $order_number = $request->get('order_number');
         $status_pick = $request->get('status_pick');
 
+        $stores_code = Store::where('id', $st_id)->value('st_code');
+
         $baseQuery = DB::table('product_location_setup_transactions')
             ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
             ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
@@ -157,6 +159,7 @@ class HelperOnlineController extends Controller
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
             ->whereNotIn('product_location_setup_transactions.plst_status', ['REFUND'])
             ->where('online_transaction_details.deleted_at', null)
+            ->where('warehouse', $stores_code)
             ->groupBy('online_transactions.id', 'online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created', 'no_resi', 'online_print', 'shipping_method', 'online_transactions.internal_order_status')
             ->orderByRaw('CASE WHEN is_instant = 1 THEN 0 ELSE 1 END')
             ->orderByDesc('last_chat_time')
