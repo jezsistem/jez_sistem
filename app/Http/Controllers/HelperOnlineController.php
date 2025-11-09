@@ -155,7 +155,7 @@ class HelperOnlineController extends Controller
                     ->where('online_transaction_chat_history.is_amp', '=', 1);
             })
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
-            ->whereNotIn('product_location_setup_transactions.plst_status', ['REFUND','INSTOCK'])
+            ->whereNotIn('product_location_setup_transactions.plst_status', ['REFUND'])
             ->where('online_transaction_details.deleted_at', null)
             ->groupBy('online_transactions.id', 'online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created', 'no_resi', 'online_print', 'shipping_method', 'online_transactions.internal_order_status')
             ->orderByRaw('CASE WHEN is_instant = 1 THEN 0 ELSE 1 END')
