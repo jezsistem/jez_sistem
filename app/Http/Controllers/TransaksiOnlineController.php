@@ -194,7 +194,7 @@ class TransaksiOnlineController extends Controller
                         </button>';
                 })
                 ->editColumn('order_number', function ($data) {
-                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
+                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" data-no_resi="' . $data->no_resi . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
                     $printStatus = '';
@@ -2229,6 +2229,29 @@ class TransaksiOnlineController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error deleting transaction: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat mengcancel transaksi']);
+        }
+    }
+
+    public function editResiNumber(Request $request) {
+        $to_id = $request->edit_resi_number_to_id;
+        $new_resi_number = $request->resi_number_input;
+
+        try {
+            $transaction = OnlineTransactions::where('id', $to_id)
+                ->first();
+
+            if (!$transaction) {
+                return response()->json(['status' => '404', 'message' => 'Detail transaksi tidak ditemukan']);
+            }
+
+            $transaction->update([
+                'no_resi' => $new_resi_number
+            ]);
+
+            return response()->json(['status' => '200', 'message' => 'Nomor resi berhasil diperbarui']);
+        } catch (\Exception $e) {
+            \Log::error('Error updating resi number: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat memperbarui nomor resi']);
         }
     }
 }
