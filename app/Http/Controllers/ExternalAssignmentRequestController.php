@@ -1441,7 +1441,7 @@ class ExternalAssignmentRequestController extends Controller
 
         $data = [
             'title' => $title,
-            'subtitle' => 'Leave Summary Report',
+            'subtitle' => 'External Assignment Summary Report',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => 'leave-requests',
@@ -1453,7 +1453,7 @@ class ExternalAssignmentRequestController extends Controller
             'stats' => $stats
         ];
 
-        return view('app.leave_request.summary_report', compact('data'));
+        return view('app.external_assignment_request.summary_report', compact('data'));
     }
 
     /**
