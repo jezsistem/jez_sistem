@@ -121,6 +121,8 @@ class HelperOnlineController extends Controller
         $order_number = $request->get('order_number');
         $status_pick = $request->get('status_pick');
 
+        $stores_code = Store::where('id', $st_id)->value('st_code');
+
         $baseQuery = DB::table('product_location_setup_transactions')
             ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
             ->join('online_transactions', 'online_transaction_details.to_id', '=', 'online_transactions.id')
@@ -157,6 +159,7 @@ class HelperOnlineController extends Controller
             ->where('product_location_setup_transactions.warehouse_st_id', $st_id)
             ->whereNotIn('product_location_setup_transactions.plst_status', ['REFUND'])
             ->where('online_transaction_details.deleted_at', null)
+            ->where('warehouse', $stores_code)
             ->groupBy('online_transactions.id', 'online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created', 'no_resi', 'online_print', 'shipping_method', 'online_transactions.internal_order_status')
             ->orderByRaw('CASE WHEN is_instant = 1 THEN 0 ELSE 1 END')
             ->orderByDesc('last_chat_time')
@@ -220,6 +223,7 @@ class HelperOnlineController extends Controller
     public function getOnlineItems(Request $request)
     {
         $transaction_id = $request->get('ot_id');
+        $user_st_id = Auth::user()->st_id;
 
         $items = DB::table('online_transactions')
             ->join('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
@@ -253,7 +257,7 @@ class HelperOnlineController extends Controller
             ->get();
 
         return datatables()->of($items)
-            ->addColumn('item', function ($data) {
+            ->addColumn('item', function ($data,) use ($user_st_id) {
                 $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
                 $dateTime = $data->plst_created; // '2024-08-07 14:13:46'
                 $time = Carbon::parse($dateTime)->format('H:i:s'); // '14:13:46'
@@ -280,11 +284,17 @@ class HelperOnlineController extends Controller
                 </div>';
 
                 if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id == null) {
-                    $items .= '<div><a class="btn btn-sm btn-info ml-1" data-plst_id="' . $data->plst_id . '" id="cancel_pick" style="font-weight:bold;">Batal</a><a class="btn btn-sm btn-success ml-1" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="pick_get_bin_products" style="font-weight:bold;">Ambil</a></div>';
+                    $isDisabled = ($user_st_id != $data->warehouse_st_id);
+                    $disabledClass = $isDisabled ? ' disabled' : '';
+                    $disabledStyle = $isDisabled ? ' pointer-events: none; opacity: 0.6;' : '';
+                    $items .= '<div><a class="btn btn-sm btn-info ml-1' . $disabledClass . '" data-plst_id="' . $data->plst_id . '" id="cancel_pick" style="font-weight:bold;' . $disabledStyle . '">Batal</a><a class="btn btn-sm btn-success ml-1' . $disabledClass . '" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="pick_get_bin_products" style="font-weight:bold;' . $disabledStyle . '">Ambil</a></div>';
                 }
 
                 if ($data->plst_status == 'WAITING ONLINE' && $data->pls_id && $data->qc_status == ProductLocationSetupTransaction::QC_STATUS_ON_GOING) {
-                    $items .= '<a class="btn btn-sm btn-dark ml-1" data-status="pickup" data-to_id="' . $data->to_id . '" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="submit_qc" style="font-weight:bold;">Under QC</a>';
+                    $isDisabled = ($user_st_id != $data->warehouse_st_id);
+                    $disabledClass = $isDisabled ? ' disabled' : '';
+                    $disabledStyle = $isDisabled ? ' pointer-events: none; opacity: 0.6;' : '';
+                    $items .= '<a class="btn btn-sm btn-dark ml-1' . $disabledClass . '" data-status="pickup" data-to_id="' . $data->to_id . '" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" id="submit_qc" style="font-weight:bold;' . $disabledStyle . '">Under QC</a>';
                 }
                 if ($data->plst_status == 'INSTOCK' && $data->pls_id && $data->qc_status == ProductLocationSetupTransaction::QC_STATUS_FAILED) {
                     $items .= '<a class="btn btn-sm btn-dark ml-1 disabled" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-pst_id="' . $data->pst_id . '" data-qty="' . $data->plst_id . '" data-warehouse_st_id="' . $data->warehouse_st_id . '"data-sku="' . $data->ps_barcode . '" style="font-weight:bold; pointer-events: none; opacity: 0.6;">Gagal QC</a>';
