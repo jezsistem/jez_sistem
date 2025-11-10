@@ -291,12 +291,12 @@
     function deleteTransaction(ot_id) {
         Swal.fire({
             title: 'Apakah Anda yakin?',
-            text: "Transaksi akan dihapus secara permanen!",
+            text: "Transaksi akan dicancel secara permanen!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, hapus!',
+            confirmButtonText: 'Ya, cancel!',
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (!result.isConfirmed) {
@@ -311,13 +311,13 @@
                 },
                 success: function(response) {
                     if (response.status === '200') {
-                        Swal.fire('Berhasil!', 'Transaksi telah dihapus.',
+                        Swal.fire('Berhasil!', 'Transaksi telah dicancel.',
                             'success');
                         online_transaction_table.draw(false);
                     } else {
                         Swal.fire(
                             'Gagal!',
-                            response.message || 'Terjadi kesalahan saat menghapus transaksi.',
+                            response.message || 'Terjadi kesalahan saat cancel transaksi.',
                             'error'
                         );
                     }
@@ -325,7 +325,7 @@
                 error: function(xhr, status, error) {
                     Swal.fire(
                         'Error!',
-                        'Terjadi kesalahan saat menghapus transaksi.',
+                        'Terjadi kesalahan saat cancel transaksi.',
                         'error'
                     );
                     console.error('Error canceling transaction:', error);

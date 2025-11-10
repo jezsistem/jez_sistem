@@ -2210,7 +2210,7 @@ class TransaksiOnlineController extends Controller
 
         // check if transaction status is not NEW TRX
         if ($transaction->internal_order_status != 'NEW TRX') {
-            return response()->json(['status' => '400', 'message' => 'Hanya transaksi dengan status NEW TRX yang dapat dihapus']);
+            return response()->json(['status' => '400', 'message' => 'Hanya transaksi dengan status NEW TRX yang dapat dicancel']);
         }
 
         // check if there picked items
@@ -2219,16 +2219,16 @@ class TransaksiOnlineController extends Controller
             ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
 
         if ($is_picked) {
-            return response()->json(['status' => '400', 'message' => 'Transaksi memiliki item yang sudah dipick, tidak dapat dihapus.']);
+            return response()->json(['status' => '400', 'message' => 'Transaksi memiliki item yang sudah dipick, tidak dapat dicancel.']);
         }
 
         // change transaction status to CANCELED
         try {
             $transaction->update(['internal_order_status' => 'CANCEL']);
-            return response()->json(['status' => '200', 'message' => 'Transaksi berhasil dihapus']);
+            return response()->json(['status' => '200', 'message' => 'Transaksi berhasil dicancel']);
         } catch (\Exception $e) {
             \Log::error('Error deleting transaction: ' . $e->getMessage());
-            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat menghapus transaksi']);
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat mengcancel transaksi']);
         }
     }
 }
