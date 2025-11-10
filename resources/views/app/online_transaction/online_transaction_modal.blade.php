@@ -156,7 +156,7 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span
-                        id="num_order"></span></h5>
+                        id="num_order"></span> - <span id="no_resi_display"></span></h5>
                 <button type="button" class="close close-modal" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -201,8 +201,12 @@
                             <button type="button" class="btn btn-warning font-weight-bold mr-3" id="btn_input_resi">
                                 <i class="fas fa-plus"></i> Import Resi
                             </button>
-                            <button type="button" class="btn btn-info font-weight-bold" id="change_warehouse_btn">
+                            <button type="button" class="btn btn-info font-weight-bold mr-3" id="change_warehouse_btn">
                                 <i class="fas fa-warehouse"></i></i> Ganti Warehouse
+                            </button>
+                            <button type="button" class="btn btn-primary font-weight-bold"
+                                id="tambah_nomor_resi_btn">
+                                <i class="fas fa-file-alt"></i> Tambah Nomor Resi
                             </button>
                         </div>
 
@@ -233,7 +237,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-primary font-weight-bold close-modal"
-                    data-dismiss="modal">Tutup</button>
+                    data-dismiss="modal" id="close_modal_detail">Tutup</button>
             </div>
         </div>
     </div>
@@ -393,8 +397,8 @@
 
 <!-- Modal Edit Item -->
 
-<div class="modal fade" id="InputResiModal" tabindex="-1" role="dialog"
-    aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="InputResiModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -411,7 +415,8 @@
                             value="">
                         {{-- <p>Warehouse Saat ini : <strong><span id="old_warehouse"></span></strong></p> --}}
                         <label for="resi_file">Upload File Resi <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" id="resi_file" name="resi_file" required accept=".pdf" />
+                        <input type="file" class="form-control" id="resi_file" name="resi_file" required
+                            accept=".pdf" />
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -460,6 +465,40 @@
     </div>
 </div>
 <!-- /Modal Tambah Item -->
+
+<div class="modal fade" id="editResiNumberModal" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="editResiNumberModalLabel">Tambah/Edit Resi</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <form id="f_edit_resi_number">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <input type="hidden" name="edit_resi_number_otd_id" id="edit_resi_number_otd_id"
+                            value="">
+                        <input type="hidden" name="edit_resi_number_to_id" id="edit_resi_number_to_id"
+                            value="">
+                        <input type="text" name="resi_number_input" id="resi_number_input" class="form-control"
+                            placeholder="Masukkan Nomor Resi" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold"
+                        data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 @include('app.chat_modal.chat_modal')
 
 <style>

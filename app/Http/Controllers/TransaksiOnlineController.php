@@ -101,10 +101,10 @@ class TransaksiOnlineController extends Controller
             'couriers' => OnlineTransactions::select('courier')->distinct()->where('courier', '!=', '')->orderBy('courier')->get(),
             'warehouses' => WarehouseIndex::all(),
             'order_statuses' => OnlineTransactions::select(DB::raw("DISTINCT(CASE WHEN order_status LIKE '%Pesanan diterima%' THEN 'Pesanan Diterima' ELSE order_status END) as order_status"))
-                            ->whereNotNull('order_status')
-                            ->where('order_status', '!=', '')
-                            ->orderBy('order_status')
-                            ->get()->pluck('order_status')->toArray(),
+                ->whereNotNull('order_status')
+                ->where('order_status', '!=', '')
+                ->orderBy('order_status')
+                ->get()->pluck('order_status')->toArray(),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
@@ -166,7 +166,7 @@ class TransaksiOnlineController extends Controller
                     })
                     ->when($status_order && !empty($status_order), function ($query) use ($status_order) {
                         if (in_array('Pesanan Diterima', $status_order)) {
-                            $query->where(function($q) use ($status_order) {
+                            $query->where(function ($q) use ($status_order) {
                                 $q->where('order_status', 'LIKE', '%Pesanan diterima%');
                                 $otherStatuses = array_diff($status_order, ['Pesanan Diterima']);
                                 if (!empty($otherStatuses)) {
@@ -178,6 +178,7 @@ class TransaksiOnlineController extends Controller
                         }
                     })
                     ->orderByDesc('is_pinned')
+                    ->orderByRaw('CASE WHEN internal_order_status = "CANCEL" THEN 1 ELSE 0 END')
                     ->orderByRaw('CASE WHEN is_instant = 1 AND internal_order_status is not null AND online_print = 0 AND order_status not in ("selesai","Telah dikirim","dikirim","completed") AND order_status not like "%Pesanan diterima%" THEN 0 ELSE 1 END')
                     ->orderByDesc('last_chat_time')
                     ->orderBy('online_transactions.order_date_created', 'DESC')
@@ -193,7 +194,7 @@ class TransaksiOnlineController extends Controller
                         </button>';
                 })
                 ->editColumn('order_number', function ($data) {
-                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
+                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" data-no_resi="' . $data->no_resi . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
                     $printStatus = '';
@@ -219,9 +220,16 @@ class TransaksiOnlineController extends Controller
                     $badge = $unreadCount > 0 ? '<span class="badge badge-danger position-absolute top-0 start-100 translate-middle">' . $unreadCount . '</span>' : '';
 
                     return '<div class="d-flex">
-                                <button class="btn btn-sm btn-danger ms-1 mr-2" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                                ' . ($data->internal_order_status == 'NEW TRX' 
+                                    ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="deleteTransaction(' . $data->to_id . ')" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>'
+                                    : '') . 
+                                    ($data->internal_order_status == 'UNDER REVIEW' 
+                                    ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>'
+                                    : '') .'
                                 <button class="btn btn-sm btn-warning ms-1 mr-2" onclick="clearPrintStatus(' . $data->to_id . ')" title="Clear Print Status">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
@@ -247,7 +255,7 @@ class TransaksiOnlineController extends Controller
 
                     return '<span class="' . $class . '">' . $status . '</span>';
                 })
-                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status','pin'])
+                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action', 'internal_order_status', 'pin'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -2186,6 +2194,64 @@ class TransaksiOnlineController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error toggling pin status: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat mengubah status pin']);
+        }
+    }
+
+    public function deleteTran(Request $request)
+    {
+        $to_id = $request->to_id;
+
+        $transaction = OnlineTransactions::find($to_id);
+
+        // check if transaction exists
+        if (!$transaction) {
+            return response()->json(['status' => '404', 'message' => 'Transaksi tidak ditemukan']);
+        }
+
+        // check if transaction status is not NEW TRX
+        if ($transaction->internal_order_status != 'NEW TRX') {
+            return response()->json(['status' => '400', 'message' => 'Hanya transaksi dengan status NEW TRX yang dapat dicancel']);
+        }
+
+        // check if there picked items
+        $is_picked = ProductLocationSetupTransaction::query()
+            ->join('online_transaction_details', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+            ->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND'])->where('to_id', $to_id)->exists();
+
+        if ($is_picked) {
+            return response()->json(['status' => '400', 'message' => 'Transaksi memiliki item yang sudah dipick, tidak dapat dicancel.']);
+        }
+
+        // change transaction status to CANCELED
+        try {
+            $transaction->update(['internal_order_status' => 'CANCEL']);
+            return response()->json(['status' => '200', 'message' => 'Transaksi berhasil dicancel']);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting transaction: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat mengcancel transaksi']);
+        }
+    }
+
+    public function editResiNumber(Request $request) {
+        $to_id = $request->edit_resi_number_to_id;
+        $new_resi_number = $request->resi_number_input;
+
+        try {
+            $transaction = OnlineTransactions::where('id', $to_id)
+                ->first();
+
+            if (!$transaction) {
+                return response()->json(['status' => '404', 'message' => 'Detail transaksi tidak ditemukan']);
+            }
+
+            $transaction->update([
+                'no_resi' => $new_resi_number
+            ]);
+
+            return response()->json(['status' => '200', 'message' => 'Nomor resi berhasil diperbarui']);
+        } catch (\Exception $e) {
+            \Log::error('Error updating resi number: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat memperbarui nomor resi']);
         }
     }
 }
