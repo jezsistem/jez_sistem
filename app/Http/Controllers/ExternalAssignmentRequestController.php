@@ -202,6 +202,7 @@ class ExternalAssignmentRequestController extends Controller
             'type:id,ea_name',
             'rundowns',
             'cashDetails',
+            'reports'
         ])->findOrFail($id);
 
         $userId = $user->id;
@@ -329,6 +330,9 @@ class ExternalAssignmentRequestController extends Controller
             return redirect()->back()->with('error', 'Report tidak dapat diinput karena sudah melewati tahap HR Check.');
         }
 
+        // Hapus laporan lama jika ada
+        ExternalAssignmentRequestReport::where('ear_id', $id)->delete();
+
         foreach ($request->reports as $report) {
             ExternalAssignmentRequestReport::create([
                 'ear_id' => $id,
@@ -343,6 +347,38 @@ class ExternalAssignmentRequestController extends Controller
         }
 
         $ear->update(['ear_status' => 'HR Check']);
+
+        return redirect()->back()->with('success', 'Report berhasil disimpan dan status berubah menjadi HR Check.');
+    }
+
+    public function reportUpdate (Request $request, $id)
+    {
+        $request->validate([
+            'reports' => 'required|array|min:1',
+            'reports.*.earr_date' => 'required|date',
+            'reports.*.earr_time_start' => 'required',
+            'reports.*.earr_time_end' => 'required',
+            'reports.*.earr_detail' => 'required|string',
+            'reports.*.cash_amount' => 'nullable|numeric',
+        ]);
+
+        $ear = ExternalAssignmentRequest::findOrFail($id);
+
+        // Hapus laporan lama jika ada
+        ExternalAssignmentRequestReport::where('ear_id', $id)->delete();
+
+        foreach ($request->reports as $report) {
+            ExternalAssignmentRequestReport::create([
+                'ear_id' => $id,
+                'earr_date' => $report['earr_date'],
+                'earr_time_start' => $report['earr_time_start'],
+                'earr_time_end' => $report['earr_time_end'],
+                'earr_detail' => $report['earr_detail'],
+                'cash_amount' => $report['cash_amount'] ?? 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Report berhasil disimpan dan status berubah menjadi HR Check.');
     }
@@ -1345,7 +1381,7 @@ class ExternalAssignmentRequestController extends Controller
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
 
-                    if ($row->ear_status == 'Pending Approval') {
+                    if ($row->ear_status == 'Pending Approval' && auth()->id() == $row->request_by) {
                         $btn .= '        <!--begin::Menu item-->';
                         $btn .= '        <div class="menu-item px-3">';
                         $btn .= '            <a href="' . url('/external-assignment-requests/edit/' . $row->id) . '" class="menu-link px-3">Edit</a>';

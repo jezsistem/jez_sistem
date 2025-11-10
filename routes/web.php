@@ -1074,6 +1074,8 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('ear.approve');
     Route::post('/ear/{id}/report/store', [ExternalAssignmentRequestController::class, 'storeReport'])
         ->name('ear.report.store');
+    Route::post('/ear/{id}/report/update', [ExternalAssignmentRequestController::class, 'reportUpdate'])
+        ->name('ear.report.update');
 
 
     //Overtime Type

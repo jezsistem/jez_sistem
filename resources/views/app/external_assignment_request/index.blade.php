@@ -300,7 +300,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('ear_status', 'Finance Process')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="finance-requests">{{ $leaveRequests->where('ear_status', 'Finance Process')->count() }}</div>
                                     <div class="text-dark-50">Finance Process</div>
                                 </div>
                             </div>
