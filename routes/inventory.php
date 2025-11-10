@@ -400,6 +400,9 @@ Route::middleware(['auth'])->group(function () {
     ::class, 'scanPackingBulk']);
     Route::post('helper_online_scan_manifest_bulk', [HelperOnlineController::class, 'scanManifestBulk']);
 //    Route::get('helper_online_print_manifest', [HelperOnlineController::class, 'printManifest']);
+//    Route::get('/helper-online/history-pick', [HelperOnlineController::class, 'historyPick'])->name('helper.historyPick');
+    Route::get('/transactions/{transactionId}/pick-history', [HelperOnlineController::class, 'getPickHistory'])
+        ->name('transactions.pickHistory');
 
     Route::get('/manifest/data', [DeliveryRecapController::class, 'getData'])->name('manifest.data');
     Route::get('/manifest/print/{id}', [DeliveryRecapController::class, 'print'])->name('manifest.print');

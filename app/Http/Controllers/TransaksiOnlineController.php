@@ -1560,7 +1560,7 @@ class TransaksiOnlineController extends Controller
                 $courier = OnlineTransactions::getCourierAttribute($item[20]);
 
                 $rowData = [
-                    'st_id' => 20,
+                    'st_id' => $store_id,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
@@ -1720,7 +1720,7 @@ class TransaksiOnlineController extends Controller
                 $courier = OnlineTransactions::getCourierAttribute($item[20]);
 
                 $rowData = [
-                    'st_id' => '20',
+                    'st_id' => $store_id,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,

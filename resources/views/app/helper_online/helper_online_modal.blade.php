@@ -1,5 +1,5 @@
 <div class="modal fade" id="addStorageAreaModal" tabindex="-1" aria-labelledby="addStorageAreaModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -27,8 +27,91 @@
     </div>
 </div>
 
+{{--<div class="modal fade" id="pickHistoryModal" tabindex="-1" role="dialog">--}}
+{{--    <div class="modal-dialog modal-dialog-centered" role="document">--}}
+{{--        <div class="modal-content">--}}
+{{--            <div class="modal-header">--}}
+{{--                <h5 class="modal-title">Pick History</h5>--}}
+{{--                <button type="button" class="close" data-dismiss="modal">&times;</button>--}}
+{{--            </div>--}}
+{{--            <div class="modal-body">--}}
+{{--                <p><strong>Request By:</strong> <span id="requestBy">-</span></p>--}}
+{{--                <p><strong>Pick By:</strong> <span id="pickBy">-</span></p>--}}
+{{--                <p><strong>Packing By:</strong> <span id="packingBy">-</span></p>--}}
+{{--                <p><strong>Pick Time:</strong> <span id="pickTime">-</span></p>--}}
+{{--                <p><strong>Pack Time:</strong> <span id="packTime">-</span></p>--}}
+{{--            </div>--}}
+{{--        </div>--}}
+{{--    </div>--}}
+{{--</div>--}}
+
+
+<div class="modal fade" id="pickHistoryModal" tabindex="-1" role="dialog" aria-labelledby="pickHistoryModalLabel"
+     aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Pick History Timeline</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="timeline" id="pickHistoryTimeline"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Tutup
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<style>
+    .timeline {
+        position: relative;
+        margin: 20px 0;
+        padding-left: 40px;
+        border-left: 3px solid #007bff;
+    }
+    .timeline-item {
+        margin-bottom: 30px;
+        position: relative;
+    }
+    .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -19px;
+        top: 0;
+        width: 15px;
+        height: 15px;
+        background-color: #007bff;
+        border-radius: 50%;
+    }
+    .timeline-item .title {
+        font-weight: bold;
+        color: #007bff;
+    }
+    .timeline-item .name {
+        font-size: 16px;
+        color: #333;
+    }
+    .timeline-item .time {
+        font-size: 14px;
+        color: #666;
+    }
+</style>
+
 <div class="modal fade" id="detailStorageAreaModal" tabindex="-1" aria-labelledby="detailStorageAreaModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <input type="hidden" id="storage_area_id" name="storage_area_id">
@@ -36,9 +119,11 @@
                 <h5 class="modal-title" id="detail_name"></h5>
                 <div>
                     <button type="button" class="btn btn-dark me-2 mr-3" id="editStorageAreaBtn">Edit Area
-                        Penyimpanan</button>
+                        Penyimpanan
+                    </button>
                     <button type="button" class="btn btn-danger me-2 mr-10" id="deleteStorageAreaBtn">Hapus Area
-                        Penyimpanan</button>
+                        Penyimpanan
+                    </button>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
@@ -64,7 +149,7 @@
 </div>
 
 <div class="modal fade" id="editStorageAreaModal" tabindex="-1" aria-labelledby="editStorageAreaModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -81,7 +166,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="edit_description" class="form-label">Deskripsi</label>
-                        <textarea class="form-control" id="edit_description" name="edit_description" rows="3" required></textarea>
+                        <textarea class="form-control" id="edit_description" name="edit_description" rows="3"
+                                  required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -95,7 +181,7 @@
 
 <!-- Online Items Modal -->
 <div class="modal fade" id="OnlineItemsModal" tabindex="-1" aria-labelledby="OnlineItemsModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
@@ -105,12 +191,12 @@
                 </button>
             </div>
             <div class="modal-body table-responsive">
-                <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel" />
+                <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
                 <table class="table table-hover table-checkable table-striped" id="online_items_table">
                     <thead class="bg-dark text-light">
-                        <tr>
-                            <th class="text-dark">Artikel</th>
-                        </tr>
+                    <tr>
+                        <th class="text-dark">Artikel</th>
+                    </tr>
                     </thead>
                     <tbody>
 
@@ -120,14 +206,15 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                    aria-label="Close">Close</button>
+                        aria-label="Close">Close
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="binModal" tabindex="-1" role="dialog" aria-labelledby="binModalLabel"
-    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+     aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -154,23 +241,24 @@
                 {{--                <input type="text" id="" value=""> --}}
                 {{--                <input type="text" id="" value=""> --}}
                 <input type="search" class="form-control mt-3" id="bin_out_search"
-                    placeholder="Cari nama bin" /><br>
+                       placeholder="Cari nama bin"/><br>
                 <table class="table table-bordered" id="binTable">
                     <thead>
-                        <tr>
-                            <th>BIN</th>
-                            <th>QTY</th>
-                            <th>Action</th>
-                        </tr>
+                    <tr>
+                        <th>BIN</th>
+                        <th>QTY</th>
+                        <th>Action</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <!-- Data BIN akan diisi di sini -->
+                    <!-- Data BIN akan diisi di sini -->
                     </tbody>
                 </table>
                 <div class="text-right mt-3">
                     {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button> --}}
                     <button type="button" class="btn btn-dark font-weight-bold close_scanner"
-                        id="close_scan_out_modal" data-dismiss="modal">Selesai</button>
+                            id="close_scan_out_modal" data-dismiss="modal">Selesai
+                    </button>
                 </div>
             </div>
         </div>
@@ -178,7 +266,7 @@
 </div>
 
 <div class="modal fade" id="waitingReceiptModal" tabindex="-1" role="dialog"
-    aria-labelledby="waitingReceiptModallLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+     aria-labelledby="waitingReceiptModallLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-dark">
@@ -204,26 +292,26 @@
                             <input type="hidden" id="resi_number">
                         </div>
                         <button type="button" class="btn btn-success" id="continuePackingBtn" data-to_id=""
-                            data-order_number="" disabled>
+                                data-order_number="" disabled>
                             Lanjut Packing
                         </button>
                     </div>
                     <div class="table-responsive mt-5">
                         <table class="table table-bordered" id="waitingReceiptTable">
                             <thead class="">
-                                <tr>
-                                    <th>No</th>
-                                    <th>Artikel</th>
-                                    <th>SKU</th>
-                                    <th>Qty</th>
-                                    <th>Platform Price</th>
-                                    <th>Jez Price</th>
-                                    <th>Seller Discount</th>
-                                    <th>Final Price</th>
-                                </tr>
+                            <tr>
+                                <th>No</th>
+                                <th>Artikel</th>
+                                <th>SKU</th>
+                                <th>Qty</th>
+                                <th>Platform Price</th>
+                                <th>Jez Price</th>
+                                <th>Seller Discount</th>
+                                <th>Final Price</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                <!-- Data will be populated here -->
+                            <!-- Data will be populated here -->
                             </tbody>
                         </table>
                     </div>
@@ -237,12 +325,12 @@
 {{-- Modal Scan Packing --}}
 
 <div class="modal fade" id="scanPackingModal" tabindex="-1" role="dialog" aria-labelledby="scanPackingModalLabel"
-    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+     aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Scan Packing: <span id="order_number_scan_packing"></span> - <span
-                        id="plst_id_scan_packing"></span>
+                            id="plst_id_scan_packing"></span>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
                     <span aria-hidden="true">&times;</span>
@@ -260,11 +348,12 @@
                 </div>
                 <p class="mt-8">No Resi : </span><span id="resi_number_holder"></p>
                 <input type="search" class="form-control mt-3" id="scan_packing_result"
-                    placeholder="Hasil Scan" /><br>
+                       placeholder="Hasil Scan"/><br>
                 <div class="text-right mt-3">
                     {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button> --}}
                     <button type="button" class="btn btn-dark font-weight-bold close_scanner"
-                        id="close_scan_packing_modal_btn">Selesai</button>
+                            id="close_scan_packing_modal_btn">Selesai
+                    </button>
                 </div>
             </div>
         </div>

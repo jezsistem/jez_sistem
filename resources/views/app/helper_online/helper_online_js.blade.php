@@ -37,8 +37,78 @@
         $('#waiting_online_count').text(waiting_online);
     }
 
-    function renderTransactions(transactions) {
+    // function renderTransactions(transactions) {
+    //
+    //     let html = '';
+    //     Object.values(transactions).forEach(transaction => {
+    //         const statusClasses = {
+    //             'WAITING ONLINE': 'warning',
+    //             'UNDER REVIEW': 'secondary',
+    //             'WAITING RECEIPT': 'primary',
+    //             'WAITING PACKING': 'danger',
+    //             'DONE ONLINE': 'dark',
+    //             'DONE': 'dark',
+    //         };
+    //
+    //         const statusClass = statusClasses[transaction.internal_order_status] || 'default';
+    //         html += `
+    //             <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING' || transaction.internal_order_status === 'DONE ONLINE' || transaction.internal_order_status === 'DONE' ? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" data-print_status=${transaction.online_print} style="cursor: pointer;">
+    //                 <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
+    //                     <div class="card-body" style="background-color: #f8f9fa;">
+    //                         <div class="d-flex justify-content-between align-items-center">
+    //                             <h5 class="card-title text-primary copy-order-number" style="font-weight: bold; cursor: pointer;" data-order="${transaction.order_number}">Order Number: ${transaction.order_number}</h5>
+    //
+    //                             <button class="btn position-relative" id="open_chat" onclick="openChat(${transaction.transaction_id})" data-trx_number=${transaction.order_number}>
+    //                                 <i class="fas fa-comments"></i>
+    //                                 ${transaction.unreaded_chat > 0 ? `
+    //                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white">
+    //                                     ${transaction.unreaded_chat}
+    //                                 </span>
+    //                                 ` : ''}
+    //                             </button>
+    //                         </div>
+    //                         <p class="card-text copy-resi" style="cursor: pointer;" data-resi="${transaction.no_resi}">Resi: <strong>${transaction.no_resi}</strong></p>
+    //                         <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
+    //                         <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
+    //                         <p class="card-text">Metode Pengiriman:
+    //                             <span style="background-color: ${transaction.shipping_method && transaction.shipping_method.toLowerCase().includes('instant') ? '#28a745' : '#6c757d'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+    //                                 ${transaction.shipping_method}
+    //                             </span>
+    //                         </p>
+    //                         <p class="card-text">Tanggal Order: <em>${new Date(transaction.created_at).toLocaleString()}</em></p>
+    //                         <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
+    //                         <p class="card-text">Status TRX:
+    //                             <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span> ${transaction.all_picked ? ' <span class="badge badge-info">ALL PICKED</span>' : ''}
+    //                         </p>
+    //                     </div>
+    //                 </div>
+    //             </div>
+    //         `;
+    //     });
+    //
+    //     function getBorderColor(status) {
+    //         switch (status) {
+    //             case 'WAITING ONLINE':
+    //                 return '#ffc107';
+    //             case 'UNDER REVIEW':
+    //                 return '#6c757d';
+    //             case 'WAITING RECEIPT':
+    //                 return '#007bff';
+    //             case 'WAITING PACKING':
+    //                 return '#f00c0c';
+    //             case 'DONE ONLINE':
+    //                 return '#5CE65C';
+    //             case 'DONE':
+    //                 return '#5CE65C';
+    //             default:
+    //                 return '#000'; // Default color
+    //         }
+    //     }
+    //
+    //     return html;
+    // }
 
+    function renderTransactions(transactions) {
         let html = '';
         Object.values(transactions).forEach(transaction => {
             const statusClasses = {
@@ -51,62 +121,174 @@
             };
 
             const statusClass = statusClasses[transaction.internal_order_status] || 'default';
-            html += `
-                <div class="col-md-4 mb-4 text-left" id="${transaction.internal_order_status === 'WAITING RECEIPT' || transaction.internal_order_status === 'WAITING PACKING' || transaction.internal_order_status === 'DONE ONLINE' || transaction.internal_order_status === 'DONE' ? 'waiting_receipt_card' : 'transaction_card'}" data-transaction_id=${transaction.transaction_id} data-order_number="${transaction.order_number}" data-resi_number="${transaction.no_resi}" data-internal_order_status="${transaction.internal_order_status}"" data-print_status=${transaction.online_print} style="cursor: pointer;">
-                    <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
-                        <div class="card-body" style="background-color: #f8f9fa;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="card-title text-primary copy-order-number" style="font-weight: bold; cursor: pointer;" data-order="${transaction.order_number}">Order Number: ${transaction.order_number}</h5>
 
-                                <button class="btn position-relative" id="open_chat" onclick="openChat(${transaction.transaction_id})" data-trx_number=${transaction.order_number}>
-                                    <i class="fas fa-comments"></i>
-                                    ${transaction.unreaded_chat > 0 ? `
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white">
-                                        ${transaction.unreaded_chat}
-                                    </span>
-                                    ` : ''}
-                                </button>
-                            </div>
-                            <p class="card-text copy-resi" style="cursor: pointer;" data-resi="${transaction.no_resi}">Resi: <strong>${transaction.no_resi}</strong></p>
-                            <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
-                            <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
-                            <p class="card-text">Metode Pengiriman: 
-                                <span style="background-color: ${transaction.shipping_method && transaction.shipping_method.toLowerCase().includes('instant') ? '#28a745' : '#6c757d'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                                    ${transaction.shipping_method}
-                                </span>
-                            </p>
-                            <p class="card-text">Tanggal Order: <em>${new Date(transaction.created_at).toLocaleString()}</em></p>
-                            <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
-                            <p class="card-text">Status TRX: 
-                                <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span> ${transaction.all_picked ? ' <span class="badge badge-info">ALL PICKED</span>' : ''}
-                            </p>
+            html += `
+            <div class="col-md-4 mb-4 text-left"
+                id="${
+                transaction.internal_order_status === 'WAITING RECEIPT' ||
+                transaction.internal_order_status === 'WAITING PACKING' ||
+                transaction.internal_order_status === 'DONE ONLINE' ||
+                transaction.internal_order_status === 'DONE'
+                    ? 'waiting_receipt_card'
+                    : 'transaction_card'
+            }"
+                data-transaction_id="${transaction.transaction_id}"
+                data-order_number="${transaction.order_number}"
+                data-resi_number="${transaction.no_resi}"
+                data-internal_order_status="${transaction.internal_order_status}"
+                data-print_status="${transaction.online_print}"
+                style="cursor: pointer;">
+
+                <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden; border: 2px solid ${getBorderColor(transaction.internal_order_status)};">
+                    <div class="card-body" style="background-color: #f8f9fa;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title text-primary copy-order-number"
+                                style="font-weight: bold; cursor: pointer;"
+                                data-order="${transaction.order_number}">
+                                Order Number: ${transaction.order_number}
+                            </h5>
+
+                            <!-- 🔹 Tombol Open Chat -->
+                            <button class="btn position-relative" id="open_chat"
+                                onclick="openChat(${transaction.transaction_id})"
+                                data-trx_number="${transaction.order_number}">
+                                <i class="fas fa-comments"></i>
+                                ${
+                transaction.unreaded_chat > 0
+                    ? `<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white">
+                                            ${transaction.unreaded_chat}
+                                           </span>`
+                    : ''
+            }
+                            </button>
                         </div>
+
+                        <p class="card-text copy-resi" style="cursor: pointer;" data-resi="${transaction.no_resi}">
+                            Resi: <strong>${transaction.no_resi}</strong>
+                        </p>
+                        <p class="card-text">Platform: <strong>${transaction.platform}</strong></p>
+                        <p class="card-text">Toko: <strong>${transaction.store}</strong></p>
+                        <p class="card-text">Metode Pengiriman:
+                            <span style="background-color: ${
+                transaction.shipping_method &&
+                transaction.shipping_method.toLowerCase().includes('instant')
+                    ? '#28a745'
+                    : '#6c757d'
+            }; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                ${transaction.shipping_method}
+                            </span>
+                        </p>
+                        <p class="card-text">Tanggal Order: <em>${new Date(transaction.created_at).toLocaleString()}</em></p>
+                        <p class="card-text">Waktu Pick: <em>${new Date(transaction.picked_time).toLocaleString()}</em></p>
+                        <p class="card-text">Status TRX:
+                            <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span>
+                            ${transaction.all_picked ? ' <span class="badge badge-info">ALL PICKED</span>' : ''}
+                        </p>
+
+                        <!-- Tombol History Pick -->
+                       <button class="btn btn-outline-secondary btn-sm mt-2 w-100 pick-history"
+                                id="pick-history"
+                                data-order_number="${transaction.order_number}"
+                                data-plst_id="${transaction.plst_id}">
+                            <i class="fas fa-history"></i> History Pick
+                        </button>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
         });
 
+        // 🔸 Warna border per status
         function getBorderColor(status) {
             switch (status) {
-                case 'WAITING ONLINE':
-                    return '#ffc107';
-                case 'UNDER REVIEW':
-                    return '#6c757d';
-                case 'WAITING RECEIPT':
-                    return '#007bff';
-                case 'WAITING PACKING':
-                    return '#f00c0c';
-                case 'DONE ONLINE':
-                    return '#5CE65C';
-                case 'DONE':
-                    return '#5CE65C';
-                default:
-                    return '#000'; // Default color
+                case 'WAITING ONLINE': return '#ffc107';
+                case 'UNDER REVIEW': return '#6c757d';
+                case 'WAITING RECEIPT': return '#007bff';
+                case 'WAITING PACKING': return '#f00c0c';
+                case 'DONE ONLINE': return '#5CE65C';
+                case 'DONE': return '#5CE65C';
+                default: return '#000';
             }
         }
 
         return html;
     }
+
+    $(document).on('click', '.pick-history', function (e) {
+        e.stopPropagation();
+        jQuery.noConflict();
+
+        const transactionId = $(this).data('plst_id');
+
+        $.ajax({
+            url: `/transactions/${transactionId}/pick-history`,
+            method: 'GET',
+            success: function (data) {
+                $('#pickHistoryModal').modal('show');
+
+                // Hapus isi lama timeline
+                const timeline = $('#pickHistoryTimeline');
+                timeline.empty();
+
+                // Siapkan data dengan urutan kronologis
+                const history = [
+                    { title: 'Request By', name: data.request_by, time: data.request_time },
+                    { title: 'Pick By', name: data.pick_by, time: data.pick_time },
+                    { title: 'Packing By', name: data.packing_by, time: data.pack_time },
+                ];
+
+                // Loop buat tiap step timeline
+                history.forEach(item => {
+                    if (item.name || item.time) {
+                        const timeFormatted = item.time ? new Date(item.time).toLocaleString() : '-';
+                        timeline.append(`
+                        <div class="timeline-item">
+                            <div class="title">${item.title}</div>
+                            <div class="name">${item.name || '-'}</div>
+                            <div class="time">${timeFormatted}</div>
+                        </div>
+                    `);
+                    }
+                });
+            },
+            error: function () {
+                alert('Gagal mengambil data history pick.');
+            }
+        });
+    });
+
+
+    // $(document).on('click', '.pick-history', function (e) {
+    //     e.stopPropagation();
+    //     jQuery.noConflict();
+    //
+    //     const transactionId = $(this).data('plst_id');
+    //     console.log('Pick History clicked for', transactionId);
+    //
+    //     // modal_opened = 'pickHistoryModal';
+    //
+    //     $.ajax({
+    //         url: `/transactions/${transactionId}/pick-history`,
+    //         method: 'GET',
+    //         success: function (data) {
+    //             $('#pickHistoryModal').modal('show');
+    //
+    //             // modal_opened = 'pickHistoryModal';
+    //
+    //             // console.log(modal_opened);
+    //             // modal_opened = 'ScanOutModal';
+    //
+    //             $('#requestBy').text(data.request_by || '-');
+    //             $('#pickBy').text(data.pick_by || '-');
+    //             $('#packingBy').text(data.packing_by || '-');
+    //             $('#pickTime').text(data.pick_time ? new Date(data.pick_time).toLocaleString() : '-');
+    //             $('#packTime').text(data.pack_time ? new Date(data.pack_time).toLocaleString() : '-');
+    //         },
+    //         error: function () {
+    //             alert('Gagal mengambil data history pick.');
+    //         }
+    //     });
+    // });
 
     $(document).on('click', '.copy-order-number', function (e) {
         e.stopPropagation();
