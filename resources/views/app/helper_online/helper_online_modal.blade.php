@@ -485,7 +485,7 @@
                     @endif
                 </div>
                 <button type="button" id="printSelected" class="btn btn-success btn-sm col-12" style="height: 5rem;">
-                    Print Resi Terpilih
+                    Merge Resi Terpilih
                 </button>
 
 
