@@ -136,6 +136,13 @@
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <div class="card-body">
+                            <div class="row mt-6">
+                                <div class="col-md-12">
+                                    <button type="button" class="btn btn-primary mr-2" id="open_modal_resi_btn">
+                                        Resi Massal
+                                    </button>
+                                </div>
+                            </div>
                             <!--begin: Datatable-->
                             {{-- <table class="table table-bordered table-hover" id="helper_online_table">
                                 <thead>
@@ -154,7 +161,7 @@
                             </table> --}}
                             <!--end: Datatable-->
                             <center>
-                                <div class="picked_online_trx row" id="picked_online_trx"></div>
+                                <div class="picked_online_trx row mt-12" id="picked_online_trx"></div>
                             </center>
 
                         </div>

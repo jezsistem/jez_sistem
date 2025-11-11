@@ -417,4 +417,164 @@
     </div>
 </div>
 
+
+<!-- Modal -->
+<div class="modal fade" id="resiMasalModal" tabindex="-1" role="dialog" aria-labelledby="resiMasalModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white">Pilih Resi untuk Print</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- 🔹 Tombol Select All -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <input type="checkbox" id="selectAllResi">
+                        <label for="selectAllResi" class="ml-1 mb-0 font-weight-bold">Pilih Semua</label>
+                    </div>
+
+                </div>
+
+                <div class="row" id="resiCardList">
+                    {{-- Jika data dari controller --}}
+                    @if(!empty($dataResi) && count($dataResi) > 0)
+                        @foreach($dataResi as $item)
+                            @php
+                                $resi = $item->no_resi ?? '';
+                                $nama_barang = $item->nama_barang ?? '';
+                                $jumlah = $item->jumlah ?? 0;
+                                $jumlah_barang =  $item->jumlah_barang ?? 0;
+                            @endphp
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm border-primary resi-card">
+                                    <div class="row no-gutters align-items-center">
+                                        <!-- Ganti gambar jadi angka besar -->
+                                        <div class="col-md-4 d-flex align-items-center justify-content-center bg-light">
+                                            <div class="text-center">
+                                <span class="display-3 font-weight-bold text-primary">
+                                    {{ $jumlah_barang }}
+                                </span>
+                                                <div class="text-muted">pcs</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <h5 class="card-title mb-0">{{ $resi }}</h5>
+                                                    <input type="checkbox" class="resi-checkbox" value="{{ $resi }}">
+                                                </div>
+                                                <p class="card-text mt-2 mb-1">{{ $nama_barang }}</p>
+                                                <small class="text-muted">Jumlah: {{ $jumlah }} pcs</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="col-12 text-center text-muted py-5">
+                            <p>Belum ada data resi tersedia.</p>
+                        </div>
+                    @endif
+                </div>
+                <button type="button" id="printSelected" class="btn btn-success btn-sm col-12" style="height: 5rem;">
+                    Print Resi Terpilih
+                </button>
+
+
+                <!-- Loading GIF -->
+                <div id="loadingMerge" class="text-center mt-3" style="display: none;">
+                    <img src="{{ asset('pos/jez.gif') }}" alt="Loading..." width="120">
+                    <p class="text-muted mt-2">Menggabungkan file PDF, mohon tunggu...</p>
+                </div>
+
+                <!-- Preview hasil merge -->
+                <div id="mergedPdfPreview" class="mt-3" style="display: none;">
+                    <h6>Preview Hasil Merge:</h6>
+                    <iframe id="mergedPdfFrame" style="width: 100%; height: 500px; border: 1px solid #ccc;"></iframe>
+
+                    <button id="printMergedBtn" class="btn btn-primary mt-3 col-12" style="height: 4rem;">
+                        Print Hasil Merge
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Modal -->
+{{--<div class="modal fade" id="resiMasalModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"--}}
+{{--     aria-hidden="true">--}}
+{{--    <div class="modal-dialog modal-xl" role="document">--}}
+{{--        <div class="modal-content">--}}
+{{--            <div class="modal-header bg-primary text-white">--}}
+{{--                <h5 class="modal-title">Pilih Resi untuk Dicetak</h5>--}}
+{{--                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">--}}
+{{--                    <span aria-hidden="true">×</span>--}}
+{{--                </button>--}}
+{{--            </div>--}}
+
+{{--            <div class="modal-body">--}}
+
+{{--                <!-- Card utama -->--}}
+{{--                <div class="card shadow-sm">--}}
+{{--                    <div class="card-body">--}}
+
+{{--                        <!-- Tombol cetak -->--}}
+{{--                        <div class="mb-3 text-right">--}}
+{{--                            <button class="btn btn-success" id="printSelected">--}}
+{{--                                <i class="fas fa-print"></i> Cetak Terpilih--}}
+{{--                            </button>--}}
+{{--                        </div>--}}
+
+{{--                        <!-- Tabel daftar resi -->--}}
+{{--                        <div class="table-responsive">--}}
+{{--                            <table class="table table-bordered align-middle">--}}
+{{--                                <thead class="thead-light">--}}
+{{--                                <tr class="text-center">--}}
+{{--                                    <th style="width: 50px;">#</th>--}}
+{{--                                    <th>No Resi</th>--}}
+{{--                                    <th>Nama Barang</th>--}}
+{{--                                    <th style="width: 100px;">Jumlah</th>--}}
+{{--                                </tr>--}}
+{{--                                </thead>--}}
+{{--                                <tbody>--}}
+{{--                                @foreach($dataResi as $index => $resi)--}}
+{{--                                    <tr>--}}
+{{--                                        <td class="text-center">--}}
+{{--                                            <input type="checkbox" class="resi-checkbox" value="{{ $resi['no_resi'] }}">--}}
+{{--                                        </td>--}}
+{{--                                        <td>{{ $resi['no_resi'] }}</td>--}}
+{{--                                        <td>{{ $resi['nama_barang'] }}</td>--}}
+{{--                                        <td class="text-center">--}}
+{{--                                            <img src="{{ asset('images/item-icon.png') }}" alt="Jumlah"--}}
+{{--                                                 style="width: 24px; height: 24px; margin-right: 6px;">--}}
+{{--                                            {{ $resi['jumlah'] }}--}}
+{{--                                        </td>--}}
+{{--                                    </tr>--}}
+{{--                                @endforeach--}}
+{{--                                </tbody>--}}
+{{--                            </table>--}}
+{{--                        </div>--}}
+
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--                <!-- End Card -->--}}
+
+{{--            </div>--}}
+{{--        </div>--}}
+{{--    </div>--}}
+{{--</div>--}}
+
 @include('app.chat_modal.chat_modal')

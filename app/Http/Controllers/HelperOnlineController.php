@@ -20,6 +20,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use iio\libmergepdf\Merger;
+use iio\libmergepdf\Driver\FpdiDriver;
+use Illuminate\Support\Facades\File;
+use setasign\Fpdi\Fpdi;
 
 class HelperOnlineController extends Controller
 {
@@ -91,7 +95,87 @@ class HelperOnlineController extends Controller
             'st_id' => Auth::user()->st_id,
             'warehouse' => WarehouseIndex::query()->where('st_id', Auth::user()->st_id)->first()->w_code,
         ];
-        return view('app.helper_online.helper_online', compact('data'));
+
+//        $dataResi = [
+//            [
+//                'no_resi' => 'JX123456789',
+//                'nama_barang' => 'Sepatu Sneakers Hitam',
+//                'jumlah' => 2,
+//                'jumlah_barang' => 12,
+//                'gambar' => 'https://via.placeholder.com/150',
+//            ],
+//            [
+//                'no_resi' => 'SPX998877665',
+//                'nama_barang' => 'Kaos Oversize Putih, Sepatu Sneakers Hitam',
+//                'jumlah' => 1,
+//                'jumlah_barang' => 1,
+//                'gambar' => 'https://via.placeholder.com/150',
+//            ],
+//            [
+//                'no_resi' => 'SPX9988776625',
+//                'nama_barang' => 'Kaos Oversize Putih',
+//                'jumlah' => 1,
+//                'jumlah_barang' => 3,
+//                'gambar' => 'https://via.placeholder.com/150',
+//            ],
+//        ];
+
+        $dataResi = DB::table('online_transactions')
+            ->join('online_transaction_details', 'online_transaction_details.to_id', '=', 'online_transactions.id')
+            ->join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+            ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            ->select(
+                'online_transactions.no_resi',
+                DB::raw('GROUP_CONCAT(DISTINCT ts_products.p_name SEPARATOR ", ") as nama_barang'),
+                DB::raw('SUM(ts_online_transaction_details.qty) as jumlah_barang'),
+                DB::raw('COUNT(DISTINCT ts_products.id) as jumlah'),
+                DB::raw('"https://via.placeholder.com/150" as gambar')
+            )
+            ->groupBy('online_transactions.no_resi')
+            ->where('internal_order_status', '=', 'WAITING RECEIPT')
+            ->whereNotNull('online_transactions.no_resi')
+            ->get();
+
+        return view('app.helper_online.helper_online', compact('data', 'dataResi'));
+    }
+
+    public function mergeResi(Request $request)
+    {
+        $resiList = $request->resi ?? [];
+
+        if (empty($resiList)) {
+            return response()->json(['error' => 'Tidak ada resi yang dipilih'], 400);
+        }
+
+        // Pastikan direktori split_resi ada
+        $splitResiPath = storage_path('app/public/split_resi');
+        if (!File::exists($splitResiPath)) {
+            File::makeDirectory($splitResiPath, 0755, true);
+        }
+
+        // Buat objek merger
+        $merger = new Merger(new Fpdi());
+
+        foreach ($resiList as $resi) {
+            $path = $splitResiPath . '/' . $resi . '.pdf';
+
+            if (File::exists($path)) {
+                $merger->addFile($path);
+            }
+        }
+
+        // Gabungkan PDF
+        $mergedPdf = $merger->merge();
+
+        // Simpan hasil gabungan ke file baru
+        $mergedName = 'merged_resi_' . time() . '.pdf';
+        $outputPath = $splitResiPath . '/' . $mergedName;
+        File::put($outputPath, $mergedPdf);
+
+        // Buat URL publik untuk dibuka
+        $url = asset('storage/split_resi/' . $mergedName);
+
+        return response()->json(['url' => $url]);
     }
 
     public function getDatatables(Request $request)
