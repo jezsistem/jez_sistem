@@ -317,7 +317,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('ear_status', 'Done')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('ear_status', 'DONE')->count() }}</div>
                                     <div class="text-dark-50">Done</div>
                                 </div>
                             </div>
