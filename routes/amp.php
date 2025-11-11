@@ -45,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('transaksi_online_delete_item', [TransaksiOnlineController::class, 'deleteItem']);
     Route::post('transaksi_online_edit_item', [TransaksiOnlineController::class, 'editItem']);
     Route::post('transaksi_online_edit_item_warehouse', [TransaksiOnlineController::class, 'editItemWarehouse']);
+    Route::post('transaksi_online_edit_resi_number', [TransaksiOnlineController::class, 'editResiNumber']);
 
     // Rekap Resi
     /**
@@ -69,4 +70,5 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/clear_print_status_online_transaction/{to_id}', [TransaksiOnlineController::class, 'clearPrintStatus']);
     Route::post('/cancel_online_transaction/{to_id}', [TransaksiOnlineController::class, 'cancelTran']);
+    Route::post('/delete_online_transaction/{to_id}', [TransaksiOnlineController::class, 'deleteTran']);
 });

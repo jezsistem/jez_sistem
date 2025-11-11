@@ -288,6 +288,52 @@
         });
     }
 
+    function deleteTransaction(ot_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Transaksi akan dicancel secara permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, cancel!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('delete_online_transaction') }}/" + ot_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        Swal.fire('Berhasil!', 'Transaksi telah dicancel.',
+                            'success');
+                        online_transaction_table.draw(false);
+                    } else {
+                        Swal.fire(
+                            'Gagal!',
+                            response.message || 'Terjadi kesalahan saat cancel transaksi.',
+                            'error'
+                        );
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire(
+                        'Error!',
+                        'Terjadi kesalahan saat cancel transaksi.',
+                        'error'
+                    );
+                    console.error('Error canceling transaction:', error);
+                }
+            });
+        });
+    }
+
     $(document).ready(function() {
         startChatPolling();
         $.ajaxSetup({
@@ -1100,6 +1146,51 @@
             });
         });
 
+        $(document).delegate('#tambah_nomor_resi_btn', 'click', function() {
+            jQuery.noConflict();
+            var otd_id = $(this).data('otd_id');
+            var to_id = $('#to_id').val();
+            var current_resi = $(this).data('no_resi');
+
+            $('#edit_resi_number_otd_id').val(otd_id);
+            $('#edit_resi_number_to_id').val(to_id);
+            $('#resi_number_input').val(current_resi);
+
+            $('#editResiNumberModal').modal('show');
+        });
+
+        $('#f_edit_resi_number').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "{{ url('transaksi_online_edit_resi_number') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#editResiNumberModal').modal('hide');
+                        toastr.success('Nomor resi berhasil diupdate!');
+                        $('#f_edit_resi_number')[0].reset();
+                        $('#close_modal_detail').click();
+                        online_transaction_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to update resi number. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('An error occurred while updating resi number. Please try again.');
+                    console.error('Error updating resi number:', error);
+                }
+            });
+        });
+
         $('#f_tambah_item').on('submit', function(e) {
             e.preventDefault();
 
@@ -1266,9 +1357,12 @@
             var to_id = $(this).attr('data-to_id');
             var num_order = $(this).attr('data-num_order');
             var status = $(this).attr('data-status');
+            var resi = $(this).attr('data-no_resi');
             $('#to_id').val(to_id);
             $('#num_order').text(num_order);
             $('#status_pesanan').val(status);
+            $('#no_resi_display').text(resi);
+            $('#tambah_nomor_resi_btn').data('no_resi', resi);
 
             if (status == 'Batal') {
                 $('#add_item_detail_btn').hide();
