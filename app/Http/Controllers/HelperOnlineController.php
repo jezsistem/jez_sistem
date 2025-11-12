@@ -90,6 +90,11 @@ class HelperOnlineController extends Controller
             'segment' => request()->segment(1),
             'st_id' => Auth::user()->st_id,
             'warehouse' => WarehouseIndex::query()->where('st_id', Auth::user()->st_id)->first()->w_code,
+            'platforms' => DB::table('online_transactions')
+                ->select('platform_name')
+                ->distinct()
+                ->orderBy('platform_name', 'ASC')
+                ->get(),
         ];
         return view('app.helper_online.helper_online', compact('data'));
     }
@@ -120,6 +125,7 @@ class HelperOnlineController extends Controller
         $status_filter = $request->get('status_filter');
         $order_number = $request->get('order_number');
         $status_pick = $request->get('status_pick');
+        $platform = $request->get('platform');
 
         $stores_code = Store::where('id', $st_id)->value('st_code');
 
@@ -149,7 +155,8 @@ class HelperOnlineController extends Controller
                 DB::raw("MAX(CASE WHEN ts_online_transaction_chat_history.is_readed = 0 AND ts_online_transaction_chat_history.is_amp = 1 THEN ts_online_transaction_chat_history.created_at END) as last_chat_time"),
                 DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
                 'online_print',
-                'shipping_method'
+                'shipping_method',
+                'print_resi',
             )
             ->leftJoin('online_transaction_chat_history', function ($join) {
                 $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')
@@ -206,6 +213,12 @@ class HelperOnlineController extends Controller
                     return $collection->filter(fn($item) => ! (bool) $item->all_picked);
                 }
                 return $collection;
+            })
+            ->when($platform, function ($collection, $platform) {
+                if ($platform === '') {
+                    return $collection;
+                }
+                return $collection->where('platform', $platform);
             });
 
         $data = [

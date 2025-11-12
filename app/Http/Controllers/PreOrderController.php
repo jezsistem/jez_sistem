@@ -309,7 +309,7 @@ class PreOrderController extends Controller
                 $po_id = $draft->id;
                 $po_st_id = $draft->st_id;
 
-                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder', 'poa_status')
+                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder', 'poa_status','article_id')
                     ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->where(['po_id' => $po_id])->get();
