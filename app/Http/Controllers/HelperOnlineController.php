@@ -155,7 +155,8 @@ class HelperOnlineController extends Controller
                 DB::raw("MAX(CASE WHEN ts_online_transaction_chat_history.is_readed = 0 AND ts_online_transaction_chat_history.is_amp = 1 THEN ts_online_transaction_chat_history.created_at END) as last_chat_time"),
                 DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
                 'online_print',
-                'shipping_method'
+                'shipping_method',
+                'print_resi',
             )
             ->leftJoin('online_transaction_chat_history', function ($join) {
                 $join->on('online_transaction_chat_history.ot_id', '=', 'online_transactions.id')

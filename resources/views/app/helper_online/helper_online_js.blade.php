@@ -185,6 +185,11 @@
                             <span class="badge badge-${statusClass}">${transaction.internal_order_status}</span>
                             ${transaction.all_picked ? ' <span class="badge badge-info">ALL PICKED</span>' : ''}
                         </p>
+                        <!-- Status Print Badges -->
+                        <p class="card-text">Status Print:
+                            ${transaction.online_print == 1 ? '<span style="background-color: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Print Nota ✓</span>' : '<span style="background-color: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Print Nota ✗</span>'}
+                            ${transaction.print_resi == 1 ? '<span style="background-color: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Print Resi ✓</span>' : '<span style="background-color: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;" class="mr-2">Print Resi ✗</span>'}
+                        </p>
 
                         <!-- Tombol History Pick -->
                        <button class="btn btn-outline-secondary btn-sm mt-2 w-100 pick-history"
