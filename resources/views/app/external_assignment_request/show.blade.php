@@ -561,9 +561,10 @@
             </div>
 
             <div class="card-body">
-                @if (Auth::id() === $detail->request_by && ($detail->ear_status === 'Approved' ||
-                        $detail->ear_status === 'HR Check' ||
-                        $detail->ear_status === 'Finance Process'))
+                @if (Auth::id() === $detail->request_by &&
+                        ($detail->ear_status === 'Approved' ||
+                            $detail->ear_status === 'HR Check' ||
+                            $detail->ear_status === 'Finance Process'))
                     <!-- Upload Form -->
                     <form class="mb-3" id="f_upload_images">
                         <div class="row align-items-center justify-content-center">
@@ -671,6 +672,30 @@
     </style>
 
     <script>
+        function deleteUpload(uploadId) {
+            if (confirm('Are you sure you want to delete this file?')) {
+                // Perform AJAX request to delete the file
+                $.ajax({
+                    url: "{{ url('external-assignment-uploads/delete/') }}/" + uploadId,
+                    type: "DELETE",
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(res) {
+                        if (res.status === '200') {
+                            toastr.success(res.message);
+                            // Refresh DataTable
+                            uploadedFilesTable.ajax.reload(null, false);
+                        } else {
+                            toastr.error(res.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('Failed to delete file');
+                    }
+                });
+            }
+        }
         document.addEventListener('DOMContentLoaded', function() {
             const reportForm = document.getElementById('reportForm');
             const sendToHrBtn = document.getElementById('send_data_to_hr');
@@ -693,8 +718,7 @@
                 try {
                     console.log('Initializing uploaded files DataTable...');
 
-                    const columns = [
-                        {
+                    const columns = [{
                             data: 'DT_RowIndex',
                             name: 'DT_RowIndex',
                             orderable: false,
@@ -732,7 +756,9 @@
                             }
                         },
                         columns: columns,
-                        order: [[2, 'desc']],
+                        order: [
+                            [2, 'desc']
+                        ],
                         paging: false,
                         searching: false,
                         lengthChange: false,

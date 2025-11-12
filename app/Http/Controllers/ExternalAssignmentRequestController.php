@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ExternalAssignmentRequestController extends Controller
@@ -2690,6 +2691,51 @@ class ExternalAssignmentRequestController extends Controller
                 })
                 ->rawColumns(['action'])
                 ->make(true);
+        }
+    }
+
+    public function deleteUpload($id) {
+        $userId = Auth::id();
+
+        try {
+            $upload = ExternalAssignmentUpload::findOrFail($id);
+            $ear = ExternalAssignmentRequest::findOrFail($upload->ear_id);
+
+            // Check if the user is the requester and the EAR is in a deletable status
+            if ($ear->request_by != $userId) {
+                return response()->json([
+                    'status' => '403',
+                    'message' => 'You do not have permission to delete this file.'
+                ]);
+            }
+
+            if (!in_array($ear->ear_status, ['Approved', 'HR Check', 'Finance Process'])) {
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'File cannot be deleted in the current request status.'
+                ]);
+            }
+
+            // Delete the file from storage
+            Storage::disk('public')->delete($upload->file_path);
+
+            // Delete the database record
+            $upload->delete();
+
+            return response()->json([
+                'status' => '200',
+                'message' => 'File deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting EAR upload', [
+                'upload_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status' => '500',
+                'message' => 'Error deleting file.'
+            ]);
         }
     }
 }
