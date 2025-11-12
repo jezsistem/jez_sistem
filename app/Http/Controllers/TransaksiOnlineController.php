@@ -220,16 +220,16 @@ class TransaksiOnlineController extends Controller
                     $badge = $unreadCount > 0 ? '<span class="badge badge-danger position-absolute top-0 start-100 translate-middle">' . $unreadCount . '</span>' : '';
 
                     return '<div class="d-flex">
-                                ' . ($data->internal_order_status == 'NEW TRX' 
-                                    ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="deleteTransaction(' . $data->to_id . ')" title="Delete">
+                                ' . ($data->internal_order_status == 'NEW TRX'
+                        ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="deleteTransaction(' . $data->to_id . ')" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>'
-                                    : '') . 
-                                    ($data->internal_order_status == 'UNDER REVIEW' 
-                                    ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
+                        : '') .
+                        ($data->internal_order_status == 'UNDER REVIEW'
+                            ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
                                         <i class="fas fa-times"></i>
                                     </button>'
-                                    : '') .'
+                            : '') . '
                                 <button class="btn btn-sm btn-warning ms-1 mr-2" onclick="clearPrintStatus(' . $data->to_id . ')" title="Clear Print Status">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
@@ -1606,11 +1606,8 @@ class TransaksiOnlineController extends Controller
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
                             ->where('order_number', $order_number)
                             ->first();
-
-                        if ($id_trx->time_print == NULL) {
-                            OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
-                            $insert_id = $id_trx->id;
-                        }
+                        
+                        OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
                     }
                 } catch (\Exception $e) {
                     // Log the exception message
@@ -1767,10 +1764,7 @@ class TransaksiOnlineController extends Controller
                             ->where('order_number', $order_number)
                             ->first();
 
-                        if ($id_trx->time_print == NULL) {
-                            OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
-                            $insert_id = $id_trx->id;
-                        }
+                        OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
                     }
                 } catch (\Exception $e) {
                     // Log the exception message
@@ -2232,7 +2226,8 @@ class TransaksiOnlineController extends Controller
         }
     }
 
-    public function editResiNumber(Request $request) {
+    public function editResiNumber(Request $request)
+    {
         $to_id = $request->edit_resi_number_to_id;
         $new_resi_number = $request->resi_number_input;
 
