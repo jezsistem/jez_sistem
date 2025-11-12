@@ -1076,6 +1076,14 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('ear.report.store');
     Route::post('/ear/{id}/report/update', [ExternalAssignmentRequestController::class, 'reportUpdate'])
         ->name('ear.report.update');
+    
+    // External Assignment Uploads
+    Route::get('/external-assignment-uploads', [ExternalAssignmentRequestController::class, 'getUploads'])
+        ->name('external-assignment-uploads.list');
+    Route::post('/external-assignment-uploads/store', [ExternalAssignmentRequestController::class, 'storeUpload'])
+        ->name('external-assignment-uploads.store');
+    Route::delete('/external-assignment-uploads/delete/{id}', [ExternalAssignmentRequestController::class, 'deleteUpload'])
+        ->name('external-assignment-uploads.delete');
 
 
     //Overtime Type

@@ -554,6 +554,56 @@
             </div>
         </div>
 
+        <!-- Requester Upload -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Requester Upload</h5>
+            </div>
+
+            <div class="card-body">
+                @if (Auth::id() === $detail->request_by && ($detail->ear_status === 'Approved' ||
+                        $detail->ear_status === 'HR Check' ||
+                        $detail->ear_status === 'Finance Process'))
+                    <!-- Upload Form -->
+                    <form class="mb-3" id="f_upload_images">
+                        <div class="row align-items-center justify-content-center">
+                            <div class="col-md-10">
+                                <label for="file_req_upload" class="form-label">Upload File</label>
+                                <input type="hidden" name="ear_id" value="{{ $detail->id }}">
+                                <input type="file" class="form-control" name="files[]" id="file_req_upload" multiple
+                                    required>
+                                <small class="text-muted">Format: PDF, JPG, PNG, JPEG. Maksimal 5MB per file. You can
+                                    select multiple files.</small>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <button type="button" id="btn_upload_images" class="btn btn-primary w-100">
+                                    <i class="fa fa-upload"></i> Upload
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                @endif
+
+                <!-- Table List of Uploaded Files -->
+                @if ($detail->uploads && $detail->uploads->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm align-middle" id="uploaded_files_table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>File Name</th>
+                                    <th style="width: 300px;">Uploaded At</th>
+                                    <th style="width: 200px;" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted mb-0">No files uploaded yet.</p>
+                @endif
+            </div>
+        </div>
+
     </div>
 
     @if ($detail->ear_finance_uploads)
@@ -632,6 +682,147 @@
                     reportForm.submit();
                 });
             }
+            // Robust DataTable initialization with retry mechanism for uploaded files
+            function initUploadedFilesDataTable() {
+                if (typeof $.fn.DataTable === 'undefined') {
+                    console.log('DataTable not available, retrying in 100ms...');
+                    setTimeout(initUploadedFilesDataTable, 100);
+                    return;
+                }
+
+                try {
+                    console.log('Initializing uploaded files DataTable...');
+
+                    const columns = [
+                        {
+                            data: 'DT_RowIndex',
+                            name: 'DT_RowIndex',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center'
+                        },
+                        {
+                            data: 'file_name',
+                            name: 'file_name'
+                        },
+                        {
+                            data: 'created_at',
+                            name: 'created_at',
+                            render: function(data) {
+                                return data ? new Date(data).toLocaleString('id-ID') : '-';
+                            }
+                        },
+                        {
+                            data: 'action',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center'
+                        }
+                    ];
+
+                    window.uploadedFilesTable = $('#uploaded_files_table').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ url('external-assignment-uploads') }}",
+                            type: "GET",
+                            data: function(d) {
+                                d.ear_id = "{{ $detail->id }}";
+                            }
+                        },
+                        columns: columns,
+                        order: [[2, 'desc']],
+                        paging: false,
+                        searching: false,
+                        lengthChange: false,
+                        info: false,
+                        language: {
+                            processing: "Loading...",
+                            emptyTable: "No files uploaded yet",
+                            zeroRecords: "No matching records found"
+                        }
+                    });
+
+                    console.log('Uploaded files DataTable initialized successfully');
+
+                } catch (error) {
+                    console.error('Error initializing uploaded files DataTable:', error);
+                    // Retry after a delay
+                    setTimeout(initUploadedFilesDataTable, 500);
+                }
+            }
+
+            // Initialize the DataTable
+            initUploadedFilesDataTable();
+
+            // Refresh DataTable after successful upload
+            $('#btn_upload_images').on('click', function(e) {
+                e.preventDefault();
+
+                let formData = new FormData();
+                let fileInput = document.getElementById('file_req_upload');
+                formData.append('ear_id', "{{ $detail->id }}");
+
+                if (fileInput.files.length === 0) {
+                    toastr.error('Please select at least one file');
+                    return;
+                }
+
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    formData.append('files[]', fileInput.files[i]);
+                }
+
+                formData.append('_token', "{{ csrf_token() }}");
+
+                $.ajax({
+                    url: "{{ url('external-assignment-uploads/store') }}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        console.log("Upload response:", res);
+                        if (res.status === '200') {
+                            toastr.success(res.message);
+                            fileInput.value = '';
+                            // Refresh DataTable
+                            uploadedFilesTable.ajax.reload(null, false);
+                        } else {
+                            toastr.error(res.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Upload error:", xhr.responseText);
+                        toastr.error(xhr.responseJSON?.message || 'Failed to upload images');
+                    }
+                });
+            });
+
+            // Handle delete action from DataTable
+            $(document).on('click', '.btn-delete-file', function() {
+                let fileId = $(this).data('id');
+                if (confirm('Are you sure you want to delete this file?')) {
+                    $.ajax({
+                        url: "{{ url('external-assignment-uploads') }}/" + fileId,
+                        type: "DELETE",
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(res) {
+                            if (res.status === '200') {
+                                toastr.success(res.message);
+                                uploadedFilesTable.ajax.reload(null, false);
+                            } else {
+                                toastr.error(res.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            toastr.error('Failed to delete file');
+                        }
+                    });
+                }
+            });
         });
 
         document.addEventListener('DOMContentLoaded', function() {

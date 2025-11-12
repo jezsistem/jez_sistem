@@ -143,4 +143,9 @@ class ExternalAssignmentRequest extends Model
     {
         return $this->hasMany(ExternalAssignmentRequestReport::class, 'ear_id');
     }
+
+    public function uploads()
+    {
+        return $this->hasMany(ExternalAssignmentUpload::class, 'ear_id');
+    }
 }

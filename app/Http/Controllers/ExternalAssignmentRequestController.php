@@ -12,6 +12,7 @@ use App\Models\ExternalAssignmentType;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
 use App\Models\ExternalAssignmentRequest;
+use App\Models\ExternalAssignmentUpload;
 use App\Models\LeaveType;
 use App\Models\Notification;
 use App\Models\User;
@@ -2600,5 +2601,95 @@ class ExternalAssignmentRequestController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    public function storeUpload(Request $request)
+    {
+        // Validation
+        try {
+            $ear = ExternalAssignmentRequest::findOrFail($request->ear_id);
+
+            // Handle file upload
+            if ($request->hasFile('files')) {
+                $files = $request->file('files');
+
+                foreach ($files as $file) {
+                    $extension = $file->getClientOriginalExtension();
+                    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+                    // Create custom filename: EAR_ID_TIMESTAMP_ORIGINALNAME
+                    $customFilename = 'EAR_' . $ear->id . '_' . time() . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName) . '.' . $extension;
+
+                    $filePath = $file->storeAs('ear_uploads', $customFilename, 'public');
+
+                    // Save upload record
+                    ExternalAssignmentUpload::create([
+                        'ear_id' => $ear->id,
+                        'file_path' => $filePath
+                    ]);
+                }
+
+                return response()->json([
+                    'status' => '200',
+                    'message' => 'Files uploaded successfully.'
+                ]);
+            } else {
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'No files selected.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error uploading EAR file', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status' => '500',
+                'message' => 'Error uploading file.'
+            ]);
+        }
+    }
+
+    public function getUploads(Request $request)
+    {
+        if ($request->ajax()) {
+            $earId = $request->get('ear_id');
+
+            $query = ExternalAssignmentUpload::select([
+                'id',
+                'ear_id',
+                'file_path',
+                'created_at'
+            ])->with('request')
+                ->where('ear_id', $earId)
+                ->orderBy('created_at', 'desc');
+
+            return datatables()->eloquent($query)
+                ->addIndexColumn()
+                ->addColumn('file_name', function ($row) {
+                    return basename($row->file_path);
+                })
+                ->addColumn('file_url', function ($row) {
+                    return asset('storage/' . $row->file_path);
+                })
+                ->editColumn('created_at', function ($row) {
+                    return date('d/m/Y H:i', strtotime($row->created_at));
+                })
+                ->addColumn('action', function ($row) {
+                    $btn = '<div class="btn-group">';
+                    $btn .= '<a href="' . asset('storage/' . $row->file_path) . '" target="_blank" class="btn btn-sm btn-info" title="View"><i class="fas fa-eye"></i></a>';
+                    $btn .= '<a href="' . asset('storage/' . $row->file_path) . '" download class="btn btn-sm btn-dark" title="Download"><i class="fas fa-download"></i></a>';
+                    if ($row->request->request_by == Auth::id() && ($row->request->ear_status === 'Approved' ||
+                        $row->request->ear_status === 'HR Check' ||
+                        $row->request->ear_status === 'Finance Process')) {
+                        $btn .= '<button type="button" onclick="deleteUpload(' . $row->id . ')" class="btn btn-sm btn-danger" title="Delete"><i class="fas fa-trash"></i></button>';
+                    }
+                    $btn .= '</div>';
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
     }
 }
