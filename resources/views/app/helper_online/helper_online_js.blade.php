@@ -15,6 +15,7 @@
                 status_filter: $('#status_filter').val(),
                 order_number: $('#order_number').val(),
                 status_pick: $('#status_pick').val(),
+                platform: $('#platform').val(),
             },
             success: function (r) {
                 $("#picked_online_trx").html(renderTransactions(r.transactions)); // Removed animation

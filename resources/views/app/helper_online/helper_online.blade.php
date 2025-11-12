@@ -118,6 +118,16 @@
                                 </select>
                                 <div id="status_pick_parent"></div>
 
+                                <label for="platform" class="mt-3">Platform</label>
+                                <select class="form-control" id="platform" name="platform" required>
+                                    <option value="">SEMUA PLATFORM</option>
+                                    @foreach ($data['platforms'] as $platform)
+                                        <option value="{{ $platform->platform_name }}">{{ $platform->platform_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div id="platform_parent"></div>
+
 {{--                                <label for="status_pick" class="mt-3">Status Pick</label>--}}
 {{--                                <select class="form-control" id="status_pick" name="status_pick" required>--}}
 {{--                                    <option value="">SEMUA STATUS PICK</option>--}}
