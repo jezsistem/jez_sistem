@@ -288,7 +288,6 @@ class ProductController extends Controller
             'p_mass_import' => 'required|file|mimes:zip'
         ]);
 
-        // Simpan file ZIP sementara
         $file = $request->file('p_mass_import');
         $fileName = time() . '_' . $file->getClientOriginalName();
         $zipPath = storage_path('app/uploads/' . $fileName);
@@ -355,9 +354,6 @@ class ProductController extends Controller
             $bucket = config('filesystems.disks.s3.bucket');
             $relativePath = preg_replace("#^{$bucket}/#", '', $relativePath);
 
-//            dd(Storage::disk('s3')->exists($relativePath));
-
-            // Hapus file dari NEO Object Storage (S3)
             if (Storage::disk('s3')->exists($relativePath)) {
                 Storage::disk('s3')->delete($relativePath);
             }
