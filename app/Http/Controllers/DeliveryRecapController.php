@@ -399,14 +399,14 @@ class DeliveryRecapController extends Controller
                 'pic',
                 'delivery_recaps.created_at'
             )
-            ->orderByDesc('delivery_recaps.created_at')->get();
+            ->orderBy('delivery_recaps.created_at', 'DESC')->get();
 
 //        dd($query);
 
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('qty_resi', function ($row) {
-                return $row->delivery_receipts_count ?? 0;
+                return $row->qty_resi ?? 0;
             })
             ->addColumn('action', function ($row) {
                 $url = route('manifest.print', $row->id);
