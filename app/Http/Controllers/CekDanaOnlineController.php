@@ -145,6 +145,12 @@ class CekDanaOnlineController extends Controller
             $filter_cash_out_date_end = $exp_cash_out_date[1];
         }
 
+        if ($request->settle_status === null) {
+            $settle_status = null;
+        } else {
+            $settle_status = (int) $request->settle_status;
+        }
+
         $data = $this->getAllCekDanaTransactions(
             $filter_order_number,
             $filter_st_id,
@@ -153,7 +159,8 @@ class CekDanaOnlineController extends Controller
             $filter_trx_date_start,
             $filter_trx_date_end,
             $filter_cash_out_date_start,
-            $filter_cash_out_date_end
+            $filter_cash_out_date_end,
+            $settle_status
         );
 
         $collection = collect($data);
@@ -270,6 +277,12 @@ class CekDanaOnlineController extends Controller
             $filter_cash_out_date_end = $exp_cash_out_date[1];
         }
 
+        if ($request->settle_status === null) {
+            $settle_status = null;
+        } else {
+            $settle_status = (int) $request->settle_status;
+        }
+
         $data = $this->getAllCekDanaTransactions(
             $filter_order_number,
             $filter_st_id,
@@ -278,7 +291,8 @@ class CekDanaOnlineController extends Controller
             $filter_trx_date_start,
             $filter_trx_date_end,
             $filter_cash_out_date_start,
-            $filter_cash_out_date_end
+            $filter_cash_out_date_end,
+            $settle_status
         );
 
         $collection = collect($data)->map(function ($item) {
@@ -335,7 +349,7 @@ class CekDanaOnlineController extends Controller
 
     public function getDetail($order_number, $store_id)
     {
-        $data = $this->getAllCekDanaTransactions($order_number, $store_id, '%%', null, null, null, null, null);
+        $data = $this->getAllCekDanaTransactions($order_number, $store_id, '%%', null, null, null, null, null, null);
 
         $collection = collect($data)->map(function ($item) {
             $item->diff = isset($item->jezpro_price, $item->revenue) ? $item->jezpro_price - $item->revenue : null;
@@ -438,6 +452,12 @@ class CekDanaOnlineController extends Controller
             $filter_cash_out_date_end = $exp_cash_out_date[1];
         }
 
+        if ($request->settle_status === null) {
+            $settle_status = null;
+        } else {
+            $settle_status = (int) $request->settle_status;
+        }
+
         $data = $this->getAllCekDanaTransactions(
             $filter_order_number,
             $filter_st_id,
@@ -446,14 +466,27 @@ class CekDanaOnlineController extends Controller
             $filter_trx_date_start,
             $filter_trx_date_end,
             $filter_cash_out_date_start,
-            $filter_cash_out_date_end
+            $filter_cash_out_date_end,
+            $settle_status
         );
 
         $collection = collect($data);
 
         $totalDanaCair = $collection->sum('total_settle');
+        $totalNetSalePrice = $collection->sum('jezpro_price');
+        $totalRevenueMP = $collection->sum('revenue');
+        $totalAdminFee = $collection->sum('total_fee');
+        $totalSellerDiscount = $collection->sum('seller_discount');
+        $averageAdminFeePercentage = $totalRevenueMP ? ($totalAdminFee / $totalRevenueMP) * 100 : 0;
 
-        return response()->json(['totalDanaCair' => $totalDanaCair]);
+        return response()->json([
+            'totalDanaCair' => $totalDanaCair,
+            'totalNetSalePrice' => $totalNetSalePrice,
+            'totalRevenueMP' => $totalRevenueMP,
+            'totalAdminFee' => $totalAdminFee,
+            'totalSellerDiscount' => $totalSellerDiscount,
+            'averageAdminFeePercentage' => $averageAdminFeePercentage,
+        ]);
     }
 
     private function processImportData($data, $platform_name, $st_id_form)
@@ -681,7 +714,7 @@ class CekDanaOnlineController extends Controller
         ');
     }
 
-    private function getAllCekDanaTransactions($order_number, $st_id, $platform_name, $status, $trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end)
+    private function getAllCekDanaTransactions($order_number, $st_id, $platform_name, $status, $trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end, $settle_status)
     {
         // Add time to start and end dates if they exist
         if ($trx_date_start) {
@@ -762,6 +795,13 @@ class CekDanaOnlineController extends Controller
                 $query1->whereNull('online_funds.total_disburshed_amount');
             }
         }
+        if ($settle_status !== null) {
+            if ($settle_status == 1) { // SETTLED
+                $query1->where('pos_transactions.is_settle', 1);
+            } elseif ($settle_status == 0) { // UNSETTLED
+                $query1->where('pos_transactions.is_settle', 0);
+            }
+        }
 
         // Query for "Belum Trx"
         $query2 = DB::table('online_funds')
@@ -815,6 +855,13 @@ class CekDanaOnlineController extends Controller
         }
         if ($status !== null && $status == 3) { // Belum Trx only
             // already filtered by whereNull('pos_transactions.created_at')
+        }
+        if ($settle_status !== null) {
+            if ($settle_status == 1) { // SETTLED
+                $query2->where('pos_transactions.is_settle', 1);
+            } elseif ($settle_status == 0) { // UNSETTLED
+                $query2->where('pos_transactions.is_settle', 0);
+            }
         }
 
         // Merge results based on status

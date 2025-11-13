@@ -17,6 +17,34 @@
                             <div class="card-header flex-wrap py-3">
                                 <div class="card-toolbar" style="width: 100%;">
                                     <!--begin::Dropdown-->
+                                    <div class="d-flex align-items-center w-100 mx-3 mb-6">
+                                        <div style="width: 400px">
+                                            <h3>Total Dana Cair</h3>
+                                            <h1 class="text-success">Rp. <span id="total_dana_cair">0</span></h1>
+                                        </div>
+                                        <div style="width: 400px">
+                                            <h3>Total Net Sales Jezpro</h3>
+                                            <h1 class="text-success">Rp. <span id="total_net_sales_jezpro">0</span></h1>
+                                        </div>
+                                        <div style="width: 400px">
+                                            <h3>Total Revenue MP</h3>
+                                            <h1 class="text-success">Rp. <span id="total_revenue_mp">0</span></h1>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center w-100 mx-3 mb-6">
+                                        <div style="width: 400px">
+                                            <h3>Total Admin Fee</h3>
+                                            <h1 class="text-success">Rp. <span id="total_admin_fee">0</span></h1>
+                                        </div>
+                                        <div style="width: 400px">
+                                            <h3>Total Seller Voucher</h3>
+                                            <h1 class="text-success">Rp. <span id="total_seller_voucher">0</span></h1>
+                                        </div>
+                                        <div style="width: 400px">
+                                            <h3>Presentase Fee</h3>
+                                            <h1 class="text-success"><span id="percentage_fee">0%</span></h1>
+                                        </div>
+                                    </div>
                                     <div class="d-flex justify-content-between align-items-center w-100">
                                         <div>
                                             <button type="button" class="btn btn-light-primary font-weight-bolder mr-2"
@@ -61,10 +89,7 @@
                                                 </span>Export
                                             </button>
                                         </div>
-                                        <div class="">
-                                            <h3>Total Dana Cair</h3>
-                                            <h1 class="text-success">Rp. <span id="total_dana_cair">0</span></h1>
-                                        </div>
+                                        
                                         <div class="d-flex align-items-center">
                                             <div class="mr-8">
                                                 <p>Selected for settlement: <span id="selected">0</span>
@@ -91,6 +116,9 @@
                                         <input type="search" class="form-control" id="cek_dana_online_search"
                                             placeholder="Cari No Order / No resi" />
                                     </div>
+                                    
+                                </div>
+                                <div class="row mt-8">
                                     <div class="col-2">
                                         <select class="form-control border" id="st_id" name="st_id">
                                             <option value="">- Pilih Store -</option>
@@ -124,6 +152,14 @@
                                             <option value=3>Belum TRX</option>
                                         </select>
                                         <div id="filter_status_parent"></div>
+                                    </div>
+                                    <div class="col-2">
+                                        <select name="filter_settle_status" id="filter_settle_status" class="form-control">
+                                            <option value="">-- Pilih Status Settlement --</option>
+                                            <option value="1">Settled</option>
+                                            <option value="0">Unsettled</option>
+                                        </select>
+                                        <div id="filter_settle_status_parent"></div>
                                     </div>
                                     <div class="col-2">
                                         <button type="button" class="btn btn-primary mr-2" id="filter_btn">
