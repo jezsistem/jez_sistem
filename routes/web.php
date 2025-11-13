@@ -253,7 +253,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('save_transaction_detail', [PointOfSaleController::class, 'saveTransactionDetail']);
     Route::post('save_transaction_detail_offline', [PointOfSaleController::class, 'saveTransactionDetailOffline']);
     Route::post('autocomplete', [PointOfSaleController::class, 'fetch']);
-//    Route::post('autocomplete_amp', [PointOfSaleController::class, 'fetchAmp']);
+    //    Route::post('autocomplete_amp', [PointOfSaleController::class, 'fetchAmp']);
     Route::post('autocomplete_by_waiting', [PointOfSaleController::class, 'fetchWaiting']);
     Route::post('autocomplete_invoice', [PointOfSaleController::class, 'fetchInvoice']);
     Route::post('autocomplete_invoice_offline', [PointOfSaleController::class, 'fetchInvoiceOffline']);
@@ -274,7 +274,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ie_permission_save', [InvoiceEditorController::class, 'storePermissionData']);
     Route::post('ie_permission_delete', [InvoiceEditorController::class, 'deletePermissionData']);
     Route::post('ie_permission_invoice', [InvoiceEditorController::class, 'checkInvoice']);
-//    Route::post('ie_permission_check_active_edit', [InvoiceEditorController::class, 'checkActiveEdit']);
+    //    Route::post('ie_permission_check_active_edit', [InvoiceEditorController::class, 'checkActiveEdit']);
     Route::post('ie_permission_done_edit', [InvoiceEditorController::class, 'doneEdit']);
     Route::post('ie_permission_do_edit', [InvoiceEditorController::class, 'doEdit']);
     Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
@@ -474,6 +474,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_barcode', [ProductController::class, 'checkExistsBarcode']);
     Route::post('check_exists_article_id', [ProductController::class, 'checkExistsArticleID']);
     Route::post('update_barcode', [ProductController::class, 'updateBarcode']);
+    Route::post('/product/mass-import-img', [ProductController::class, 'massImportImg'])->name('product.massImportImg');
+    Route::get('/product-images/{articleId}', [ProductController::class, 'getImages']);
+    Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
+    Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
 
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
@@ -868,7 +872,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cleanupInvalidBreaks'])->name('break-times-backup.cleanup');
 
 
-// LeaveTypeController
+    // LeaveTypeController
     Route::get('leave-types', [LeaveTypeController::class, 'index'])->name('leave-types.index');
     Route::get('leave-types/datatables', [LeaveTypeController::class, 'getDatatables'])->name('leave-types.datatables');
     Route::get('leave-types/create', [LeaveTypeController::class, 'create'])->name('leave-types.create');
@@ -914,7 +918,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
 
-// Debug route for testing CSRF
+    // Debug route for testing CSRF
     Route::get('test-csrf', function () {
         return response()->json([
             'csrf_token' => csrf_token(),
@@ -1051,8 +1055,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('external-assignment/reprocess-all', [ExternalAssignmentRequestController::class, 'reprocessAll'])->name('external-assignment.reprocess-all');
 
     // Leave Request CRUD Routes (with {id} parameter)
-    Route::get('external-assignment/{id}', [ExternalAssignmentRequestController::class, 'show'])->name('external-assignment.show');
-    Route::get('external-assignment/{id}/edit', [ExternalAssignmentRequestController::class, 'edit'])->name('external-assignment.edit');
+    // Route::get('external-assignment/{id}', [ExternalAssignmentRequestController::class, 'show'])->name('external-assignment.show');
+    // Route::get('external-assignment/{id}/edit', [ExternalAssignmentRequestController::class, 'edit'])->name('external-assignment.edit');
     Route::put('external-assignment/{id}', [ExternalAssignmentRequestController::class, 'update'])->name('external-assignment.update');
     Route::delete('external-assignment/{id}', [ExternalAssignmentRequestController::class, 'destroy'])->name('external-assignment.destroy');
     Route::get('external-assignment/{id}/process-status', [ExternalAssignmentRequestController::class, 'processStatus'])->name('external-assignment.process-status');
@@ -1060,15 +1064,30 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('external-assignment/{id}/reject', [ExternalAssignmentRequestController::class, 'reject'])->name('external-assignment.reject');
 
     // Leave Request Index and Store Routes (MUST be AFTER {id} routes to avoid conflicts)
-//    Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index'])->name('external-assignment.index');
-//    Route::post('external-assignment', [ExternalAssignmentRequestController::class, 'store'])->name('external-assignment.store');
+    //    Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index'])->name('external-assignment.index');
+    //    Route::post('external-assignment', [ExternalAssignmentRequestController::class, 'store'])->name('external-assignment.store');
     Route::post('/external-assignment-requests/create', [ExternalAssignmentRequestController::class, 'store'])->name('external-assignment-requests.store');
+
+    Route::get('/external-assignment-requests/edit/{id}', [ExternalAssignmentRequestController::class, 'edit'])
+        ->name('external-assignment-requests.edit');
+    Route::post('/external-assignment-requests/update/{id}', [ExternalAssignmentRequestController::class, 'update'])
+        ->name('external-assignment-requests.update');
     Route::get('/external-assignment-requests/{id}', [ExternalAssignmentRequestController::class, 'show'])
         ->name('external-assignment-requests.show');
     Route::post('/ear/{id}/approve', [ExternalAssignmentRequestController::class, 'approve'])
         ->name('ear.approve');
     Route::post('/ear/{id}/report/store', [ExternalAssignmentRequestController::class, 'storeReport'])
         ->name('ear.report.store');
+    Route::post('/ear/{id}/report/update', [ExternalAssignmentRequestController::class, 'reportUpdate'])
+        ->name('ear.report.update');
+    
+    // External Assignment Uploads
+    Route::get('/external-assignment-uploads', [ExternalAssignmentRequestController::class, 'getUploads'])
+        ->name('external-assignment-uploads.list');
+    Route::post('/external-assignment-uploads/store', [ExternalAssignmentRequestController::class, 'storeUpload'])
+        ->name('external-assignment-uploads.store');
+    Route::delete('/external-assignment-uploads/delete/{id}', [ExternalAssignmentRequestController::class, 'deleteUpload'])
+        ->name('external-assignment-uploads.delete');
 
 
     //Overtime Type

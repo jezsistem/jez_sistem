@@ -16,7 +16,8 @@
                 platform: $('#filter_platform').val(),
                 status: $('#filter_status').val(),
                 filter_trx_date: $('#use_trx_date_filter').is(':checked') ? $('#trx_date').val() : null,
-                filter_cash_out_date: $('#use_cash_out_date_filter').is(':checked') ? $('#cash_out_date').val() : null
+                filter_cash_out_date: $('#use_cash_out_date_filter').is(':checked') ? $('#cash_out_date').val() : null,
+                settle_status: $('#filter_settle_status').val()
             },
             success: function(response) {
                 var formattedTotalDanaCair = new Intl.NumberFormat('id-ID', {
@@ -24,6 +25,29 @@
                 }).format(response.totalDanaCair || 0);
 
                 $('#total_dana_cair').text(formattedTotalDanaCair);
+                var formattedTotalNetSalePrice = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.totalNetSalePrice || 0);
+
+                var formattedTotalRevenueMP = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.totalRevenueMP || 0);
+
+                var formattedTotalAdminFee = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.totalAdminFee || 0);
+
+                var formattedTotalSellerDiscount = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.totalSellerDiscount || 0);
+
+                var formattedPercentageFee = response.averageAdminFeePercentage ? response.averageAdminFeePercentage.toFixed(2) + '%' : '0%';
+                $('#percentage_fee').text(formattedPercentageFee);
+
+                $('#total_net_sales_jezpro').text(formattedTotalNetSalePrice);
+                $('#total_revenue_mp').text(formattedTotalRevenueMP);
+                $('#total_admin_fee').text(formattedTotalAdminFee);
+                $('#total_seller_voucher').text(formattedTotalSellerDiscount);
             }
         });
     }
@@ -69,6 +93,7 @@
                         d.filter_trx_date = null;
                     }
                     d.platform = $('#filter_platform').val();
+                    d.settle_status = $('#filter_settle_status').val();
                 }
             },
             columns: [{
@@ -326,14 +351,19 @@
 
         // Initialize Select2 on the select element
         $('#filter_status').select2({
-            width: "200px",
+            width: "100%",
             dropdownParent: $('#filter_status_parent')
         });
 
         // Initialize Select2 on the select element
         $('#filter_platform').select2({
-            width: "200px",
+            width: "100%",
             dropdownParent: $('#filter_platform_parent')
+        });
+
+        $('#filter_settle_status').select2({
+            width: "100%",
+            dropdownParent: $('#filter_settle_status_parent')
         });
 
 
