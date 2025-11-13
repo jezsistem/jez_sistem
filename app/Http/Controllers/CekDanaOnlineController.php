@@ -500,14 +500,6 @@ class CekDanaOnlineController extends Controller
 
             $order_number = trim($item[0]);
 
-            $exists = DB::table('online_funds')
-                ->where('order_number', $order_number)
-                ->exists();
-
-            if ($exists) {
-                continue;
-            }
-
             try {
                 if (is_numeric($item[1])) {
                     $cashout_date = Carbon::instance(Date::excelToDateTimeObject($item[1]))->format('Y-m-d');
@@ -517,22 +509,57 @@ class CekDanaOnlineController extends Controller
             } catch (\Exception $e) {
                 $cashout_date = null;
             }
-            $order_number = $item[0];
-            //            $cashout_date = \Carbon\Carbon::createFromFormat('d/m/Y', $item[1])->format('Y-m-d');
+
             $final_price = (float) $item[2];
             $total_disburshed_amount = (float) $item[3];
             $seller_voucher_discount = (float) $item[4];
             $affiliate_cut = (float) $item[5];
             $marketplace_commision_fee = (float) $item[6];
             $service_fee = (float) $item[7];
-            $dynamic_commission = (float) $item[8]; // Assuming dynamic_commission is at index 10
+            $dynamic_commission = (float) $item[8];
             $voucher_xtra_service_fee = (float) $item[9];
             $cashback_service_fee = (float) $item[10];
             $total_online_cut = $affiliate_cut + $marketplace_commision_fee + $service_fee + $voucher_xtra_service_fee + $cashback_service_fee + $dynamic_commission;
 
+            // Check if record exists with same order_number and cashout_date
+            $existing = DB::table('online_funds')
+                ->where('order_number', $order_number)
+                ->where('cashout_date', $cashout_date)
+                ->first();
+
+            if ($existing) {
+                // Check if already settled via pos_transactions
+                $isSettled = DB::table('pos_transactions')
+                    ->where('pos_order_number', $order_number)
+                    ->where('is_settle', 1)
+                    ->exists();
+
+                if (!$isSettled) {
+                    // Update existing record if not settled
+                    DB::table('online_funds')
+                        ->where('order_number', $order_number)
+                        ->where('cashout_date', $cashout_date)
+                        ->update([
+                            'total_disburshed_amount' => $total_disburshed_amount,
+                            'final_price' => $final_price,
+                            'total_online_cut' => $total_online_cut,
+                            'seller_voucher_discount' => $seller_voucher_discount,
+                            'affiliate_cut' => $affiliate_cut,
+                            'marketplace_commision_fee' => $marketplace_commision_fee,
+                            'service_fee' => $service_fee,
+                            'dynamic_commission' => $dynamic_commission,
+                            'voucher_xtra_service_fee' => $voucher_xtra_service_fee,
+                            'cashback_service_fee' => $cashback_service_fee,
+                            'updated_at' => now()
+                        ]);
+                }
+                continue;
+            }
+
+            // Insert new record if different cashout_date or doesn't exist
             DB::table('online_funds')->insert([
-                'st_id' => $st_id_form, // assuming $st_id_form passed from controller
-                'platform_name' => $type, // example static value; replace if dynamic
+                'st_id' => $st_id_form,
+                'platform_name' => $type,
                 'order_number' => $order_number,
                 'total_disburshed_amount' => $total_disburshed_amount,
                 'final_price' => $final_price,
