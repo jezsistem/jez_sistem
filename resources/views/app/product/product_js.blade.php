@@ -1342,7 +1342,7 @@
         });
 
 
-
+//hehe haha
         $(document).on('click', '.img-box img', function() {
             const src = $(this).attr('src');
             $('#previewImageFull').attr('src', src);
