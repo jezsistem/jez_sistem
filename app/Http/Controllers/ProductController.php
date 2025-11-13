@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ProductArticleExport;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Models\WebConfig;
@@ -19,6 +21,7 @@ use App\Models\ProductUnit;
 use App\Models\ProductSupplier;
 use App\Models\ProductStock;
 use App\Models\Brand;
+use Illuminate\Support\Facades\File;
 use App\Models\MainColor;
 use App\Models\Gender;
 use App\Models\Season;
@@ -28,6 +31,8 @@ use App\Exports\ProductExport;
 use App\Imports\MassUpdateProductImport;
 use App\Services\MassUpdateProductService;
 use Maatwebsite\Excel\Facades\Excel;
+    use App\Jobs\ProcessMassImageImport;
+use ZipArchive;
 
 
 class ProductController extends Controller
@@ -141,6 +146,269 @@ class ProductController extends Controller
         }
 
         return response()->json(['success' => true, 'newValue' => $product->$column]);
+    }
+
+//    public function massImportImg(Request $request)
+//    {
+//        $request->validate([
+//            'p_mass_import' => 'required|file|mimes:zip'
+//        ]);
+//
+//        $file = $request->file('p_mass_import');
+//        $fileName = time() . '_' . $file->getClientOriginalName();
+//        $zipPath = storage_path('app/uploads/' . $fileName);
+//        $file->move(storage_path('app/uploads'), $fileName);
+//
+//        $extractPath = storage_path('app/temp_import_' . time());
+//        File::makeDirectory($extractPath);
+//
+//        $zip = new \ZipArchive;
+//        if ($zip->open($zipPath) === true) {
+//            $zip->extractTo($extractPath);
+//            $zip->close();
+//        } else {
+//            return response()->json(['message' => 'Gagal membuka file ZIP.'], 422);
+//        }
+//
+//        $imported = 0;
+//        $directories = File::directories($extractPath);
+//
+//        foreach ($directories as $dir) {
+//            $articleId = basename($dir);
+//            $product = Product::where('article_id', $articleId)->first();
+//
+//            if (!$product) continue;
+//
+//            $files = File::files($dir);
+//
+//            // Pastikan folder tujuan ada: storage/app/public/image_products/{article_id}
+//            $targetDir = storage_path("app/public/image_products/{$articleId}");
+//            if (!File::exists($targetDir)) {
+//                File::makeDirectory($targetDir, 0755, true);
+//            }
+//
+//            foreach ($files as $file) {
+//                $fileName = $file->getFilename();
+//                $destinationPath = $targetDir . '/' . $fileName;
+//
+//                // Copy file
+//                File::copy($file->getRealPath(), $destinationPath);
+//
+//                // Simpan ke database
+//                \App\Models\ProductImage::create([
+//                    'p_id' => $product->id,
+//                    'file_name' => $fileName,
+//                    'file_path' => "storage/image_products/{$articleId}/{$fileName}",
+//                ]);
+//
+//                $imported++;
+//            }
+//        }
+//
+//        // Cleanup
+//        File::deleteDirectory($extractPath);
+//        File::delete($zipPath);
+//
+//        return response()->json([
+//            'message' => "Berhasil mengimpor {$imported} gambar produk."
+//        ]);
+//    }
+
+//    public function massImportImg(Request $request)
+//    {
+//        $request->validate([
+//            'p_mass_import' => 'required|file|mimes:zip'
+//        ]);
+//
+//        // Simpan file ZIP sementara
+//        $file = $request->file('p_mass_import');
+//        $fileName = time() . '_' . $file->getClientOriginalName();
+//        $zipPath = storage_path('app/uploads/' . $fileName);
+//        $file->move(storage_path('app/uploads'), $fileName);
+//
+//        // Ekstrak isi ZIP
+//        $extractPath = storage_path('app/temp_import_' . time());
+//        File::makeDirectory($extractPath);
+//
+//        $zip = new \ZipArchive;
+//        if ($zip->open($zipPath) === true) {
+//            $zip->extractTo($extractPath);
+//            $zip->close();
+//        } else {
+//            return response()->json(['message' => 'Gagal membuka file ZIP.'], 422);
+//        }
+//
+//        $imported = 0;
+//        $directories = File::directories($extractPath);
+//
+//        foreach ($directories as $dir) {
+//            $articleId = basename($dir);
+//            $product = Product::where('article_id', $articleId)->first();
+//
+//            if (!$product) continue;
+//
+//            $files = File::files($dir);
+//
+//            foreach ($files as $file) {
+//                $fileName = $file->getFilename();
+//                $fileStream = fopen($file->getRealPath(), 'r');
+//
+//                // Upload ke NEO Object Storage (S3)
+//                $path = "image_products/{$articleId}/{$fileName}";
+//                Storage::disk('s3')->put($path, $fileStream, 'public');
+//
+//                fclose($fileStream);
+//
+//                // Dapatkan URL publik
+//                $url = Storage::disk('s3')->url($path);
+//
+//                // Simpan ke database
+//                ProductImage::create([
+//                    'p_id' => $product->id,
+//                    'file_name' => $fileName,
+//                    'file_path' => $url,
+//                ]);
+//
+//                $imported++;
+//            }
+//        }
+//
+//        // Bersihkan file sementara
+//        File::deleteDirectory($extractPath);
+//        File::delete($zipPath);
+//
+//        return response()->json([
+//            'message' => "Berhasil mengimpor {$imported} gambar produk ke NEO Object Storage."
+//        ]);
+//    }
+
+    public function massImportImg(Request $request)
+    {
+        $request->validate([
+            'p_mass_import' => 'required|file|mimes:zip'
+        ]);
+
+        $file = $request->file('p_mass_import');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $zipPath = storage_path('app/uploads/' . $fileName);
+        $file->move(storage_path('app/uploads'), $fileName);
+
+        // Ekstrak ZIP ke folder sementara
+        $extractPath = storage_path('app/temp_import_' . time());
+        File::makeDirectory($extractPath);
+
+        $zip = new \ZipArchive;
+        if ($zip->open($zipPath) === true) {
+            $zip->extractTo($extractPath);
+            $zip->close();
+        } else {
+            return response()->json(['message' => 'Gagal membuka file ZIP.'], 422);
+        }
+
+        $directories = File::directories($extractPath);
+
+        ProcessMassImageImport::dispatch($directories);
+
+        File::delete($zipPath);
+
+        return response()->json([
+            'message' => 'File sedang diproses di background. Gambar akan diunggah ke NEO Object Storage.',
+        ]);
+    }
+
+    public function getImages($articleId)
+    {
+        $product = Product::with('images')->where('article_id', $articleId)->first();
+
+        if (!$product) {
+            return response()->json(['success' => false, 'message' => 'Produk tidak ditemukan']);
+        }
+
+        $images = $product->images->map(function ($img) {
+            return [
+                'id' => $img->id,
+                'file_name' => $img->file_name,
+                'file_path' => asset($img->file_path),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'images' => $images,
+        ]);
+    }
+
+    public function destroyImages($id)
+    {
+        $image = ProductImage::find($id);
+
+        if (!$image) {
+            return response()->json(['success' => false, 'message' => 'Gambar tidak ditemukan']);
+        }
+
+        try {
+            $baseUrl = rtrim(config('filesystems.disks.s3.url'), '/');
+
+            $relativePath = str_replace($baseUrl . '/', '', $image->file_path);
+
+            $bucket = config('filesystems.disks.s3.bucket');
+            $relativePath = preg_replace("#^{$bucket}/#", '', $relativePath);
+
+            if (Storage::disk('s3')->exists($relativePath)) {
+                Storage::disk('s3')->delete($relativePath);
+            }
+
+            // Hapus record dari database
+            $image->delete();
+
+            return response()->json(['success' => true, 'message' => 'Gambar berhasil dihapus']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus gambar: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function downloadAll($articleId)
+    {
+//        $images = ProductImage::where('article_id', $articleId)->get();
+
+        $images = DB::table('product_images')
+            ->join('products', 'products.id', '=', 'product_images.p_id')
+            ->where('products.article_id', $articleId)
+            ->get();
+
+        if ($images->isEmpty()) {
+            return back()->with('error', 'Tidak ada gambar untuk artikel ini.');
+        }
+
+        $zipFileName = 'images_' . $articleId . '_' . time() . '.zip';
+        $zipPath = storage_path('app/public/' . $zipFileName);
+
+        $zip = new ZipArchive;
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+
+            $baseUrl = rtrim(config('filesystems.disks.s3.url'), '/');
+            $bucket  = config('filesystems.disks.s3.bucket');
+
+            foreach ($images as $img) {
+                $relativePath = str_replace($baseUrl . '/', '', $img->file_path);
+
+                $relativePath = preg_replace("#^{$bucket}/#", '', $relativePath);
+
+                if (Storage::disk('s3')->exists($relativePath)) {
+                    $fileContent = Storage::disk('s3')->get($relativePath);
+                    $zip->addFromString($img->file_name, $fileContent);
+                }
+            }
+
+            $zip->close();
+        } else {
+            return back()->with('error', 'Gagal membuat ZIP file.');
+        }
+
+        return response()->download($zipPath)->deleteFileAfterSend(true);
     }
 
     public function showFlags($id)
@@ -348,7 +616,7 @@ class ProductController extends Controller
         try {
             if (request()->ajax()) {
 
-                $query =  datatables()->of(Product::select(
+                $query = datatables()->of(Product::select(
                     'products.id as pid',
                     'article_id',
                     'br_id',
@@ -404,7 +672,7 @@ class ProductController extends Controller
                         return '<span class="float-right">' . number_format($data->p_price_tag) . '</span>';
                     })
                     ->editColumn('p_purchase_price_show', function ($data) {
-                        return '<span class="float-right">' . number_format($data->p_purchase_price,) . '</span>';
+                        return '<span class="float-right">' . number_format($data->p_purchase_price) . '</span>';
                     })
                     ->editColumn('p_sell_price_show', function ($data) {
                         return '<span class="float-right">' . number_format($data->p_sell_price) . '</span>';
@@ -545,7 +813,8 @@ class ProductController extends Controller
                 ->editColumn('ps_name_show', function ($data) {
                     return '<span style="white-space: nowrap;">' . $data->ps_name . '</span>';
                 })
-                ->editColumn('p_size', function ($data) {})
+                ->editColumn('p_size', function ($data) {
+                })
                 ->editColumn('p_action', function ($data) {
                     $product_stock = new ProductStock;
                     $select = ['product_stocks.id as psid', 'p_id', 'sz_id', 'sz_name', 'ps_qty', 'ps_barcode', 'ps_running_code'];
@@ -787,17 +1056,17 @@ class ProductController extends Controller
                 'article_id' => $request->input('article_id'),
                 'schema_size' => $request->input('sz_schema_modal_id'),
                 'p_delete' => '0',
-                'subcategory1'  => $request->input('subcatone'),
-                'subcategory2'  => $request->input('subcattwo'),
-                'consignment'    => $request->input('consignment'),
-                'complement'    => $request->input('complement') ?? 0,
-                'mp_best_seller'    => $request->input('mp_best_seller'),
-                'mp_stock_masking'    => $request->input('mp_stock_masking'),
-                'is_everlast'         => $request->input('is_everlast') ?? 0,
-                'is_supersale'       => $request->input('is_supersale') ?? 0,
-                'is_reguler'         => $request->input('is_reguler') ?? 0,
-                'mark_down'         => $request->input('mark_down') ?? 0,
-                'p_turnoverclass'   => $request->input('p_turnoverclass'),
+                'subcategory1' => $request->input('subcatone'),
+                'subcategory2' => $request->input('subcattwo'),
+                'consignment' => $request->input('consignment'),
+                'complement' => $request->input('complement') ?? 0,
+                'mp_best_seller' => $request->input('mp_best_seller'),
+                'mp_stock_masking' => $request->input('mp_stock_masking'),
+                'is_everlast' => $request->input('is_everlast') ?? 0,
+                'is_supersale' => $request->input('is_supersale') ?? 0,
+                'is_reguler' => $request->input('is_reguler') ?? 0,
+                'mark_down' => $request->input('mark_down') ?? 0,
+                'p_turnoverclass' => $request->input('p_turnoverclass'),
             ];
             $save = $product->storeData($mode, $id, $data);
 

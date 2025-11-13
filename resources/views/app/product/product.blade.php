@@ -192,6 +192,10 @@
                                     <button type="button" class="btn btn-warning font-weight-bolder ml-2" id="mass_update_product">
                                         Mass Update
                                     </button>
+
+                                    <button type="button" class="btn font-weight-bolder ml-2 text-white" style="background-color: green;" id="mass_img_product">
+                                        Mass Import Img
+                                    </button>
                                         
                                 </div>
                                 <!--end::Dropdown-->

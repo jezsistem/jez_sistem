@@ -474,6 +474,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_barcode', [ProductController::class, 'checkExistsBarcode']);
     Route::post('check_exists_article_id', [ProductController::class, 'checkExistsArticleID']);
     Route::post('update_barcode', [ProductController::class, 'updateBarcode']);
+    Route::post('/product/mass-import-img', [ProductController::class, 'massImportImg'])->name('product.massImportImg');
+    Route::get('/product-images/{articleId}', [ProductController::class, 'getImages']);
+    Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
+    Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
 
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);

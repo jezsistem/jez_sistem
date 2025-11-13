@@ -563,6 +563,166 @@
             $('#importManifestModal').modal('show');
         })
 
+        $(document).on('click', '#open_modal_resi_btn', function (e) {
+            jQuery.noConflict();
+            $('#resiMasalModal').modal('show');
+        })
+
+        $(document).ready(function () {
+
+            // Klik card = toggle checkbox
+            $(document).on('click', '.resi-card', function (e) {
+                if ($(e.target).is('input[type=checkbox]')) return;
+
+                let checkbox = $(this).find('.resi-checkbox');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                toggleCardHighlight($(this), checkbox.prop('checked'));
+
+                // Update status Select All
+                updateSelectAllStatus();
+            });
+
+            // Klik Select All
+            $('#selectAllResi').on('change', function () {
+                let isChecked = $(this).is(':checked');
+                $('.resi-checkbox').prop('checked', isChecked);
+                $('.resi-card').each(function () {
+                    toggleCardHighlight($(this), isChecked);
+                });
+            });
+
+            // Checkbox individual
+            $(document).on('change', '.resi-checkbox', function () {
+                toggleCardHighlight($(this).closest('.resi-card'), $(this).is(':checked'));
+                updateSelectAllStatus();
+            });
+
+            // Tombol print
+            // $('#printSelected').on('click', function () {
+            //     let selectedResi = [];
+            //     $('.resi-checkbox:checked').each(function () {
+            //         selectedResi.push($(this).val());
+            //     });
+            //
+            //     if (selectedResi.length === 0) {
+            //         alert('Pilih minimal satu resi untuk dicetak!');
+            //         return;
+            //     }
+            //
+            //     console.log('Resi terpilih:', selectedResi);
+            //
+            //     // Contoh redirect atau AJAX:
+            //     // window.location.href = '/print-resi?data=' + encodeURIComponent(JSON.stringify(selectedResi));
+            // });
+
+            {{--$(document).on('click', '#printSelected', function () {--}}
+            {{--    let selectedResi = [];--}}
+            {{--    $('.resi-checkbox:checked').each(function () {--}}
+            {{--        selectedResi.push($(this).val());--}}
+            {{--    });--}}
+
+            {{--    if (selectedResi.length === 0) {--}}
+            {{--        alert('Pilih minimal satu resi untuk dicetak!');--}}
+            {{--        return;--}}
+            {{--    }--}}
+
+            {{--    $('#printSelected').prop('disabled', true).text('Sedang diproses...');--}}
+            {{--    $('#loadingMerge').show();--}}
+
+            {{--    $.ajax({--}}
+            {{--        url: "{{ route('merge.resi') }}",--}}
+            {{--        type: "POST",--}}
+            {{--        data: {--}}
+            {{--            _token: "{{ csrf_token() }}",--}}
+            {{--            resi: selectedResi--}}
+            {{--        },--}}
+            {{--        success: function(response) {--}}
+            {{--            $('#loadingMerge').hide();--}}
+            {{--            $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');--}}
+
+            {{--            if (response.url) {--}}
+            {{--                window.open(response.url, '_blank');--}}
+            {{--            } else {--}}
+            {{--                alert('Gagal membuat file PDF gabungan.');--}}
+            {{--            }--}}
+            {{--        },--}}
+            {{--        error: function() {--}}
+            {{--            $('#loadingMerge').hide();--}}
+            {{--            $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');--}}
+            {{--            alert('Terjadi kesalahan saat menggabungkan file PDF.');--}}
+            {{--        }--}}
+            {{--    });--}}
+            {{--});--}}
+
+            $(document).on('click', '#printSelected', function () {
+                let selectedResi = [];
+                $('.resi-checkbox:checked').each(function () {
+                    selectedResi.push($(this).val());
+                });
+
+                if (selectedResi.length === 0) {
+                    alert('Pilih minimal satu resi untuk dicetak!');
+                    return;
+                }
+
+                $('#printSelected').prop('disabled', true).text('Sedang diproses...');
+                $('#loadingMerge').show();
+                $('#mergedPdfPreview').hide();
+
+                $.ajax({
+                    url: "{{ route('merge.resi') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        resi: selectedResi
+                    },
+                    success: function(response) {
+                        $('#loadingMerge').hide();
+                        $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');
+
+                        if (response.url) {
+                            // ✅ tampilkan hasil merge di bawah tombol
+                            $('#mergedPdfPreview').show();
+                            $('#mergedPdfFrame').attr('src', response.url);
+                            $('#printMergedBtn').data('url', response.url);
+                        } else {
+                            alert('Gagal membuat file PDF gabungan.');
+                        }
+                    },
+                    error: function() {
+                        $('#loadingMerge').hide();
+                        $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');
+                        alert('Terjadi kesalahan saat menggabungkan file PDF.');
+                    }
+                });
+            });
+
+
+            $(document).on('click', '#printMergedBtn', function() {
+                let pdfUrl = $(this).data('url');
+                if (pdfUrl) {
+                    let newWindow = window.open(pdfUrl, '_blank');
+                    newWindow.onload = function() {
+                        newWindow.print();
+                    };
+                } else {
+                    alert('File hasil merge belum tersedia.');
+                }
+            });
+
+            // Fungsi bantu
+            function toggleCardHighlight(card, active) {
+                card.toggleClass('border-success', active);
+                card.toggleClass('shadow-lg', active);
+            }
+
+            function updateSelectAllStatus() {
+                let all = $('.resi-checkbox').length;
+                let checked = $('.resi-checkbox:checked').length;
+                $('#selectAllResi').prop('checked', all === checked);
+            }
+        });
+
         $(document).ready(function () {
             let table = $('#manifestTable').DataTable({
                 processing: true,
