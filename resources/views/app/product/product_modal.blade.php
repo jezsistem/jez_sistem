@@ -7,11 +7,13 @@
         border-radius: 8px;
         transition: transform 0.2s ease-in-out;
     }
+
     #imageGallery img {
         width: 100%;
         height: 120px;
         object-fit: cover;
     }
+
     #imageGallery .img-box:hover {
         transform: scale(1.05);
     }
@@ -257,7 +259,8 @@
                             </div>
                             <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
                                 <div class=" my-auto">
-                                    <input class="" type="checkbox" id="mp_stock_masking" name="mp_stock_masking" value="1">
+                                    <input class="" type="checkbox" id="mp_stock_masking" name="mp_stock_masking"
+                                           value="1">
                                     <label class="" for="mp_stock_masking">
                                         Impairment
                                     </label>
@@ -404,8 +407,9 @@
                                             onclick="showStockedSchema()">Stocked Schema
                                     </button>
                                 </label>
-
-                                <div id="reload_size"></div>
+                                @if (!Str::contains($data['stt'], ['MARKOM', 'ONLINE']))
+                                    <div id="reload_size"></div>
+                                @endif
                             </div>
                         </div>
 
@@ -444,7 +448,8 @@
 <!-- /Modal -->
 
 <!-- Modal untuk menampilkan semua gambar -->
-<div class="modal fade" id="ProductImageModal" tabindex="-1" role="dialog" aria-labelledby="ProductImageModalLabel" aria-hidden="true">
+<div class="modal fade" id="ProductImageModal" tabindex="-1" role="dialog" aria-labelledby="ProductImageModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
 
@@ -475,7 +480,8 @@
 </div>
 
 <!-- Modal Preview Gambar Besar -->
-<div class="modal fade" id="ImagePreviewModal" tabindex="-1" aria-labelledby="ImagePreviewModalLabel" aria-hidden="true">
+<div class="modal fade" id="ImagePreviewModal" tabindex="-1" aria-labelledby="ImagePreviewModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content bg-dark text-center border-0">
             <div class="modal-body position-relative p-0">
@@ -672,7 +678,7 @@
     }
 
     input[type="checkbox"] {
-            transform: scale(1.5);
-            margin: 10px;
-        }
+        transform: scale(1.5);
+        margin: 10px;
+    }
 </style>
