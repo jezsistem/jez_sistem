@@ -330,12 +330,21 @@ class DeliveryRecapController extends Controller
 
                 $receipts = [];
                 foreach ($resiList as $resi) {
-                    $transaction = OnlineTransactions::where('no_resi', $resi)->first();
-                    if (!$transaction) continue;
+                    $transaction = OnlineTransactions::where('no_resi', $resi)
+                        ->orWhere('order_number', $resi)
+                        ->first();
+
+                    if (!$transaction) {
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Resi ' . $resi . ' tidak ditemukan di database.',
+                        ], 400);
+                    }
 
                     $count_qty = OnlineTransactionDetails::where('order_number', $transaction->order_number)->count();
 
-                    $receipts[] = [
+                    $receipts = [
                         'dr_id' => $recap->id,
                         'resi' => $resi,
                         'marketplace_name' => $transaction->platform_name ?? '-',
@@ -347,7 +356,15 @@ class DeliveryRecapController extends Controller
                     ];
                 }
 
-                DeliveryReceipt::insert($receipts);
+                $save_data = DeliveryReceipt::insert($receipts);
+
+                if (!$save_data) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal menyimpan data resi instan.',
+                    ], 500);
+                }
             }
             DB::commit();
 

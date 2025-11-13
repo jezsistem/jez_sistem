@@ -16,6 +16,8 @@ class DeliveryReceipt extends Model
         'item_qty',
         'city_destinations',
         'note',
+        'created_at',
+        'updated_at',
     ];
 
     public function confirmation()
