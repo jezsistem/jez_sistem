@@ -284,9 +284,9 @@ class ProductController extends Controller
 
     public function massImportImg(Request $request)
     {
-//        $request->validate([
-//            'p_mass_import' => 'required|file|mimes:zip'
-//        ]);
+        $request->validate([
+            'p_mass_import' => 'required|file|mimes:zip'
+        ]);
 
         $file = $request->file('p_mass_import');
         $fileName = time() . '_' . $file->getClientOriginalName();
@@ -368,6 +368,47 @@ class ProductController extends Controller
                 'message' => 'Terjadi kesalahan saat menghapus gambar: ' . $e->getMessage()
             ]);
         }
+    }
+
+    public function downloadAll($articleId)
+    {
+//        $images = ProductImage::where('article_id', $articleId)->get();
+
+        $images = DB::table('product_images')
+            ->join('products', 'products.id', '=', 'product_images.p_id')
+            ->where('products.article_id', $articleId)
+            ->get();
+
+        if ($images->isEmpty()) {
+            return back()->with('error', 'Tidak ada gambar untuk artikel ini.');
+        }
+
+        $zipFileName = 'images_' . $articleId . '_' . time() . '.zip';
+        $zipPath = storage_path('app/public/' . $zipFileName);
+
+        $zip = new ZipArchive;
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+
+            $baseUrl = rtrim(config('filesystems.disks.s3.url'), '/');
+            $bucket  = config('filesystems.disks.s3.bucket');
+
+            foreach ($images as $img) {
+                $relativePath = str_replace($baseUrl . '/', '', $img->file_path);
+
+                $relativePath = preg_replace("#^{$bucket}/#", '', $relativePath);
+
+                if (Storage::disk('s3')->exists($relativePath)) {
+                    $fileContent = Storage::disk('s3')->get($relativePath);
+                    $zip->addFromString($img->file_name, $fileContent);
+                }
+            }
+
+            $zip->close();
+        } else {
+            return back()->with('error', 'Gagal membuat ZIP file.');
+        }
+
+        return response()->download($zipPath)->deleteFileAfterSend(true);
     }
 
     public function showFlags($id)

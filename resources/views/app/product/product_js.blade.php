@@ -1280,6 +1280,25 @@
                 });
             });
 
+            // Action tombol Download All
+            $(document).on('click', '#downloadAllBtn', function() {
+                const articleId = $('#article_id').val();
+
+                Swal.fire({
+                    title: 'Download semua gambar?',
+                    text: "Semua gambar akan dikompres dalam 1 file ZIP.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, download',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `/product-images/download/${articleId}`;
+                    }
+                });
+            });
+
+
             // Event hapus gambar
             $(document).on('click', '.delete-image-btn', function() {
                 const id = $(this).data('id');
@@ -1321,6 +1340,8 @@
             });
 
         });
+
+
 
         $(document).on('click', '.img-box img', function() {
             const src = $(this).attr('src');

@@ -477,6 +477,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/product/mass-import-img', [ProductController::class, 'massImportImg'])->name('product.massImportImg');
     Route::get('/product-images/{articleId}', [ProductController::class, 'getImages']);
     Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
+    Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
 
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);

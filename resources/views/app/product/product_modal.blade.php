@@ -439,11 +439,18 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
 
-            <div class="modal-header">
+            <div class="modal-header d-flex justify-content-between align-items-center">
                 <h5 class="modal-title" id="ProductImageModalLabel">Gambar Produk</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+
+                <div>
+                    <button id="downloadAllBtn" class="btn btn-primary btn-sm mr-2">
+                        <i class="fas fa-download"></i> Download All
+                    </button>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
             </div>
 
             <div class="modal-body">
