@@ -284,9 +284,9 @@ class ProductController extends Controller
 
     public function massImportImg(Request $request)
     {
-        $request->validate([
-            'p_mass_import' => 'required|file|mimes:zip'
-        ]);
+//        $request->validate([
+//            'p_mass_import' => 'required|file|mimes:zip'
+//        ]);
 
         $file = $request->file('p_mass_import');
         $fileName = time() . '_' . $file->getClientOriginalName();
