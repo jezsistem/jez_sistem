@@ -1083,6 +1083,7 @@
             var is_reguler = product_table.row(this).data().is_reguler;
             var p_turnoverclass = product_table.row(this).data().p_turnoverclass;
             var mark_down = product_table.row(this).data().mark_down;
+            var link_content = product_table.row(this).data().link_content;
 
             console.log(product_table.row(this).data())
             console.log(subcategory1)
@@ -1161,6 +1162,7 @@
             }
             $('#p_name').val(decodeHtmlEntity(p_name));
             $('#article_id').val(article_id);
+            $('#link_content').val(link_content);
             $('#p_aging').val(p_aging);
             $('#p_color').val(p_color);
             $('#p_price_tag').val(p_price_tag);
@@ -1349,6 +1351,37 @@
             $('#ImagePreviewModal').modal('show');
         });
 
+        $(document).ready(function () {
+
+            let typingTimer;
+            let doneTypingInterval = 800;
+
+            $('#link_content').on('keyup paste', function () {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(saveLinkContent, doneTypingInterval);
+            });
+
+            function saveLinkContent() {
+                let value = $('#link_content').val();
+                let article_id = $('#article_id').val();
+
+                $.ajax({
+                    url: '/product/update-link-content/' + article_id,
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        link_content: value
+                    },
+                    success: function (res) {
+                        toastr.success('Link konten berhasil disimpan', 'Berhasil');
+                    },
+                    error: function (err) {
+                        toastr.error('Gagal menyimpan link konten', 'Error');
+                    }
+                });
+            }
+        });
+
         $('#article_id').on('change', function() {
             var article_id = $(this).val();
 
@@ -1358,8 +1391,8 @@
                 }
             });
             $.ajax({
-                type: "POST",
-                data: {
+                    type: "POST",
+                    data: {
                     _article_id: article_id
                 },
                 dataType: 'json',

@@ -478,7 +478,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/product-images/{articleId}', [ProductController::class, 'getImages']);
     Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
     Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
-
+    Route::post('/product/update-link-content/{id}', [ProductController::class, 'updateLinkContent']);
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
 

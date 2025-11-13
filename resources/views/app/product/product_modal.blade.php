@@ -353,15 +353,19 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <div class="col-lg-6 pt-1">
+                            <div class="col-lg-4 pt-1">
                                 <label>Sub Category 1 <span class="text-danger"></span></label>
                                 <textarea class="form-control" id="subcatone" name="subcatone"></textarea>
                                 {{--                                <input type="text" name="subcatone" id="subcatone" class="form-control" placeholder="Sub Category 1" /> --}}
                             </div>
-                            <div class="col-lg-6 pt-1">
+                            <div class="col-lg-4 pt-1">
                                 <label>Sub Category 2 <span class="text-danger"></span></label>
                                 <textarea class="form-control" id="subcattwo" name="subcattwo"></textarea>
                                 {{--                                <input type="text" name="subcattwo" id="subcattwo" class="form-control" placeholder="Sub Category 2" /> --}}
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>Link Konten <span class="text-danger"></span></label>
+                                <textarea class="form-control" id="link_content" name="link_content"></textarea>
                             </div>
                             <div class="col-lg-12 pt-1 mt-2">
                                 <label>Turn Over Class </label>
@@ -417,16 +421,21 @@
 
                     </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold"
                             data-dismiss="modal">Tutup
                     </button>
-                    <button type="button" class="btn btn-danger font-weight-bold" id="delete_product_btn"
-                            style="display:none;">Hapus
-                    </button>
-                    <button type="submit" class="btn btn-dark font-weight-bold"
-                            id="save_product_btn">Simpan
-                    </button>
+
+                    @if (!Str::contains($data['stt'], ['MARKOM', 'ONLINE']))
+                        <button type="button" class="btn btn-danger font-weight-bold" id="delete_product_btn"
+                                style="display:none;">Hapus
+                        </button>
+
+                        <button type="submit" class="btn btn-dark font-weight-bold"
+                                id="save_product_btn">Simpan
+                        </button>
+                    @endif
                 </div>
             </form>
         </div>

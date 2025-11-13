@@ -107,6 +107,8 @@ class ProductController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
 
+        $stt = DB::table('store_types')->where('id', Auth::user()->stt_id)->first()->stt_name;
+
 
         $data = [
             'title' => $title,
@@ -128,6 +130,7 @@ class ProductController extends Controller
             'p_name' => Product::where('p_delete', '!=', '1')->orderByDesc('id')->pluck('p_name', 'id'),
             'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'stt'   => $stt,
             'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id')
@@ -336,6 +339,21 @@ class ProductController extends Controller
             'success' => true,
             'images' => $images,
         ]);
+    }
+
+    public function updateLinkContent(Request $request, $id)
+    {
+        $request->validate([
+            'link_content' => 'nullable|string'
+        ]);
+
+        $p_id = DB::table('products')->where('article_id', $id)->value('id');
+
+        $product = Product::findOrFail($p_id);
+        $product->link_content = $request->link_content;
+        $product->save();
+
+        return response()->json(['success' => true]);
     }
 
     public function destroyImages($id)
@@ -653,7 +671,8 @@ class ProductController extends Controller
                     'is_supersale',
                     'is_reguler',
                     'mark_down',
-                    'p_turnoverclass'
+                    'p_turnoverclass',
+                    'link_content'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
