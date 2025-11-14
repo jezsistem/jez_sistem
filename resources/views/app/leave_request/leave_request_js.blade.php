@@ -502,22 +502,30 @@
                             console.log('Error message shown');
                         }
                         
-                        // Refresh table
-                        console.log('Attempting to refresh table...');
-                        if (window.leaveRequestTable) {
-                            console.log('Table found, refreshing...');
-                            window.leaveRequestTable.draw();
-                            console.log('Table refresh completed');
-                        } else {
-                            console.log('Table not found, trying alternative refresh...');
-                            // Try to find table by ID or class
-                            var table = $('.dataTable').DataTable();
-                            if (table) {
-                                table.draw();
-                                console.log('Alternative table refresh completed');
-                            } else {
-                                console.log('No DataTable found, reloading page...');
+                        // Check if current URL is /leave-requests/*
+                        if (window.location.pathname.startsWith('/leave-requests/')) {
+                            console.log('On leave request detail page, reloading...');
+                            setTimeout(function() {
                                 location.reload();
+                            }, 1000);
+                        } else {
+                            // Refresh table
+                            console.log('Attempting to refresh table...');
+                            if (window.leaveRequestTable) {
+                                console.log('Table found, refreshing...');
+                                window.leaveRequestTable.draw();
+                                console.log('Table refresh completed');
+                            } else {
+                                console.log('Table not found, trying alternative refresh...');
+                                // Try to find table by ID or class
+                                var table = $('.dataTable').DataTable();
+                                if (table) {
+                                    table.draw();
+                                    console.log('Alternative table refresh completed');
+                                } else {
+                                    console.log('No DataTable found, reloading page...');
+                                    location.reload();
+                                }
                             }
                         }
                     },
