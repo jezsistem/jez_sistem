@@ -890,6 +890,44 @@
             $('#f_mass_update')[0].reset();
         });
 
+        $('#mass_img_product').on('click', function() {
+            jQuery.noConflict();
+            $('#MassImgModal').modal('show');
+            $('#f_mass_img')[0].reset();
+        });
+
+        $('#f_mass_img').on('submit', function (e) {
+            e.preventDefault();
+
+            let formData = new FormData(this);
+            $('#import_data_btn').prop('disabled', true).text('Importing...');
+
+            $.ajax({
+                url: "{{ route('product.massImportImg') }}",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $('#import_img_btn').prop('disabled', false).text('Import');
+                    $('#MassImgModal').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message
+                    });
+                },
+                error: function (xhr) {
+                    $('#import_img_btn').prop('disabled', false).text('Import');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: xhr.responseJSON?.message || 'Terjadi kesalahan saat import.'
+                    });
+                }
+            });
+        });
+
         {{-- $('#sz_schema_modal_id').on('change', function (e) { --}}
         {{--    // Get the selected value in sc_schema_modal_id --}}
         {{--    var selectedValue = $(this).val(); --}}
@@ -1045,6 +1083,7 @@
             var is_reguler = product_table.row(this).data().is_reguler;
             var p_turnoverclass = product_table.row(this).data().p_turnoverclass;
             var mark_down = product_table.row(this).data().mark_down;
+            var link_content = product_table.row(this).data().link_content;
 
             console.log(product_table.row(this).data())
             console.log(subcategory1)
@@ -1123,6 +1162,7 @@
             }
             $('#p_name').val(decodeHtmlEntity(p_name));
             $('#article_id').val(article_id);
+            $('#link_content').val(link_content);
             $('#p_aging').val(p_aging);
             $('#p_color').val(p_color);
             $('#p_price_tag').val(p_price_tag);
@@ -1196,6 +1236,150 @@
                 $('#delete_product_btn').show();
             @endif
             generateQR(article_id);
+        })
+
+        $(document).ready(function() {
+            $('#showImageModalBtn').on('click', function() {
+                const articleId = $('#article_id').val();
+
+                if (!articleId) {
+                    alert('Article ID belum diisi.');
+                    return;
+                }
+
+                $('#imageGallery').empty();
+                $('#noImageMessage').hide();
+
+                $.ajax({
+                    url: `/product-images/${articleId}`,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.success && response.images.length > 0) {
+                            response.images.forEach(function(img) {
+                                const imgBox = `
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4 position-relative" id="image-card-${img.id}">
+                                <div class="img-box shadow-sm border position-relative">
+                                    <button class="btn btn-danger btn-sm delete-image-btn position-absolute"
+                                            data-id="${img.id}"
+                                            style="top:5px; right:5px; z-index:10; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <img src="${img.file_path}" alt="${img.file_name}" class="img-fluid rounded">
+                                </div>
+                            </div>
+                        `;
+                                $('#imageGallery').append(imgBox);
+                            });
+                        } else {
+                            $('#noImageMessage').show();
+                        }
+
+                        $('#ProductImageModal').modal('show');
+                    },
+                    error: function() {
+                        alert('Terjadi kesalahan saat mengambil data gambar.');
+                    }
+                });
+            });
+
+            // Action tombol Download All
+            $(document).on('click', '#downloadAllBtn', function() {
+                const articleId = $('#article_id').val();
+
+                Swal.fire({
+                    title: 'Download semua gambar?',
+                    text: "Semua gambar akan dikompres dalam 1 file ZIP.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, download',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `/product-images/download/${articleId}`;
+                    }
+                });
+            });
+
+
+            // Event hapus gambar
+            $(document).on('click', '.delete-image-btn', function() {
+                const id = $(this).data('id');
+                const card = $(`#image-card-${id}`);
+
+                Swal.fire({
+                    title: 'Hapus Gambar?',
+                    text: "Gambar ini akan dihapus secara permanen.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/product-images/${id}`,
+                            type: 'DELETE',
+                            data: {
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    card.fadeOut(300, function() {
+                                        $(this).remove();
+                                    });
+                                    Swal.fire('Terhapus!', response.message, 'success');
+                                } else {
+                                    Swal.fire('Gagal!', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Gagal!', 'Terjadi kesalahan server.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+        });
+
+
+//hehe haha
+        $(document).on('click', '.img-box img', function() {
+            const src = $(this).attr('src');
+            $('#previewImageFull').attr('src', src);
+            $('#ImagePreviewModal').modal('show');
+        });
+
+        $(document).ready(function () {
+
+            let typingTimer;
+            let doneTypingInterval = 800;
+
+            $('#link_content').on('keyup paste', function () {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(saveLinkContent, doneTypingInterval);
+            });
+
+            function saveLinkContent() {
+                let value = $('#link_content').val();
+                let article_id = $('#article_id').val();
+
+                $.ajax({
+                    url: '/product/update-link-content/' + article_id,
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        link_content: value
+                    },
+                    success: function (res) {
+                        toastr.success('Link konten berhasil disimpan', 'Berhasil');
+                    },
+                    error: function (err) {
+                        toastr.error('Gagal menyimpan link konten', 'Error');
+                    }
+                });
+            }
         });
 
         $('#article_id').on('change', function() {
@@ -1207,8 +1391,8 @@
                 }
             });
             $.ajax({
-                type: "POST",
-                data: {
+                    type: "POST",
+                    data: {
                     _article_id: article_id
                 },
                 dataType: 'json',

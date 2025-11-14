@@ -407,4 +407,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/manifest/data', [DeliveryRecapController::class, 'getData'])->name('manifest.data');
     Route::get('/manifest/print/{id}', [DeliveryRecapController::class, 'print'])->name('manifest.print');
 
+    Route::post('/merge-resi', [HelperOnlineController::class, 'mergeResi'])->name('merge.resi');
 });

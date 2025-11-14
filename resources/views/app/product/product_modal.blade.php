@@ -1,5 +1,25 @@
 <!-- Modal-->
 
+<style>
+    #imageGallery .img-box {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    #imageGallery img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    #imageGallery .img-box:hover {
+        transform: scale(1.05);
+    }
+
+</style>
+
 <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -58,6 +78,7 @@
                         <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
                 </div>
+
                 <div class="modal-body">
                     <div class="card-body">
                         <div class="form-group row">
@@ -65,6 +86,12 @@
                                 <label>Kode Artikel</label>
                                 <input type="text" name="article_id" id="article_id" class="form-control"
                                        placeholder="Kode Artikel"/>
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>Kode Artikel</label><br>
+                                <button type="button" class="btn btn-sm btn-info mr-2" id="showImageModalBtn">
+                                    <i class="fa fa-image"></i> Lihat Gambar
+                                </button>
                             </div>
                             <div class="col-lg-4 pt-1 float-right ml-auto">
                                 <div id="product_qr"></div>
@@ -232,7 +259,8 @@
                             </div>
                             <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
                                 <div class=" my-auto">
-                                    <input class="" type="checkbox" id="mp_stock_masking" name="mp_stock_masking" value="1">
+                                    <input class="" type="checkbox" id="mp_stock_masking" name="mp_stock_masking"
+                                           value="1">
                                     <label class="" for="mp_stock_masking">
                                         Impairment
                                     </label>
@@ -328,15 +356,19 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <div class="col-lg-6 pt-1">
+                            <div class="col-lg-4 pt-1">
                                 <label>Sub Category 1 <span class="text-danger"></span></label>
                                 <textarea class="form-control" id="subcatone" name="subcatone"></textarea>
                                 {{--                                <input type="text" name="subcatone" id="subcatone" class="form-control" placeholder="Sub Category 1" /> --}}
                             </div>
-                            <div class="col-lg-6 pt-1">
+                            <div class="col-lg-4 pt-1">
                                 <label>Sub Category 2 <span class="text-danger"></span></label>
                                 <textarea class="form-control" id="subcattwo" name="subcattwo"></textarea>
                                 {{--                                <input type="text" name="subcattwo" id="subcattwo" class="form-control" placeholder="Sub Category 2" /> --}}
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>Link Konten <span class="text-danger"></span></label>
+                                <textarea class="form-control" id="link_content" name="link_content"></textarea>
                             </div>
                             <div class="col-lg-12 pt-1 mt-2">
                                 <label>Turn Over Class </label>
@@ -375,8 +407,9 @@
                                             onclick="showStockedSchema()">Stocked Schema
                                     </button>
                                 </label>
-
-                                <div id="reload_size"></div>
+                                @if (!Str::contains($data['stt'], ['MARKOM', 'ONLINE']))
+                                    <div id="reload_size"></div>
+                                @endif
                             </div>
                         </div>
 
@@ -388,24 +421,79 @@
                                           rows="3"></textarea>
                             </div>
                         </div>
+
+
                     </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold"
                             data-dismiss="modal">Tutup
                     </button>
-                    <button type="button" class="btn btn-danger font-weight-bold" id="delete_product_btn"
-                            style="display:none;">Hapus
-                    </button>
-                    <button type="submit" class="btn btn-dark font-weight-bold"
-                            id="save_product_btn">Simpan
-                    </button>
+
+                    @if (!Str::contains($data['stt'], ['MARKOM', 'ONLINE']))
+                        <button type="button" class="btn btn-danger font-weight-bold" id="delete_product_btn"
+                                style="display:none;">Hapus
+                        </button>
+
+                        <button type="submit" class="btn btn-dark font-weight-bold"
+                                id="save_product_btn">Simpan
+                        </button>
+                    @endif
                 </div>
             </form>
         </div>
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal untuk menampilkan semua gambar -->
+<div class="modal fade" id="ProductImageModal" tabindex="-1" role="dialog" aria-labelledby="ProductImageModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header d-flex justify-content-between align-items-center">
+                <h5 class="modal-title" id="ProductImageModalLabel">Gambar Produk</h5>
+
+                <div>
+                    <button id="downloadAllBtn" class="btn btn-primary btn-sm mr-2">
+                        <i class="fas fa-download"></i> Download All
+                    </button>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <div id="imageGallery" class="row">
+                    <div class="col-12 text-center text-muted" id="noImageMessage" style="display:none;">
+                        Tidak ada gambar untuk produk ini.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Preview Gambar Besar -->
+<div class="modal fade" id="ImagePreviewModal" tabindex="-1" aria-labelledby="ImagePreviewModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark text-center border-0">
+            <div class="modal-body position-relative p-0">
+                <button type="button" class="btn btn-light btn-sm position-absolute" data-dismiss="modal"
+                        style="top:10px; right:10px; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-times"></i>
+                </button>
+                <img id="previewImageFull" src="" alt="Preview" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal-->
 <div class="modal fade" id="ProductDetailModal" role="dialog" aria-labelledby="exampleModalLabel"
@@ -523,6 +611,53 @@
 </div>
 
 
+<div class="modal fade" id="MassImgModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="f_mass_img" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Mass Image Import</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="alert alert-info" role="alert">
+                            <strong>Correct ZIP Format:</strong><br>
+                            • Inside the ZIP should be the product’s <b>Article ID</b>.<br>
+                            • Include the product image files (JPG, PNG).<br>
+                            • It is recommended that each file size does not exceed 1MB.<br><br>
+                            <b>Example ZIP Structure:</b><br>
+                            ├── 9405306/<br>
+                            │ ├── 9405306 (1).jpg<br>
+                            │ ├── 9405306 (2).jpg<br>
+                            ├── 9405307/<br>
+                            │ ├── 9405307 (1).jpg<br>
+                            │ └── 9405307 (2).jpg
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="p_mass_import" id="p_mass_import" required/>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
+                            data-dismiss="modal">Close
+                    </button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="import_img_btn">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <style>
     .label-space {
         margin-right: 10cm;
@@ -543,7 +678,7 @@
     }
 
     input[type="checkbox"] {
-            transform: scale(1.5);
-            margin: 10px;
-        }
+        transform: scale(1.5);
+        margin: 10px;
+    }
 </style>

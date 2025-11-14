@@ -489,7 +489,7 @@ class TransaksiOnlineController extends Controller
                         $can_pick = false;
                     }
 
-                    if ($data->internal_order_status == 'WAITING RECEIPT' || $data->internal_order_status == 'WAITING PACKING' || $data->internal_order_status == 'DONE ONLINE' || $data->internal_order_status == 'DONE') {
+                    if ($data->internal_order_status == 'WAITING RECEIPT' || $data->internal_order_status == 'WAITING PACKING' || $data->internal_order_status == 'DONE ONLINE' || $data->internal_order_status == 'DONE' || $data->internal_order_status == 'CANCEL') {
                         $can_pick = false;
                     }
 
@@ -1409,6 +1409,12 @@ class TransaksiOnlineController extends Controller
             if (!$to) {
                 DB::rollback();
                 return response()->json(['status' => '404', 'message' => 'Online transaction not found']);
+            }
+
+            // check is transaction status is canceled
+            if ($to->internal_order_status == 'CANCEL') {
+                DB::rollback();
+                return response()->json(['status' => '400', 'message' => 'Transaksi telah dibatalkan, tidak dapat melakukan pick item']);
             }
 
             $otd = OnlineTransactionDetails::where('id', $otd_id)->first();

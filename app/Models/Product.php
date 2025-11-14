@@ -135,6 +135,11 @@ class Product extends Model
         return $export;
     }
 
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'p_id');
+    }
+
     public static function getArticleExport()
     {
         $export = DB::table('products')
