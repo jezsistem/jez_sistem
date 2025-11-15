@@ -36,11 +36,16 @@ class PointOfSaleController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        
+        // Allow point_of_sale_v2 if user has access to point_of_sale
+        $slugToCheck = $segment === 'point_of_sale_v2' ? 'point_of_sale' : $segment;
+        
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')
             ->leftJoin('users', 'users.id', '=', 'user_menu_accesses.u_id')
             ->where('u_id', Auth::user()->id)
-            ->where('ma_slug', request()->segment(1))
+            ->where('ma_slug', $slugToCheck)
             ->where(function ($q) {
                 $q->where('pos_access', 1);
             })
@@ -138,6 +143,297 @@ class PointOfSaleController extends Controller
         } else {
             return view('app.offline_pos.offline_pos', compact('data'));
         }
+    }
+
+    /**
+     * Display Point of Sale V2 with modern layout
+     */
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $store = Store::where('id', Auth::user()->st_id)->get()->first();
+        $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->where('st_id', Auth::user()->st_id)->orderByDesc('pm_name')->pluck('pm_name', 'id');
+
+        $data = [
+            'app_title' => 'JEZ SYSTEM',
+            'title' => 'POINT OF SALE V2',
+            'user' => $user_data,
+            'store' => $store,
+            'pt_id' => null,
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+            'cust_id' => Customer::selectRaw('id, CONCAT(cust_name, " (", REPLACE(cust_phone, "+62", "0"), ")") as name')
+                ->where('cust_delete', '!=', '1')
+                ->orderBy('cust_name')->pluck('name', 'id'),
+            'ct_id' => CustomerType::where('ct_delete', '!=', '1')->orderByDesc('id')->pluck('ct_name', 'id'),
+            'cp_id' => CardProvider::orderBy('cp_name')->pluck('cp_name', 'id'),
+            'segment' => request()->segment(1),
+            'p_id' => ProductStock::selectRaw('ts_product_stocks.id as pst_id, CONCAT(p_name," (",ps_barcode,")") as product')
+                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->where('p_delete', '!=', '1')
+                ->orderByDesc('p_name')->pluck('product', 'pst_id'),
+            'payment_method' => $payment_method,
+            'courier' => Courier::where('cr_delete', '!=', '1')->orderByDesc('cr_name')->pluck('cr_name', 'id'),
+            'cust_province' => DB::table('wilayah')->select('kode', 'nama')->whereRaw('length(kode) = 2')->orderBy('nama')->pluck('nama', 'kode'),
+            'b1g1_bin' => DB::table('buy_one_get_ones')->select('product_locations.id as id', 'pl_code')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->orderBy('pl_code')->pluck('pl_code', 'id'),
+            'pst_custom' => ProductStock::where('ps_barcode', '=', 'CUSTOM')->first(),
+            'psc_custom' => Product::where('p_name', 'LIKE', '%CUSTOM%')->first(),
+            'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first(),
+            'shift_status' => UserShift::where('user_id', '=', Auth::user()->id)->whereNotNull('start_time')->whereNull('end_time')->where('created_at', 'LIKE', date('Y-m-d') . '%')->orderBy('id', 'DESC')->count(),
+            'kasir' => User::where('st_id', Auth::user()->st_id)->pluck('id', 'u_name')
+        ];
+
+        return view('app.pos_v2.pos_v2', compact('data'));
+    }
+
+    /**
+     * Search products for POS V2 - Same logic as fetch() in old POS
+     */
+    public function searchProductV2(Request $request)
+    {
+        $query = $request->get('query', '');
+        if (empty($query) || strlen($query) < 2) {
+            return response()->json([]);
+        }
+        
+        $exception = ExceptionLocation::select('pl_code')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
+            ->get()
+            ->toArray();
+
+        $query = $request->get('query');
+        $type = $request->get('type', '');
+        $std_id = $request->get('_std_id', ''); // Same as old version - use _std_id with underscore
+        $st_id = $request->get('_st_id');
+        
+        // Debug: Log request parameters
+        \Log::info('Search Product V2 - Request params: query=' . $query . ', _std_id=' . $std_id . ', _st_id=' . $st_id . ', type=' . $type . ', user_id=' . Auth::id() . ', user_st_id=' . Auth::user()->st_id);
+        $b1g1_id = null;
+        $b1g1_price = null;
+        
+        if (!empty($st_id)) {
+            $st_id = $st_id;
+        } else {
+            $st_id = Auth::user()->st_id;
+        }
+        
+        if ($st_id != Auth::user()->st_id) {
+            $cross = 'true';
+        } else {
+            $cross = 'false';
+        }
+        
+        $data = ProductStock::select('p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'products.psc_id', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'pls_qty', 'ps_qty', 'br_name', 'product_stocks.id as pst_id', 'products.p_image', 'products.article_id')
+            ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->join('brands', 'brands.id', '=', 'products.br_id')
+            ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->where('product_locations.st_id', '=', $st_id)
+            //                    ->where('pls_qty', '>=', '0')
+            ->whereNotIn('pl_code', $exception)
+            ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
+            ->orWhere('ps_barcode', 'LIKE', "%$query%")
+            ->groupBy('product_stocks.id')
+            ->limit(20)
+            ->get();
+        
+        // Debug: Log query result
+        \Log::info('Search Product V2 - Query result count: ' . $data->count() . ', st_id: ' . $st_id);
+        
+        $results = [];
+        
+        if (!empty($data)) {
+            foreach ($data as $row) {
+                $check_setup = ProductLocationSetup::select('product_locations.id as pl_id', 'product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty')
+                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->where('product_locations.st_id', '=', $st_id)
+                    ->where('pst_id', $row->pst_id)
+                    //                    ->where('pls_qty', '>', '0')
+                    ->whereNotIn('pl_code', $exception)
+                    ->get();
+                
+                $bin = '';
+                $bin_list = '';
+                $sell_price = 0;
+                $sell_price_discount = 0;
+                $bandrol = 0;
+                
+                if (!empty($row->ps_price_tag)) {
+                    $bandrol = $row->ps_price_tag;
+                } else {
+                    $bandrol = $row->p_price_tag;
+                }
+                
+                if ($type == 'RESELLER') {
+                    if (!empty($row->ps_price_tag)) {
+                        $sell_price = $row->ps_price_tag;
+                    } else {
+                        $sell_price = $row->p_price_tag;
+                    }
+                } else {
+                    if (!empty($row->ps_sell_price)) {
+                        $sell_price = $row->ps_sell_price;
+                    } else {
+                        $sell_price = $row->p_sell_price;
+                    }
+                }
+                
+                $today = date('Y-m-d');
+
+                $set_discount = ProductDiscountDetail::select(
+                    'pd_type',
+                    'pd_value',
+                    'st_id',
+                    'std_id',
+                    'pd_date',
+                    'pd_date_start'
+                )
+                    ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
+                    ->where('pst_id', $row->pst_id)
+                    ->where('std_id', $std_id)
+                    ->where('product_discounts.pd_date_start', '<=', $today)
+                    ->where('product_discounts.pd_date', '>=', $today)
+                    ->orderByDesc('product_discounts.created_at')
+                    ->first();
+
+                if (!empty($set_discount)) {
+                    // Ambil harga dasar
+                    $price_tag = !empty($row->ps_price_tag) ? $row->ps_price_tag : $row->p_price_tag;
+
+                    // Jika diskon berlaku untuk semua store
+                    if (empty($set_discount->st_id) || Auth::user()->st_id == $set_discount->st_id) {
+                        if ($set_discount->pd_type == 'percent') {
+                            $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
+                            $sell_price = $price_tag - $sell_price_discount;
+                        } elseif ($set_discount->pd_type == 'amount') {
+                            $sell_price_discount = $set_discount->pd_value;
+                            $sell_price = $price_tag - $set_discount->pd_value;
+                        } else {
+                            // Misalnya tipe = buy1get1
+                            $sell_price = $price_tag;
+                            $b1g1_id = $row->pst_id;
+                            $b1g1_price = $sell_price;
+                        }
+                    }
+                }
+                
+                if (!empty($check_setup)) {
+                    foreach ($check_setup as $brow) {
+                        $bin .= '[' . strtoupper($brow->pl_code) . '] [' . $brow->pls_qty . '] ';
+                    }
+                    $bin = trim($bin);
+                    // Get first location for pl_id
+                    $first_location = $check_setup->first();
+                    $pl_id = $first_location ? $first_location->pl_id : null;
+                }
+                
+                // Only add product if it has bin (same as old version - line 1737: if ($bin != ''))
+                if ($bin != '') {
+                    $disc_percent = 0;
+                    $disc_rp = 0;
+                    if ($set_discount && $set_discount->pd_type == 'percent') {
+                        $disc_percent = $set_discount->pd_value;
+                        $disc_rp = $sell_price_discount;
+                    } elseif ($set_discount && $set_discount->pd_type == 'amount') {
+                        $disc_rp = $set_discount->pd_value;
+                    }
+                    
+                    // Get product image path - use brand name for avatar
+                    $productImage = '';
+                    $brandName = $row->br_name ?? 'BRAND';
+                    $productName = $row->p_name . ' ' . $row->p_color . ' ' . $row->sz_name;
+                    
+                    if (!empty($row->p_image)) {
+                        // Try different possible image paths
+                        $imagePaths = [
+                            'upload/' . $row->p_image,
+                            'upload/product/' . $row->p_image,
+                            'upload/products/' . $row->p_image,
+                            $row->p_image
+                        ];
+                        
+                        foreach ($imagePaths as $imagePath) {
+                            if (file_exists(public_path($imagePath))) {
+                                $productImage = asset($imagePath);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // If no image found, use brand name for UI Avatars
+                    if (empty($productImage)) {
+                        $productImage = 'https://ui-avatars.com/api/?name=' . urlencode($brandName) . '&background=F74040&color=fff&size=60';
+                    }
+                    
+                    $results[] = [
+                        'id' => $row->pst_id,
+                        'name' => $productName,
+                        'brand' => $brandName,
+                        'barcode' => $row->ps_barcode ?? '',
+                        'bin' => $bin,
+                        'pl_id' => $pl_id,
+                        'qty' => $row->ps_qty,
+                        'price' => round($sell_price, 0),
+                        'disc_percent' => round($disc_percent, 2),
+                        'disc_rp' => round($disc_rp, 0),
+                        'bandrol' => round($bandrol, 0),
+                        'psc_id' => $row->psc_id,
+                        'cross' => $cross,
+                        'b1g1_id' => $b1g1_id,
+                        'b1g1_price' => $b1g1_price,
+                        'image' => $productImage
+                    ];
+                }
+            }
+        }
+        
+        // Debug: Log final results
+        \Log::info('Search Product V2 - Final results count: ' . count($results) . ', Query: ' . $query . ', std_id: ' . $std_id);
+        
+        return response()->json($results, 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    
+    public function reloadLocationByPstId(Request $request)
+    {
+        $pst_id = $request->get('pst_id');
+        $st_id = $request->get('st_id', Auth::user()->st_id);
+        
+        if (empty($pst_id)) {
+            return response()->json([]);
+        }
+        
+        $exception = ExceptionLocation::select('pl_code')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
+            ->get()
+            ->toArray();
+        
+        $locations = ProductLocationSetup::select('product_locations.id as pl_id', 'product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty')
+            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->where('product_locations.st_id', '=', $st_id)
+            ->where('pst_id', $pst_id)
+            ->whereNotIn('pl_code', $exception)
+            ->orderBy('pl_code')
+            ->get();
+        
+        $results = [];
+        foreach ($locations as $loc) {
+            $results[] = [
+                'pl_id' => $loc->pl_id,
+                'pl_code' => $loc->pl_code,
+                'pl_name' => $loc->pl_name,
+                'pls_qty' => $loc->pls_qty
+            ];
+        }
+        
+        return response()->json($results);
     }
 
     public function getCurrentShiftData(Request $request)

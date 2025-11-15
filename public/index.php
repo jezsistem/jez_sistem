@@ -44,6 +44,10 @@ require __DIR__.'/../vendor/autoload.php';
 |
 */
 
+// Increase memory limit for large datasets
+ini_set('memory_limit', '512M');
+set_time_limit(36000); // Set to 10 hours (36000 seconds)
+
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $kernel = $app->make(Kernel::class);
@@ -53,7 +57,3 @@ $response = tap($kernel->handle(
 ))->send();
 
 $kernel->terminate($request, $response);
-
-set_time_limit(36000); // Set to 10 hours (36000 seconds)
-
-//ini_set('memory_limit', '512M');

@@ -121,6 +121,7 @@ use Illuminate\Support\Facades\DB;
 // Validation
 Route::get('', [AuthController::class, 'index'])->name('login');
 Route::get('login_amel', [AuthController::class, 'index_two'])->name('login_amel');
+Route::get('login_v2', [AuthController::class, 'indexV2'])->name('login_v2');
 Route::post('user_login', [AuthController::class, 'login']);
 
 // Google OAuth Routes
@@ -236,6 +237,8 @@ Route::group(['middleware' => 'auth'], function () {
 
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
+    Route::get('point_of_sale_v2', [PointOfSaleController::class, 'indexV2'])->name('point_of_sale_v2');
+    Route::post('search_product_v2', [PointOfSaleController::class, 'searchProductV2']);
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
     Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
@@ -255,6 +258,7 @@ Route::group(['middleware' => 'auth'], function () {
 //    Route::post('autocomplete_amp', [PointOfSaleController::class, 'fetchAmp']);
     Route::post('autocomplete_by_waiting', [PointOfSaleController::class, 'fetchWaiting']);
     Route::post('autocomplete_invoice', [PointOfSaleController::class, 'fetchInvoice']);
+    Route::post('reload_location_by_pst_id', [PointOfSaleController::class, 'reloadLocationByPstId']);
     Route::post('autocomplete_invoice_offline', [PointOfSaleController::class, 'fetchInvoiceOffline']);
     Route::post('change_waiting_status', [PointOfSaleController::class, 'changeWaitingStatus']);
     Route::post('check_waiting_for_checkout', [PointOfSaleController::class, 'checkWaitingForCheckout']);
