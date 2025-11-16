@@ -471,7 +471,7 @@ class DeliveryRecapController extends Controller
 
         $resiList = $items->pluck('resi')->toArray();
 
-        $all_trx = OnlineTransactions::whereIn('no_resi', $resiList)->where('internal_order_status', '!=', 'DONE ONLINE')->get();
+        $all_trx = OnlineTransactions::whereIn('no_resi', $resiList)->get();
 
         if ($all_trx->whereNotIn('internal_order_status', ['DONE', 'DONE ONLINE'])->count() > 0) {
             return abort(500, 'Beberapa transaksi belum berstatus DONE ONLINE.');
