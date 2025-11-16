@@ -268,7 +268,7 @@ class TransaksiOnlineController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $tab_status = $request->get('tab_status');
                             if ($tab_status != '') {
-                                $w->orWhere('internal_order_status', 'LIKE', "%$tab_status%");
+                                $w->orWhere('internal_order_status', $tab_status);
                             }
                         });
                     } else {

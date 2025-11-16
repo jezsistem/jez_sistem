@@ -264,7 +264,13 @@
                                                 Packing</a>
                                         </li>
                                         <li class="nav-item">
+                                            <a class="nav-link" data-status="DONE ONLINE" href="#">Done Online</a>
+                                        </li>
+                                        <li class="nav-item">
                                             <a class="nav-link" data-status="DONE" href="#">Done</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-status="CANCEL" href="#">Cancel</a>
                                         </li>
                                     </ul>
                                 </div>
