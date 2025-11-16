@@ -46,6 +46,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('transaksi_online_edit_item', [TransaksiOnlineController::class, 'editItem']);
     Route::post('transaksi_online_edit_item_warehouse', [TransaksiOnlineController::class, 'editItemWarehouse']);
     Route::post('transaksi_online_edit_resi_number', [TransaksiOnlineController::class, 'editResiNumber']);
+    Route::get('transaksi_online_waiting_online_items', [TransaksiOnlineController::class, 'getWaitingOnlineItems']);
+    Route::post('transaksi_online_cancel_waiting_online_item', [TransaksiOnlineController::class, 'cancelWaitingOnlineItem']);
 
     // Rekap Resi
     /**
