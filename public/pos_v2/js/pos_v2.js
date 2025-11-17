@@ -229,6 +229,7 @@ $(document).ready(function() {
         const voucherModalEl = document.getElementById('modal-voucher');
         const discountModalEl = document.getElementById('modal-discount');
         const paymentModalEl = document.getElementById('modal-payment');
+        const shiftModalEl = document.getElementById('modal-shift');
         
         try {
             if (shippingModalEl) {
@@ -257,6 +258,13 @@ $(document).ready(function() {
                 paymentModal = new Flowbite.Modal(paymentModalEl, {
                     placement: 'center',
                     backdrop: 'static',
+                    backdropClasses: 'bg-gray-900 bg-opacity-50 dark:bg-opacity-80 fixed inset-0 z-40'
+                });
+            }
+            if (shiftModalEl) {
+                window.shiftModal = new Flowbite.Modal(shiftModalEl, {
+                    placement: 'center',
+                    backdrop: 'dynamic',
                     backdropClasses: 'bg-gray-900 bg-opacity-50 dark:bg-opacity-80 fixed inset-0 z-40'
                 });
             }
@@ -2805,17 +2813,38 @@ $(document).ready(function() {
                 }
                 
                 // Show modal (using Flowbite)
-                const modal = FlowbiteInstances.getInstance('Modal', 'modal-shift');
-                if (modal) {
-                    modal.show();
+                if (window.shiftModal) {
+                    window.shiftModal.show();
                 } else {
                     // Fallback: manually show
                     $('#modal-shift').removeClass('hidden').addClass('flex');
                 }
             },
-            error: function(error) {
-                console.error('Error checking shift status:', error);
-                showToast('Gagal memeriksa status shift', 'error');
+            error: function(xhr, status, error) {
+                console.error('Error checking shift status:', xhr.status, error);
+                
+                // Handle 404 - route not found
+                if (xhr.status === 404) {
+                    showToast('Fitur shift belum tersedia di server ini', 'warning');
+                } else if (xhr.status === 419) {
+                    showToast('Session expired. Silakan refresh halaman.', 'error');
+                } else {
+                    showToast('Gagal memeriksa status shift', 'error');
+                }
+                
+                // Still show modal with default state (not started)
+                $('#start-shift-btn').removeClass('hidden');
+                $('#stop-shift-btn').addClass('hidden');
+                $('#shift-status-badge').removeClass('bg-green-100 text-green-700')
+                    .addClass('bg-gray-200 text-gray-700')
+                    .text('Not Started');
+                $('#shift-timer-container').addClass('hidden');
+                
+                if (window.shiftModal) {
+                    window.shiftModal.show();
+                } else {
+                    $('#modal-shift').removeClass('hidden').addClass('flex');
+                }
             }
         });
     });
@@ -2927,9 +2956,8 @@ $(document).ready(function() {
     
     // Close Shift Modal Handler (for X button)
     $('[data-modal-hide="modal-shift"]').on('click', function() {
-        const modal = FlowbiteInstances.getInstance('Modal', 'modal-shift');
-        if (modal) {
-            modal.hide();
+        if (window.shiftModal) {
+            window.shiftModal.hide();
         } else {
             $('#modal-shift').removeClass('flex').addClass('hidden');
         }
