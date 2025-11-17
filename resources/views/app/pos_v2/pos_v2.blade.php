@@ -135,7 +135,7 @@
                         <img src="{{ $logoPath }}" alt="User" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null; this.src='{{ $fallbackUrl }}'">
                     </button>
                     <!-- Dropdown menu -->
-                    <div id="dropdownUser" class="hidden z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-64 ml-4">
+                    <div id="dropdownUser" class="hidden z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-64 mr-4">
                         <div class="px-4 py-3 text-sm text-gray-900">
                             <div class="font-medium">{{ $data['user']->u_name ?? 'User' }}</div>
                         </div>
