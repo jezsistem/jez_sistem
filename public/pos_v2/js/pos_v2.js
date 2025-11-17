@@ -2772,8 +2772,9 @@ $(document).ready(function() {
     // Shift Button - Open Modal and Check Status
     $('#shift-btn').on('click', function() {
         // Check current shift status
+        const baseUrl = window.location.origin;
         $.ajax({
-            url: '/check_user_shift',
+            url: baseUrl + '/check_user_shift',
             method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -2879,8 +2880,9 @@ $(document).ready(function() {
         const $btn = $(this);
         $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Starting...');
         
+        const baseUrl = window.location.origin;
         $.ajax({
-            url: '/user_start_shift',
+            url: baseUrl + '/user_start_shift',
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -2918,8 +2920,9 @@ $(document).ready(function() {
             const $btn = $('#stop-shift-btn');
             $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Stopping...');
             
+            const baseUrl = window.location.origin;
             $.ajax({
-                url: '/user_end_shift',
+                url: baseUrl + '/user_end_shift',
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
