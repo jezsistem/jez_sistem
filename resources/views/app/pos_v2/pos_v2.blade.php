@@ -22,22 +22,40 @@
     <link href="{{ asset('pos_v2/css/style.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('app/assets/fonts/style.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('app/assets/fonts/style-solid.css') }}" rel="stylesheet" type="text/css" />
+    
+    <!-- Hide number input spinner for nameset and marketplace -->
+    <style>
+        /* Hide spinner for nameset and marketplace inputs */
+        input[id^="nameset_price"]::-webkit-inner-spin-button,
+        input[id^="nameset_price"]::-webkit-outer-spin-button,
+        input[id^="marketplace_price"]::-webkit-inner-spin-button,
+        input[id^="marketplace_price"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[id^="nameset_price"],
+        input[id^="marketplace_price"] {
+            -moz-appearance: textfield;
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-5 z-50 rounded-lg m-5 border border-gray-100">
+    <header class="bg-white shadow-sm sticky top-5 z-30 rounded-lg m-5 border border-gray-100">
         <div class="mx-8 py-4">
             <div class="flex items-center justify-between">
                 <div class="mr-12">
                     <img src="{{ asset('logo/POS.png') }}" alt="JEZ POS" class="h-11 w-auto">
                 </div>
                 <div class="w-5/6 flex items-center gap-4">
-                    <div class="bg-cyan rounded-lg text-white px-3 py-1 font-semibold text-sm flex items-center gap-2">
-                        <i class="cft-standard-stroke cft-clock text-white text-2xl"></i>
-                        <span id="current-time text-lg">09:52:21</span>
+                    <!-- Real-time Clock -->
+                    <div class="bg-cyan rounded-lg text-white px-3 py-1 font-semibold text-sm flex items-center gap-2 cursor-pointer" id="clock-container" title="">
+                        <i class="cft-standard-stroke cft-clock text-white text-lg"></i>
+                        <span id="current-time" class="text-base">00:00:00</span>
                     </div>
                     <div class="flex flex-col gap-1">
-                        <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" id="std_id" name="std_id">
+                        <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" id="std_id" name="std_id">
                             <option value="">Division</option>
                             @foreach ($data['std_id'] as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
@@ -45,7 +63,7 @@
                         </select>
                     </div>
                     <div class="flex flex-col gap-1">
-                        <select class="bg-red-50 border border-red-200 text-gray-900 text-sm rounded-lg focus:ring-red-300 focus:border-red-300 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" id="st_id" name="st_id">
+                        <select class="bg-red-50 border border-red-200 text-gray-900 text-sm rounded-lg focus:ring-red-300 focus:border-red-300 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" id="st_id" name="st_id">
                             <option value="">Store</option>
                             @foreach ($data['st_id'] as $key => $value)
                                 <option value="{{ $key }}" {{ $data['store'] && $data['store']->id == $key ? 'selected' : '' }}>{{ $value }}</option>
@@ -53,17 +71,19 @@
                         </select>
                     </div>
                 </div>
-                <div class="flex items-center justify-end gap-4 relative">
-                    <button class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition-colors" title="Shopping Bag">
-                        <i class="cft-standard-stroke cft-shopping-bag text-gray-600 text-2xl"></i>
+                <div class="flex items-center justify-end gap-3 relative">
+                    <!-- Shift Employee Button -->
+                    <button id="shift-btn" class="w-10 h-10 rounded-lg bg-green-400 hover:bg-green-500 flex items-center justify-center transition-colors" title="Shift Employee">
+                        <i class="cft-standard-stroke cft-clock text-white text-lg"></i>
                     </button>
-                    <button class="w-10 h-10 rounded-lg bg-clock hover:bg-clock-dark flex items-center justify-center text-gray-600 transition-colors" title="Document">
-                        <i class="cft-standard-stroke cft-clock-square text-white text-2xl"></i>
+                    <!-- Folder Data Button -->
+                    <button id="folder-btn" class="w-10 h-10 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors" title="Data Folder">
+                        <i class="cft-standard-stroke cft-folder text-gray-700 text-lg"></i>
                     </button>
                     <!-- Calculator Button -->
                     <div class="relative">
                         <button id="calculatorButton" class="w-10 h-10 rounded-lg bg-calculator hover:bg-calculator-dark flex items-center justify-center text-gray-600 transition-colors" title="Calculator">
-                            <i class="cft-standard-stroke cft-calculator text-white text-2xl"></i>
+                            <i class="cft-standard-stroke cft-calculator text-white text-lg"></i>
                         </button>
                         <!-- Calculator Dropdown -->
                         <div id="calculatorDropdown" class="hidden absolute right-0 mt-2 z-50 bg-white rounded-lg shadow-xl w-72 p-4 border border-gray-200">
@@ -75,16 +95,16 @@
                                 </div>
                                 <div class="grid grid-cols-4 gap-2">
                                     <!-- Operators Row -->
-                                    <button class="calc-btn calc-operator bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold" data-value="+">+</button>
-                                    <button class="calc-btn calc-operator bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold" data-value="-">-</button>
-                                    <button class="calc-btn calc-operator bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold" data-value="×">×</button>
-                                    <button class="calc-btn calc-operator bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold" data-value="÷">÷</button>
+                                    <button class="calc-btn calc-operator bg-red-100 hover:bg-red-200 text-red-700 font-semibold" data-value="+">+</button>
+                                    <button class="calc-btn calc-operator bg-red-100 hover:bg-red-200 text-red-700 font-semibold" data-value="-">-</button>
+                                    <button class="calc-btn calc-operator bg-red-100 hover:bg-red-200 text-red-700 font-semibold" data-value="×">×</button>
+                                    <button class="calc-btn calc-operator bg-red-100 hover:bg-red-200 text-red-700 font-semibold" data-value="÷">÷</button>
                                     
                                     <!-- Numbers Row 1 -->
                                     <button class="calc-btn calc-number bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold" data-value="7">7</button>
                                     <button class="calc-btn calc-number bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold" data-value="8">8</button>
                                     <button class="calc-btn calc-number bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold" data-value="9">9</button>
-                                    <button class="calc-btn calc-result bg-blue-600 hover:bg-blue-700 text-white font-bold row-span-4" id="calc-result">=</button>
+                                    <button class="calc-btn calc-result bg-red-600 hover:bg-red-700 text-white font-bold row-span-4" id="calc-result">=</button>
                                     
                                     <!-- Numbers Row 2 -->
                                     <button class="calc-btn calc-number bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold" data-value="4">4</button>
@@ -145,7 +165,7 @@
                                         <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                                             <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
                                         </div>
-                                        <input type="text" id="search-product" placeholder="Search Product" autocomplete="off" class="block w-full p-3 ps-9 bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+                                        <input type="text" id="search-product" placeholder="Search Product" autocomplete="off" class="block w-full p-3 ps-9 bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"/>
                                         <div id="product-autocomplete" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-sm max-h-80 overflow-y-auto hidden hover:bg-red-100"></div>
                                     </div>
                                 </div>
@@ -153,7 +173,7 @@
                                     <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                                         <i class="cft-standard-stroke cft-qr-code text-gray-500 text-sm"></i>
                                     </div>
-                                    <input type="text" id="invoice-input" placeholder="Search Invoice (min 5 chars)" autocomplete="off" class="block w-full p-3 ps-9 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+                                    <input type="text" id="invoice-input" placeholder="Search Invoice (min 5 chars)" autocomplete="off" class="block w-full p-3 ps-9 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"/>
                                     <div id="invoice-autocomplete" class="absolute z-50 w-full min-w-25vw mt-1 bg-white border border-gray-200 rounded-lg shadow-sm max-h-60 overflow-y-auto hidden"></div>
                                 </div>
                             </div>
@@ -169,7 +189,7 @@
                                         <th scope="col" class="px-4 py-3 text-center">Disc (%)</th>
                                         <th scope="col" class="px-4 py-3 text-center">Disc (Rp)</th>
                                         <th scope="col" class="px-4 py-3 text-center">Unit</th>
-                                        <th scope="col" class="px-4 py-3 text-center">Nameset</th>
+                                        <th scope="col" class="px-4 py-3 text-center">Nameset (Rp)</th>
                                         <th scope="col" class="px-4 py-3 text-center">Marketplace</th>
                                         <th scope="col" class="px-4 py-3 text-right">Harga</th>
                                         <th scope="col" class="px-4 py-3 text-right">Sub Total</th>
@@ -210,15 +230,17 @@
                         <!-- Customer Information -->
                         <div class="mb-5">
                             <h6 class="text-sm font-semibold text-gray-700 mb-3  uppercase">Customer Information</h6>
+                            <!-- Input pertama: Dropshipper (saat division = DROPSHIPPER) atau Customer (division lain) -->
                             <div class="relative mb-2">
                                 <input type="hidden" id="cust_id" value="">
                                 <input type="hidden" id="sub_cust_id" value="">
+                                <label class="block text-xs font-semibold text-gray-500 mb-1" id="customer-label">Customer</label>
                                 <div class="flex gap-1">
                                     <div class="relative w-full">
                                         <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                                             <i class="cft-standard-stroke cft-user text-gray-500 text-sm"></i>
                                         </div>
-                                        <input type="text" id="customer-search" placeholder="Search Customer (min 4 chars)" autocomplete="off" class="block w-full p-3 ps-9 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+                                        <input type="text" id="customer-search" placeholder="Search Customer (min 4 chars)" autocomplete="off" class="block w-full p-3 ps-9 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"/>
                                         <div id="customer-autocomplete" class="absolute z-50 w-full min-w-25vw mt-1 bg-white border border-gray-200 rounded-lg shadow-sm max-h-60 overflow-y-auto hidden"></div>
                                     </div>
                                     <button data-tooltip-target="tooltip-addcustomer" data-tooltip-style="light" class="px-3.5 py-2 bg-red-500 text-white border border-red-500 rounded-lg hover:bg-red-600 transition-colors" type="button" id="add-customer-btn" data-modal-target="modal-customer" data-modal-toggle="modal-customer">
@@ -228,23 +250,16 @@
                                         Add Customer
                                         <div class="tooltip-arrow" data-popper-arrow></div>
                                     </div>
-                                    <button data-tooltip-target="tooltip-dropshipper" data-tooltip-style="light" class="px-3.5 py-2 bg-gray-700 text-white border border-gray-900 rounded-lg hover:bg-gray-800 focus:bg-gray-800" type="button" id="dropship-btn">
-                                        <i class="cft-standard-stroke cft-ship-box-2 text-white"></i>
-                                    </button>
-                                    <div id="tooltip-dropshipper" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-heading bg-neutral-primary-medium border border-default rounded-base shadow-xs opacity-0 tooltip">
-                                        Search Dropshipper
-                                        <div class="tooltip-arrow" data-popper-arrow></div>
-                                    </div>
-
                                 </div>
                             </div>
-                            <!-- Dropship Input (hidden by default) -->
+                            <!-- Input kedua: Sub Customer (hanya muncul saat division = DROPSHIPPER) -->
                             <div class="relative mb-2 hidden" id="dropship-input-container">
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Sub Customer</label>
                                 <div class="relative w-full">
                                     <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                                         <i class="cft-standard-stroke cft-user text-gray-500 text-sm"></i>
                                     </div>
-                                    <input type="text" id="sub-customer-search" placeholder="Search Dropshipper (min 4 chars)" autocomplete="off" class="block w-full p-3 ps-9 bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+                                    <input type="text" id="sub-customer-search" placeholder="Search Sub Customer (min 4 chars)" autocomplete="off" class="block w-full p-3 ps-9 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"/>
                                     <div id="sub-customer-autocomplete" class="absolute z-50 w-full min-w-25vw mt-1 bg-white border border-gray-200 rounded-lg shadow-sm max-h-60 overflow-y-auto hidden"></div>
                                 </div>
                             </div>
@@ -255,15 +270,71 @@
                                     <i class="cft-standard-solid cft-info text-red-500 text-xl cursor-pointer hover:text-red-700 transition-colors" id="customer-detail-btn" data-modal-target="modal-customer-detail" data-modal-toggle="modal-customer-detail"></i>
                                 </div>
                             </div>
+                            <!-- Dropshipper Badge (muncul saat dropshipper dipilih) -->
+                            <div class="bg-cyan-100 text-cyan-700 px-4 py-3 rounded-lg flex items-center gap-2 hidden mt-2" id="dropshipper-badge">
+                                <span class="dropshipper-name font-semibold text-sm w-3/5"></span>
+                                <div class="w-2/5 flex items-center justify-end gap-1"> 
+                                <span class="dropshipper-type bg-cyan-400 text-white px-1.5 py-0.5 rounded-lg text-xs w-full">DROPSHIPPER</span>
+                                    <i class="cft-standard-solid cft-info text-cyan-500 text-xl cursor-pointer hover:text-cyan-700 transition-colors" id="dropshipper-detail-btn" data-modal-target="modal-customer-detail" data-modal-toggle="modal-customer-detail"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Retur Section -->
                         <div class="mb-5 pb-5 border-b border-gray-200">
-                            <div class="flex items-center mb-2">
-                                <input type="checkbox" id="retur-checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="retur-checkbox" class="ml-2 text-sm text-gray-700">Retur</label>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="retur-checkbox" class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500">
+                                    <label for="retur-checkbox" class="ml-2 text-sm font-semibold text-gray-700 uppercase">Retur / Exchange</label>
+                                </div>
+                                <span class="text-xs text-gray-500" id="retur-type-badge"></span>
                             </div>
-                            <input type="text" class="hidden w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2" id="transaction-id" placeholder="Masukkan ID Transaksi">
+                            
+                            <!-- Transaction Search Input (Initially Hidden) -->
+                            <div id="retur-search-container" class="hidden">
+                                <label for="transaction-search" class="block mb-1 text-xs font-semibold text-gray-500">
+                                    Search Transaction (Invoice / Order Number)
+                                </label>
+                                <div class="relative mb-3">
+                                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <i class="cft-standard-stroke cft-receipt text-gray-500 text-sm"></i>
+                                    </div>
+                                    <input type="text" id="transaction-search" 
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-3 ps-9" 
+                                        placeholder="INV... / ORD... (min 5 chars)"
+                                        autocomplete="off">
+                                    <div id="transaction-list" class="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto hidden"></div>
+                                </div>
+                                
+                                <!-- Selected Transaction Badge -->
+                                <div id="transaction-badge" class="hidden mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-xs text-red-600 font-semibold">Selected Transaction:</span>
+                                            <p class="text-sm font-bold text-red-700" id="selected-transaction-invoice"></p>
+                                            <p class="text-xs text-gray-600" id="selected-transaction-date"></p>
+                                        </div>
+                                        <button type="button" id="clear-transaction-btn" class="text-red-600 hover:text-red-800">
+                                            <i class="cft-standard-solid cft-cancel text-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Retur Items List -->
+                                <div id="retur-items-container" class="hidden">
+                                    <label class="block mb-2 text-sm font-medium text-gray-900">
+                                        <i class="cft-standard-stroke cft-box text-gray-700"></i>
+                                        Select Items to Return
+                                    </label>
+                                    <div id="retur-items-list" class="space-y-2 max-h-48 overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                        <!-- Retur items will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden fields untuk backend -->
+                            <input type="hidden" id="pt_id_complaint" value="">
+                            <input type="hidden" id="exchange_flag" value="">
                         </div>
 
                         <!-- Order Details -->
@@ -346,7 +417,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="courier" class="block mb-2 text-sm font-medium text-gray-900">Kurir</label>
-                            <select id="courier" name="courier" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <select id="courier" name="courier" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
                                 <option value="">- Pilih -</option>
                                 @foreach ($data['courier'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
@@ -355,12 +426,12 @@
                         </div>
                         <div>
                             <label for="shipping-amount" class="block mb-2 text-sm font-medium text-gray-900">Total Ongkir</label>
-                            <input type="number" id="shipping-amount" name="shipping-amount" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Total ongkir" min="0" step="0.01" required>
+                            <input type="number" id="shipping-amount" name="shipping-amount" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" placeholder="Total ongkir" min="0" step="0.01" required>
                         </div>
                     </div>
                     <div class="flex items-center justify-end space-x-2">
                         <button type="button" data-modal-hide="modal-shipping" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900">Batal</button>
-                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Tambah</button>
+                        <button type="submit" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Tambah</button>
                     </div>
                 </form>
             </div>
@@ -372,7 +443,7 @@
         <div class="relative p-4 w-full max-w-2xl max-h-full">
             <div class="relative bg-white rounded-lg shadow">
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-                    <h3 class="text-lg font-semibold text-blue-600">Tambah Voucher</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Tambah Voucher</h3>
                     <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="modal-voucher">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
@@ -385,14 +456,14 @@
                         <label class="block mb-2 text-sm font-medium text-gray-900">Voucher</label>
                         <div id="voucher-container">
                             <div class="flex gap-2 mb-3">
-                                <input type="text" name="voucher-list[]" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" placeholder="Kode Voucher" value="">
+                                <input type="text" name="voucher-list[]" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block p-2.5" placeholder="Kode Voucher" value="">
                                 <button type="button" class="add-voucher px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200">+</button>
                             </div>
                         </div>
                     </div>
                     <div class="flex items-center justify-end space-x-2">
                         <button type="button" data-modal-hide="modal-voucher" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900">Batal</button>
-                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Tambah</button>
+                        <button type="submit" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Tambah</button>
                     </div>
                 </form>
             </div>
@@ -404,7 +475,7 @@
         <div class="relative p-4 w-full max-w-2xl max-h-full">
             <div class="relative bg-white rounded-lg shadow">
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-                    <h3 class="text-lg font-semibold text-blue-600">Tambah Diskon</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Tambah Diskon</h3>
                     <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="modal-discount">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
@@ -416,7 +487,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="discount-type" class="block mb-2 text-sm font-medium text-gray-900">Tipe Diskon</label>
-                            <select id="discount-type" name="discount-type-list" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <select id="discount-type" name="discount-type-list" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
                                 <option value="nominal">Nominal</option>
                                 <option value="percentage">Percentage</option>
                             </select>
@@ -425,16 +496,16 @@
                             <label class="block mb-2 text-sm font-medium text-gray-900">Diskon</label>
                             <div id="total-discount-container">
                                 <div class="flex gap-2 mb-3">
-                                    <input type="text" name="total-discount-list[]" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" placeholder="Diskon" value="">
+                                    <input type="text" name="total-discount-list[]" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block p-2.5" placeholder="Diskon" value="">
                                     <button type="button" class="add-total-discount px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200">+</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="flex items-center justify-end space-x-2">
-                        <button type="button" id="total_discount_reset" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5">Reset</button>
+                        <button type="button" id="total_discount_reset" class="text-white bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5">Reset</button>
                         <button type="button" data-modal-hide="modal-discount" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900">Batal</button>
-                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Tambah</button>
+                        <button type="submit" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Tambah</button>
                     </div>
                 </form>
             </div>
@@ -509,72 +580,116 @@
         </div>
     </div>
 
-    <!-- Customer Modal -->
-    <div id="modal-customer" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="relative p-4 w-full max-w-2xl max-h-full">
+    <!-- Shift Employee Modal -->
+    <div id="modal-shift" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full" data-modal-backdrop="static">
+        <div class="relative p-4 w-full max-w-md max-h-full">
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
-                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Add Customer</h3>
-                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-customer">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 bg-white">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <i class="fas fa-clock text-gray-900 mr-2"></i>
+                        Shift Employee
+                    </h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-shift">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
                         <span class="sr-only">Close modal</span>
                     </button>
                 </div>
+                <div class="p-4 md:p-5">
+                    <!-- Shift Status Badge -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700">Status:</span>
+                            <span id="shift-status-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+                                Not Started
+                            </span>
+                        </div>
+                        <div id="shift-timer-container" class="hidden mt-3">
+                            <div class="text-center">
+                                <div class="text-3xl font-mono font-bold text-yellow-600" id="shift-timer">00:00:00</div>
+                                <div class="text-xs text-gray-500 mt-1">Shift Duration</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="flex gap-3">
+                        <button type="button" id="start-shift-btn" class="flex-1 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                            <i class="fas fa-play mr-2"></i>
+                            Start Shift
+                        </button>
+                        <button type="button" id="stop-shift-btn" class="hidden flex-1 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+                            <i class="fas fa-stop mr-2"></i>
+                            Stop Shift
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="modal-customer" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full rounded-lg">
+        <div class="relative p-4 w-full max-w-2xl max-h-full">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-800 border-1 border-gray-300 mt-10">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white"><i class="cft-standard-stroke cft-user mr-2"></i> Add Customer</h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-customer"><i class="cft-standard-solid cft-cancel"></i></button>
+                </div>
                 <form id="f_customer" class="p-4 md:p-5">
                     <input type="hidden" id="_mode" name="_mode" value="add">
                     <input type="hidden" id="_id" name="_id" value="">
                     <div class="grid gap-4 mb-4 grid-cols-2">
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label for="ct_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipe Customer *</label>
-                            <select id="ct_id" name="ct_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
+                            <select id="ct_id" name="ct_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
                                 <option value="">- Pilih -</option>
                                 @foreach ($data['ct_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label for="cust_name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Customer *</label>
                             <input type="text" id="cust_name" name="cust_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Nama" required>
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label for="cust_store" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Toko</label>
                             <input type="text" id="cust_store" name="cust_store" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Isi jika dropshipper">
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label for="cust_phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">No Telp</label>
                             <input type="text" id="cust_phone" name="cust_phone" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="No HP">
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label for="cust_email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
                             <input type="email" id="cust_email" name="cust_email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Email">
                         </div>
-                        <div class="col-span-2 sm:col-span-1">
+                        <div class="col-span-1">
                             <label for="cust_province" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Provinsi *</label>
-                            <select id="cust_province" name="cust_province" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
+                            <select id="cust_province" name="cust_province" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
                                 <option value="">- Pilih -</option>
                                 @foreach ($data['cust_province'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-span-2 sm:col-span-1">
+                        <div class="col-span-1">
                             <label for="cust_city" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Kota *</label>
-                            <select id="cust_city" name="cust_city" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
+                            <select id="cust_city" name="cust_city" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
                                 <option value="">- Pilih -</option>
                             </select>
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label for="cust_subdistrict" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Kecamatan *</label>
-                            <select id="cust_subdistrict" name="cust_subdistrict" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
+                            <select id="cust_subdistrict" name="cust_subdistrict" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
                                 <option value="">- Pilih -</option>
                             </select>
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label for="cust_address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat</label>
-                            <textarea id="cust_address" name="cust_address" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Alamat"></textarea>
+                            <textarea id="cust_address" name="cust_address" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" placeholder="Alamat"></textarea>
                         </div>
                     </div>
                     <div class="flex items-center justify-end">
@@ -586,12 +701,12 @@
     </div>
 
     <!-- Payment Modal -->
-    <div id="modal-payment" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div id="modal-payment" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center w-full h-full" data-modal-backdrop="static" data-modal-placement="center">
         <div class="relative p-4 w-full max-w-4xl max-h-full">
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Pembayaran</h3>
-                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-payment">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white"><i class="cft-standard-stroke cft-wallet text-gray-900 text-xl mr-2"></i> Pembayaran</h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" id="close-payment-modal" aria-label="Close modal">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
@@ -724,12 +839,12 @@
                     <!-- Note -->
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Catatan (Jika ada)</label>
-                        <textarea id="note" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter Note"></textarea>
+                        <textarea id="note" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" placeholder="Enter Note"></textarea>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="flex items-center justify-end gap-2 pt-4 border-t">
-                        <button type="button" data-modal-hide="modal-payment" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white">Batal</button>
+                        <button type="button" id="cancel-payment-modal" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white">Batal</button>
                         <button type="button" id="save_transaction" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">Checkout</button>
                     </div>
                 </div>

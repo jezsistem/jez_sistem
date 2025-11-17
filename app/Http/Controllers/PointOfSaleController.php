@@ -3182,4 +3182,155 @@ class PointOfSaleController extends Controller
 
         return response()->json($r);
     }
+
+    /**
+     * Search transactions for retur/exchange
+     * Returns transactions that can be returned (not already refunded)
+     */
+    public function searchTransactionForRetur(Request $request)
+    {
+        $search = $request->input('search');
+        
+        if (empty($search) || strlen($search) < 5) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Search term must be at least 5 characters',
+                'data' => []
+            ]);
+        }
+
+        try {
+            // Search by invoice or order code
+            // Exclude transactions that are already refunded
+            $transactions = DB::table('pos_transactions')
+                ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
+                ->select(
+                    'pos_transactions.id',
+                    'pos_transactions.pos_invoice',
+                    'pos_transactions.pos_order_number',
+                    'pos_transactions.pos_real_price',
+                    'pos_transactions.created_at',
+                    'pos_transactions.cust_id',
+                    'pos_transactions.sub_cust_id',
+                    'pos_transactions.std_id',
+                    'customers.cust_name as customer_name'
+                )
+                ->where(function($query) use ($search) {
+                    $query->where('pos_transactions.pos_invoice', 'like', '%' . $search . '%')
+                          ->orWhere('pos_transactions.pos_order_number', 'like', '%' . $search . '%');
+                })
+                ->where('pos_transactions.st_id', Auth::user()->st_id) // Only from current store
+                ->where(function($query) {
+                    $query->where('pos_transactions.pos_refund', '!=', '1')
+                          ->orWhereNull('pos_transactions.pos_refund');
+                })
+                ->whereIn('pos_transactions.pos_status', ['DONE', 'WAITING FOR PACKING', 'WAITING ONLINE']) // Only completed transactions
+                ->orderBy('pos_transactions.created_at', 'desc')
+                ->limit(10)
+                ->get();
+
+            // Format dates
+            foreach ($transactions as $transaction) {
+                $transaction->created_at = \Carbon\Carbon::parse($transaction->created_at)->format('d M Y H:i');
+                $transaction->customer_name = $transaction->customer_name ?? 'Walk-in Customer';
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $transactions
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to search transactions: ' . $e->getMessage(),
+                'data' => []
+            ]);
+        }
+    }
+
+    /**
+     * Get transaction items for retur/exchange
+     * Returns items from a transaction that can be returned
+     */
+    public function getTransactionItemsForRetur(Request $request)
+    {
+        $ptId = $request->input('pt_id');
+        
+        if (empty($ptId)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transaction ID is required',
+                'data' => []
+            ]);
+        }
+
+        try {
+            // Get transaction details with product information
+            $items = DB::table('pos_transaction_details')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_location_setup_transactions', function($join) {
+                    $join->on('product_location_setup_transactions.pt_id', '=', 'pos_transaction_details.pt_id')
+                         ->on('product_location_setup_transactions.pst_id', '=', 'pos_transaction_details.pst_id')
+                         ->where('product_location_setup_transactions.plst_type', '=', 'OUT');
+                })
+                ->select(
+                    'pos_transaction_details.id as ptd_id',
+                    'pos_transaction_details.pst_id',
+                    'pos_transaction_details.pos_td_qty as qty',
+                    'pos_transaction_details.pos_td_sell_price as price',
+                    'pos_transaction_details.pos_td_discount_price',
+                    'product_location_setup_transactions.id as plst_id',
+                    'products.id as p_id',
+                    'products.p_name as product_name',
+                    'products.p_color as color',
+                    'products.p_image as image',
+                    'brands.br_name as brand',
+                    'sizes.sz_name as size'
+                )
+                ->where('pos_transaction_details.pt_id', $ptId)
+                ->where('pos_transaction_details.pos_td_qty', '>', 0) // Only positive qty (not already returned)
+                ->whereNotNull('product_location_setup_transactions.id') // Must have plst record
+                ->get();
+
+            // Format the response
+            $formattedItems = [];
+            foreach ($items as $item) {
+                $formattedItems[] = [
+                    'ptd_id' => $item->ptd_id,
+                    'pst_id' => $item->pst_id,
+                    'plst_id' => $item->plst_id,
+                    'p_id' => $item->p_id,
+                    'product_name' => $item->product_name ?? 'Unknown Product',
+                    'brand' => $item->brand ?? '',
+                    'color' => $item->color ?? '',
+                    'size' => $item->size ?? '',
+                    'image' => $item->image ?? '',
+                    'qty' => (int)$item->qty,
+                    'price' => (float)$item->price,
+                ];
+            }
+
+            if (empty($formattedItems)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No items available for return',
+                    'data' => []
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $formattedItems
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to load transaction items: ' . $e->getMessage(),
+                'data' => []
+            ]);
+        }
+    }
 }

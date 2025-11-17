@@ -119,9 +119,9 @@ use Illuminate\Support\Facades\DB;
 */
 
 // Validation
-Route::get('', [AuthController::class, 'index'])->name('login');
+Route::get('', [AuthController::class, 'indexV2'])->name('login');
+Route::get('login_old', [AuthController::class, 'index'])->name('login_old');
 Route::get('login_amel', [AuthController::class, 'index_two'])->name('login_amel');
-Route::get('login_v2', [AuthController::class, 'indexV2'])->name('login_v2');
 Route::post('user_login', [AuthController::class, 'login']);
 
 // Google OAuth Routes
@@ -578,6 +578,10 @@ Route::group(['middleware' => 'auth'], function () {
 
     // total discount point of sale
     Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);
+    
+    // Retur / Exchange functionality for POS V2
+    Route::post('search_transaction_for_retur', [PointOfSaleController::class, 'searchTransactionForRetur']);
+    Route::post('get_transaction_items_for_retur', [PointOfSaleController::class, 'getTransactionItemsForRetur']);
 
     // Shopee
     /**

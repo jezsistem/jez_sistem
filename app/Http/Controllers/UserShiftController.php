@@ -138,7 +138,8 @@ class UserShiftController extends Controller
             return response()->json([
                 'status' => '200',
                 'message' => 'Shift started',
-                'shiftStatus' => 1
+                'shiftStatus' => 1,
+                'shift_start' => $shift->start_time
             ], 200);
         }
 

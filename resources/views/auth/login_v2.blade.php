@@ -15,12 +15,15 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"> 
+    <link href="{{ asset('app/assets/fonts/style.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('app/assets/fonts/style-solid.css') }}" rel="stylesheet" type="text/css" />
+
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        .h-100vh {
-            height: 100vh;
+        .h-login {
+            height: calc(100vh - 4rem);
         }
         .max-h-100vh {
             max-height: 100vh;
@@ -30,8 +33,8 @@
 <body class="bg-white">
     <div class="min-h-screen flex p-8 gap-5">
         <!-- Left Section - Illustration -->
-        <div class="hidden lg:flex lg:w-1/2 items-center justify-center rounded-xl overflow-hidden h-100vh">
-            <img src="{{ asset('app/assets/media/misc/login_jezpro2.jpg') }}" alt="Login Illustration" class="w-full max-h-100vh object-cover rounded-xl">
+        <div class="hidden lg:flex lg:w-1/2 items-center justify-center rounded-xl overflow-hidden">
+            <img src="{{ asset('app/assets/media/misc/login_jezpro.png') }}" alt="Login Illustration" class="w-full h-login object-cover rounded-xl">
         </div>
         
         <!-- Right Section - Login Form -->
@@ -55,17 +58,15 @@
                     <div>
                         <label for="email" class="block mb-2 text-sm font-medium text-gray-900">Email Address *</label>
                         <div class="relative">
+                            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                <i class="cft-standard-stroke cft-mail text-gray-500"></i>
+                            </div>
                             <input type="email" 
                                    id="email" 
                                    name="u_email" 
                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full px-4 py-3 pl-10" 
-                                   placeholder="pristia@gmail.com" 
+                                   placeholder="your.email@example.com" 
                                    required>
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </div>
                         </div>
                     </div>
                     
@@ -73,6 +74,9 @@
                     <div>
                         <label for="password" class="block mb-2 text-sm font-medium text-gray-900">Password *</label>
                         <div class="relative">
+                            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                <i class="cft-standard-stroke cft-lock text-gray-500"></i>
+                            </div>  
                             <input type="password" 
                                    id="password" 
                                    name="password" 
@@ -107,22 +111,22 @@
                     
                     <!-- Login Button -->
                     <button type="submit" 
-                            class="w-full text-white bg-gray-900 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-3 text-center transition-colors">
+                            class="w-full text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-semibold rounded-lg text-base px-5 py-3.5 text-center transition-colors">
                         Login
                     </button>
                     
                     <!-- Separator -->
-                    <div class="relative my-6">
+                    <!-- <div class="relative my-6">
                         <div class="absolute inset-0 flex items-center">
                             <div class="w-full border-t border-gray-300"></div>
                         </div>
                         <div class="relative flex justify-center text-sm">
                             <span class="px-4 bg-white text-gray-500">Or login with</span>
                         </div>
-                    </div>
+                    </div> -->
                     
                     <!-- Google Login Button -->
-                    <button type="button" 
+                    <!-- <button type="button" 
                             id="google-login-btn"
                             class="w-full flex items-center justify-center gap-3 text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-3 transition-colors">
                         <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -132,19 +136,19 @@
                             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                         </svg>
                         <span>Google</span>
-                    </button>
+                    </button> -->
                     
                     <!-- Create Account Link -->
-                    <div class="text-center mt-6">
+                    <!-- <div class="text-center mt-6">
                         <p class="text-sm text-gray-600">
                             You're new in here? 
                             <a href="#" class="text-red-600 hover:text-red-700 font-medium">Create Account</a>
                         </p>
-                    </div>
+                    </div> -->
                 </form>
                 
                 <!-- Copyright -->
-                <div class="text-center mt-8">
+                <div class="text-left ml-0 absolute bottom-16">
                     <p class="text-sm text-gray-400">© 2025 Zona Karya Nusantara</p>
                 </div>
             </div>
@@ -157,13 +161,57 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- Toastr for notifications -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    
     <script>
         $(document).ready(function() {
-            // Toggle password visibility
+            // ==================== CUSTOM TOAST (POS V2 STYLE) ====================
+            
+            function showToast(message, type = 'info') {
+                const toastId = 'toast-' + Date.now();
+                const colors = {
+                    success: { bg: 'bg-green-50', border: 'border-green-500', text: 'text-green-700', icon: 'cft-check' },
+                    error: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-700', icon: 'cft-cancel' },
+                    warning: { bg: 'bg-orange-100', border: 'border-orange-500', text: 'text-orange-700', icon: 'cft-warning' },
+                    info: { bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-700', icon: 'cft-info' }
+                };
+                const color = colors[type] || colors.info;
+                
+                const toastHtml = `
+                    <div id="${toastId}" class="flex items-center w-full max-w-xs p-4 mb-4 ${color.bg} rounded-lg shadow border-l-4 ${color.border}" role="alert">
+                        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 ${color.text} rounded-lg">
+                            <i class="cft-standard-solid ${color.icon} text-xl"></i>
+                        </div>
+                        <div class="ml-3 text-sm font-medium ${color.text}">${message}</div>
+                        <button type="button" class="ml-auto -mx-1.5 -my-1.5 ${color.bg} ${color.text} hover:${color.text} rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8" onclick="document.getElementById('${toastId}').remove()">
+                            <span class="sr-only">Close</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    container.className = 'fixed top-5 right-5 z-50 space-y-4';
+                    document.body.appendChild(container);
+                }
+                
+                container.insertAdjacentHTML('beforeend', toastHtml);
+                
+                setTimeout(() => {
+                    const toast = document.getElementById(toastId);
+                    if (toast) {
+                        toast.style.transition = 'opacity 0.3s';
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 4000);
+            }
+            
+            // ==================== TOGGLE PASSWORD VISIBILITY ====================
+            
             $('#toggle-password').on('click', function() {
                 const passwordInput = $('#password');
                 const eyeIcon = $('#eye-icon');
@@ -180,41 +228,74 @@
                 }
             });
             
-            // Form submission
+            // ==================== FORM SUBMISSION ====================
+            
             $('#login-form').on('submit', function(e) {
                 e.preventDefault();
                 
-                const formData = {
-                    u_email: $('#email').val(),
-                    password: $('#password').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                };
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                
+                // Disable button and show loading state
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Loading...');
                 
                 $.ajax({
                     url: '/user_login',
                     method: 'POST',
-                    data: formData,
+                    data: $(this).serialize(), // This will include CSRF token from the form
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     success: function(response) {
+                        console.log('Login response:', response);
+                        
+                        // Handle both JSON object and JSON string
+                        if (typeof response === 'string') {
+                            try {
+                                response = JSON.parse(response);
+                            } catch (e) {
+                                console.error('Failed to parse response:', e);
+                            }
+                        }
+                        
                         if (response.status === '200') {
-                            toastr.success('Login berhasil!', 'Success');
+                            showToast('Login berhasil! Mengalihkan...', 'success');
                             setTimeout(function() {
                                 window.location.href = '/redirect';
                             }, 1000);
+                        } else if (response.status === '500') {
+                            submitBtn.prop('disabled', false).html(originalText);
+                            showToast('Akun Anda tidak aktif. Hubungi administrator.', 'error');
+                        } else if (response.status === '400') {
+                            submitBtn.prop('disabled', false).html(originalText);
+                            showToast('Email atau password salah!', 'error');
                         } else {
-                            toastr.error('Email atau password salah!', 'Error');
+                            submitBtn.prop('disabled', false).html(originalText);
+                            showToast(response.message || 'Login gagal. Silakan coba lagi.', 'error');
                         }
                     },
                     error: function(xhr) {
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            toastr.error(xhr.responseJSON.message, 'Error');
-                        } else {
-                            toastr.error('Terjadi kesalahan saat login!', 'Error');
+                        submitBtn.prop('disabled', false).html(originalText);
+                        
+                        let errorMessage = 'Terjadi kesalahan saat login!';
+                        
+                        if (xhr.status === 419) {
+                            errorMessage = 'Session expired. Silakan refresh halaman.';
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            const errors = Object.values(xhr.responseJSON.errors).flat();
+                            errorMessage = errors.join(', ');
                         }
+                        
+                        showToast(errorMessage, 'error');
+                        console.error('Login error:', xhr);
                     }
                 });
             });
             
-            // Google Login
+            // ==================== GOOGLE LOGIN ====================
+            
             $('#google-login-btn').on('click', function() {
                 window.location.href = '/auth/google';
             });
