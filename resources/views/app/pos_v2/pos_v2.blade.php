@@ -612,7 +612,7 @@
                         <div id="shift-status-text" class="text-base text-gray-700 mb-2">Shift not started</div>
                         
                         <!-- Clock (empty div, will be filled by JS) -->
-                        <div class="clock text-2xl font-mono font-bold text-gray-800"></div>
+                        <div class="clock text-xl font-bold text-gray-900"></div>
                     </form>
                 </div>
             </div>
