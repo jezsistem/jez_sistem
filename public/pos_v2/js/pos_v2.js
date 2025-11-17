@@ -2766,8 +2766,7 @@ $(document).ready(function() {
     
     // ==================== SHIFT EMPLOYEE ====================
     
-    let shiftInterval = null;
-    let shiftStartTime = null;
+    let clockInterval = null;
     
     // Shift Button - Open Modal and Check Status
     $('#shift-btn').on('click', function() {
@@ -2781,50 +2780,32 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.status === '200') {
-                    // Shift is active
-                    $('#start-shift-btn').addClass('hidden');
-                    $('#stop-shift-btn').removeClass('hidden');
-                    $('#shift-status-badge').removeClass('bg-gray-200 text-gray-700')
-                        .addClass('bg-green-100 text-green-700')
-                        .text('In Progress');
-                    $('#shift-timer-container').removeClass('hidden');
+                    // User has started a shift
+                    $('#start-shift-btn').hide();
+                    $('#stop-shift-btn').show();
+                    $('#shift-status-text').html('Shift In Progress');
                     
-                    // Calculate elapsed time if shift_start is provided
-                    if (response.shift_start) {
-                        // Parse shift start time - handle various date formats
-                        const shiftStart = response.shift_start.replace(' ', 'T'); // Convert "YYYY-MM-DD HH:MM:SS" to ISO format
-                        shiftStartTime = new Date(shiftStart);
-                        
-                        // Verify date is valid
-                        if (!isNaN(shiftStartTime.getTime())) {
-                            startShiftTimer();
-                        } else {
-                            console.error('Invalid shift start time:', response.shift_start);
-                            $('#shift-timer').text('00:00:00');
-                        }
-                    }
+                    // Start clock display (current time, not duration)
+                    startShiftClock();
                 } else {
-                    // Shift not started
-                    $('#start-shift-btn').removeClass('hidden');
-                    $('#stop-shift-btn').addClass('hidden');
-                    $('#shift-status-badge').removeClass('bg-green-100 text-green-700')
-                        .addClass('bg-gray-200 text-gray-700')
-                        .text('Not Started');
-                    $('#shift-timer-container').addClass('hidden');
+                    // User has not started a shift
+                    $('#start-shift-btn').show();
+                    $('#stop-shift-btn').hide();
+                    $('#shift-status-text').html('Shift not started');
+                    $('.clock').html('');
                 }
                 
-                // Show modal (using Flowbite)
+                // Show modal
                 if (window.shiftModal) {
                     window.shiftModal.show();
                 } else {
-                    // Fallback: manually show
                     $('#modal-shift').removeClass('hidden').addClass('flex');
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Error checking shift status:', xhr.status, error);
                 
-                // Handle 404 - route not found
+                // Handle errors
                 if (xhr.status === 404) {
                     showToast('Fitur shift belum tersedia di server ini', 'warning');
                 } else if (xhr.status === 419) {
@@ -2833,13 +2814,11 @@ $(document).ready(function() {
                     showToast('Gagal memeriksa status shift', 'error');
                 }
                 
-                // Still show modal with default state (not started)
-                $('#start-shift-btn').removeClass('hidden');
-                $('#stop-shift-btn').addClass('hidden');
-                $('#shift-status-badge').removeClass('bg-green-100 text-green-700')
-                    .addClass('bg-gray-200 text-gray-700')
-                    .text('Not Started');
-                $('#shift-timer-container').addClass('hidden');
+                // Show modal with default state
+                $('#start-shift-btn').show();
+                $('#stop-shift-btn').hide();
+                $('#shift-status-text').html('Shift not started');
+                $('.clock').html('');
                 
                 if (window.shiftModal) {
                     window.shiftModal.show();
@@ -2850,36 +2829,32 @@ $(document).ready(function() {
         });
     });
     
-    // Start Shift Timer
-    function startShiftTimer() {
-        if (shiftInterval) {
-            clearInterval(shiftInterval);
+    // Start Shift Clock - Display current time (not duration)
+    function startShiftClock() {
+        if (clockInterval) {
+            clearInterval(clockInterval);
         }
         
-        shiftInterval = setInterval(function() {
-            if (!shiftStartTime) return;
-            
+        clockInterval = setInterval(function() {
             const now = new Date();
-            const diff = now - shiftStartTime;
-            
-            const hours = Math.floor(diff / 3600000);
-            const minutes = Math.floor((diff % 3600000) / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-            
-            const formattedTime = 
-                String(hours).padStart(2, '0') + ':' +
-                String(minutes).padStart(2, '0') + ':' +
-                String(seconds).padStart(2, '0');
-            
-            $('#shift-timer').text(formattedTime);
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const formattedTime = hours + ':' + minutes + ':' + seconds;
+            $('.clock').html(formattedTime);
         }, 1000);
     }
     
     // Start Shift Button Handler
     $('#start-shift-btn').on('click', function() {
-        const $btn = $(this);
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Starting...');
+        $('#shift-status-text').html('Shift In Progress');
+        $('#start-shift-btn').hide();
+        $('#stop-shift-btn').show();
         
+        // Start clock
+        startShiftClock();
+        
+        // Send to backend
         const baseUrl = window.location.origin;
         $.ajax({
             url: baseUrl + '/user_start_shift',
@@ -2888,72 +2863,38 @@ $(document).ready(function() {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
-                console.log('Shift started:', response);
-                
-                // Update UI
-                $btn.addClass('hidden').prop('disabled', false).html('<i class="fas fa-play mr-2"></i>Start Shift');
-                $('#stop-shift-btn').removeClass('hidden');
-                $('#shift-status-badge').removeClass('bg-gray-200 text-gray-700')
-                    .addClass('bg-green-100 text-green-700')
-                    .text('In Progress');
-                $('#shift-timer-container').removeClass('hidden');
-                
-                // Start timer
-                shiftStartTime = new Date();
-                startShiftTimer();
-                
-                showToast('Shift berhasil dimulai', 'success');
+                // Shift started successfully
             },
             error: function(error) {
                 console.error('Error starting shift:', error);
-                $btn.prop('disabled', false).html('<i class="fas fa-play mr-2"></i>Start Shift');
-                showToast('Gagal memulai shift', 'error');
             }
         });
     });
     
     // Stop Shift Button Handler
     $('#stop-shift-btn').on('click', function() {
-        showConfirmToast('Apakah Anda yakin ingin menghentikan shift?').then(function(confirmed) {
-            if (!confirmed) return;
-            
-            const $btn = $('#stop-shift-btn');
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Stopping...');
-            
-            const baseUrl = window.location.origin;
-            $.ajax({
-                url: baseUrl + '/user_end_shift',
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    console.log('Shift stopped:', response);
-                    
-                    // Stop timer
-                    if (shiftInterval) {
-                        clearInterval(shiftInterval);
-                        shiftInterval = null;
-                    }
-                    shiftStartTime = null;
-                    
-                    // Update UI
-                    $btn.addClass('hidden').prop('disabled', false).html('<i class="fas fa-stop mr-2"></i>Stop Shift');
-                    $('#start-shift-btn').removeClass('hidden');
-                    $('#shift-status-badge').removeClass('bg-green-100 text-green-700')
-                        .addClass('bg-gray-200 text-gray-700')
-                        .text('Not Started');
-                    $('#shift-timer-container').addClass('hidden');
-                    $('#shift-timer').text('00:00:00');
-                    
-                    showToast('Shift berhasil dihentikan', 'success');
-                },
-                error: function(error) {
-                    console.error('Error stopping shift:', error);
-                    $btn.prop('disabled', false).html('<i class="fas fa-stop mr-2"></i>Stop Shift');
-                    showToast('Gagal menghentikan shift', 'error');
-                }
-            });
+        $('#shift-status-text').html('Shift Stopped');
+        $('#start-shift-btn').show();
+        $('#stop-shift-btn').hide();
+        
+        // Stop clock
+        clearInterval(clockInterval);
+        $('.clock').html('');
+        
+        // Send to backend
+        const baseUrl = window.location.origin;
+        $.ajax({
+            url: baseUrl + '/user_end_shift',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                // Shift stopped successfully
+            },
+            error: function(error) {
+                console.error('Error stopping shift:', error);
+            }
         });
     });
     

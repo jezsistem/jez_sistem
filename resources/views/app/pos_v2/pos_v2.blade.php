@@ -597,33 +597,23 @@
                     </button>
                 </div>
                 <div class="p-4 md:p-5">
-                    <!-- Shift Status Badge -->
-                    <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-700">Status:</span>
-                            <span id="shift-status-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
-                                Not Started
-                            </span>
+                    <form id="f_shift_customer">
+                        <!-- Button Group -->
+                        <div class="flex gap-2 mb-4" role="group">
+                            <button type="button" id="start-shift-btn" class="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                                Start Shift
+                            </button>
+                            <button type="button" id="stop-shift-btn" class="hidden flex-1 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                                Stop Shift
+                            </button>
                         </div>
-                        <div id="shift-timer-container" class="hidden mt-3">
-                            <div class="text-center">
-                                <div class="text-3xl font-mono font-bold text-yellow-600" id="shift-timer">00:00:00</div>
-                                <div class="text-xs text-gray-500 mt-1">Shift Duration</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Buttons -->
-                    <div class="flex gap-3">
-                        <button type="button" id="start-shift-btn" class="flex-1 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                            <i class="fas fa-play mr-2"></i>
-                            Start Shift
-                        </button>
-                        <button type="button" id="stop-shift-btn" class="hidden flex-1 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-                            <i class="fas fa-stop mr-2"></i>
-                            Stop Shift
-                        </button>
-                    </div>
+                        
+                        <!-- Status Text -->
+                        <div id="shift-status-text" class="text-base text-gray-700 mb-2">Shift not started</div>
+                        
+                        <!-- Clock (empty div, will be filled by JS) -->
+                        <div class="clock text-2xl font-mono font-bold text-gray-800"></div>
+                    </form>
                 </div>
             </div>
         </div>
