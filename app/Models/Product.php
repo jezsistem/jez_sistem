@@ -163,7 +163,7 @@ class Product extends Model
         'bestseller',
         'mp_best_seller',
         'complement',
-        'consigment',
+        'consignment',
         'mp_stock_masking',
         'is_everlast',
         'is_supersale',
