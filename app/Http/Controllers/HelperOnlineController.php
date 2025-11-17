@@ -457,7 +457,16 @@ class HelperOnlineController extends Controller
         $bin_id = $request->_bin_id; // New variable to hold bin_id
         $u_id = Auth::user()->id;
         $plst_qty = $request->_plst_qty;
-        //        dd($plst_id, $sku, $bin);
+        
+        // check is plst_id already picked
+        $isAlreadyPicked = DB::table('product_location_setup_transactions')
+            ->where('id', $plst_id)
+            ->whereNotNull('pls_id')
+            ->exists();
+
+        if ($isAlreadyPicked) {
+            return response()->json(['status' => '400', 'message' => 'Item sudah dipick sebelumnya.']);
+        }
 
         //pst_id
         $pst_id = DB::table('product_stocks')->where('ps_barcode', $sku)->first()->id;
@@ -465,7 +474,12 @@ class HelperOnlineController extends Controller
         //pl_id selected
         // $pl_id_selected = DB::table('product_locations')->where('pl_code', "=", "$bin")->first()->id;
 
-        //get pls_id
+        //get pls_id and check qty can't less than 1
+        $pls_qty = DB::table('product_location_setups')->where('id', $bin_id)->where('pst_id', $pst_id)->first()->pls_qty;
+        if ($pls_qty < 1) {
+            return response()->json(['status' => '400', 'message' => 'Quantity Bin tidak boleh kurang dari 1.']);
+        }
+
         $pls_id_selected = DB::table('product_location_setups')->where('id', $bin_id)->where('pst_id', $pst_id)->first()->id;
 
         $update_pls = DB::table('product_location_setups')->where('id', $pls_id_selected)
