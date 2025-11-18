@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use PHPUnit\Framework\Constraint\Count;
 use Yajra\DataTables\Facades\DataTables;
 
 class DeliveryRecapController extends Controller
@@ -325,6 +326,47 @@ class DeliveryRecapController extends Controller
                 }
 
                 DeliveryReceipt::insert($receipts);
+
+                //update status transaksi menjadi "DONE"
+
+                $all_trx = OnlineTransactions::whereIn('no_resi', $uniqueResi)->get();
+
+                if ($all_trx->whereNotIn('internal_order_status', ['DONE ONLINE'])->count() > 0) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Beberapa transaksi belum berstatus DONE ONLINE.',
+                    ], 400);
+                }
+
+                //update status transaksi menjadi "DONE"
+                $change_trx_status = OnlineTransactions::whereIn('no_resi', $uniqueResi)->update(['internal_order_status' => 'DONE', 'scan_manifest' => true ,'print_manifest' => true]);
+                if ($change_trx_status != count($uniqueResi)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal memperbarui status transaksi menjadi DONE.',
+                    ], 500);
+                }
+
+                // change product location transactions status to "DONE" where plst_status = "DONE ONLINE"
+                $plstIds = OnlineTransactions::join('online_transaction_details', 'online_transactions.order_number', '=', 'online_transaction_details.order_number')
+                    ->join('product_location_setup_transactions', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+                    ->whereIn('online_transactions.no_resi', $uniqueResi)
+                    ->where('product_location_setup_transactions.plst_status', 'DONE ONLINE')
+                    ->pluck('product_location_setup_transactions.id');
+
+                $change_product_location_status = DB::table('product_location_setup_transactions')
+                    ->whereIn('id', $plstIds)
+                    ->update(['plst_status' => 'DONE']);
+
+                if ($change_product_location_status != count($plstIds)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal memperbarui status product location menjadi DONE.',
+                    ], 500);
+                }
             } else if ($request->order_type == 'Instan') {
                 $resiList = is_array($request->resi_number) ? $request->resi_number : [$request->resi_number];
 
@@ -357,6 +399,57 @@ class DeliveryRecapController extends Controller
                 }
 
                 $save_data = DeliveryReceipt::insert($receipts);
+
+                //update status transaksi menjadi "DONE"
+
+                $all_trx = OnlineTransactions::where(function ($query) use ($resiList) {
+                    $query->whereIn('no_resi', $resiList)
+                        ->orWhereIn('order_number', $resiList);
+                })->get();
+
+                if ($all_trx->whereNotIn('internal_order_status', ['DONE ONLINE'])->count() > 0) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Beberapa transaksi belum berstatus DONE ONLINE.',
+                    ], 400);
+                }
+
+                //update status transaksi menjadi "DONE"
+                $change_trx_status = OnlineTransactions::where(function ($query) use ($resiList) {
+                    $query->whereIn('no_resi', $resiList)
+                        ->orWhereIn('order_number', $resiList);
+                })->update(['internal_order_status' => 'DONE', 'scan_manifest' => true ,'print_manifest' => true]);
+
+                if ($change_trx_status != count($resiList)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal memperbarui status transaksi menjadi DONE.',
+                    ], 500);
+                }
+
+                // change product location transactions status to "DONE" where plst_status = "DONE ONLINE"
+                $plstIds = OnlineTransactions::join('online_transaction_details', 'online_transactions.order_number', '=', 'online_transaction_details.order_number')
+                    ->join('product_location_setup_transactions', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+                    ->where(function ($query) use ($resiList) {
+                        $query->whereIn('online_transactions.no_resi', $resiList)
+                            ->orWhereIn('online_transactions.order_number', $resiList);
+                    })
+                    ->where('product_location_setup_transactions.plst_status', 'DONE ONLINE')
+                    ->pluck('product_location_setup_transactions.id');
+
+                $change_product_location_status = DB::table('product_location_setup_transactions')
+                    ->whereIn('id', $plstIds)
+                    ->update(['plst_status' => 'DONE']);
+
+                if ($change_product_location_status != count($plstIds)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal memperbarui status product location menjadi DONE.',
+                    ], 500);
+                }
 
                 if (!$save_data) {
                     DB::rollBack();
@@ -469,34 +562,34 @@ class DeliveryRecapController extends Controller
             ->where('delivery_receipts.dr_id', $id)
             ->get();
 
-        $resiList = $items->pluck('resi')->toArray();
+        // $resiList = $items->pluck('resi')->toArray();
 
-        $all_trx = OnlineTransactions::whereIn('no_resi', $resiList)->where('internal_order_status', '!=', 'DONE ONLINE')->get();
+        // $all_trx = OnlineTransactions::whereIn('no_resi', $resiList)->get();
 
-        if ($all_trx->whereNotIn('internal_order_status', ['DONE', 'DONE ONLINE'])->count() > 0) {
-            return abort(500, 'Beberapa transaksi belum berstatus DONE ONLINE.');
-        }
+        // if ($all_trx->whereNotIn('internal_order_status', ['DONE', 'DONE ONLINE'])->count() > 0) {
+        //     return abort(500, 'Beberapa transaksi belum berstatus DONE ONLINE.');
+        // }
 
-        if ($all_trx->where('internal_order_status', 'DONE ONLINE')->count() > 0) {
-            //update status transaksi menjadi "DONE"
+        // if ($all_trx->where('internal_order_status', 'DONE ONLINE')->count() > 0) {
+        //     //update status transaksi menjadi "DONE"
 
-            $change_trx_status = OnlineTransactions::whereIn('no_resi', $resiList)->update(['internal_order_status' => 'DONE']);
+        //     $change_trx_status = OnlineTransactions::whereIn('no_resi', $resiList)->update(['internal_order_status' => 'DONE']);
 
-            if (!$change_trx_status) {
-                return abort(500, 'Gagal memperbarui status transaksi menjadi DONE.');
-            }
+        //     if (!$change_trx_status) {
+        //         return abort(500, 'Gagal memperbarui status transaksi menjadi DONE.');
+        //     }
 
-            // change product location transactions status to "DONE" where plst_status = "DONE ONLINE"
-            $change_product_location_status = OnlineTransactions::join('online_transaction_details', 'online_transactions.order_number', '=', 'online_transaction_details.order_number')
-                ->join('product_location_setup_transactions', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
-                ->whereIn('online_transactions.no_resi', $resiList)
-                ->where('product_location_setup_transactions.plst_status', 'DONE ONLINE')
-                ->update(['product_location_setup_transactions.plst_status' => 'DONE']);
+        //     // change product location transactions status to "DONE" where plst_status = "DONE ONLINE"
+        //     $change_product_location_status = OnlineTransactions::join('online_transaction_details', 'online_transactions.order_number', '=', 'online_transaction_details.order_number')
+        //         ->join('product_location_setup_transactions', 'online_transaction_details.id', '=', 'product_location_setup_transactions.otd_id')
+        //         ->whereIn('online_transactions.no_resi', $resiList)
+        //         ->where('product_location_setup_transactions.plst_status', 'DONE ONLINE')
+        //         ->update(['product_location_setup_transactions.plst_status' => 'DONE']);
 
-            if (!$change_product_location_status) {
-                return abort(500, 'Gagal memperbarui status product location menjadi DONE.');
-            }
-        }
+        //     if (!$change_product_location_status) {
+        //         return abort(500, 'Gagal memperbarui status product location menjadi DONE.');
+        //     }
+        // }
 
         // Ubah hasil ke array untuk view
         $itemsArray = $items->map(function ($item) {

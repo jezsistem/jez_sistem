@@ -1693,6 +1693,16 @@
                                         }
                                     });
 
+                                    // Show loading
+                                    Swal.fire({
+                                        title: 'Loading...',
+                                        text: 'Sedang memproses',
+                                        allowOutsideClick: false,
+                                        didOpen: () => {
+                                            Swal.showLoading();
+                                        }
+                                    });
+
                                     $.ajax({
                                         type: "POST",
                                         data: {
@@ -1707,6 +1717,8 @@
                                         dataType: 'json',
                                         url: "{{ url('save_out_activity_bin_selected') }}",
                                         success: function(r) {
+                                            Swal.close(); // Close loading
+                                            
                                             if (r.status == '200') {
                                                 out_table.draw();
                                                 $('#binModal').modal('hide');
@@ -1724,8 +1736,12 @@
                                                     button: 'OK',
                                                 });
                                             } else {
-                                                swal('Gagal', 'Gagal keluar produk', 'error');
+                                                swal('Gagal', r.message || 'Gagal keluar produk', 'error');
                                             }
+                                        },
+                                        error: function() {
+                                            Swal.close(); // Close loading on error
+                                            swal('Error', 'Terjadi kesalahan', 'error');
                                         }
                                     });
                                 }

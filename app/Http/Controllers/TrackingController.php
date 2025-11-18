@@ -295,49 +295,80 @@ class TrackingController extends Controller
 
     public function saveOutActivityBinSelected(Request $request)
     {
-//        $pls_id = $request->_pls_id;
         $plst_id = $request->_plst_id;
         $sku = $request->_sku;
         $bin = $request->_bin;
-        $bin_id = $request->_bin_id; // New variable to hold bin_id
+        $bin_id = $request->_bin_id;
         $u_id = Auth::user()->id;
         $plst_qty = $request->_plst_qty;
-//        dd($plst_id, $sku, $bin);
 
-        //pst_id
-        $pst_id = DB::table('product_stocks')->where('ps_barcode', $sku)->first()->id;
+        $r['message'] = '';
 
-        //pl_id selected
-        // $pl_id_selected = DB::table('product_locations')->where('pl_code', "=", "$bin")->first()->id;
+        DB::beginTransaction();
+        
+        try {
+            // Get pst_id
+            $pst_id = DB::table('product_stocks')->where('ps_barcode', $sku)->first()->id;
 
-        //get pls_id
-        $pls_id_selected = DB::table('product_location_setups')->where('id',$bin_id)->where('pst_id', $pst_id)->first()->id;
+            // Get pls_id
+            $pls_id_selected = DB::table('product_location_setups')
+                ->where('id', $bin_id)
+                ->where('pst_id', $pst_id)
+                ->first()->id;
+            
+            // is already picked
+            $not_picked = DB::table('product_location_setup_transactions')
+                ->where('id', $plst_id)
+                ->whereNull('pls_id')
+                ->where('plst_status', 'WAITING TO TAKE')
+                ->exists();
 
-        $update_pls = DB::table('product_location_setups')->where('id', $pls_id_selected)
-            ->update([
-                'pls_qty' => DB::raw("pls_qty - $plst_qty"),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
+            if (!$not_picked) {
+                $r['message'] = 'Transaction sudah diambil atau cancel';
+                throw new \Exception('Transaction sudah diambil atau cancel');
+            }
 
-        if ($update_pls) {
-            $update_plst = DB::table('product_location_setup_transactions')->where('id', $plst_id)
-                ->whereIn('plst_status', ['WAITING TO TAKE'])->update([
+            // Update product location setup quantity
+            $update_pls = DB::table('product_location_setups')
+                ->where('id', $pls_id_selected)
+                ->update([
+                    'pls_qty' => DB::raw("pls_qty - $plst_qty"),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+            if (!$update_pls) {
+                $r['message'] = 'Failed to update product location setup';
+                throw new \Exception('Failed to update product location setup');
+            }
+
+            // Update product location setup transaction
+            $update_plst = DB::table('product_location_setup_transactions')
+                ->where('id', $plst_id)
+                ->whereIn('plst_status', ['WAITING TO TAKE'])
+                ->update([
                     'u_id_helper' => $u_id,
                     'plst_type' => 'OUT',
-                    'pls_id'        => $pls_id_selected,
+                    'pls_id' => $pls_id_selected,
                     'plst_status' => 'WAITING OFFLINE',
                     'updated_at' => date('Y-m-d H:i:s'),
                     'move_store_time' => date('Y-m-d H:i:s')
                 ]);
 
-
-            if ($update_plst) {
-                $r['status'] = '200';
-            } else {
-                $r['status'] = '400';
+            if (!$update_plst) {
+                $r['message'] = 'Failed to update transaction';
+                throw new \Exception('Failed to update transaction');
             }
-            return json_encode($r);
+
+            DB::commit();
+            $r['status'] = '200';
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $r['status'] = '400';
+            $r['message'] = $r['message'];
+            $r['error'] = $e->getMessage();
         }
+
+        return json_encode($r);
     }
 
     public function scanSaveOutActivity(Request $request)

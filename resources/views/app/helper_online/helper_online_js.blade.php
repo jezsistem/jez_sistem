@@ -1191,6 +1191,16 @@
                                     dangerMode: false,
                                 }).then(function (isConfirm) {
                                     if (isConfirm) {
+                                        // Show loading
+                                        Swal.fire({
+                                            title: 'Memproses...',
+                                            html: 'Mohon tunggu sebentar',
+                                            allowOutsideClick: false,
+                                            didOpen: () => {
+                                                Swal.showLoading();
+                                            }
+                                        });
+
                                         $.ajaxSetup({
                                             headers: {
                                                 'X-CSRF-TOKEN': $(
@@ -1213,6 +1223,8 @@
                                             dataType: 'json',
                                             url: "{{ url('helper_online_pick_item') }}",
                                             success: function (r) {
+                                                Swal.close(); // Close loading
+                                                
                                                 if (r.status == '200') {
                                                     online_items_table
                                                         .draw();
@@ -1241,7 +1253,8 @@
                                                     });
                                                 } else {
                                                     swal('Gagal',
-                                                        'Gagal keluar produk',
+                                                        r.message ||
+                                                        'Gagal keluarin produk',
                                                         'error');
                                                 }
                                             }
