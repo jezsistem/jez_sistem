@@ -556,10 +556,10 @@ class HelperOnlineController extends Controller
                     ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                     ->whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
                     ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')->where('product_location_setup_transactions.qc_status', ProductLocationSetupTransaction::QC_STATUS_PASSED)
-                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'))
-                    ->groupBy('product_stocks.ps_barcode')
+                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'),'otd_id')
+                    ->groupBy('product_stocks.ps_barcode','otd_id')
                     ->get()
-                    ->keyBy('ps_barcode');
+                    ->keyBy('otd_id');
 
                 if ($waiting_receipt_items->isEmpty()) {
                     DB::rollBack();
@@ -573,7 +573,7 @@ class HelperOnlineController extends Controller
                 $all_picked = true;
 
                 foreach ($active_transaction_items as $item) {
-                    $picked_item = $waiting_receipt_items->get($item->sku);
+                    $picked_item = $waiting_receipt_items->get($item->id);
                     $picked_qty = $picked_item ? $picked_item->total_picked : 0;
 
                     if ($picked_qty != $item->qty) {
