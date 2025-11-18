@@ -2805,16 +2805,6 @@ $(document).ready(function() {
             error: function(xhr, status, error) {
                 console.error('Error checking shift status:', xhr.status, error);
                 
-                // Handle errors
-                // if (xhr.status === 404) {
-                //     showToast('Fitur shift belum tersedia di server ini', 'warning');
-                // } else if (xhr.status === 419) {
-                //     showToast('Session expired. Silakan refresh halaman.', 'error');
-                // } else {
-                //     showToast('Gagal memeriksa status shift', 'error');
-                // }
-                
-                // Show modal with default state
                 $('#start-shift-btn').show();
                 $('#stop-shift-btn').hide();
                 $('#shift-status-text').html('Shift not started');
