@@ -174,7 +174,7 @@
         });
 
         // if ($('stock_data_search').val() != '') {
-        var stock_data_table = $('#StockDatatb').DataTable({
+var stock_data_table = $('#StockDatatb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -230,11 +230,12 @@
             ],
             language: {
                 "lengthMenu": "_MENU_",
-                "processing": "Loading..."
+                "processing": '<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>'
             },
             order: [
                 [0, 'desc']
             ],
+            deferLoading: 0,
         });
         var oSettings = stock_data_table.settings();
         // }
