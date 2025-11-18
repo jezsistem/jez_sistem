@@ -37,7 +37,7 @@
     <div class="min-h-screen flex p-8 gap-6">
         <!-- Left Section - Illustration -->
         <div class="hidden lg:flex lg:w-1/2 items-center justify-center rounded-xl overflow-hidden">
-            <img src="{{ asset('app/assets/media/misc/login_jezpro.png') }}" alt="Login Illustration" class="w-full h-login object-cover rounded-xl">
+            <img src="{{ asset('app/assets/media/misc/bg-login-new2.png') }}" alt="Login Illustration" class="w-full h-login object-cover rounded-xl">
         </div>
         
         <!-- Right Section - Login Form -->

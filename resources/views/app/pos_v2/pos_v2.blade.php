@@ -43,7 +43,7 @@
 <body>
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-5 z-30 rounded-lg m-5 border border-gray-100">
-        <div class="mx-8 py-4">
+        <div class="mx-8 py-5">
             <div class="flex items-center justify-between">
                 <div class="mr-12">
                     <img src="{{ asset('logo/POS.png') }}" alt="JEZ POS" class="h-11 w-auto">
