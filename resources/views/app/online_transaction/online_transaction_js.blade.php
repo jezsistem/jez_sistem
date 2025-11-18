@@ -2,6 +2,7 @@
     var detail_table = '';
     var online_transaction_table = '';
     var is_amp = 1;
+    var waiting_online_items_table = '';
 
     function deleteItem(otd_id) {
         Swal.fire({
@@ -51,8 +52,53 @@
         });
     }
 
-
-
+    function cancelWaitingOnlineItem(plst_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Item waiting online akan dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, batalkan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ url('transaksi_online_cancel_waiting_online_item') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        plst_id: plst_id
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            Swal.fire(
+                                'Berhasil!',
+                                'Item waiting online berhasil dibatalkan.',
+                                'success'
+                            );
+                            waiting_online_items_table.draw();
+                        } else {
+                            Swal.fire(
+                                'Gagal!',
+                                response.message || 'Terjadi kesalahan saat membatalkan item.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire(
+                            'Error!',
+                            'Terjadi kesalahan saat membatalkan item waiting online.',
+                            'error'
+                        );
+                        console.error('Error canceling waiting online item:', error);
+                    }
+                });
+            }
+        });
+    }
 
     document.getElementById('splitForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -555,6 +601,37 @@
                 "infoEmpty": "Tidak ada data yang tersedia",
                 "infoFiltered": "(disaring dari total _MAX_ data)"
             }
+        });
+
+        waiting_online_items_table = $('#waitingOnlineTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            dom: 'rt<"text-right"ip>',
+            deferLoading: 0,
+            ajax: {
+                url: "{{ url('transaksi_online_waiting_online_items') }}", // Endpoint DataTables
+                data: function(d) {
+                    // You can add additional parameters here if needed
+                }
+            },
+            columns: [{
+                data: 'article',
+                name: 'article',
+                searchable: false
+            }],
+            columnDefs: [{
+                "targets": 0,
+                "width": "5%"
+            }],
+
+        });
+
+        $('#btn_waiting_online').on('click', function() {
+            jQuery.noConflict();
+            waiting_online_items_table.draw();
+            $('#waitingOnlineItemModal').modal('show');
         });
 
         $('#trxTabs .nav-link').on('click', function(e) {
@@ -1185,7 +1262,9 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    toastr.error('An error occurred while updating resi number. Please try again.');
+                    toastr.error(
+                        'An error occurred while updating resi number. Please try again.'
+                    );
                     console.error('Error updating resi number:', error);
                 }
             });
@@ -1257,7 +1336,8 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    toastr.error('An error occurred while uploading the resi. Please try again.');
+                    toastr.error(
+                        'An error occurred while uploading the resi. Please try again.');
                     console.error('Error uploading resi:', error);
                 }
             });
@@ -1327,7 +1407,7 @@
         $(document).delegate('#pin_btn', 'click', function() {
             var to_id = $(this).data('to_id');
             var is_pinned = $(this).data('pinned');
-            
+
             $.ajax({
                 url: "{{ url('transaksi_online_pin') }}",
                 type: 'POST',
@@ -1338,14 +1418,18 @@
                 },
                 success: function(response) {
                     if (response.status === '200') {
-                        toastr.success(response.message || 'Pin status updated successfully!');
+                        toastr.success(response.message ||
+                            'Pin status updated successfully!');
                         online_transaction_table.draw(false);
                     } else {
-                        toastr.error(response.message || 'Failed to update pin status. Please try again.');
+                        toastr.error(response.message ||
+                            'Failed to update pin status. Please try again.');
                     }
                 },
                 error: function(xhr, status, error) {
-                    toastr.error('An error occurred while updating pin status. Please try again.');
+                    toastr.error(
+                        'An error occurred while updating pin status. Please try again.'
+                    );
                     console.error('Error updating pin status:', error);
                 }
             });

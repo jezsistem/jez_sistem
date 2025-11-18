@@ -268,7 +268,7 @@ class TransaksiOnlineController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $tab_status = $request->get('tab_status');
                             if ($tab_status != '') {
-                                $w->orWhere('internal_order_status', 'LIKE', "%$tab_status%");
+                                $w->orWhere('internal_order_status', $tab_status);
                             }
                         });
                     } else {
@@ -1612,7 +1612,7 @@ class TransaksiOnlineController extends Controller
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
                             ->where('order_number', $order_number)
                             ->first();
-                        
+
                         OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
                     }
                 } catch (\Exception $e) {
@@ -1641,7 +1641,7 @@ class TransaksiOnlineController extends Controller
                     //cek current status
                     if ($order_status != 'Batal' || $order_status != 'Cancel') {
                         if ($to_id != null) {
-                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->withTrashed()->get();
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->where('price_after_discount', '=', $price_after_discount)->withTrashed()->get();
 
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
@@ -1799,7 +1799,7 @@ class TransaksiOnlineController extends Controller
 
                     if ($order_status != 'Batal' || $order_status != 'Canceled') {
                         if ($to_id != null) {
-                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->withTrashed()->get();
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->where('to_id', '=', $to_id->id)->where('price_after_discount', '=', $price_after_discount)->withTrashed()->get();
 
                             if ($to_id->internal_order_status != 'NEW TRX') {
                                 $warehouse = $sku_exists->first()->warehouse;
@@ -2253,6 +2253,136 @@ class TransaksiOnlineController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error updating resi number: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan saat memperbarui nomor resi']);
+        }
+    }
+
+    public function getWaitingOnlineItems(Request $request)
+    {
+        $items = DB::table('product_location_setup_transactions')
+            ->join('product_stocks', 'product_location_setup_transactions.pst_id', '=', 'product_stocks.id')
+            ->join('products', 'product_stocks.p_id', '=', 'products.id')
+            ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
+            ->join('brands', 'products.br_id', '=', 'brands.id')
+            ->join('users', 'product_location_setup_transactions.u_id', '=', 'users.id')
+            ->join('stores as warehouse_store', 'product_location_setup_transactions.warehouse_st_id', '=', 'warehouse_store.id')
+            ->join('stores as online_store', 'product_location_setup_transactions.st_id', '=', 'online_store.id')
+            ->join('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
+            ->select(
+                'product_location_setup_transactions.id as plst_id',
+                'product_location_setup_transactions.plst_status',
+                'brands.br_name',
+                'product_stocks.ps_barcode',
+                'products.p_name',
+                'products.p_color',
+                'sizes.sz_name',
+                'product_location_setup_transactions.created_at as plst_created',
+                'product_location_setup_transactions.plst_qty',
+                'order_number',
+                'warehouse_store.st_name as warehouse_name',
+                'online_store.st_name as online_store_name',
+                'u_name'
+
+            )
+            ->where('product_location_setup_transactions.plst_status', 'WAITING ONLINE')
+            ->where('product_location_setup_transactions.st_id', Auth::user()->st_id)
+            ->whereNull('product_location_setup_transactions.pls_id')
+            ->orderBy('product_location_setup_transactions.id', 'desc')
+            ->get();
+
+
+        return datatables()->of($items)
+            ->addColumn('article', function ($data) {
+                $dateTime = Carbon::parse($data->plst_created)->format('d/m/Y H:i:s');
+
+                $statusClasses = [
+                    'WAITING ONLINE' => 'warning',
+                    'UNDER REVIEW' => 'secondary',
+                    'WAITING RECEIPT' => 'primary',
+                    'WAITING PACKING' => 'danger',
+                    'INSTOCK' => 'info'
+                ];
+                $badgeClass = $statusClasses[$data->plst_status] ?? 'dark';
+                $statusBadge = '<span class="badge badge-' . $badgeClass . '">' . ($data->plst_status ?? 'Not Picked') . '</span>';
+
+                return '
+                <div class="card mb-2" style="border-left: 4px solid #' . ($badgeClass == 'warning' ? 'ffc107' : ($badgeClass == 'primary' ? '007bff' : '6c757d')) . ';">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            ' . $statusBadge . '
+                            <small class="text-muted">' . $dateTime . '</small>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <strong>[' . $data->br_name . '] ' . $data->p_name . '</strong><br/>
+                            <span class="text-muted">' . $data->ps_barcode . '</span><br/>
+                            <span>' . $data->p_color . ' - Size: ' . $data->sz_name . '</span>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted">Order:</small><br/>
+                                <strong>' . $data->order_number . '</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Warehouse:</small><br/>
+                                <strong>' . $data->warehouse_name . '</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted">Picked by:</small><br/>
+                                <strong>' . $data->u_name . '</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Quantity:</small><br/>
+                                <span class="badge badge-primary">' . $data->plst_qty . '</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-sm btn-danger btn-block" onclick="cancelWaitingOnlineItem(' . $data->plst_id . ')">
+                            <i class="fas fa-times"></i> Batal Pick
+                        </button>
+                    </div>
+                </div>';
+            })
+            ->rawColumns(['article'])
+            ->make(true);
+    }
+
+    public function cancelWaitingOnlineItem(Request $request)
+    {
+        $plst_id = $request->plst_id;
+
+        try {
+            DB::beginTransaction();
+
+            $plst = DB::table('product_location_setup_transactions')
+                ->where('id', $plst_id)
+                ->where('plst_status', 'WAITING ONLINE')
+                ->where('st_id', Auth::user()->st_id)
+                ->whereNull('pls_id')
+                ->first();
+
+            if (!$plst) {
+                DB::rollBack();
+                return response()->json(['status' => '404', 'message' => 'Item tidak ditemukan atau status bukan WAITING ONLINE']);
+            }
+
+            DB::table('product_location_setup_transactions')
+                ->where('id', $plst_id)
+                ->update([
+                    'plst_type' => 'IN',
+                    'plst_status' => 'INSTOCK',
+                    'cancel_pickup_time' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Item berhasil dibatalkan dari WAITING ONLINE']);
+        } catch (\Exception $e) {
+            \Log::error('Error canceling waiting online item: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => $e->getMessage()]);
         }
     }
 }

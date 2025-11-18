@@ -498,6 +498,37 @@
     </div>
 </div>
 
+<!-- Modal Waiting Online Item -->
+<div class="modal fade" id="waitingOnlineItemModal" tabindex="-1" role="dialog" aria-labelledby="waitingOnlineItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="waitingOnlineItemModalLabel">Waiting Online Item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-checkable table-striped" id="waitingOnlineTb">
+                        <thead class="bg-dark text-light">
+                            <tr>
+                                <th class="text-light">Article</th>
+                            </tr>
+                        </thead>
+                        <tbody id="waitingOnlineItemTableBody">
+                            <!-- Data will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @include('app.chat_modal.chat_modal')
 
