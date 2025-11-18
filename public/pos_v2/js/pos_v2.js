@@ -2806,13 +2806,13 @@ $(document).ready(function() {
                 console.error('Error checking shift status:', xhr.status, error);
                 
                 // Handle errors
-                if (xhr.status === 404) {
-                    showToast('Fitur shift belum tersedia di server ini', 'warning');
-                } else if (xhr.status === 419) {
-                    showToast('Session expired. Silakan refresh halaman.', 'error');
-                } else {
-                    showToast('Gagal memeriksa status shift', 'error');
-                }
+                // if (xhr.status === 404) {
+                //     showToast('Fitur shift belum tersedia di server ini', 'warning');
+                // } else if (xhr.status === 419) {
+                //     showToast('Session expired. Silakan refresh halaman.', 'error');
+                // } else {
+                //     showToast('Gagal memeriksa status shift', 'error');
+                // }
                 
                 // Show modal with default state
                 $('#start-shift-btn').show();
