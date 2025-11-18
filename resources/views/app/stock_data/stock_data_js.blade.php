@@ -176,7 +176,7 @@
         // if ($('stock_data_search').val() != '') {
         var stock_data_table = $('#StockDatatb').DataTable({
             destroy: true,
-            processing: false,
+            processing: true,
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ipl>',
@@ -187,7 +187,7 @@
             }],
             ajax: {
                 url: "{{ url('stock_data_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#stock_data_search').val();
                     d.search_scan = $('#stock_data_search_scan').val();
                     d.br_id = $('#br_id').val();
@@ -204,10 +204,10 @@
                 },
             },
             columns: [{
-                data: 'article_name',
-                name: 'article_name',
-                orderable: false
-            },
+                    data: 'article_name',
+                    name: 'article_name',
+                    orderable: false
+                },
                 {
                     data: 'article_stock',
                     name: 'article_stock',
@@ -219,7 +219,7 @@
                 "className": "text-left",
                 "width": "0%"
             }],
-            rowCallback: function (row, data, index) {
+            rowCallback: function(row, data, index) {
                 if (data.article_stock.indexOf("<table></table>") >= 0) {
                     $(row).hide();
                 }
@@ -230,6 +230,7 @@
             ],
             language: {
                 "lengthMenu": "_MENU_",
+                "processing": "Loading..."
             },
             order: [
                 [0, 'desc']
