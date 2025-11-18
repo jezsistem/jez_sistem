@@ -122,7 +122,7 @@ class LeaveRequest extends Model
         // Check if there's already a leave request for this period
         $existingRequest = DB::table($this->table)
             ->where('user_id', $userId)
-            ->where('lr_status', '!=', 'cancelled')
+            ->where('lr_status', '!=', 'rejected')
             ->where(function($query) use ($startDate, $endDate) {
                 $query->whereBetween('lr_start_date', [$startDate, $endDate])
                       ->orWhereBetween('lr_end_date', [$startDate, $endDate])
