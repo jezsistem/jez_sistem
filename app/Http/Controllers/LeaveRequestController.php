@@ -781,6 +781,38 @@ class LeaveRequestController extends Controller
         $leaveRequest = LeaveRequest::with('user')->findOrFail($id);
         $leaveRequester = $leaveRequest->user;
 
+        $start = Carbon::parse($leaveRequest->lr_start_date);
+        $end   = Carbon::parse($leaveRequest->lr_end_date);
+        $totalDays = $start->diffInDays($end) + 1;
+
+        $leaveType = DB::table('leave_types')->where('id', $leaveRequest->leave_type_id)->first()->lt_code;
+
+//        dd($leaveRequest);
+
+        if ($leaveType == 'ANNUAL') {
+            $leaveRemaining = LeaveBalance::with('user')
+                ->where('user_id', $leaveRequest->user_id)
+                ->first();
+
+            $newLeaveRemaining = $leaveRemaining->lb_remaining_balance - $totalDays;
+
+            $leaveUsedBalance = $leaveRemaining->lb_used_balance + $totalDays;
+
+            // update leave balance
+            $leaveRemaining->update([
+                'lb_remaining_balance' => $newLeaveRemaining,
+                'lb_used_balance'      => $leaveUsedBalance,
+            ]);
+        }
+
+        $leaveRequest->update([
+            'lr_status' => 'APPROVED',
+            'lr_approved_by' => $currentUser->id,
+            'lr_approved_at' => now(),
+        ]);
+
+//        $leaveRequestType =
+
         if ($currentUser->id === $leaveRequester->id) {
             \Log::warning("User {$currentUser->id} mencoba self-approve");
             return $this->deny($request, 'You cannot approve your own leave request');
@@ -793,12 +825,11 @@ class LeaveRequestController extends Controller
             ->where('id', $leaveRequester->ud_id)
             ->first();
 
-        //        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
-        //            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
-        //            return $this->deny($request, 'You can only approve leave requests within your division');
-        //        }
+//        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
+//            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
+//            return $this->deny($request, 'You can only approve leave requests within your division');
+//        }
 
-        // 🟢 3. Cek apakah current user leader/manager dari divisi ini
         $isDivisionLead = $requesterDivision && $currentUser->id == $requesterDivision->lead_id;
         $isDivisionManager = $requesterDivision && $currentUser->id == $requesterDivision->manager_id;
 
@@ -813,6 +844,8 @@ class LeaveRequestController extends Controller
                 return $this->deny($request, 'You cannot approve leave requests from someone with higher or equal position level');
             }
         }
+
+
 
         $leaveRequest->update([
             'lr_status' => 'APPROVED',
