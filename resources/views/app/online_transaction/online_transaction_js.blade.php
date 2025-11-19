@@ -79,6 +79,7 @@
                                 'success'
                             );
                             waiting_online_items_table.draw();
+                            online_transaction_table.draw(false);
                         } else {
                             Swal.fire(
                                 'Gagal!',

@@ -2378,6 +2378,20 @@ class TransaksiOnlineController extends Controller
                     'updated_at' => now(),
                 ]);
 
+            // if it is the only item in the transaction, update the transaction status back to previous status
+            $otd_id = $plst->otd_id;
+            $to_id = OnlineTransactionDetails::where('id', $otd_id)->value('to_id');
+
+            $other_picks = ProductLocationSetupTransaction::where('otd_id', $otd_id)
+                ->where('id', '!=', $plst_id)
+                ->whereIn('plst_status', ['WAITING ONLINE', 'WAITING RECEIPT', 'WAITING PACKING', 'DONE ONLINE'])
+                ->exists();
+
+            if (!$other_picks) {
+                OnlineTransactions::where('id', $to_id)
+                    ->update(['internal_order_status' => 'NEW TRX', 'updated_at' => date('Y-m-d H:i:s')]);
+            }
+
             DB::commit();
             return response()->json(['status' => '200', 'message' => 'Item berhasil dibatalkan dari WAITING ONLINE']);
         } catch (\Exception $e) {
