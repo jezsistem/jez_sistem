@@ -52,14 +52,12 @@
             },
         },
         xaxis: {
-            categories: ['Jual Bersih'],
+            categories: ['Net Sales'],
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]

@@ -71,12 +71,12 @@
                                             </i>
                                             Sales
                                         </span>
-                                        <div class="select-card">
+                                        <!-- <div class="select-card">
                                             <select class="select-sm bg-light-primary" id="scross_filter">
                                                 <option value="nocross">Tanpa Cross</option>
                                                 <option value="cross">Dengan Cross</option>
                                             </select>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="text-right col-6 px-0">
                                         <a class="font-weight-bold fs-9 btn" id="nett_sales_label"
