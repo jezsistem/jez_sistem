@@ -1131,6 +1131,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/wa/status', function () {
         return Http::get('http://localhost:3000/wa-status')->json();
     });
+
+    Route::get('/wa/logout', function () {
+        return Http::get('http://localhost:3000/logout')->json();
+    });
+
+    Route::get('/wa/profile', function () {
+        return Http::get('http://localhost:3000/wa-profile')->json();
+    });
+    Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
+    Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
+
 });
 
 require __DIR__ . '/purchase_order.php';
