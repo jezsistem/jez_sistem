@@ -446,9 +446,27 @@
 
                     if (response && response.errors) {
                         let messages = Object.values(response.errors).flat().join('<br>');
-                        toastr.error(messages, 'Validasi Gagal!', { timeOut: 4000, progressBar: true });
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validasi Gagal!',
+                            html: messages,
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'Tutup',
+                            customClass: {
+                                popup: 'swal2-center-icon'
+                            }
+                        });
                     } else {
-                        toastr.error(xhr.responseText, 'Terjadi Kesalahan!', { timeOut: 4000, progressBar: true });
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan!',
+                            text: xhr.responseText || 'Silakan coba lagi',
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'Tutup',
+                            customClass: {
+                                popup: 'swal2-center-icon'
+                            }
+                        });
                     }
                 }
             });

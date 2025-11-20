@@ -41,8 +41,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('save_rating', [UserRatingController::class, 'storeData']);
     Route::post('check_customer_rating_phone', [UserRatingController::class, 'checkCustomerPhone']);
     Route::post('check_rating_for_checkout', [UserRatingController::class, 'checkWaitingForCheckout']);
-    // Whatsapp
-    Route::get('whatsapp', [WhatsappController::class, 'index']);
-    Route::get('whatsapp_datatables', [WhatsappController::class, 'getDatatables']);
-    Route::post('send_wa', [WhatsappController::class, 'executeBlast']);
+//    // Whatsapp
+//    Route::get('whatsapp', [WhatsappController::class, 'index']);
+//    Route::get('whatsapp_datatables', [WhatsappController::class, 'getDatatables']);
+//    Route::post('send_wa', [WhatsappController::class, 'executeBlast']);
 });

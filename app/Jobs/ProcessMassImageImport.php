@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -62,6 +63,7 @@ class ProcessMassImageImport implements ShouldQueue
                 // Simpan ke database
                 ProductImage::create([
                     'p_id' => $product->id,
+                    'u_id' => Auth::user()->id,
                     'file_name' => $fileName,
                     'file_path' => $urlAccess,
                 ]);

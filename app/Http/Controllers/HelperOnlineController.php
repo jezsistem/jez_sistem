@@ -457,7 +457,16 @@ class HelperOnlineController extends Controller
         $bin_id = $request->_bin_id; // New variable to hold bin_id
         $u_id = Auth::user()->id;
         $plst_qty = $request->_plst_qty;
-        //        dd($plst_id, $sku, $bin);
+        
+        // check is plst_id already picked
+        $isAlreadyPicked = DB::table('product_location_setup_transactions')
+            ->where('id', $plst_id)
+            ->whereNotNull('pls_id')
+            ->exists();
+
+        if ($isAlreadyPicked) {
+            return response()->json(['status' => '400', 'message' => 'Item sudah dipick sebelumnya.']);
+        }
 
         //pst_id
         $pst_id = DB::table('product_stocks')->where('ps_barcode', $sku)->first()->id;
@@ -465,7 +474,12 @@ class HelperOnlineController extends Controller
         //pl_id selected
         // $pl_id_selected = DB::table('product_locations')->where('pl_code', "=", "$bin")->first()->id;
 
-        //get pls_id
+        //get pls_id and check qty can't less than 1
+        $pls_qty = DB::table('product_location_setups')->where('id', $bin_id)->where('pst_id', $pst_id)->first()->pls_qty;
+        if ($pls_qty < 1) {
+            return response()->json(['status' => '400', 'message' => 'Quantity Bin tidak boleh kurang dari 1.']);
+        }
+
         $pls_id_selected = DB::table('product_location_setups')->where('id', $bin_id)->where('pst_id', $pst_id)->first()->id;
 
         $update_pls = DB::table('product_location_setups')->where('id', $pls_id_selected)
@@ -542,10 +556,10 @@ class HelperOnlineController extends Controller
                     ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                     ->whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
                     ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')->where('product_location_setup_transactions.qc_status', ProductLocationSetupTransaction::QC_STATUS_PASSED)
-                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'))
-                    ->groupBy('product_stocks.ps_barcode')
+                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'),'otd_id')
+                    ->groupBy('product_stocks.ps_barcode','otd_id')
                     ->get()
-                    ->keyBy('ps_barcode');
+                    ->keyBy('otd_id');
 
                 if ($waiting_receipt_items->isEmpty()) {
                     DB::rollBack();
@@ -559,7 +573,7 @@ class HelperOnlineController extends Controller
                 $all_picked = true;
 
                 foreach ($active_transaction_items as $item) {
-                    $picked_item = $waiting_receipt_items->get($item->sku);
+                    $picked_item = $waiting_receipt_items->get($item->id);
                     $picked_qty = $picked_item ? $picked_item->total_picked : 0;
 
                     if ($picked_qty != $item->qty) {
