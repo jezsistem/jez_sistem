@@ -28,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
 use App\Models\WebConfig;
 use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
@@ -491,67 +492,135 @@ class CekDanaOnlineController extends Controller
 
     private function processImportData($data, $platform_name, $st_id_form)
     {
+        DB::beginTransaction();
+        
+        try {
+            $st_id = $st_id_form;
+            $type = $platform_name;
 
-        $st_id = $st_id_form;
-        $type = $platform_name;
+            // Collect order numbers to check in bulk
+            $orderNumbers = [];
+            $cashoutDates = [];
 
-        foreach ($data as $index => $item) {
-            if ($index === 0) continue;
+            foreach ($data as $index => $item) {
+                if ($index === 0) continue;
+                $orderNumbers[] = trim($item[0]);
 
-            $order_number = trim($item[0]);
-
-            $exists = DB::table('online_funds')
-                ->where('order_number', $order_number)
-                ->exists();
-
-            if ($exists) {
-                continue;
-            }
-
-            try {
-                if (is_numeric($item[1])) {
-                    $cashout_date = Carbon::instance(Date::excelToDateTimeObject($item[1]))->format('Y-m-d');
-                } else {
-                    $cashout_date = Carbon::createFromFormat('d/m/Y', $item[1])->format('Y-m-d');
+                try {
+                    if (is_numeric($item[1])) {
+                        $cashoutDates[] = Carbon::instance(Date::excelToDateTimeObject($item[1]))->format('Y-m-d');
+                    } else {
+                        $cashoutDates[] = Carbon::createFromFormat('d/m/Y', $item[1])->format('Y-m-d');
+                    }
+                } catch (\Exception $e) {
+                    $cashoutDates[] = null;
                 }
-            } catch (\Exception $e) {
-                $cashout_date = null;
             }
-            $order_number = $item[0];
-            //            $cashout_date = \Carbon\Carbon::createFromFormat('d/m/Y', $item[1])->format('Y-m-d');
-            $final_price = (float) $item[2];
-            $total_disburshed_amount = (float) $item[3];
-            $seller_voucher_discount = (float) $item[4];
-            $affiliate_cut = (float) $item[5];
-            $marketplace_commision_fee = (float) $item[6];
-            $service_fee = (float) $item[7];
-            $dynamic_commission = (float) $item[8]; // Assuming dynamic_commission is at index 10
-            $voucher_xtra_service_fee = (float) $item[9];
-            $cashback_service_fee = (float) $item[10];
-            $total_online_cut = $affiliate_cut + $marketplace_commision_fee + $service_fee + $voucher_xtra_service_fee + $cashback_service_fee + $dynamic_commission;
 
-            DB::table('online_funds')->insert([
-                'st_id' => $st_id_form, // assuming $st_id_form passed from controller
-                'platform_name' => $type, // example static value; replace if dynamic
-                'order_number' => $order_number,
-                'total_disburshed_amount' => $total_disburshed_amount,
-                'final_price' => $final_price,
-                'total_online_cut' => $total_online_cut,
-                'seller_voucher_discount' => $seller_voucher_discount,
-                'affiliate_cut' => $affiliate_cut,
-                'marketplace_commision_fee' => $marketplace_commision_fee,
-                'service_fee' => $service_fee,
-                'dynamic_commission' => $dynamic_commission,
-                'voucher_xtra_service_fee' => $voucher_xtra_service_fee,
-                'cashback_service_fee' => $cashback_service_fee,
-                'cashout_date' => $cashout_date,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            // Bulk fetch existing records
+            $existingRecords = DB::table('online_funds')
+                ->whereIn('order_number', $orderNumbers)
+                ->get()
+                ->groupBy('order_number');
+
+            // Bulk fetch settled records
+            $settledOrders = DB::table('pos_transactions')
+                ->whereIn('pos_order_number', $orderNumbers)
+                ->where('is_settle', 1)
+                ->pluck('pos_order_number')
+                ->flip();
+
+            $insertData = [];
+            $updateData = [];
+
+            foreach ($data as $index => $item) {
+                if ($index === 0) continue;
+
+                $order_number = trim($item[0]);
+
+                try {
+                    if (is_numeric($item[1])) {
+                        $cashout_date = Carbon::instance(Date::excelToDateTimeObject($item[1]))->format('Y-m-d');
+                    } else {
+                        $cashout_date = Carbon::createFromFormat('d/m/Y', $item[1])->format('Y-m-d');
+                    }
+                } catch (\Exception $e) {
+                    $cashout_date = null;
+                }
+
+                $final_price = (float) $item[2];
+                $total_disburshed_amount = (float) $item[3];
+                $seller_voucher_discount = (float) $item[4];
+                $affiliate_cut = (float) $item[5];
+                $marketplace_commision_fee = (float) $item[6];
+                $service_fee = (float) $item[7];
+                $dynamic_commission = (float) $item[8];
+                $voucher_xtra_service_fee = (float) $item[9];
+                $cashback_service_fee = (float) $item[10];
+                $total_online_cut = $affiliate_cut + $marketplace_commision_fee + $service_fee + $voucher_xtra_service_fee + $cashback_service_fee + $dynamic_commission;
+
+                $existing = $existingRecords->get($order_number)?->firstWhere('cashout_date', $cashout_date);
+
+                if ($existing) {
+                    if (!isset($settledOrders[$order_number])) {
+                        $updateData[] = [
+                            'id' => $existing->id,
+                            'total_disburshed_amount' => $total_disburshed_amount,
+                            'final_price' => $final_price,
+                            'total_online_cut' => $total_online_cut,
+                            'seller_voucher_discount' => $seller_voucher_discount,
+                            'affiliate_cut' => $affiliate_cut,
+                            'marketplace_commision_fee' => $marketplace_commision_fee,
+                            'service_fee' => $service_fee,
+                            'dynamic_commission' => $dynamic_commission,
+                            'voucher_xtra_service_fee' => $voucher_xtra_service_fee,
+                            'cashback_service_fee' => $cashback_service_fee,
+                        ];
+                    }
+                    continue;
+                }
+
+                $insertData[] = [
+                    'st_id' => $st_id_form,
+                    'platform_name' => $type,
+                    'order_number' => $order_number,
+                    'total_disburshed_amount' => $total_disburshed_amount,
+                    'final_price' => $final_price,
+                    'total_online_cut' => $total_online_cut,
+                    'seller_voucher_discount' => $seller_voucher_discount,
+                    'affiliate_cut' => $affiliate_cut,
+                    'marketplace_commision_fee' => $marketplace_commision_fee,
+                    'service_fee' => $service_fee,
+                    'dynamic_commission' => $dynamic_commission,
+                    'voucher_xtra_service_fee' => $voucher_xtra_service_fee,
+                    'cashback_service_fee' => $cashback_service_fee,
+                    'cashout_date' => $cashout_date,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
+
+            // Bulk insert
+            if (!empty($insertData)) {
+                foreach (array_chunk($insertData, 500) as $chunk) {
+                    DB::table('online_funds')->insert($chunk);
+                }
+            }
+
+            // Bulk update
+            foreach ($updateData as $update) {
+                DB::table('online_funds')
+                    ->where('id', $update['id'])
+                    ->update(Arr::except($update, ['id']));
+            }
+
+            DB::commit();
+            
+            return ['processedData' => 'success'];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-        return [
-            'processedData' => 'success'
-        ];
     }
 
     public function runStoredProcedureCekDanaOnline()
