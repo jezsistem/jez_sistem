@@ -1,103 +1,33 @@
 <script>
-    $(document).ready(function() {
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    function loadStatus() {
+        $.get("{{ url('/wa/status') }}", function(res) {
+
+            if (res.ready === true) {
+                $("#wa-status-section").hide();
+                $("#wa-qr-section").hide();
+                $("#wa-connected-section").show();
+            } else {
+                $("#wa-connected-section").hide();
+                loadQR(); // tampilkan qr
             }
         });
+    }
 
-        var whatsapp_table = $('#Watb').DataTable({
-            destroy: true,
-            processing: true,
-            serverSide: true,
-            responsive: false,
-            dom: 'rt<"text-right"ip>',
-            buttons: [{
-                "extend": 'excelHtml5',
-                "text": 'Excel',
-                "className": 'btn btn-primary btn-xs'
-            }],
-            ajax: {
-                url: "{{ url('whatsapp_datatables') }}",
-                data: function(d) {
-                    d.search = $('#whatsapp_search').val();
-                }
-            },
-            columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'id',
-                    searchable: false
-                },
-                {
-                    data: 'wa_receiver',
-                    name: 'wa_receiver'
-                },
-                {
-                    data: 'wa_phone',
-                    name: 'wa_phone'
-                },
-                {
-                    data: 'wa_status',
-                    name: 'wa_status'
-                },
-                {
-                    data: 'created_at_show',
-                    name: 'created_at'
-                },
-            ],
-            columnDefs: [{
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
-            order: [
-                [0, 'desc']
-            ],
+    function loadQR() {
+        $.get("{{ url('/wa/qr') }}", function(res) {
+
+            if (res.status === true) {
+                $("#wa-qr-image").attr("src", res.qr);
+                $("#wa-qr-section").show();
+            } else {
+                $("#wa-qr-section").hide();
+            }
+
+            $("#wa-status-section").hide();
         });
+    }
 
-        whatsapp_table.buttons().container().appendTo($('#whatsapp_excel_btn'));
-        $('#whatsapp_search').on('keyup', function() {
-            whatsapp_table.draw();
-        });
+    setInterval(loadStatus, 5000);
 
-        $('#add_whatsapp_btn').on('click', function() {
-            jQuery.noConflict();
-            $('#WaModal').modal('show');
-            $('#_id').val('');
-            $('#_mode').val('add');
-            $('#f_whatsapp')[0].reset();
-        });
-
-        $('#f_whatsapp').on('submit', function(e) {
-            e.preventDefault();
-            $("#save_whatsapp_btn").html('Proses ..');
-            $("#save_whatsapp_btn").attr("disabled", true);
-            var formData = new FormData(this);
-            $.ajax({
-                type: 'POST',
-                url: "{{ url('send_wa') }}",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(data) {
-                    $("#save_whatsapp_btn").html('Simpan');
-                    $("#save_whatsapp_btn").attr("disabled", false);
-                    if (data.status == '200') {
-                        $("#WaModal").modal('hide');
-                        toastr.success("Pesan berhasil dikirim", "Berhasil");
-                        whatsapp_table.draw();
-                    } else if (data.status == '400') {
-                        $("#WaModal").modal('hide');
-                        toastr.warning("Pesan gagal dikirim", "Gagal");
-                    }
-                },
-                error: function() {
-                    toastr.error("Terjadi kesalahan saat mengirim pesan", "Error");
-                }
-            });
-        });
-
-    });
+    loadStatus();
 </script>
