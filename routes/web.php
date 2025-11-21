@@ -105,6 +105,7 @@ use App\Http\Controllers\ExternalAssignmentRequestController;
 use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
+use App\Http\Controllers\InvoiceControllerV2;
 use App\Http\Controllers\LockController;
 use App\Http\Controllers\WarehouseIndexController;
 use App\Models\PositionAccessController;
@@ -139,6 +140,9 @@ Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice']
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
 Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
 Route::post('/upload-photo', [PhotoController::class, 'upload'])->name('upload.photo');
+
+//Print Invoice V2
+Route::get('print_invoice_v2/{id}', [InvoiceControllerV2::class, 'printInvoice'])->name('print_invoice_v2');
 
 Route::get('daily-schedules/export-weekly-public', [DailyScheduleController::class, 'exportWeeklyPublic'])->name('daily-schedules.export-weekly-public');
 
