@@ -898,8 +898,8 @@
                         success: function (response) {
                             console.log(response.status);
                             if (response.status == 200) {
-                                var printUrl = '{{ url('print_online_nota') }}/' +
-                                    numOrder;
+                                var printUrl = '{{ url('print_invoice_v2') }}/' +
+                                    response.encrypted_id;
                                 window.open(printUrl, '_blank');
                                 getWaitingReceipt();
                             } else {

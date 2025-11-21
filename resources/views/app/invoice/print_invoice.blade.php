@@ -111,7 +111,7 @@
                     {{ $data['transaction']->st_address }}<br/>
                     {{ $data['transaction']->st_phone }}<br/>
                     Jersey Zone<br/>
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
             </center><br/>
             <div class="separate"></div>
@@ -134,7 +134,7 @@
 
             <div class="transaction">
                 <table class="transaction-table" cellspacing="0" cellpadding="0">
-                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0;
+                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0; $delivery_insurance = 0;
                         $total_discount = $data['transaction']->pos_total_discount;
                         $total_discount_show= $data['transaction']->pos_total_discount ;
                         $total_marketplace = 0;
@@ -213,6 +213,7 @@
                             $nameset += $srow->pos_td_nameset_price; 
                             $subtotal += ($srow->pos_td_qty * $srow->ps_price_tag); 
                             $total_price += $srow->pos_td_total_price; 
+                            $delivery_insurance += $srow->pos_td_delivery_insurance;
 //                            $total_discount += $srow->pos_td_qty * ($srow->pos_td_sell_price/100 * $srow->pos_td_discount);
                             $total_discount += $srow->pos_td_discount_number;
                             $total_discount_show += $srow->pos_td_discount_number;
@@ -309,11 +310,19 @@
                     @endif
                     <tr>
                         <td colspan="3" class="final-price">
+                            <span style="float:left;">ASURANSI PENGIRIMAN</span>
+                        </td>
+                        <td class="final-price">
+                            <span style="float:right;">{{ (number_format($delivery_insurance)) }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="final-price">
                             <span style="float:left;">BIAYA LAIN</span>
                         </td>
                         @if ($data['transaction']->pos_payment > $totals)
                             <td class="final-price">
-                                <span style="float:right;">{{ (number_format($data['transaction']->pos_payment - $totals)) }}</span>
+                                <span style="float:right;">{{ (number_format($data['transaction']->pos_payment - $totals - $delivery_insurance)) }}</span>
                             </td>
                         @else
                             <td class="final-price">

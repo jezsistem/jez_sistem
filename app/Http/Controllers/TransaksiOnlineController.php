@@ -967,9 +967,14 @@ class TransaksiOnlineController extends Controller
             ->value('pos_status') === 'DONE' ? true : false;
 
         if ($check) {
+            $pos_transaction_check = PosTransaction::where(['pos_invoice' => $order_number])
+                ->orderByDesc('id')
+                ->first();
+
             return response()->json([
                 'status' => '200',
-                'message' => 'Invoice sudah pernah dicetak.'
+                'message' => 'Invoice sudah pernah dicetak.',
+                'encrypted_id' => encrypt($pos_transaction_check->id)
             ]);
         }
 
@@ -1115,6 +1120,7 @@ class TransaksiOnlineController extends Controller
                     'pos_td_total_price' => $price_before_discount,
                     'pos_td_item_cogs' => $product_stock->ps_purchase_price,
                     'pos_td_item_price_tag' => $product_stock->ps_price_tag,
+                    'pos_td_delivery_insurance' => $item->delivery_insurance,
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
 
@@ -1171,7 +1177,8 @@ class TransaksiOnlineController extends Controller
 
             return response()->json([
                 'status' => '200',
-                'message' => 'Invoice berhasil dicetak.'
+                'message' => 'Invoice berhasil dicetak.',
+                'encrypted_id' => encrypt($pos_transaction_id)
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1285,7 +1292,8 @@ class TransaksiOnlineController extends Controller
                     "Regency and City",
                     "Province",
                     "Warehouse",
-                    'Ekspedisi'
+                    'Ekspedisi',
+                    'Shipping Insurance',
                 ];
 
                 if (!isset($data[0][0]) || $data[0][0] !== $expectedHeaders) {
@@ -1633,6 +1641,7 @@ class TransaksiOnlineController extends Controller
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
                 $warehouse = $item[19] ?? $st_code;
+                $delivery_insurance = str_replace('.', '', $item[21]);
 
 
                 try {
@@ -1661,6 +1670,7 @@ class TransaksiOnlineController extends Controller
                                 //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                                 'warehouse' => $warehouse,
+                                'delivery_insurance' => $delivery_insurance,
                             ];
 
                             $rowSKUUpdate = [
@@ -1675,6 +1685,7 @@ class TransaksiOnlineController extends Controller
                                 //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                                 'warehouse' => $warehouse,
+                                'delivery_insurance' => $delivery_insurance,
                             ];
 
                             if ($sku_exists->count() == 0) {
@@ -1790,6 +1801,7 @@ class TransaksiOnlineController extends Controller
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
                 $warehouse = $item[19] ?? $st_code;
+                $delivery_insurance = str_replace('.', '', $item[21] ?? '0');
 
 
                 try {
@@ -1820,6 +1832,7 @@ class TransaksiOnlineController extends Controller
                                 //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                                 'warehouse' => $warehouse,
+                                'delivery_insurance' => $delivery_insurance,
                             ];
 
                             $rowSKUUpdate = [
@@ -1834,6 +1847,7 @@ class TransaksiOnlineController extends Controller
                                 //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                                 'warehouse' => $warehouse,
+                                'delivery_insurance' => $delivery_insurance,
                             ];
 
                             if ($sku_exists->count() == 0) {

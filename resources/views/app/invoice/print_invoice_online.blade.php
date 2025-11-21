@@ -128,7 +128,7 @@
                     <strong>Sneakerzone.id</strong><br/>
                     {{ ucwords(strtolower($data['st_name'])) }}<br/>
                     <br/><br/>
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
                 <div class="separate"></div>
 
@@ -289,7 +289,7 @@
                     ~~~ Terimakasih ~~~
                 </div>
                 <div class="azost">
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
                 <br/>
 
