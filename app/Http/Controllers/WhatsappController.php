@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessBroadcastJob;
 use App\Models\WaBroadcastJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -131,6 +132,8 @@ class WhatsappController extends Controller
             'message'        => $request->message,
             'status'         => 'pending',
         ]);
+
+//        ProcessBroadcastJob::dispatch($job);
 
         return response()->json([
             'status'  => true,

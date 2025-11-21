@@ -26,22 +26,24 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // Scheduler WA Broadcast Job
         $schedule->call(function () {
 
-            $jobs = WaBroadcastJob::where('status', '!=', 'completed')
-                ->get();
+            // Ambil semua job yang belum selesai
+            $jobs = WaBroadcastJob::where('status', '!=', 'completed')->get();
 
             foreach ($jobs as $job) {
 
-                // cek apakah sudah masuk jadwal
+                // Pastikan job sudah masuk waktu aktif
                 if (now()->between($job->start_at, $job->end_at)) {
 
-                    // cek apakah waktunya kirim
+                    // Pastikan waktunya mengirim
                     if ($job->next_run_at <= now()) {
 
+                        // Jalankan job broadcast
                         dispatch(new ProcessBroadcastJob($job));
 
-                        // set next run
+                        // Set jadwal berikutnya
                         $job->next_run_at = now()->addHours($job->interval_hours);
                         $job->status = 'running';
                         $job->save();
@@ -49,7 +51,7 @@ class Kernel extends ConsoleKernel
                 }
             }
 
-        })->everyMinute();
+        })->everyMinute(); // dijalankan setiap menit
     }
 
     /**

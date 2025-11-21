@@ -36,24 +36,33 @@ class ProcessBroadcastJob implements ShouldQueue
     {
         $job = $this->jobData;
 
-        $targets = DB::table('customers')
-            ->skip($job->last_offset)
-            ->take($job->batch_size)
-            ->get();
+//        $targets = DB::table('customers')
+//            ->skip($job->last_offset)
+//            ->take($job->batch_size)
+//            ->get();
 
-        foreach ($targets as $t) {
+        $dummyPhones = [
+            '6282197711866',
+            '6285159011402',
+        ];
+
+        // Ambil batch sesuai batch_size dan last_offset
+        $targets = array_slice($dummyPhones, $job->last_offset, $job->batch_size);
+
+        foreach ($targets as $phone) {
+
             Http::post('http://localhost:3000/send-message', [
-                'phone' => $t->cust_phone,
+                'phone' => $phone,
                 'message' => $job->message
             ]);
         }
 
-        // update offset
-        $job->last_offset += $job->batch_size;
+        // Update offset
+        $job->last_offset += count($targets);
         $job->save();
 
-        // jika sudah selesai semua
-        if ($job->last_offset >= DB::table('customer_contacts')->count()) {
+        // Jika sudah kirim semua dummy
+        if ($job->last_offset >= count($dummyPhones)) {
             $job->status = 'completed';
             $job->save();
         }
