@@ -1157,3 +1157,4 @@ require __DIR__ . '/user.php';
 require __DIR__ . '/inventory.php';
 require __DIR__ . '/ecommerce.php';
 require __DIR__ . '/amp.php';
+require __DIR__ . '/it.php';
