@@ -1,4 +1,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 <script>
     var detail_table = '';
     var transactionId = '';
@@ -546,12 +547,28 @@
             e.stopPropagation();
         });
 
-        $(document).on('click', '#transaction_card', function (e) {
+        $(document).on('click', '#transaction_card', async function (e) {
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
+
+            $('#plst_id_online_items').val(transactionId);
+
             clearScanners();
             e.preventDefault();
             modal_opened = 'ScanOutModal';
+
+            // Coba dapatkan lock sebelum buka modal
+            const lockResult = await openEditModal('online_transactions', transactionId, 'helper_online');
+            if (lockResult === false) {
+                return;
+            }
+
+            // Mulai interval untuk extend lock setiap 60 detik
+            if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
+            window.lockExtendInterval = setInterval(function() {
+                extendLock('online_transactions', transactionId, 'helper_online');
+            }, 60000);
+
             jQuery.noConflict();
             $('#OnlineItemsModalLabel').text('Order Number: ' + orderNumber);
             $('#OnlineItemsModal').modal('show');
@@ -839,7 +856,15 @@
         })
 
         $(document).on('click', '#close_scan_packing_modal_btn', function (e) {
+            var transactionId = $('#plst_id_scan_packing').text();
+            closeEditModal('online_transactions', transactionId, 'helper_online');
             $('#scanPackingModal').modal('hide');
+        });
+
+        $(document).on('click', '.close_online_item_modal', function (e) {
+            var transactionId = $('#plst_id_online_items').val();
+            closeEditModal('online_transactions', transactionId, 'helper_online');
+            $('#OnlineItemsModal').modal('hide');
         });
 
         $(document).on('click', '#printResiBtn', function (e) {

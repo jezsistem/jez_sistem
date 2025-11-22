@@ -16,6 +16,7 @@ class LockController extends Controller
     {
         return [
             'purchase_order' => \App\Models\PurchaseOrder::class,
+            'online_transactions' => \App\Models\OnlineTransactions::class,
         ];
     }
 

@@ -181,35 +181,36 @@
 
 <!-- Online Items Modal -->
 <div class="modal fade" id="OnlineItemsModal" tabindex="-1" aria-labelledby="OnlineItemsModalLabel"
-     aria-hidden="true">
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="OnlineItemsModalLabel"></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
-                </button>
-            </div>
-            <div class="modal-body table-responsive">
-                <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
-                <table class="table table-hover table-checkable table-striped" id="online_items_table">
-                    <thead class="bg-dark text-light">
-                    <tr>
-                        <th class="text-dark">Artikel</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+       <div class="modal-content">
+          <div class="modal-header">
+             <h5 class="modal-title" id="OnlineItemsModalLabel"></h5>
+             <button type="button" class="close close_online_item_modal" aria-label="Close">
+                <i aria-hidden="true" class="ki ki-close"></i>
+             </button>
+          </div>
+          <div class="modal-body table-responsive">
+             <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
+             <input type="hidden" name="plst_id_online_items" id="plst_id_online_items">
+             <table class="table table-hover table-checkable table-striped" id="online_items_table">
+                <thead class="bg-dark text-light">
+                <tr>
+                    <th class="text-dark">Artikel</th>
+                </tr>
+                </thead>
+                <tbody>
 
-                    </tbody>
-                </table>
-            </div>
+                </tbody>
+             </table>
+          </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        aria-label="Close">Close
-                </button>
-            </div>
-        </div>
+          <div class="modal-footer">
+             <button type="button" class="btn btn-secondary close_online_item_modal" data-dismiss="modal"
+                    aria-label="Close">Close
+             </button>
+          </div>
+       </div>
     </div>
 </div>
 
