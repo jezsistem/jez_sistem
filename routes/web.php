@@ -9,7 +9,9 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
 use App\Http\Controllers\OvertimeTypeController;
+use App\Http\Controllers\WhatsappController;
 use App\Models\ExternalAssignmentType;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
@@ -1119,6 +1121,27 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/warehouse_index_save', [WarehouseIndexController::class, 'storeData'])->name('warehouse.index.store');
     Route::post('/warehouse_index_delete', [WarehouseIndexController::class, 'deleteData'])->name('warehouse.index.delete');
     Route::get('/warehouse_list', [WarehouseIndexController::class, 'getWarehouseList'])->name('warehouse.index.list');
+
+    //wa api
+    Route::get('/whats-app-setting', [WhatsappController::class, 'index']);
+    Route::get('/wa/qr', function () {
+        return Http::get('http://localhost:3000/get-qr')->json();
+    });
+
+    Route::get('/wa/status', function () {
+        return Http::get('http://localhost:3000/wa-status')->json();
+    });
+
+    Route::get('/wa/logout', function () {
+        return Http::get('http://localhost:3000/logout')->json();
+    });
+
+    Route::get('/wa/profile', function () {
+        return Http::get('http://localhost:3000/wa-profile')->json();
+    });
+    Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
+    Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
+
 });
 
 require __DIR__ . '/purchase_order.php';

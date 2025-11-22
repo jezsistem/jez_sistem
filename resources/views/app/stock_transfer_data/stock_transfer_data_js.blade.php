@@ -351,21 +351,21 @@
                             return true;
                         }
                         arr[i++] = [stfd_id, pst_id, accept_qty];
-                        var transfer_qty = $(this).attr(
-                            'data-stfd_qty'); // Ensure transfer_qty is defined here
+                        var transfer_qty = $(this).attr('data-stfd_qty');
+                        var barcode = $(this).attr('data-ps_barcode');
                         console.log(accept_qty, transfer_qty);
 
                         if (parseInt(accept_qty) > parseInt(transfer_qty)) {
-                            isValid =
-                                false; // Set the flag to false if validation fails
+                            isValid = false;
+                            swal('Error', 
+                                'Barcode: ' + barcode + '\nJumlah yang diterima (' + accept_qty + ') melebihi jumlah yang ditransfer (' + transfer_qty + ')', 
+                                'error');
+                            return false;
                         }
                     });
 
                     if (!isValid) {
-                        swal('Error',
-                            'Jumlah yang diterima harus sama dengan jumlah yang ditransfer',
-                            'error').then(() => {});
-                        return false; // Exit the parent function if validation fails
+                        return false;
                     }
                     if (arr.length <= 0) {
                         swal('Qty kosong', 'silahkan tentukan qty yang diterima', 'warning');
@@ -410,6 +410,7 @@
             $('#stf_id').val(stf_id);
             $('#stf_code_label').val(stf_code);
             $('#st_id_end').val(st_id_end);
+            $('#ImportModalBtn').data('stf_id', stf_id);
             jQuery.noConflict();
             $('#StockTransferDataModal').on('show.bs.modal', function() {
                 stock_transfer_data_accept_table.draw();
@@ -437,6 +438,8 @@
         $(document).ready(function() {
             // Open the second modal when the button is clicked
             $("#ImportModalBtn").click(function() {
+                var stf_id = $(this).data('stf_id');
+                $('#import_stf_id').val(stf_id);
                 $("#ImportModal").modal("show");
             });
         });
@@ -522,7 +525,7 @@
                         toastr.error('Input field not found in the row');
                         return false; // Skip to the next row
                     }
-                    
+
                     var currentValue = parseInt(inputField.val()) || 0;
                     var maxQty = parseInt(inputField.attr('data-stfd_qty')) || 0;
 
@@ -556,7 +559,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('stock_transfer_import') }}",
+                url: "{{ url('std_receive_transfer_data_import') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -572,43 +575,94 @@
 
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
+                        stock_transfer_data_accept_table.draw();
                         // stock_transfer_data_accept_table.ajax.reload( function (json) {
                         //     var stf_code = json.stf_code;
                         // });
-                        stock_transfer_data_accept_table.rows().every(function() {
-                            var rowData = this.data();
-                            var stfd_id = rowData.stfd_id;
-                            var pst_id = rowData.pst_id;
+                        // stock_transfer_data_accept_table.rows().every(function() {
+                        //     var rowData = this.data();
+                        //     var stfd_id = rowData.stfd_id;
+                        //     var pst_id = rowData.pst_id;
 
-                            // Check if the current row's pst_id matches the product_stock_id from data.data
-                            var matchingData = data.data.processedData.find(
-                                function(item) {
-                                    return item.product_stock_id === pst_id;
-                                });
+                        //     // Check if the current row's pst_id matches the product_stock_id from data.data
+                        //     var matchingData = data.data.processedData.find(
+                        //         function(item) {
+                        //             return item.product_stock_id === pst_id;
+                        //         });
 
-                            if (matchingData) {
-                                var acceptQtyInput = $(
-                                    'input.accept_qty[data-stfd_id="' +
-                                    stfd_id + '"]');
-                                acceptQtyInput.val(matchingData.qty);
+                        //     if (matchingData) {
+                        //         var acceptQtyInput = $(
+                        //             'input.accept_qty[data-stfd_id="' +
+                        //             stfd_id + '"]');
+                        //         acceptQtyInput.val(matchingData.qty);
 
-                                // Check if quantities don't match and make row red
-                                if (parseInt(matchingData.qty) !== parseInt(rowData
-                                        .stfd_qty)) {
-                                    $(this.node()).addClass('table-danger');
-                                    swal('Warning', 'Ada data yang tidak sesuai',
-                                        'warning');
-                                } else {
-                                    $(this.node()).removeClass('table-danger');
+                        //         // Check if quantities don't match and make row red
+                        //         if (parseInt(matchingData.qty) !== parseInt(rowData
+                        //                 .stfd_qty)) {
+                        //             $(this.node()).addClass('table-danger');
+                        //             swal('Warning', 'Ada data yang tidak sesuai',
+                        //                 'warning');
+                        //         } else {
+                        //             $(this.node()).removeClass('table-danger');
+                        //         }
+                        //     }
+                        // });
+                    } else if (data.status == '422') {
+                        $("#import_data_btn").html('Import');
+                        $("#import_data_btn").attr("disabled", false);
+                        $("#ImportModal").modal('hide');
+                        $('#f_import')[0].reset();
+
+                        // Build HTML table for errors
+                        let errorTableHtml =
+                            '<div style="max-height: 400px; overflow-y: auto;"><table class="table table-bordered table-sm"><thead><tr><th>Barcode</th><th>Message</th></tr></thead><tbody>';
+                        data.errors.forEach(function(error) {
+                            errorTableHtml += '<tr><td>' + error.ps_barcode +
+                                '</td><td>' + error.message + '</td></tr>';
+                        });
+                        errorTableHtml += '</tbody></table></div>';
+
+                        swal({
+                            title: 'Import Errors',
+                            content: {
+                                element: "div",
+                                attributes: {
+                                    innerHTML: errorTableHtml +
+                                        '<button id="exportErrorsBtn" class="btn btn-success btn-sm mt-3">Export to Excel</button>'
                                 }
-                            }
+                            },
+                            icon: 'warning',
+                            button: 'OK'
+                        });
+
+                        // Handle export button click
+                        $(document).on('click', '#exportErrorsBtn', function() {
+                            let csvContent =
+                                "data:text/csv;charset=utf-8,Barcode,Message\n";
+                            data.errors.forEach(function(error) {
+                                csvContent += error.ps_barcode + ',"' +
+                                    error.message + '"\n';
+                            });
+
+                            const encodedUri = encodeURI(csvContent);
+                            const link = document.createElement("a");
+                            link.setAttribute("href", encodedUri);
+                            link.setAttribute("download", "import_errors_" +
+                                new Date().getTime() + ".csv");
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
                         });
                     } else if (data.status == '400') {
+                        $("#import_data_btn").html('Import');
+                        $("#import_data_btn").attr("disabled", false);
                         $("#ImportModal").modal('hide');
                         $('#f_import')[0].reset();
                         swal('File', 'File yang anda import kosong atau format tidak tepat',
                             'warning');
                     } else {
+                        $("#import_data_btn").html('Import');
+                        $("#import_data_btn").attr("disabled", false);
                         $("#ImportModal").modal('hide');
                         $('#f_import')[0].reset();
                         swal('Gagal',
@@ -617,6 +671,8 @@
                     }
                 },
                 error: function(data) {
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
                     swal('Error', data, 'error');
                 }
             });

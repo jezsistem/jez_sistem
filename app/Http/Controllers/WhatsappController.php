@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessBroadcastJob;
+use App\Models\WaBroadcastJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\WebConfig;
 use App\Models\User;
+use Yajra\DataTables\Facades\DataTables;
 
 class WhatsappController extends Controller
 {
@@ -70,24 +73,73 @@ class WhatsappController extends Controller
         return view('app.whatsapp.whatsapp', compact('data'));
     }
 
-    public function getDatatables(Request $request)
+    public function datatable(Request $request)
     {
-        if(request()->ajax()) {
-            return datatables()->of(DB::table('whatsapps')->select('id', 'wa_receiver', 'wa_phone', 'wa_status', 'created_at'))
-            ->editColumn('created_at_show', function($data){
-                return date('d/m/Y H:i:s', strtotime($data->created_at));
+        $query = WaBroadcastJob::select([
+            'id',
+            'job_name',
+            'start_at',
+            'end_at',
+            'interval_hours',
+            'batch_size',
+            'status',
+        ]);
+
+        return DataTables::of($query)
+
+            ->editColumn('start_at', function ($row) {
+                return date('d-m-Y H:i', strtotime($row->start_at));
             })
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(wa_receiver) LIKE ?', "%$search%");
-                    });
-                }
+            ->editColumn('end_at', function ($row) {
+                return date('d-m-Y H:i', strtotime($row->end_at));
             })
-            ->addIndexColumn()
+
+            ->editColumn('status', function ($row) {
+                $color = $row->status === 'running' ? 'success' :
+                    ($row->status === 'pending' ? 'warning' : 'danger');
+
+                return "<span class='badge badge-$color'>$row->status</span>";
+            })
+
+            ->addColumn('action', function ($row) {
+                return '
+                <button class="btn btn-sm btn-warning editJob" data-id="'.$row->id.'">Edit</button>
+                <button class="btn btn-sm btn-danger deleteJob" data-id="'.$row->id.'">Hapus</button>
+            ';
+            })
+
+            ->rawColumns(['status', 'action'])
             ->make(true);
-        }
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'job_name'       => 'required|string',
+            'start_at'       => 'required|date',
+            'end_at'         => 'required|date|after:start_at',
+            'interval_hours' => 'required|integer|min:1',
+            'batch_size'     => 'required|integer|min:1',
+            'message'        => 'required|string',
+        ]);
+
+        $job = WaBroadcastJob::create([
+            'job_name'       => $request->job_name,
+            'start_at'       => $request->start_at,
+            'end_at'         => $request->end_at,
+            'interval_hours' => $request->interval_hours,
+            'batch_size'     => $request->batch_size,
+            'message'        => $request->message,
+            'status'         => 'pending',
+        ]);
+
+//        ProcessBroadcastJob::dispatch($job);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Job berhasil ditambahkan!',
+            'data'    => $job
+        ]);
     }
 
     public function executeBlast(Request $request)
