@@ -142,6 +142,98 @@
         });
     }
 
+    function saveAllowedModel() {
+        var action = $('#allowedModelAction').val();
+        var url = action === 'edit' 
+            ? "{{ url('modal_lock/allowed_models/update') }}/" + $('#allowedModelId').val()
+            : "{{ url('modal_lock/allowed_models/save') }}";
+        var method = action === 'edit' ? 'PUT' : 'POST';
+        
+        $.ajax({
+            type: method,
+            url: url,
+            data: $('#formAllowedModel').serialize(),
+            dataType: 'json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.status == '200') {
+                    swal("Success! Allowed Model saved!", {
+                        icon: "success",
+                    });
+                    modal_lock_allowed_models_table.ajax.reload();
+                    jQuery.noConflict();
+                    $('#modalAddEditAllowedModel').modal('hide');
+                } else {
+                    swal("Error saving Allowed Model!", {
+                        icon: "error",
+                    });
+                }
+            }
+        });
+    }
+
+    function editAllowedModel(id) {
+        // Add your logic to edit allowed model
+        $.ajax({
+            type: "GET",
+            url: "{{ url('modal_lock/allowed_models/edit') }}/" + id,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status == '200') {
+                    $('#allowedModelAction').val('edit');
+                    $('#allowedModelId').val(response.data.id);
+                    $('#allowedModelType').val(response.data.model_type);
+                    $('#allowedModelIdentifier').val(response.data.identifier);
+                    $('#allowedModelIsActive').val(response.data.is_active);
+                    jQuery.noConflict();
+                    modal_lock_allowed_models_table.draw(false);
+                    $('#modalAddEditAllowedModel').modal('show');
+                } else {
+                    swal("Error fetching Allowed Model!", {
+                        icon: "error",
+                    });
+                }
+            }
+        });
+    }
+
+    function deleteAllowedModel(id) {
+        swal({
+            title: "Are you sure?",
+            text: "Once deleted, you will not be able to recover this Allowed Model!",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        }).then((willDelete) => {
+            if (willDelete) {
+                $.ajax({
+                    type: "DELETE",
+                    url: "{{ url('modal_lock/allowed_models/delete') }}/" + id,
+                    dataType: 'json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status == '200') {
+                            swal("Poof! Allowed Model has been deleted!", {
+                                icon: "success",
+                            });
+                            modal_lock_allowed_models_table.ajax.reload();
+                        } else {
+                            swal("Error deleting Allowed Model!", {
+                                icon: "error",
+                            });
+                        }
+                    }
+                });
+            } else {
+                swal("Your Allowed Model is safe!");
+            }
+        });
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -227,6 +319,36 @@
                 {
                     data: 'description',
                     name: 'description'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+        });
+
+        modal_lock_allowed_models_table = $('#allowed_models_table').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'lrt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('modal_lock/allowed_models/datatables') }}",
+            },
+            columns: [{
+                    data: 'model_type',
+                    name: 'model_type'
+                },
+                {
+                    data: 'identifier',
+                    name: 'identifier'
+                },
+                {
+                    data: 'is_active',
+                    name: 'is_active'
                 },
                 {
                     data: 'action',

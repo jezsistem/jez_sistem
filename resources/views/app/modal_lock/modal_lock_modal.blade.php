@@ -42,7 +42,7 @@
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-striped table-hover" id="allowed_models_table">
                         <thead>
                             <tr>
                                 <th>Model</th>
@@ -117,8 +117,8 @@
                     <input type="hidden" id="allowedModelId" name="allowed_model_id">
                     
                     <div class="mb-3">
-                        <label for="allowedModelName" class="form-label">Model</label>
-                        <input type="text" class="form-control" id="allowedModelName" name="model" required>
+                        <label for="allowedModelType" class="form-label">Model</label>
+                        <input type="text" class="form-control" id="allowedModelType" name="model_type" required>
                     </div>
                     
                     <div class="mb-3">
@@ -128,7 +128,7 @@
                     
                     <div class="mb-3">
                         <label for="allowedModelIsActive" class="form-label">Is Active</label>
-                        <select class="form-select" id="allowedModelIsActive" name="is_active" required>
+                        <select class="form-select form-control" id="allowedModelIsActive" name="is_active" required>
                             <option value="1">Yes</option>
                             <option value="0">No</option>
                         </select>
