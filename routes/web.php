@@ -485,8 +485,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
     Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
     Route::post('/product/update-link-content/{id}', [ProductController::class, 'updateLinkContent']);
+    Route::post('/product-links/store', [ProductController::class, 'LinkStore']);
+    Route::get('/product-links/marketplace/{articleId}', [ProductController::class, 'marketplaceDataTables']);
+    Route::get('/product-links/social/{articleId}', [ProductController::class, 'socialDataTables']);
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
+    Route::get('/product-links/locations', function() {
+        return DB::table('stores')
+            ->distinct()
+            ->where('st_code', '<>', '')
+            ->pluck('st_code');
+    });
 
     // Product Stock
     Route::post('check_product_stock', [ProductStockController::class, 'checkProductStock']);

@@ -109,7 +109,6 @@ class ProductController extends Controller
 
         $stt = DB::table('store_types')->where('id', Auth::user()->stt_id)->first()->stt_name;
 
-
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
@@ -339,6 +338,68 @@ class ProductController extends Controller
             'success' => true,
             'images' => $images,
         ]);
+    }
+
+    public function marketplaceDataTables($articleId)
+    {
+        $product_id = DB::table('products')->where('article_id', $articleId)->value('id');
+
+        $data = DB::table('product_links')
+            ->where('product_id', $product_id)
+            ->where('type', 'marketplace');
+
+        return datatables()->of($data)
+            ->addColumn('action', function ($row) {
+                return '
+                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'">Edit</button>
+                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'">Delete</button>
+            ';
+            })
+            ->make(true);
+    }
+
+    public function socialDataTables($articleId)
+    {
+        $product_id = DB::table('products')->where('article_id', $articleId)->value('id');
+
+        $data = DB::table('product_links')
+            ->where('product_id', $product_id)
+            ->where('type', 'social');
+
+        return datatables()->of($data)
+            ->addColumn('action', function ($row) {
+                return '
+                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'">Edit</button>
+                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'">Delete</button>
+            ';
+            })
+            ->make(true);
+    }
+
+    public function LinkStore(Request $request)
+    {
+        $request->validate([
+            'type'       => 'required|in:marketplace,social',
+            'platform'   => 'required|string',
+            'url'        => 'required|string',
+            'location'   => 'nullable|string',
+        ]);
+
+        $product_id = DB::table('products')->where('article_id', $request->articleId)->value('id');
+
+//        dd($product_id);
+
+        DB::table('product_links')->insert([
+            'product_id' => $product_id,
+            'type'       => $request->type,
+            'platform'   => $request->platform,
+            'url'        => $request->url,
+            'location'   => $request->location,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['status' => 'success']);
     }
 
     public function updateLinkContent(Request $request, $id)
