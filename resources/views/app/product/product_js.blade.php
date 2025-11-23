@@ -1239,6 +1239,175 @@
         })
 
         $(document).ready(function() {
+            let tableMarketplace;
+            let tableSocial;
+
+            $('#showLinkModalBtn').on('click', function () {
+                $('#ProductLinkModal').modal('show');
+                console.log('jancok')
+            });
+
+            $('#ProductLinkModal').on('shown.bs.modal', function () {
+                console.log('jancok')
+
+                const articleId = $('#article_id').val();
+
+                if ($('#tabMarketplace').hasClass('active')) {
+                    initMarketplace(articleId);
+                }
+            });
+
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+
+                const target = $(e.target).attr("href");
+                const articleId = $('#article_id').val();
+
+                if (target === '#tabMarketplace') {
+                    initMarketplace(articleId);
+                }
+
+                if (target === '#tabSocial') {
+                    initSocial(articleId);
+                }
+            });
+
+// =============================
+// FUNCTIONS
+// =============================
+            function initMarketplace(articleId) {
+                if (!tableMarketplace) {
+                    tableMarketplace = $("#tableMarketplaceLinks").DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: `/product-links/marketplace/${articleId}`,
+                        columns: [
+                            { data: "platform" },
+                            { data: "url" },
+                            { data: "location" },
+                            { data: "action", orderable: false, searchable: false }
+                        ]
+                    });
+                } else {
+                    tableMarketplace.ajax.url(`/product-links/marketplace/${articleId}`).load();
+                }
+            }
+
+            function initSocial(articleId) {
+                if (!tableSocial) {
+                    tableSocial = $("#tableSocialLinks").DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: `/product-links/social/${articleId}`,
+                        columns: [
+                            { data: "platform" },
+                            { data: "url" },
+                            { data: "location" },
+                            { data: "action", orderable: false, searchable: false }
+                        ]
+                    });
+                } else {
+                    tableSocial.ajax.url(`/product-links/social/${articleId}`).load();
+                }
+            }
+
+            const marketplaceList = [
+                { name: "Shopee", icon: "fa fa-shopping-bag", value: "shopee" },
+                { name: "Tokopedia", icon: "fa fa-store", value: "tokopedia" },
+                { name: "TikTok Shop", icon: "fa fa-video", value: "tiktok_shop" },
+            ];
+
+            const socialMediaList = [
+                { name: "Instagram", icon: "fa fa-instagram", value: "instagram" },
+                { name: "Facebook", icon: "fa fa-facebook", value: "facebook" },
+                { name: "TikTok", icon: "fa fa-music", value: "tiktok" },
+                { name: "YouTube", icon: "fa fa-youtube", value: "youtube" },
+            ];
+
+            function loadPlatformOptions(type) {
+                let options = "";
+
+                let list = (type === "marketplace") ? marketplaceList : socialMediaList;
+
+                list.forEach(item => {
+                    options += `
+                        <option value="${item.value}" data-icon="${item.icon}">
+                            ${item.name}
+                        </option>
+                    `;
+                });
+
+                $("#pl_platform").html(options);
+            }
+
+            function loadLocations() {
+                $.ajax({
+                    url: "/product-links/locations",
+                    method: "GET",
+                    success: function (data) {
+                        $("#pl_location").empty();
+                        data.forEach(function(loc) {
+                            $("#pl_location").append(`<option value="${loc}">${loc}</option>`);
+                        });
+
+                        // init select2 for location
+                        $("#pl_location").select2({
+                            width: "100%",
+                            placeholder: "Pilih Lokasi"
+                        });
+                    }
+                });
+            }
+
+            $("#addMarketplaceLinkBtn").on("click", function () {
+                $("#ProductLinkFormTitle").text("Add Marketplace Link");
+                $("#pl_type").val("marketplace");
+                $("#pl_url").val("");
+                $("#pl_location").val("");
+                loadPlatformOptions("marketplace");
+                loadLocations();
+                $("#ProductLinkFormModal").modal("show");
+            });
+
+            $("#addSocialLinkBtn").on("click", function () {
+                $("#ProductLinkFormTitle").text("Add Social Media Link");
+                $("#pl_type").val("social");
+                $("#pl_url").val("");
+                $("#pl_location").val("");
+                loadPlatformOptions("social");
+                loadLocations();
+                $("#ProductLinkFormModal").modal("show");
+            });
+
+            $("#SaveProductLinkBtn").on("click", function () {
+                const articleId = $('#article_id').val();
+
+
+                $.ajax({
+                    url: "/product-links/store",
+                    method: "POST",
+                    data: {
+                        product_id: $("#pl_product_id").val(),
+                        type: $("#pl_type").val(),
+                        url: $("#pl_url").val(),
+                        platform: $("#pl_platform").val(),
+                        articleId: articleId,
+                        location: $("#pl_location").val(),
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (res) {
+                        toastr.success("Link berhasil disimpan!");
+
+                        $("#ProductLinkFormModal").modal("hide");
+
+                        // reload datatables
+                        $("#tableMarketplaceLinks").DataTable().ajax.reload();
+                        $("#tableSocialLinks").DataTable().ajax.reload();
+                    }
+                });
+
+            });
+
+
             $('#showImageModalBtn').on('click', function() {
                 const articleId = $('#article_id').val();
 
