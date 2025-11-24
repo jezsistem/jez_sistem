@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ModalLock extends Model
 {
+    protected $table = 'modal_locks';
+
     protected $fillable = ['user_id', 'lockable_type','identifier', 'lockable_id', 'expires_at'];
 
     public function user() {
