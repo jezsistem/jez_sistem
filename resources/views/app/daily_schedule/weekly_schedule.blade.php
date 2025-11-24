@@ -199,11 +199,26 @@
                                             <td>{{ $user->ud_name ?? '-' }}</td>
                                             <td><small class="badge badge-primary">{{ $userType }}</small></td>
                                             <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ $startDate }}">
-                                                <select class="form-control shift-select"
-                                                        multiple
-                                                        data-user-id="{{ $user->id }}"
-                                                        data-date="{{ $startDate }}"
-                                                        onchange="saveScheduleDirectly(this)">
+{{--                                                <select class="form-control shift-select select2-shift"--}}
+{{--                                                        multiple--}}
+{{--                                                        data-user-id="{{ $user->id }}"--}}
+{{--                                                        data-date="{{ $startDate }}"--}}
+{{--                                                        onchange="saveScheduleDirectly(this)">--}}
+{{--                                                    @foreach($availableShiftCodes as $shiftCode)--}}
+{{--                                                        <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>--}}
+{{--                                                    @endforeach--}}
+{{--                                                </select>--}}
+{{--                                                <select class="form-control shift-select"--}}
+{{--                                                        data-user-id="{{ $user->id }}"--}}
+{{--                                                        data-date="{{ date('Y-m-d', strtotime($startDate . ' +1 day')) }}"--}}
+{{--                                                        onchange="saveScheduleDirectly(this)">--}}
+{{--                                                    @foreach($availableShiftCodes as $shiftCode)--}}
+{{--                                                        <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>--}}
+{{--                                                    @endforeach--}}
+{{--                                                </select>--}}
+
+                                                <select class="form-control shift-select select2-shift" multiple style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate)) }}" onchange="saveScheduleDirectly(this)">
+                                                    <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
                                                     @endforeach
@@ -370,6 +385,19 @@ window.backendStartDate = '{{ $startDate ?? date('Y-m-d', strtotime('monday this
 window.backendEndDate = '{{ $endDate ?? date('Y-m-d', strtotime('sunday this week')) }}';
 window.backendDateFilter = '{{ $dateFilter ?? 'this_week' }}';
 
+$(document).ready(function () {
+    $('.select2-shift').select2({
+        width: '100%',
+        placeholder: "-",
+        allowClear: true
+    });
+
+    // Delay sedikit agar select2 siap
+    setTimeout(() => {
+        loadExistingSchedulesForAll();
+    }, 300);
+});
+
 // Helper functions - must be defined first
 function getDateRange(filter) {
     const today = new Date();
@@ -503,13 +531,17 @@ function updateTableDates(filter) {
     
     // Update table cells data attributes
     const cells = document.querySelectorAll('.schedule-cell');
+
     cells.forEach((cell, cellIndex) => {
-        const columnIndex = (cellIndex % 7) + 4; // +4 because first 4 columns are not date columns
+
+        if (window.isScheduleLoaded) return;
+
+        const columnIndex = (cellIndex % 7) + 4;
+
         if (columnIndex < dates.length + 4) {
             const date = dates[columnIndex - 4];
             cell.setAttribute('data-date', formatDate(date));
-            
-            // Update select elements data attributes
+
             const select = cell.querySelector('.shift-select');
             if (select) {
                 select.setAttribute('data-date', formatDate(date));
@@ -536,16 +568,6 @@ function handleSearch() {
         }, 500);
     }
 }
-
-$(document).on('focus', '.shift-select', function () {
-    if (!$(this).data('select2')) {
-        $(this).select2({
-            width: '100%',
-            placeholder: 'Pilih Shift',
-            allowClear: true
-        });
-    }
-});
 
 function saveScheduleDirectly(selectElement) {
     const userId = selectElement.getAttribute('data-user-id');
@@ -616,99 +638,197 @@ function loadExistingSchedules() {
 }
 
 // Function to load existing schedules for all users (or specific division)
+{{--function loadExistingSchedulesForAll(divisionId = null, searchValue = null, dateFilter = null) {--}}
+{{--    // Show loading indicator--}}
+{{--    const loadingIndicator = document.createElement('div');--}}
+{{--    loadingIndicator.innerHTML = 'Loading schedules...';--}}
+{{--    loadingIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#17a2b8;color:white;padding:10px;border-radius:5px;z-index:9999;';--}}
+{{--    document.body.appendChild(loadingIndicator);--}}
+{{--    --}}
+{{--    // Get date range from backend or filter--}}
+{{--    let startDate, endDate;--}}
+{{--    --}}
+{{--    // Check if we have dates from backend (PHP variables)--}}
+{{--    if (typeof window.backendStartDate !== 'undefined' && typeof window.backendEndDate !== 'undefined') {--}}
+{{--        startDate = new Date(window.backendStartDate);--}}
+{{--        endDate = new Date(window.backendEndDate);--}}
+{{--    } else {--}}
+{{--        // Fallback to filter-based calculation--}}
+{{--        const dateRange = getDateRange(dateFilter || 'this_week');--}}
+{{--        startDate = dateRange.startDate;--}}
+{{--        endDate = dateRange.endDate;--}}
+{{--    }--}}
+{{--    --}}
+{{--    // Build URL with optional division filter and search--}}
+{{--    let url = '{{ route("daily-schedule.get-weekly-schedules") }}?start_date=' + encodeURIComponent(startDate.toISOString().split('T')[0]);--}}
+{{--    if (divisionId) {--}}
+{{--        url += '&division_id=' + encodeURIComponent(divisionId);--}}
+{{--    }--}}
+{{--    if (searchValue) {--}}
+{{--        url += '&search=' + encodeURIComponent(searchValue);--}}
+{{--    }--}}
+{{--    --}}
+{{--    // Fetch existing schedules--}}
+{{--    fetch(url)--}}
+{{--        .then(response => response.json())--}}
+{{--        .then(data => {--}}
+{{--            document.body.removeChild(loadingIndicator);--}}
+{{--            --}}
+{{--            console.log('API Response:', data);--}}
+{{--            --}}
+{{--            if (data.success && data.schedules) {--}}
+{{--                console.log('Found', data.schedules.length, 'users with schedules');--}}
+{{--                --}}
+{{--                // Populate dropdowns with existing data--}}
+{{--                data.schedules.forEach(function(userSchedule) {--}}
+{{--                    const userId = userSchedule.user_id;--}}
+{{--                    --}}
+{{--                    // Loop through dates for this user--}}
+{{--                    Object.keys(userSchedule.dates).forEach(function(date) {--}}
+{{--                        const scheduleData = userSchedule.dates[date];--}}
+{{--                        const selector = `select[data-user-id="${userId}"][data-date="${date}"]`;--}}
+{{--                        const selectElement = document.querySelector(selector);--}}
+
+{{--                        if (selectElement && scheduleData.sc_id) {--}}
+
+{{--                            let selectedIds = [];--}}
+
+{{--                            // Jika sc_id array → langsung pakai--}}
+{{--                            if (Array.isArray(scheduleData.sc_id)) {--}}
+{{--                                selectedIds = scheduleData.sc_id.map(String);--}}
+{{--                            } else {--}}
+{{--                                // Jika backend masih mengirim satu value--}}
+{{--                                selectedIds = [String(scheduleData.sc_id)];--}}
+{{--                            }--}}
+
+{{--                            // Set ke select dan refresh Select2--}}
+{{--                            $(selectElement).val(selectedIds).trigger('change');--}}
+{{--                        }--}}
+{{--                    });--}}
+{{--                });--}}
+{{--                --}}
+{{--                // Show success indicator (only if schedules were found)--}}
+{{--                if (data.schedules.length > 0) {--}}
+{{--                    const successIndicator = document.createElement('div');--}}
+{{--                    successIndicator.innerHTML = `✓ Loaded ${data.schedules.length} users with schedules`;--}}
+{{--                    successIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#28a745;color:white;padding:10px;border-radius:5px;z-index:9999;';--}}
+{{--                    document.body.appendChild(successIndicator);--}}
+{{--                    setTimeout(() => document.body.removeChild(successIndicator), 3000);--}}
+{{--                } else {--}}
+{{--                    console.log('No schedules found for this week');--}}
+{{--                }--}}
+{{--            } else {--}}
+{{--                console.error('API call failed:', data);--}}
+{{--                const errorIndicator = document.createElement('div');--}}
+{{--                errorIndicator.innerHTML = '❌ Failed to load schedules';--}}
+{{--                errorIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#dc3545;color:white;padding:10px;border-radius:5px;z-index:9999;';--}}
+{{--                document.body.appendChild(errorIndicator);--}}
+{{--                setTimeout(() => document.body.removeChild(errorIndicator), 3000);--}}
+{{--            }--}}
+{{--        })--}}
+{{--        .catch(error => {--}}
+{{--            console.error('Error loading schedules:', error);--}}
+{{--            document.body.removeChild(loadingIndicator);--}}
+{{--            const errorIndicator = document.createElement('div');--}}
+{{--            errorIndicator.innerHTML = '❌ Network error loading schedules';--}}
+{{--            errorIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#dc3545;color:white;padding:10px;border-radius:5px;z-index:9999;';--}}
+{{--            document.body.appendChild(errorIndicator);--}}
+{{--            setTimeout(() => document.body.removeChild(errorIndicator), 3000);--}}
+{{--        });--}}
+{{--}--}}
+
+// disini ya ges
 function loadExistingSchedulesForAll(divisionId = null, searchValue = null, dateFilter = null) {
-    // Show loading indicator
+
+    console.log("🚀 Function loadExistingSchedulesForAll mulai");
+
+    // Loading indicator
     const loadingIndicator = document.createElement('div');
     loadingIndicator.innerHTML = 'Loading schedules...';
     loadingIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#17a2b8;color:white;padding:10px;border-radius:5px;z-index:9999;';
     document.body.appendChild(loadingIndicator);
-    
-    // Get date range from backend or filter
+
     let startDate, endDate;
-    
-    // Check if we have dates from backend (PHP variables)
+
     if (typeof window.backendStartDate !== 'undefined' && typeof window.backendEndDate !== 'undefined') {
         startDate = new Date(window.backendStartDate);
         endDate = new Date(window.backendEndDate);
     } else {
-        // Fallback to filter-based calculation
         const dateRange = getDateRange(dateFilter || 'this_week');
         startDate = dateRange.startDate;
         endDate = dateRange.endDate;
     }
-    
-    // Build URL with optional division filter and search
+
     let url = '{{ route("daily-schedule.get-weekly-schedules") }}?start_date=' + encodeURIComponent(startDate.toISOString().split('T')[0]);
-    if (divisionId) {
-        url += '&division_id=' + encodeURIComponent(divisionId);
-    }
-    if (searchValue) {
-        url += '&search=' + encodeURIComponent(searchValue);
-    }
-    
-    // Fetch existing schedules
+    if (divisionId) url += '&division_id=' + encodeURIComponent(divisionId);
+    if (searchValue) url += '&search=' + encodeURIComponent(searchValue);
+
+    console.log("🌐 Fetch URL:", url);
+
     fetch(url)
         .then(response => response.json())
         .then(data => {
+
             document.body.removeChild(loadingIndicator);
-            
-            console.log('API Response:', data);
-            
+
+            console.log("📥 API Response:", JSON.stringify(data, null, 2));
+
             if (data.success && data.schedules) {
-                console.log('Found', data.schedules.length, 'users with schedules');
-                
-                // Populate dropdowns with existing data
+
                 data.schedules.forEach(function(userSchedule) {
                     const userId = userSchedule.user_id;
-                    
-                    // Loop through dates for this user
+
+                    console.log('kontooool :', userId)
+
                     Object.keys(userSchedule.dates).forEach(function(date) {
                         const scheduleData = userSchedule.dates[date];
                         const selector = `select[data-user-id="${userId}"][data-date="${date}"]`;
                         const selectElement = document.querySelector(selector);
-                        
-                        if (selectElement && scheduleData.sc_id) {
-                            // Check if the shift code option exists in this dropdown
-                            const optionExists = Array.from(selectElement.options).some(option => option.value == scheduleData.sc_id);
-                            
-                            if (optionExists) {
-                                selectElement.value = scheduleData.sc_id;
-                            } else {
-                                console.warn('Shift code', scheduleData.sc_id, 'not available in dropdown for user', userId, 'on date', date);
-                            }
+
+                        console.log("-------------------------------------------------------");
+                        console.log("🔍 USER:", userId, "DATE:", date);
+                        console.log("📌 scheduleData:", scheduleData);
+
+                        if (!selectElement) {
+                            console.warn("❌ Select element tidak ditemukan:", selector);
+                            return;
                         }
+
+                        console.log("📄 Pilihan option yang tersedia:");
+                        Array.from(selectElement.options).forEach(opt => {
+                            console.log("  -> value:", opt.value, "| text:", opt.text);
+                        });
+
+                        let selectedIds = [];
+
+                        if (Array.isArray(scheduleData.sc_id)) {
+                            selectedIds = scheduleData.sc_id.map(String);
+                        } else {
+                            selectedIds = [String(scheduleData.sc_id)];
+                        }
+
+                        console.log("🎯 Value yang ingin di-set:", selectedIds);
+
+                        // Set value ke select2
+                        $(selectElement).val(selectedIds).trigger('change');
+
+
+                        // Verifikasi setelah set
+                        console.log("✔️ Select2 updated:", $(selectElement).val());
                     });
                 });
-                
-                // Show success indicator (only if schedules were found)
-                if (data.schedules.length > 0) {
-                    const successIndicator = document.createElement('div');
-                    successIndicator.innerHTML = `✓ Loaded ${data.schedules.length} users with schedules`;
-                    successIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#28a745;color:white;padding:10px;border-radius:5px;z-index:9999;';
-                    document.body.appendChild(successIndicator);
-                    setTimeout(() => document.body.removeChild(successIndicator), 3000);
-                } else {
-                    console.log('No schedules found for this week');
-                }
+
+                console.log("🎉 Semua jadwal selesai dimuat.");
             } else {
-                console.error('API call failed:', data);
-                const errorIndicator = document.createElement('div');
-                errorIndicator.innerHTML = '❌ Failed to load schedules';
-                errorIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#dc3545;color:white;padding:10px;border-radius:5px;z-index:9999;';
-                document.body.appendChild(errorIndicator);
-                setTimeout(() => document.body.removeChild(errorIndicator), 3000);
+                console.error("❌ API error:", data);
             }
         })
         .catch(error => {
-            console.error('Error loading schedules:', error);
+            console.error("🚨 Network error:", error);
             document.body.removeChild(loadingIndicator);
-            const errorIndicator = document.createElement('div');
-            errorIndicator.innerHTML = '❌ Network error loading schedules';
-            errorIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#dc3545;color:white;padding:10px;border-radius:5px;z-index:9999;';
-            document.body.appendChild(errorIndicator);
-            setTimeout(() => document.body.removeChild(errorIndicator), 3000);
         });
 }
+
 
 // Auto-load schedules when page loads
 document.addEventListener('DOMContentLoaded', function() {

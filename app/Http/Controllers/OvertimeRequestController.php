@@ -6,6 +6,7 @@ use App\Models\ExternalAssignmentRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
 use App\Models\OvertimeType;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -126,11 +127,23 @@ class OvertimeRequestController extends Controller
                 'end_date' => 'required|date',
                 'end_time' => 'required',
                 'details' => 'required|string',
-                'attachment' => 'nullable|file|max:2048', // max 2MB
+                'attachment' => 'nullable|file|max:2048',
                 'claim' => 'required',
             ]);
 
-            // handle file upload
+            // Combine date & time
+            $startDateTime = Carbon::parse($validated['start_date'] . ' ' . $validated['start_time']);
+            $endDateTime   = Carbon::parse($validated['end_date'] . ' ' . $validated['end_time']);
+
+            // Validate end > start
+            if ($endDateTime->lessThanOrEqualTo($startDateTime)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal & jam selesai harus lebih besar dari tanggal & jam mulai'
+                ], 422);
+            }
+
+            // File upload
             $attachmentPath = null;
             if ($request->hasFile('attachment')) {
                 $attachmentPath = $request->file('attachment')->store('attachments/overtime', 'public');
@@ -144,18 +157,17 @@ class OvertimeRequestController extends Controller
                 'start_time' => $validated['start_time'],
                 'end_date' => $validated['end_date'],
                 'end_time' => $validated['end_time'],
-                'details' =>  trim($validated['details']),
+                'details' => trim($validated['details']),
                 'attachment' => $attachmentPath,
                 'ot_id' => $validated['claim'] ?? null,
                 'status' => 'Pending',
                 'request_by' => auth()->id(),
-                'approved_by' => null,
-                'approved_at' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
             return response()->json(['success' => true, 'message' => 'Overtime request submitted successfully']);
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['success' => false, 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
