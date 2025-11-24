@@ -16,6 +16,7 @@ class CreateModalLockAllowedModelTable extends Migration
         Schema::create('modal_lock_allowed_models', function (Blueprint $table) {
             $table->id();
             $table->string('model_type');
+            $table->string('model_name');
             $table->string('identifier');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
@@ -29,6 +30,6 @@ class CreateModalLockAllowedModelTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('modal_lock_allowed_model');
+        Schema::dropIfExists('modal_lock_allowed_models');
     }
 }

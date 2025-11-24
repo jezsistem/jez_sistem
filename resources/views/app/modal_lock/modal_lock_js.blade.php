@@ -52,11 +52,11 @@
 
     function saveConfig() {
         var action = $('#configAction').val();
-        var url = action === 'edit' 
-            ? "{{ url('modal_lock/config/update') }}/" + $('#configId').val()
-            : "{{ url('modal_lock/config/save') }}";
+        var url = action === 'edit' ?
+            "{{ url('modal_lock/config/update') }}/" + $('#configId').val() :
+            "{{ url('modal_lock/config/save') }}";
         var method = action === 'edit' ? 'PUT' : 'POST';
-        
+
         $.ajax({
             type: method,
             url: url,
@@ -144,11 +144,11 @@
 
     function saveAllowedModel() {
         var action = $('#allowedModelAction').val();
-        var url = action === 'edit' 
-            ? "{{ url('modal_lock/allowed_models/update') }}/" + $('#allowedModelId').val()
-            : "{{ url('modal_lock/allowed_models/save') }}";
+        var url = action === 'edit' ?
+            "{{ url('modal_lock/allowed_models/update') }}/" + $('#allowedModelId').val() :
+            "{{ url('modal_lock/allowed_models/save') }}";
         var method = action === 'edit' ? 'PUT' : 'POST';
-        
+
         $.ajax({
             type: method,
             url: url,
@@ -163,6 +163,7 @@
                         icon: "success",
                     });
                     modal_lock_allowed_models_table.ajax.reload();
+                    $('#formAllowedModel')[0].reset();
                     jQuery.noConflict();
                     $('#modalAddEditAllowedModel').modal('hide');
                 } else {
@@ -170,6 +171,11 @@
                         icon: "error",
                     });
                 }
+            },
+            error: function(xhr, status, error) {
+                swal("Error saving Allowed Model", {
+                    icon: "error",
+                });
             }
         });
     }
@@ -184,6 +190,7 @@
                 if (response.status == '200') {
                     $('#allowedModelAction').val('edit');
                     $('#allowedModelId').val(response.data.id);
+                    $('#allowedModelName').val(response.data.model_name);
                     $('#allowedModelType').val(response.data.model_type);
                     $('#allowedModelIdentifier').val(response.data.identifier);
                     $('#allowedModelIsActive').val(response.data.is_active);
@@ -309,6 +316,11 @@
                 url: "{{ url('modal_lock/config/datatables') }}",
             },
             columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
                     data: 'name',
                     name: 'name'
                 },
@@ -338,9 +350,19 @@
             ajax: {
                 url: "{{ url('modal_lock/allowed_models/datatables') }}",
             },
-            columns: [{
+            columns: [
+                {
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
                     data: 'model_type',
                     name: 'model_type'
+                },
+                {
+                    data: 'model_name',
+                    name: 'model_name'
                 },
                 {
                     data: 'identifier',
@@ -408,6 +430,7 @@
 
         $('.close_modal_allowed_models').on('click', function() {
             jQuery.noConflict();
+            $('#formAllowedModel')[0].reset();
             $('#modalAllowedModels').modal('hide');
         });
 

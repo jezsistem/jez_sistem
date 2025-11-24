@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ModalLockAllowedModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -14,10 +15,14 @@ class LockController extends Controller
     // "Daftar putih" model yang boleh di-lock (untuk keamanan)
     private function getAllowedModels(): array
     {
-        return [
-            'purchase_order' => \App\Models\PurchaseOrder::class,
-            'online_transactions' => \App\Models\OnlineTransactions::class,
-        ];
+        $allowedModels = ModalLockAllowedModel::all();
+
+        $allowedModelsArray = [];
+        foreach ($allowedModels as $allowedModel) {
+            $allowedModelsArray[$allowedModel->model_type] = "\\App\\Models\\" . $allowedModel->model_name;
+        }
+
+        return $allowedModelsArray;
     }
 
     // Fungsi untuk mencari model berdasarkan tipe dan ID dari request

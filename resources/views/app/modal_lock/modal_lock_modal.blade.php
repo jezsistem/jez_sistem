@@ -13,6 +13,7 @@
                     <table class="table table-striped table-hover" id="config_table">
                         <thead>
                             <tr>
+                                <th>No</th>
                                 <th>Name</th>
                                 <th>Value</th>
                                 <th>Description</th>
@@ -45,6 +46,8 @@
                     <table class="table table-striped table-hover" id="allowed_models_table">
                         <thead>
                             <tr>
+                                <th>No</th>
+                                <th>Type</th>
                                 <th>Model</th>
                                 <th>Identifier</th>
                                 <th>Is Active</th>
@@ -115,10 +118,15 @@
                 <form id="formAllowedModel">
                     <input type="hidden" id="allowedModelAction" name="action" value="add">
                     <input type="hidden" id="allowedModelId" name="allowed_model_id">
+
+                    <div class="mb-3">
+                        <label for="allowedModelType" class="form-label">Type</label>
+                        <input type="text" class="form-control" id="allowedModelType" name="model_type" required>
+                    </div>
                     
                     <div class="mb-3">
-                        <label for="allowedModelType" class="form-label">Model</label>
-                        <input type="text" class="form-control" id="allowedModelType" name="model_type" required>
+                        <label for="allowedModelName" class="form-label">Model</label>
+                        <input type="text" class="form-control" id="allowedModelName" name="model_name" required>
                     </div>
                     
                     <div class="mb-3">

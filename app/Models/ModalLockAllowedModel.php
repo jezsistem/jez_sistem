@@ -12,6 +12,7 @@ class ModalLockAllowedModel extends Model
 
     protected $fillable = [
         'model_type',
+        'model_name',
         'identifier',
         'is_active',
     ];

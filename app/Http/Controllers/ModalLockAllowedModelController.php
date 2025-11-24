@@ -16,12 +16,14 @@ class ModalLockAllowedModelController extends Controller
     {
         $request->validate([
             'model_type' => 'required|string|max:255',
+            'model_name' => 'required|string|max:255',
             'identifier' => 'required|string|max:255',
             'is_active' => 'required|boolean',
         ]);
 
         $allowedModel = ModalLockAllowedModel::create([
             'model_type' => $request->model_type,
+            'model_name' => $request->model_name,
             'identifier' => $request->identifier,
             'is_active' => $request->is_active,
         ]);
@@ -75,7 +77,7 @@ class ModalLockAllowedModelController extends Controller
     public function getAllowedModelsDatatables()
     {
         if (request()->ajax()) {
-            return datatables()->of(ModalLockAllowedModel::select('id', 'model_type', 'identifier', 'is_active')->orderBy('id', 'desc'))
+            return datatables()->of(ModalLockAllowedModel::select('id', 'model_type', 'model_name', 'identifier', 'is_active')->orderBy('id', 'desc'))
                 ->editColumn('is_active', function ($data) {
                     return $data->is_active ? 'Yes' : 'No';
                 })

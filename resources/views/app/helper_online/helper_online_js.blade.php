@@ -431,6 +431,8 @@
             }
         });
 
+        var modal_lock_active = {{ $data['modal_lock_active'] ? 'true' : 'false' }};
+
         getListPicked();
         setInterval(() => {
             getListPicked();
@@ -576,18 +578,20 @@
             e.preventDefault();
             modal_opened = 'ScanOutModal';
 
-            // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('online_transactions', transactionId,
-                'helper_online');
-            if (lockResult === false) {
-                return;
-            }
+            if (modal_lock_active) {
+                // Coba dapatkan lock sebelum buka modal
+                const lockResult = await openEditModal('online_transactions', transactionId,
+                    'helper_online');
+                if (lockResult === false) {
+                    return;
+                }
 
-            // Mulai interval untuk extend lock setiap 60 detik
-            if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
-            window.lockExtendInterval = setInterval(function() {
-                extendLock('online_transactions', transactionId, 'helper_online');
-            }, 60000);
+                // Mulai interval untuk extend lock setiap 60 detik
+                if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
+                window.lockExtendInterval = setInterval(function() {
+                    extendLock('online_transactions', transactionId, 'helper_online');
+                }, 60000);
+            }
 
             jQuery.noConflict();
             $('#OnlineItemsModalLabel').text('Order Number: ' + orderNumber);
@@ -915,7 +919,11 @@
 
         $(document).on('click', '#close_scan_packing_modal_btn', function(e) {
             var transactionId = $('#plst_id_scan_packing').text();
-            closeEditModal('online_transactions', transactionId, 'helper_online');
+
+            if (modal_lock_active) {
+                closeEditModal('online_transactions', transactionId, 'helper_online');
+            }
+
             $('#scanPackingModal').modal('hide');
         });
 
@@ -1329,7 +1337,7 @@
                                             url: "{{ url('helper_online_pick_item') }}",
                                             success: function(r) {
                                                 Swal
-                                            .close(); // Close loading
+                                                    .close(); // Close loading
 
                                                 if (r.status == '200') {
                                                     online_items_table
