@@ -481,103 +481,138 @@ class DashboardController extends Controller
     {
         $date = $request->post('_range');
 
+        // --- DATE RANGE PARSING
         $start = null;
         $end = null;
-        $item = array();
-        $total = 0;
+
         if (!empty($date)) {
             $exp = explode('|', $date);
             if (count($exp) > 1) {
-                $start = $exp[0];
-                $end = $exp[1];
+                $start = $exp[0] . " 00:00:00";
+                $end   = $exp[1] . " 23:59:59";
             } else {
-                $start = $date;
+                $start = $date . " 00:00:00";
+                $end   = $date . " 23:59:59";
             }
         }
-        $store = DB::table('stores')
-            ->where('st_delete', '!=', '1')->get();
-        if (!empty($store->first())) {
-            foreach ($store as $row) {
-                $st_id = $row->id;
-                $admin_cost = DB::table('pos_transactions')->select('pos_admin_cost', 'pos_status')
-                    ->where(function ($w) use ($start, $end, $st_id) {
-                        if (!empty($st_id)) {
-                            $w->where('pos_transactions.st_id_ref', '=', $st_id);
-                        }
-                        if (!empty($end)) {
-                            $w->whereDate('pos_transactions.created_at', '>=', $start)
-                                ->whereDate('pos_transactions.created_at', '<=', $end);
-                        } else {
-                            $w->whereDate('pos_transactions.created_at', '=', $start);
-                        }
-                    })
-                    ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
-                    ->sum('pos_admin_cost');
+        // --- QUERY LANGSUNG GROUP BY STORE
+        $sql = "
+        SELECT
+            t.st_name,
+            round(sum(t.Cogs),0) as Cogs_adj,
+            SUM(
+                CASE
+                    WHEN t.created_at < '2025-10-04 17:30:00' THEN
+                        t.Net_sales + t.nameset_price
+                        + CASE WHEN t.Net_sales < 0 THEN COALESCE(-online.discount,0)
+                               ELSE COALESCE(online.discount,0)
+                          END
+                    WHEN t.Net_sales < 0 THEN
+                        t.Net_sales + t.nameset_price + COALESCE(-online.discount,0)
+                    ELSE
+                        t.Net_sales + t.nameset_price
+                END
+            ) AS net_sales_adj
+        FROM (
+            SELECT
+                ts_pos_transactions.pos_invoice,
+                SUM(
+                    CASE
+                        WHEN ts_pos_transactions.pos_invoice NOT LIKE 'INV%' THEN
+                            ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+                        WHEN ts_pos_transaction_details.pos_td_discount_number > 0
+                            AND (
+                                CASE
+                                    WHEN ts_products.article_id = 'CUS01' THEN 0
+                                    ELSE ROUND(
+                                        (ts_product_stocks.ps_price_tag * ts_pos_transaction_details.pos_td_qty)
+                                        - ts_pos_transaction_details.pos_td_sell_price, 1
+                                    ) + COALESCE(ts_pos_transaction_details.pos_td_nameset_price,0)
+                                END
+                            ) = 0
+                        THEN
+                            ROUND(ts_pos_transaction_details.pos_td_sell_price,1)
+                            - ts_pos_transaction_details.pos_td_discount_number
+                        ELSE
+                            ROUND(ts_pos_transaction_details.pos_td_sell_price,1)
+                    END
+                ) AS Net_sales,
+                COALESCE(SUM(ts_pos_transaction_details.pos_td_nameset_price),0) AS nameset_price,
+                ts_stores.st_name,
+                sum(ts_product_stocks.ps_price_tag) AS Cogs,
+                ts_pos_transactions.created_at
+            FROM ts_pos_transaction_details
+            LEFT JOIN ts_pos_transactions ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
+            LEFT JOIN ts_product_stocks   ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
+            LEFT JOIN ts_products         ON ts_products.id = ts_product_stocks.p_id
+            LEFT JOIN ts_stores           ON ts_pos_transactions.st_id = ts_stores.id
+            WHERE ts_pos_transactions.pos_status IN
+                ('DONE','CANCEL','NAMESET','REFUND','SHIPPED','TELAH DIKIRIM','TO SHIP')
+                AND ts_pos_transactions.st_id IN (2,3,5,8,20,30,40,53)
+                AND ts_pos_transactions.created_at BETWEEN ? AND ?
+            GROUP BY ts_pos_transactions.pos_invoice, ts_stores.st_name, ts_pos_transactions.created_at
+        ) t
+        LEFT JOIN (
+            SELECT
+                ts_online_transactions.order_number,
+                ts_online_transaction_details.discount_platform AS discount
+            FROM ts_online_transactions
+            LEFT JOIN ts_online_transaction_details
+                ON ts_online_transaction_details.to_id = ts_online_transactions.id
+            GROUP BY ts_online_transactions.order_number
+        ) online ON online.order_number = t.pos_invoice
+        GROUP BY t.st_name
+        ORDER BY SUM(
+            CASE
+                WHEN t.created_at < '2025-10-04 17:30:00' THEN
+                    t.Net_sales + t.nameset_price
+                    + CASE WHEN t.Net_sales < 0 THEN COALESCE(-online.discount,0)
+                           ELSE COALESCE(online.discount,0)
+                      END
+                WHEN t.Net_sales < 0 THEN
+                    t.Net_sales + t.nameset_price + COALESCE(-online.discount,0)
+                ELSE
+                    t.Net_sales + t.nameset_price
+            END
+        ) DESC
+    ";
 
-                $pf = DB::table('pos_transaction_details')
-                    ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-                    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-                    ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->where(function ($w) use ($start, $end, $st_id) {
-                        if (!empty($end)) {
-                            $w->whereDate('pos_transactions.created_at', '>=', $start)
-                                ->whereDate('pos_transactions.created_at', '<=', $end);
-                        } else {
-                            $w->whereDate('pos_transactions.created_at', '=', $start);
-                        }
-                        if (!empty($st_id)) {
-                            $w->where('pos_transactions.st_id_ref', '=', $st_id);
-                        }
-                        $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
-                    })
-                    ->groupBy('pos_transaction_details.id')
-                    ->get();
-                $profit = 0;
-                if (!empty($pf->first())) {
-                    foreach ($pf as $srow) {
-                        $sales_total = 0;
-                        if (!empty($srow->pos_td_marketplace_price)) {
-                            $sales_total = $srow->pos_td_marketplace_price;
-                        } else {
-                            $sales_total = $srow->pos_td_discount_price;
-                        }
-                        $purchase = 0;
-                        if (!empty($srow->purchase)) {
-                            $purchase = round($srow->purchase);
-                        } else {
-                            if (!empty($srow->poad_total_price)) {
-                                $purchase = round($srow->poad_total_price / $srow->poad_qty);
-                            } else {
-                                if (!empty($srow->ps_purchase_price)) {
-                                    $purchase = $srow->ps_purchase_price;
-                                } else {
-                                    $purchase = $srow->p_purchase_price;
-                                }
-                            }
-                        }
-                        $profit += $sales_total - ($srow->pos_td_qty * $purchase);
-                    }
-                }
-                $profit = $profit - $admin_cost;
-                if ($profit > 0) {
-                    $item[] = [
-                        'st_name' => $row->st_name,
-                        'total' => $profit,
-                    ];
-                }
-                sort($item);
-                $total += $profit;
+        $result = DB::select($sql, [$start, $end]);
+
+        $total = 0;
+        $item = [];
+        $count = 0; // untuk menghitung jumlah store
+
+        foreach ($result as $row) {
+            // pastikan tipe float
+            $nett_sales = isset($row->net_sales_adj) ? (float) $row->net_sales_adj : 0;
+            $cogs       = isset($row->cogs_adj) ? (float) $row->cogs_adj : 0;
+
+            if ($nett_sales > 0) {
+                // hitung margin % dengan benar
+                $margin_percent = (($nett_sales - $cogs) / $nett_sales) * 100;
+
+                // pastikan margin tidak lebih dari 100% atau kurang dari 0%
+                $margin_percent = max(0, min($margin_percent, 100));
+
+                $item[] = [
+                    'st_name' => $row->st_name,
+                    'total'   => $margin_percent,                       // nilai untuk chart
+                    'margin'  => number_format($margin_percent, 2) . '%', // untuk tampilkan
+                    'color'   => $this->getColorForStore($row->st_name),
+                ];
+
+                $total += $margin_percent;
+                $count++;
             }
         }
+
         $data = [
             'item' => $item,
-            'total' => $total,
+            'total' => number_format($margin_percent, 2) . '%', // rata-rata % tampilkan
         ];
+
+
         return view('app.dashboard._load_cprofit', compact('data'));
     }
 
