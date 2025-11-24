@@ -30,11 +30,17 @@
                         <!--begin::Card-->
                         <div class="card card-custom gutter-b">
                             <div class="card-body table-responsive">
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-primary" id="btn_modal_config">
+                                        <i class="fas fa-cog"></i> Config
+                                    </button>
+                                    <button type="button" class="btn btn-success ml-2" id="btn_modal_allowed_models">
+                                        <i class="fas fa-list"></i> Allowed Model
+                                    </button>
+                                </div>
                                 <!--begin: Datatable-->
                                 <input type="search" class="form-control  col-6" id="modal_lock_search"
                                     placeholder="Cari Lock" /><br />
-                                <a class="btn btn-primary ml-auto mr-2" data-type="invoice" id="export_btn">Export
-                                    Excel</a>
                                 <table class="table table-hover table-checkable" id="ModalLocktb">
                                     <thead class="bg-light text-dark">
                                         <tr>
@@ -63,6 +69,7 @@
         <!--end::Entry-->
     </div>
     <!--end::Content-->
+    @include('app.modal_lock.modal_lock_modal')
     @include('app._partials.js')
     @include('app.modal_lock.modal_lock_js')
 @endSection()

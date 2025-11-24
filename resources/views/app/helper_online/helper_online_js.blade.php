@@ -1,4 +1,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 <script>
     var detail_table = '';
     var transactionId = '';
@@ -17,7 +18,7 @@
                 status_pick: $('#status_pick').val(),
                 platform: $('#platform').val(),
             },
-            success: function (r) {
+            success: function(r) {
                 $("#picked_online_trx").html(renderTransactions(r.transactions)); // Removed animation
                 setTotalStatuses(
                     r.total_done_online,
@@ -207,20 +208,27 @@
         // 🔸 Warna border per status
         function getBorderColor(status) {
             switch (status) {
-                case 'WAITING ONLINE': return '#ffc107';
-                case 'UNDER REVIEW': return '#6c757d';
-                case 'WAITING RECEIPT': return '#007bff';
-                case 'WAITING PACKING': return '#f00c0c';
-                case 'DONE ONLINE': return '#5CE65C';
-                case 'DONE': return '#5CE65C';
-                default: return '#000';
+                case 'WAITING ONLINE':
+                    return '#ffc107';
+                case 'UNDER REVIEW':
+                    return '#6c757d';
+                case 'WAITING RECEIPT':
+                    return '#007bff';
+                case 'WAITING PACKING':
+                    return '#f00c0c';
+                case 'DONE ONLINE':
+                    return '#5CE65C';
+                case 'DONE':
+                    return '#5CE65C';
+                default:
+                    return '#000';
             }
         }
 
         return html;
     }
 
-    $(document).on('click', '.pick-history', function (e) {
+    $(document).on('click', '.pick-history', function(e) {
         e.stopPropagation();
         jQuery.noConflict();
 
@@ -229,7 +237,7 @@
         $.ajax({
             url: `/transactions/${transactionId}/pick-history`,
             method: 'GET',
-            success: function (data) {
+            success: function(data) {
                 $('#pickHistoryModal').modal('show');
 
                 // Hapus isi lama timeline
@@ -237,16 +245,28 @@
                 timeline.empty();
 
                 // Siapkan data dengan urutan kronologis
-                const history = [
-                    { title: 'Request By', name: data.request_by, time: data.request_time },
-                    { title: 'Pick By', name: data.pick_by, time: data.pick_time },
-                    { title: 'Packing By', name: data.packing_by, time: data.pack_time },
+                const history = [{
+                        title: 'Request By',
+                        name: data.request_by,
+                        time: data.request_time
+                    },
+                    {
+                        title: 'Pick By',
+                        name: data.pick_by,
+                        time: data.pick_time
+                    },
+                    {
+                        title: 'Packing By',
+                        name: data.packing_by,
+                        time: data.pack_time
+                    },
                 ];
 
                 // Loop buat tiap step timeline
                 history.forEach(item => {
                     if (item.name || item.time) {
-                        const timeFormatted = item.time ? new Date(item.time).toLocaleString() : '-';
+                        const timeFormatted = item.time ? new Date(item.time)
+                            .toLocaleString() : '-';
                         timeline.append(`
                         <div class="timeline-item">
                             <div class="title">${item.title}</div>
@@ -257,7 +277,7 @@
                     }
                 });
             },
-            error: function () {
+            error: function() {
                 alert('Gagal mengambil data history pick.');
             }
         });
@@ -296,7 +316,7 @@
     //     });
     // });
 
-    $(document).on('click', '.copy-order-number', function (e) {
+    $(document).on('click', '.copy-order-number', function(e) {
         e.stopPropagation();
         const orderNumber = $(this).data('order');
         navigator.clipboard.writeText(orderNumber).then(() => {
@@ -310,7 +330,7 @@
         });
     });
 
-    $(document).on('click', '.copy-resi', function (e) {
+    $(document).on('click', '.copy-resi', function(e) {
         e.stopPropagation();
         const resiNumber = $(this).data('resi');
         navigator.clipboard.writeText(resiNumber).then(() => {
@@ -348,7 +368,7 @@
             clearTimeout(scan_timer);
         }
 
-        scan_timer = setTimeout(function () {
+        scan_timer = setTimeout(function() {
             var hasil = result;
 
             if (hasil.startsWith(']C1')) {
@@ -404,12 +424,14 @@
     }
 
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        var modal_lock_active = {{ $data['modal_lock_active'] ? 'true' : 'false' }};
 
         getListPicked();
         setInterval(() => {
@@ -424,16 +446,16 @@
             serverSide: true,
             ajax: {
                 url: "{{ url('/helper_online_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.st_id = $('#st_id').val();
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'DT_RowIndex',
-                orderable: false,
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
                 {
                     data: 'order_number',
                     name: 'order_number'
@@ -470,7 +492,7 @@
             deferLoading: 0,
             ajax: {
                 url: "{{ url('/helper_online_get_online_items') }}",
-                data: function (d) {
+                data: function(d) {
                     d.ot_id = transactionId;
                 }
             },
@@ -495,12 +517,12 @@
                 data: {
                     ot_id: transactionId
                 },
-                success: function (response) {
+                success: function(response) {
                     if (response.status === '200') {
                         var tbody = $('#waitingReceiptTable tbody');
                         tbody.empty();
 
-                        $.each(response.data.transactions, function (index, item) {
+                        $.each(response.data.transactions, function(index, item) {
                             var row = `
                                 <tr>
                                     <td>${index + 1}</td>
@@ -517,7 +539,7 @@
                         });
 
                         if (response.data.print_nota == 1 && response.data.print_resi == 1 && (
-                            response.data.trx_status == 'WAITING RECEIPT' || response.data
+                                response.data.trx_status == 'WAITING RECEIPT' || response.data
                                 .trx_status == 'WAITING PACKING')) {
                             $('#continuePackingBtn').prop('disabled', false);
                         } else {
@@ -527,14 +549,14 @@
                         toastr.error('Gagal mengambil data waiting receipt');
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     toastr.error('Terjadi kesalahan saat mengambil data');
                     console.error('Error:', error);
                 }
             });
         }
 
-        $('#close_scan_out_modal').on('click', function () {
+        $('#close_scan_out_modal').on('click', function() {
             $('#sku_send').val('');
             $('#bin_out_search').val('');
             $('#binTable tbody').empty();
@@ -542,36 +564,55 @@
             $('#bin_out_search').prop('disabled', false);
         });
 
-        $(document).on('click', '#open_chat', function (e) {
+        $(document).on('click', '#open_chat', function(e) {
             e.stopPropagation();
         });
 
-        $(document).on('click', '#transaction_card', function (e) {
+        $(document).on('click', '#transaction_card', async function(e) {
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
+
+            $('#plst_id_online_items').val(transactionId);
+
             clearScanners();
             e.preventDefault();
             modal_opened = 'ScanOutModal';
+
+            if (modal_lock_active) {
+                // Coba dapatkan lock sebelum buka modal
+                const lockResult = await openEditModal('online_transactions', transactionId,
+                    'helper_online');
+                if (lockResult === false) {
+                    return;
+                }
+
+                // Mulai interval untuk extend lock setiap 60 detik
+                if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
+                window.lockExtendInterval = setInterval(function() {
+                    extendLock('online_transactions', transactionId, 'helper_online');
+                }, 60000);
+            }
+
             jQuery.noConflict();
             $('#OnlineItemsModalLabel').text('Order Number: ' + orderNumber);
             $('#OnlineItemsModal').modal('show');
             online_items_table.draw();
         });
 
-        $(document).on('click', '#open_modal_scan_manifest_btn', function (e) {
+        $(document).on('click', '#open_modal_scan_manifest_btn', function(e) {
             jQuery.noConflict();
             $('#importManifestModal').modal('show');
         })
 
-        $(document).on('click', '#open_modal_resi_btn', function (e) {
+        $(document).on('click', '#open_modal_resi_btn', function(e) {
             jQuery.noConflict();
             $('#resiMasalModal').modal('show');
         })
 
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             // Klik card = toggle checkbox
-            $(document).on('click', '.resi-card', function (e) {
+            $(document).on('click', '.resi-card', function(e) {
                 if ($(e.target).is('input[type=checkbox]')) return;
 
                 let checkbox = $(this).find('.resi-checkbox');
@@ -583,16 +624,16 @@
             });
 
             // Klik Select All
-            $('#selectAllResi').on('change', function () {
+            $('#selectAllResi').on('change', function() {
                 let isChecked = $(this).is(':checked');
                 $('.resi-checkbox').prop('checked', isChecked);
-                $('.resi-card').each(function () {
+                $('.resi-card').each(function() {
                     toggleCardHighlight($(this), isChecked);
                 });
             });
 
             // Checkbox individual
-            $(document).on('change', '.resi-checkbox', function () {
+            $(document).on('change', '.resi-checkbox', function() {
                 toggleCardHighlight($(this).closest('.resi-card'), $(this).is(':checked'));
                 updateSelectAllStatus();
             });
@@ -615,48 +656,48 @@
             //     // window.location.href = '/print-resi?data=' + encodeURIComponent(JSON.stringify(selectedResi));
             // });
 
-            {{--$(document).on('click', '#printSelected', function () {--}}
-            {{--    let selectedResi = [];--}}
-            {{--    $('.resi-checkbox:checked').each(function () {--}}
-            {{--        selectedResi.push($(this).val());--}}
-            {{--    });--}}
+            {{-- $(document).on('click', '#printSelected', function () { --}}
+            {{--    let selectedResi = []; --}}
+            {{--    $('.resi-checkbox:checked').each(function () { --}}
+            {{--        selectedResi.push($(this).val()); --}}
+            {{--    }); --}}
 
-            {{--    if (selectedResi.length === 0) {--}}
-            {{--        alert('Pilih minimal satu resi untuk dicetak!');--}}
-            {{--        return;--}}
-            {{--    }--}}
+            {{--    if (selectedResi.length === 0) { --}}
+            {{--        alert('Pilih minimal satu resi untuk dicetak!'); --}}
+            {{--        return; --}}
+            {{--    } --}}
 
-            {{--    $('#printSelected').prop('disabled', true).text('Sedang diproses...');--}}
-            {{--    $('#loadingMerge').show();--}}
+            {{--    $('#printSelected').prop('disabled', true).text('Sedang diproses...'); --}}
+            {{--    $('#loadingMerge').show(); --}}
 
-            {{--    $.ajax({--}}
-            {{--        url: "{{ route('merge.resi') }}",--}}
-            {{--        type: "POST",--}}
-            {{--        data: {--}}
-            {{--            _token: "{{ csrf_token() }}",--}}
-            {{--            resi: selectedResi--}}
-            {{--        },--}}
-            {{--        success: function(response) {--}}
-            {{--            $('#loadingMerge').hide();--}}
-            {{--            $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');--}}
+            {{--    $.ajax({ --}}
+            {{--        url: "{{ route('merge.resi') }}", --}}
+            {{--        type: "POST", --}}
+            {{--        data: { --}}
+            {{--            _token: "{{ csrf_token() }}", --}}
+            {{--            resi: selectedResi --}}
+            {{--        }, --}}
+            {{--        success: function(response) { --}}
+            {{--            $('#loadingMerge').hide(); --}}
+            {{--            $('#printSelected').prop('disabled', false).text('Print Resi Terpilih'); --}}
 
-            {{--            if (response.url) {--}}
-            {{--                window.open(response.url, '_blank');--}}
-            {{--            } else {--}}
-            {{--                alert('Gagal membuat file PDF gabungan.');--}}
-            {{--            }--}}
-            {{--        },--}}
-            {{--        error: function() {--}}
-            {{--            $('#loadingMerge').hide();--}}
-            {{--            $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');--}}
-            {{--            alert('Terjadi kesalahan saat menggabungkan file PDF.');--}}
-            {{--        }--}}
-            {{--    });--}}
-            {{--});--}}
+            {{--            if (response.url) { --}}
+            {{--                window.open(response.url, '_blank'); --}}
+            {{--            } else { --}}
+            {{--                alert('Gagal membuat file PDF gabungan.'); --}}
+            {{--            } --}}
+            {{--        }, --}}
+            {{--        error: function() { --}}
+            {{--            $('#loadingMerge').hide(); --}}
+            {{--            $('#printSelected').prop('disabled', false).text('Print Resi Terpilih'); --}}
+            {{--            alert('Terjadi kesalahan saat menggabungkan file PDF.'); --}}
+            {{--        } --}}
+            {{--    }); --}}
+            {{-- }); --}}
 
-            $(document).on('click', '#printSelected', function () {
+            $(document).on('click', '#printSelected', function() {
                 let selectedResi = [];
-                $('.resi-checkbox:checked').each(function () {
+                $('.resi-checkbox:checked').each(function() {
                     selectedResi.push($(this).val());
                 });
 
@@ -678,7 +719,8 @@
                     },
                     success: function(response) {
                         $('#loadingMerge').hide();
-                        $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');
+                        $('#printSelected').prop('disabled', false).text(
+                            'Print Resi Terpilih');
 
                         if (response.url) {
                             // ✅ tampilkan hasil merge di bawah tombol
@@ -691,7 +733,8 @@
                     },
                     error: function() {
                         $('#loadingMerge').hide();
-                        $('#printSelected').prop('disabled', false).text('Print Resi Terpilih');
+                        $('#printSelected').prop('disabled', false).text(
+                            'Print Resi Terpilih');
                         alert('Terjadi kesalahan saat menggabungkan file PDF.');
                     }
                 });
@@ -723,7 +766,7 @@
             }
         });
 
-        $(document).ready(function () {
+        $(document).ready(function() {
             let table = $('#manifestTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -731,18 +774,53 @@
                     url: "{{ route('manifest.data') }}",
                     type: "GET"
                 },
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false },
-                    { data: 'manifest_number', name: 'manifest_number' },
-                    { data: 'courier_name', name: 'courier_name' },
-                    { data: 'courier_phone', name: 'courier_phone' },
-                    { data: 'cr_name', name: 'cr_name' },
-                    { data: 'qty_resi', name: 'qty_resi', className: 'text-center' },
-                    { data: 'pic', name: 'pic' },
-                    { data: 'created_at', name: 'created_at' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        className: 'text-center',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'manifest_number',
+                        name: 'manifest_number'
+                    },
+                    {
+                        data: 'courier_name',
+                        name: 'courier_name'
+                    },
+                    {
+                        data: 'courier_phone',
+                        name: 'courier_phone'
+                    },
+                    {
+                        data: 'cr_name',
+                        name: 'cr_name'
+                    },
+                    {
+                        data: 'qty_resi',
+                        name: 'qty_resi',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pic',
+                        name: 'pic'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
                 ],
-                order: [[6, 'desc']], // urut berdasarkan created_at
+                order: [
+                    [6, 'desc']
+                ], // urut berdasarkan created_at
                 language: {
                     processing: '<img src="{{ asset('pos/jez.gif') }}" width="50"> Loading...'
                 },
@@ -751,16 +829,16 @@
             });
 
             // Refresh tabel ketika modal dibuka
-            $('#importManifestModal').on('shown.bs.modal', function () {
+            $('#importManifestModal').on('shown.bs.modal', function() {
                 table.ajax.reload();
             });
         });
 
-        $(document).on('click', '.close_scanner', function (e) {
+        $(document).on('click', '.close_scanner', function(e) {
             clearScanners();
         })
 
-        $(document).on('click', '#waiting_receipt_card', function (e) {
+        $(document).on('click', '#waiting_receipt_card', function(e) {
             transactionId = $(this).data('transaction_id');
             orderNumber = $(this).data('order_number');
             resi_number = $(this).data('resi_number');
@@ -779,7 +857,7 @@
             getWaitingReceipt();
         });
 
-        $(document).on('click', '#continuePackingBtn', function (e) {
+        $(document).on('click', '#continuePackingBtn', function(e) {
             // $('#waitingReceiptModal').modal('hide');
             transactionId = $(this).data('to_id');
             orderNumber = $(this).data('order_number');
@@ -793,13 +871,13 @@
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
-                    success: function (response) {
+                    success: function(response) {
                         if (response.status === '200') {
                             toastr.success('Status diupdate ke WAITING PACKING');
                         } else {
                             if (response.status === '200') {
                                 toastr.success('Status diupdate ke WAITING PACKING');
-                                
+
                                 // Continue with scanner logic only if successful
                                 clearScanners();
                                 scanner_scan_resi.render(success, error);
@@ -819,8 +897,9 @@
                             toastr.error(response.message || 'Gagal mengupdate status');
                         }
                     },
-                    error: function (xhr, status, error) {
-                        toastr.error(response.message || 'Terjadi kesalahan saat mengupdate status');
+                    error: function(xhr, status, error) {
+                        toastr.error(response.message ||
+                            'Terjadi kesalahan saat mengupdate status');
                         console.error('Error:', error);
                     }
                 });
@@ -838,13 +917,35 @@
             }
         })
 
-        $(document).on('click', '#close_scan_packing_modal_btn', function (e) {
+        $(document).on('click', '#close_scan_packing_modal_btn', function(e) {
+            var transactionId = $('#plst_id_scan_packing').text();
+
+            if (modal_lock_active) {
+                closeEditModal('online_transactions', transactionId, 'helper_online');
+            }
+
             $('#scanPackingModal').modal('hide');
         });
 
-        $(document).on('click', '#printResiBtn', function (e) {
+        $(document).on('click', '.close_online_item_modal', function(e) {
+            var transactionId = $('#plst_id_online_items').val();
+            closeEditModal('online_transactions', transactionId, 'helper_online');
+            $('#OnlineItemsModal').modal('hide');
+        });
+
+        $(document).on('click', '#printResiBtn', function(e) {
             e.preventDefault();
             var to_id = $('#to_id_waiting_receipt').text();
+
+            // Show loading
+            Swal.fire({
+                title: 'Memproses...',
+                html: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             $.ajax({
                 url: "{{ url('helper_online_print_resi') }}/" + to_id,
@@ -852,7 +953,9 @@
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function (response) {
+                success: function(response) {
+                    Swal.close(); // Close loading
+
                     if (response.status === '200') {
                         toastr.success('Resi berhasil dicetak');
                         if (response.pdf_url) {
@@ -862,7 +965,8 @@
                         toastr.error(response.message || 'Gagal mencetak resi');
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
+                    Swal.close(); // Close loading
                     toastr.error('Terjadi kesalahan saat mencetak resi');
                     console.error('Error:', error);
                 }
@@ -870,7 +974,7 @@
             getWaitingReceipt();
         });
 
-        $(document).delegate('#printNotaBtn', 'click', function () {
+        $(document).delegate('#printNotaBtn', 'click', function() {
             var numOrder = $('#trx_number_title_wr').text().replace('Order Number: ', '');
 
             Swal.fire({
@@ -885,7 +989,15 @@
                 if (result.isConfirmed) {
                     console.log(numOrder);
 
-                    $('#loader').show();
+                    // Show loading
+                    Swal.fire({
+                        title: 'Memproses...',
+                        html: 'Mohon tunggu sebentar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
 
                     $.ajax({
                         url: '{{ url('print_online_invoice') }}',
@@ -895,7 +1007,9 @@
                             to_id: $('#to_id_waiting_receipt').text(),
                             _token: '{{ csrf_token() }}'
                         },
-                        success: function (response) {
+                        success: function(response) {
+                            Swal.close(); // Close loading
+
                             console.log(response.status);
                             if (response.status == 200) {
                                 var printUrl = '{{ url('print_invoice_v2') }}/' +
@@ -913,7 +1027,9 @@
                             }
 
                         },
-                        error: function (xhr, status, error) {
+                        error: function(xhr, status, error) {
+                            Swal.close(); // Close loading
+
                             // Handle errors here
                             Swal.fire({
                                 title: 'Error!',
@@ -921,9 +1037,6 @@
                                 icon: 'error',
                                 confirmButtonColor: '#3085d6'
                             });
-                        },
-                        complete: function () {
-                            $('#loader').hide();
                         }
                     });
                 }
@@ -931,7 +1044,7 @@
 
         });
 
-        $(document).on('click', '#cancel_pick', function (e) {
+        $(document).on('click', '#cancel_pick', function(e) {
             e.preventDefault();
             var plst_id = $(this).data('plst_id');
 
@@ -941,7 +1054,7 @@
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function (response) {
+                success: function(response) {
                     if (response.status === '200') {
                         toastr.success('Pick berhasil dibatalkan');
                         online_items_table.draw();
@@ -949,14 +1062,14 @@
                         toastr.error('Gagal membatalkan pick');
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     toastr.error('Terjadi kesalahan saat membatalkan pick');
                     console.error('Error:', error);
                 }
             });
         });
 
-        $(document).on('click', '.ambil-dari-bin', function (e) {
+        $(document).on('click', '.ambil-dari-bin', function(e) {
             var pl_code = $(this).data('pl_code');
             var bin_id = $(this).data('bin_id');
             $('#bin_out_search').focus().val(pl_code).data('bin_id', bin_id);
@@ -972,7 +1085,7 @@
             document.getElementById('bin_out_search').dispatchEvent(event);
         });
 
-        $(document).on('click', '#pick_get_bin_products', function (e) {
+        $(document).on('click', '#pick_get_bin_products', function(e) {
             e.preventDefault();
 
             let plst_id = $(this).data('plst_id');
@@ -992,12 +1105,12 @@
                     warehouse_id: $(this).data('warehouse_st_id'),
                     pst_id: $(this).data('pst_id'),
                 },
-                success: function (response) {
+                success: function(response) {
                     // Kosongkan isi tabel
                     $('#binTable tbody').empty();
 
                     // Masukkan data BIN ke tabel
-                    $.each(response.data, function (index, bin) {
+                    $.each(response.data, function(index, bin) {
                         $('#binTable tbody').append(`
                         <tr>
                             <td>${bin.pl_code}</td>
@@ -1028,7 +1141,7 @@
             });
         });
 
-        $(document).on('click', '#submit_qc', function (e) {
+        $(document).on('click', '#submit_qc', function(e) {
             e.preventDefault();
 
             const swalWithBootstrapButtons = Swal.mixin({
@@ -1067,7 +1180,7 @@
                             qc_status: 'passed',
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
-                        success: function (response) {
+                        success: function(response) {
                             if (response.status === '200') {
                                 swalWithBootstrapButtons.fire({
                                     title: "Success",
@@ -1084,7 +1197,7 @@
                                 });
                             }
                         },
-                        error: function (xhr, status, error) {
+                        error: function(xhr, status, error) {
                             swalWithBootstrapButtons.fire({
                                 title: "Error",
                                 text: "Terjadi kesalahan saa    t menyimpan hasil QC",
@@ -1103,7 +1216,7 @@
                             to_id: $(this).data('to_id'),
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
-                        success: function (response) {
+                        success: function(response) {
                             if (response.status === '200') {
                                 swalWithBootstrapButtons.fire({
                                     title: "Info",
@@ -1120,7 +1233,7 @@
                                 });
                             }
                         },
-                        error: function (xhr, status, error) {
+                        error: function(xhr, status, error) {
                             swalWithBootstrapButtons.fire({
                                 title: "Error",
                                 text: "Terjadi kesalahan saat menyimpan hasil QC",
@@ -1133,7 +1246,7 @@
             });
         });
 
-        $('#bin_out_search').on('keyup', function (event) {
+        $('#bin_out_search').on('keyup', function(event) {
             let searchText = $(this).val().toLowerCase();
             let bin_search = $(this).val();
             let bin_id = $(this).data('bin_id');
@@ -1141,7 +1254,7 @@
 
             let bin = bin_search;
 
-            $('#binTable tbody tr').each(function () {
+            $('#binTable tbody tr').each(function() {
                 let binText = $(this).find('td:first').text().toLowerCase();
 
                 if (binText.includes(searchText)) {
@@ -1174,7 +1287,7 @@
 
                     // var sku_send = $('#sku_send').val(validSku)
 
-                    $('#sku_search').focus().on('keyup', function (e) {
+                    $('#sku_search').focus().on('keyup', function(e) {
                         if (e.key === 'Enter') {
                             let enteredSku = $(this).val();
 
@@ -1189,7 +1302,7 @@
                                         'Yakin'
                                     ],
                                     dangerMode: false,
-                                }).then(function (isConfirm) {
+                                }).then(function(isConfirm) {
                                     if (isConfirm) {
                                         // Show loading
                                         Swal.fire({
@@ -1222,9 +1335,10 @@
                                             },
                                             dataType: 'json',
                                             url: "{{ url('helper_online_pick_item') }}",
-                                            success: function (r) {
-                                                Swal.close(); // Close loading
-                                                
+                                            success: function(r) {
+                                                Swal
+                                                    .close(); // Close loading
+
                                                 if (r.status == '200') {
                                                     online_items_table
                                                         .draw();
@@ -1287,7 +1401,7 @@
             }
         });
 
-        $('#scan_packing_result').focus().on('keyup', function (e) {
+        $('#scan_packing_result').focus().on('keyup', function(e) {
             if (e.key === 'Enter') {
                 let enteredResi = $(this).val();
                 let validResi = $('#resi_number_holder').text();
@@ -1302,7 +1416,7 @@
                             'Yakin'
                         ],
                         dangerMode: false,
-                    }).then(function (isConfirm) {
+                    }).then(function(isConfirm) {
                         if (isConfirm) {
                             $.ajax({
                                 type: "POST",
@@ -1312,7 +1426,7 @@
                                 },
                                 dataType: 'json',
                                 url: "{{ url('helper_online_scan_packing_single') }}",
-                                success: function (r) {
+                                success: function(r) {
                                     if (r.status == '200') {
                                         $('#scanPackingModal').modal('hide');
                                         $('#scan_packing_result').val('');
@@ -1343,7 +1457,7 @@
             }
         });
 
-        $(document).on('submit', '#f_upload_manifest', function (e) {
+        $(document).on('submit', '#f_upload_manifest', function(e) {
             e.preventDefault();
 
             var formData = new FormData(this);
@@ -1364,7 +1478,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (response) {
+                success: function(response) {
                     // 2. Dismiss Loading Swal on success
                     Swal.close();
 
@@ -1402,7 +1516,7 @@
                                 didOpen: () => {
                                     let tbody = document.getElementById(
                                         'error-table-body');
-                                    response.failed_resi.forEach(function (
+                                    response.failed_resi.forEach(function(
                                         resi) {
                                         let row = document
                                             .createElement('tr');
@@ -1414,17 +1528,17 @@
 
                                     // Export to Excel button
                                     document.getElementById(
-                                        'export_failed_resi')
-                                        .addEventListener('click', function () {
+                                            'export_failed_resi')
+                                        .addEventListener('click', function() {
                                             let wb = XLSX.utils.book_new();
                                             let ws_data = [
                                                 [
                                                     "Nomor Resi Gagal"
                                                 ], // Header
                                                 ...response.failed_resi
-                                                    .map(resi => [
-                                                        resi
-                                                    ]) // Each resi in its own array
+                                                .map(resi => [
+                                                    resi
+                                                ]) // Each resi in its own array
                                             ];
                                             let ws = XLSX.utils
                                                 .aoa_to_sheet(ws_data);
@@ -1437,7 +1551,7 @@
 
                                     // Close button
                                     document.getElementById('close_error_alert')
-                                        .addEventListener('click', function () {
+                                        .addEventListener('click', function() {
                                             Swal.close();
                                         });
                                 }
@@ -1448,7 +1562,7 @@
                         }
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     // 3. Dismiss Loading Swal on error
                     Swal.close();
 
