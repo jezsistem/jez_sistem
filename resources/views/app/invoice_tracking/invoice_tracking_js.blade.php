@@ -126,15 +126,19 @@
             getTotalTransactions();
         });
 
+        var searchTimeout;
         $('#invoice_tracking_search').on('keyup', function() {
             var query = $(this).val();
-            if (jQuery.trim(query).length > 3) {
-                invoice_tracking_table.draw(false);
-                getTotalTransactions();
-            } else if (jQuery.trim(query).length < 1) {
-                invoice_tracking_table.draw(false);
-                getTotalTransactions();
-            }
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                if (jQuery.trim(query).length > 3) {
+                    invoice_tracking_table.draw(false);
+                    getTotalTransactions();
+                } else if (jQuery.trim(query).length < 1) {
+                    invoice_tracking_table.draw(false);
+                    getTotalTransactions();
+                }
+            }, 300);
         });
 
         invoice_tracking_table.buttons().container().appendTo($('#stock_tracking_excel_btn'));

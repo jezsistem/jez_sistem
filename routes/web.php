@@ -9,7 +9,9 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
 use App\Http\Controllers\OvertimeTypeController;
+use App\Http\Controllers\WhatsappController;
 use App\Models\ExternalAssignmentType;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
@@ -103,6 +105,7 @@ use App\Http\Controllers\ExternalAssignmentRequestController;
 use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
+use App\Http\Controllers\InvoiceControllerV2;
 use App\Http\Controllers\LockController;
 use App\Http\Controllers\WarehouseIndexController;
 use App\Models\PositionAccessController;
@@ -137,6 +140,9 @@ Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice']
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
 Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
 Route::post('/upload-photo', [PhotoController::class, 'upload'])->name('upload.photo');
+
+//Print Invoice V2
+Route::get('print_invoice_v2/{id}', [InvoiceControllerV2::class, 'printInvoice'])->name('print_invoice_v2');
 
 Route::get('daily-schedules/export-weekly-public', [DailyScheduleController::class, 'exportWeeklyPublic'])->name('daily-schedules.export-weekly-public');
 
@@ -479,8 +485,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
     Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
     Route::post('/product/update-link-content/{id}', [ProductController::class, 'updateLinkContent']);
+    Route::post('/product-links/store', [ProductController::class, 'LinkStore']);
+    Route::get('/product-links/marketplace/{articleId}', [ProductController::class, 'marketplaceDataTables']);
+    Route::get('/product-links/social/{articleId}', [ProductController::class, 'socialDataTables']);
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
+    Route::get('/product-links/locations', function() {
+        return DB::table('stores')
+            ->distinct()
+            ->where('st_code', '<>', '')
+            ->pluck('st_code');
+    });
 
     // Product Stock
     Route::post('check_product_stock', [ProductStockController::class, 'checkProductStock']);
@@ -1109,6 +1124,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
     Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
 
+    Route::get('/overtime/export/excel', [OvertimeRequestController::class, 'exportToExcel'])->name('overtime.export.excel');
+
+    Route::get('/overtime/summary-report/view', [OvertimeRequestController::class, 'summaryReport'])->name('overtime.summary-report');
+    Route::get('/overtime/summary-report/datatables', [OvertimeRequestController::class, 'getOvertimeSummaryDatatables'])->name('overtime.summary-report-datatables');
+    Route::get('/overtime/summary-report/export/excel', [OvertimeRequestController::class, 'exportSummaryToExcel'])->name('overtime.summary-report-export-excel');
+    Route::get('/overtime/summary-report/export/pdf', [OvertimeRequestController::class, 'exportSummaryToPDF'])->name('overtime.summary-report-export-pdf');
+
 
     // absen manual
     Route::get('/manual-attendance', [AttendanceController::class, 'manualAttendance'])->name('manual.absensi');
@@ -1119,6 +1141,27 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/warehouse_index_save', [WarehouseIndexController::class, 'storeData'])->name('warehouse.index.store');
     Route::post('/warehouse_index_delete', [WarehouseIndexController::class, 'deleteData'])->name('warehouse.index.delete');
     Route::get('/warehouse_list', [WarehouseIndexController::class, 'getWarehouseList'])->name('warehouse.index.list');
+
+    //wa api
+    Route::get('/whats-app-setting', [WhatsappController::class, 'index']);
+    Route::get('/wa/qr', function () {
+        return Http::get('http://localhost:3000/get-qr')->json();
+    });
+
+    Route::get('/wa/status', function () {
+        return Http::get('http://localhost:3000/wa-status')->json();
+    });
+
+    Route::get('/wa/logout', function () {
+        return Http::get('http://localhost:3000/logout')->json();
+    });
+
+    Route::get('/wa/profile', function () {
+        return Http::get('http://localhost:3000/wa-profile')->json();
+    });
+    Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
+    Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
+
 });
 
 require __DIR__ . '/purchase_order.php';
@@ -1130,3 +1173,4 @@ require __DIR__ . '/user.php';
 require __DIR__ . '/inventory.php';
 require __DIR__ . '/ecommerce.php';
 require __DIR__ . '/amp.php';
+require __DIR__ . '/it.php';

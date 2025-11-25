@@ -1,5 +1,54 @@
 <script>
 
+    function exportRequestToExcel() {
+        // Implement the export functionality here
+        let status = $('#status').val();
+        let division = $('#division').val();
+        let start_date = $('#start_date').val();
+        let end_date = $('#end_date').val();
+        let staff = $('#staff').val();
+
+        $.ajax({
+            url: "{{ route('overtime.export.excel') }}",
+            type: "GET",
+            data: {
+                status: status,
+                division: division,
+                start_date: start_date,
+                end_date: end_date,
+                staff: staff
+            },
+            xhrFields: {
+                responseType: 'blob' // Important for binary data
+            },
+            success: function(response, status, xhr) {
+                // Get the filename from the Content-Disposition header
+                let filename = "";
+                let disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    let matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                }
+
+                // Create a link to download the file
+                let link = document.createElement('a');
+                let url = window.URL.createObjectURL(response);
+                link.href = url;
+                link.download = filename || 'overtime_requests.xlsx';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(function() {
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+            },
+            error: function(xhr) {
+                Swal.fire('Error', 'Failed to export data to Excel.', 'error');
+            }
+        });
+    }
+
     $(document).ready(function() {
         // Inisialisasi DataTable
         const table = $('#overtimeTable').DataTable({
@@ -12,6 +61,8 @@
                     d.status = $('#status').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
+                    d.division = $('#division').val();
+                    d.staff = $('#staff').val();
                 }
             },
             columns: [
@@ -108,7 +159,7 @@
         });
 
         // Atau otomatis reload saat status diubah
-        $('#status').on('change', function() {
+        $('#status, #division, #start_date, #end_date, #staff').on('change', function() {
             table.ajax.reload();
         });
 
@@ -158,26 +209,33 @@
                     console.log('Sending AJAX request...');
                 },
                 success: function(response) {
-                    console.log('Response:', response);
-
                     if (response.success) {
-                        swal('Berhasil', response.message, 'success');
+                        Swal.fire('Berhasil', response.message, 'success');
                         form[0].reset();
                         $('#assigned_staff').val(null).trigger('change');
                         window.location.href = "{{ url('overtime') }}";
                     } else {
-                        swal('Gagal', response.message || 'Terjadi kesalahan', 'error');
+                        Swal.fire('Gagal', response.message || 'Terjadi kesalahan', 'error');
                     }
                 },
                 error: function(xhr) {
-                    console.error('AJAX Error:', xhr);
+                    console.log("xhr.responseJSON:", xhr.responseJSON);
 
                     if (xhr.status === 422) {
+
+                        // Jika respons berisi message (BUKAN errors)
+                        if (xhr.responseJSON.message) {
+                            Swal.fire('Validasi Gagal', xhr.responseJSON.message, 'warning');
+                            return;
+                        }
+
+                        // Jika respons bentuknya errors
                         let errors = xhr.responseJSON.errors;
                         let messages = Object.values(errors).flat().join('\n');
-                        swal('Validasi Gagal', messages, 'warning');
+                        Swal.fire('Validasi Gagal', messages, 'warning');
+
                     } else {
-                        swal('Error', xhr.responseJSON?.message || 'Terjadi kesalahan server', 'error');
+                        Swal.fire('Error', xhr.responseJSON?.message || 'Terjadi kesalahan server', 'error');
                     }
                 }
             });

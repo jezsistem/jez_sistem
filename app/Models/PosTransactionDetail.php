@@ -29,6 +29,7 @@ class PosTransactionDetail extends Model
         'created_at',
         'pos_td_item_cogs',
         'pos_td_item_price_tag',
+        'pos_td_delivery_insurance'
     ];
 
     public function productStock()

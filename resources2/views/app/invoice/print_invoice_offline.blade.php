@@ -105,7 +105,7 @@
                     {{ $row->st_address }}<br/>
                     {{ $row->st_phone }}<br/><br/>
                     Jersey Zone<br/>
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
 
                 <div class="head-desc">
@@ -290,7 +290,7 @@
                     ~~~ Terimakasih ~~~
                 </div>
                 <div class="azost">
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
                 <br/>
                 <div class="title">

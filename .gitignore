@@ -23,4 +23,5 @@ README2.md
 
 /storage/*
 /storage/logs/laravel.log
+/public/online/*
 #/resources/views/app/_partials/header.blade.php
