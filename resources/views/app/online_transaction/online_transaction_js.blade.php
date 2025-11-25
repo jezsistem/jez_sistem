@@ -861,6 +861,7 @@
                         excelImportData = data.data['processedData'];
                         console.log(data.data);
                         console.log(data.name);
+                        online_transaction_table.draw(false);
                     } else if (data.status == '422') {
                         $("#ImportModal").modal('hide');
                         console.log(data.data);
@@ -868,17 +869,20 @@
                             data.message ||
                             'File yang anda import kosong atau format tidak tepat',
                             'warning');
+                        online_transaction_table.draw(false);
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
                         console.log(data.data);
                         swal('Error',
-                            'File yang anda import kosong atau format tidak tepat',
-                            'warning');
+                        'File yang anda import kosong atau format tidak tepat',
+                        'warning');
+                        online_transaction_table.draw(false);
                     } else {
                         $("#ImportModal").modal('hide');
                         swal('Error',
                             data.message || 'Terjadi kesalahan saat mengimpor data',
                             'error');
+                        online_transaction_table.draw(false);
                     }
                 },
                 error: function(data) {
@@ -889,7 +893,6 @@
                     swal('Error', data, 'error');
                 }
             });
-            online_transaction_table.draw(false);
         });
         {{-- $('#f_import').on('submit', function (e) { --}}
         {{--    e.preventDefault(); --}}
@@ -1372,8 +1375,8 @@
                         success: function(response) {
                             console.log(response.status);
                             if (response.status == 200) {
-                                var printUrl = '{{ url('print_online_nota') }}/' +
-                                    numOrder;
+                                var printUrl = '{{ url('print_invoice_v2') }}/' +
+                                    response.encrypted_id;
                                 window.open(printUrl, '_blank');
                                 online_transaction_table.draw(false);
                             } else {

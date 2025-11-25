@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ModalLockAllowedModel;
 use App\Models\OnlineTransactionDetails;
 use App\Models\OnlineTransactions;
 use App\Models\PaymentMethod;
@@ -99,6 +100,7 @@ class HelperOnlineController extends Controller
                 ->distinct()
                 ->orderBy('platform_name', 'ASC')
                 ->get(),
+            'modal_lock_active' => ModalLockAllowedModel::where('is_active', true)->where('identifier', 'helper_online')->exists(),
         ];
 
 //        $dataResi = [

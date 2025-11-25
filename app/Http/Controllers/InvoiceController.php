@@ -203,7 +203,7 @@ class InvoiceController extends Controller
                 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone',
                 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping',
                 'cr_id', 'pos_transactions.created_at as pos_created',
-                'pos_total_discount', 'pos_order_number')
+                'pos_total_discount', 'pos_order_number','pos_payment', 'pos_real_price')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
@@ -245,6 +245,15 @@ class InvoiceController extends Controller
                 ->get();
             }
         }
+        
+        $discount_platform = DB::table('online_transactions')
+        ->join('online_transaction_details', 'online_transaction_details.to_id', '=', 'online_transactions.id')
+        ->selectRaw('SUM(ts_online_transaction_details.discount_platform) as total_discount_platform')
+        ->where('online_transactions.order_number', $transaction->pos_order_number)->first()->total_discount_platform;
+
+        if (!$discount_platform) {
+            $discount_platform = 0;
+        }
 
 
         $data = [
@@ -257,6 +266,7 @@ class InvoiceController extends Controller
             'cust_subdistrict' => $cust_subdistrict,
             'transaction' => $transaction,
             'transaction_detail' => $transaction_detail,
+            'discount_platform' => $discount_platform,
             'segment' => request()->segment(1)
         ];
 

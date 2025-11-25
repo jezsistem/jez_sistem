@@ -62,12 +62,15 @@ class WhatsappController extends Controller
             'users.id' => Auth::user()->id
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
+//        $customer = DB::table('customers')->get();
+//        dd($customer);
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+//            'customers' => $customer,
             'segment' => request()->segment(1),
         ];
         return view('app.whatsapp.whatsapp', compact('data'));

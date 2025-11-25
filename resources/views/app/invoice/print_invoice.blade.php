@@ -111,7 +111,7 @@
                     {{ $data['transaction']->st_address }}<br/>
                     {{ $data['transaction']->st_phone }}<br/>
                     Jersey Zone<br/>
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
             </center><br/>
             <div class="separate"></div>
@@ -134,17 +134,17 @@
 
             <div class="transaction">
                 <table class="transaction-table" cellspacing="0" cellpadding="0">
-                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0;
+                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0; $delivery_insurance = 0;
                         $total_discount = $data['transaction']->pos_total_discount;
                         $total_discount_show= $data['transaction']->pos_total_discount ;
                         $total_marketplace = 0;
-                        $row_discount_sum = 0; @endphp
+                        $row_discount_sum = 0; 
+                        @endphp
                     @if (!empty($data['transaction_detail']))
                         @foreach ($data['transaction_detail'] as $srow)
                             @php
                             // Calculate the discount for this row
                             $row_discount = ($srow->productStock->ps_price_tag - ($srow->pos_td_sell_price / $srow->pos_td_qty)) * $srow->pos_td_qty;
-                            $row_discount_sum += $row_discount; // Accumulate the row discounts
                             @endphp
                         <tr style="margin-bottom:20px;">
                             <td class="name">[{{ $srow->br_name }}] {{ $srow->p_name }} {{ $srow->p_color }} ({{ $srow->sz_name }})</td>
@@ -213,12 +213,13 @@
                             $nameset += $srow->pos_td_nameset_price; 
                             $subtotal += ($srow->pos_td_qty * $srow->ps_price_tag); 
                             $total_price += $srow->pos_td_total_price; 
+                            $delivery_insurance += $srow->pos_td_delivery_insurance;
 //                            $total_discount += $srow->pos_td_qty * ($srow->pos_td_sell_price/100 * $srow->pos_td_discount);
                             $total_discount += $srow->pos_td_discount_number;
                             $total_discount_show += $srow->pos_td_discount_number;
                             $total_discount_show += $srow->pos_td_price_item_discount;
 //                            $total_marketplace +=     $srow->pos_td_marketplace_price;
-                            $total_marketplace+= ($srow->pos_td_qty * $srow->productStock->ps_price_tag);;
+                            $total_marketplace+= ( $srow->pos_td_sell_price);;
                         }
                         @endphp
                         @endforeach
@@ -251,7 +252,18 @@
                         <td class="final-price">
                             <span style="float:right;">
                             <span class="text-red">
-                                ({{ number_format($row_discount_sum) }})
+                                @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WEBSITE')
+                                    @if ($total_marketplace+$data['discount_platform']+$data['transaction']->pos_shipping > $data['transaction']->pos_payment)
+                                        {{ number_format($total_marketplace+$data['discount_platform']+$data['transaction']->pos_shipping - $data['transaction']->pos_payment) }}
+                                    @else
+                                        ({{ number_format($data['discount_platform']) }})
+                                    @endif
+                                @else 
+                                    
+                                @endif
+                                
+
+
                             </span>
                             </span>
                         </td>
@@ -272,13 +284,63 @@
                             <span style="float:right;">{{ (number_format($nameset)) }}</span>
                         </td>
                     </tr>
+                    @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WEBSITE')
+                        @php 
+//                                $totals = $total_marketplace+$nameset+$data['transaction']->pos_another_cost;
+                        $totals = $total_marketplace+$nameset+$data['transaction']->pos_another_cost+$data['transaction']->pos_shipping;
+                        // if (!empty($data['transaction']->pos_discount)) {
+                        //     $totals = $totals - ($totals/100 * $data['transaction']->pos_discount_number);
+                        // }
+//                                if(!empty($data['transaction']->pos_td_discount_number)) {
+//                                    $totals -= $total_discount;
+//                                }
+                        if ($data['discount_platform'] > 0) {
+                            $totals = $totals - $data['discount_platform'];
+                        }
+
+                        @endphp
+                    @else
+                        @php 
+                        if (!empty($total_discount)) {
+                            $totals = $subtotal-$data['discount_platform']+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_another_cost;
+                        } else {
+                            if ($data['transaction']->is_website == '1') {
+                                $totals = $subtotal+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_unique_code;
+                            } else {
+                                $totals = $subtotal+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_another_cost;
+                            }
+                        }
+                        if (!empty($data['transaction']->pos_discount)) {
+                            $totals = $totals - ($totals/100 * $data['transaction']->pos_discount);
+                        }
+
+                        if(!empty($data['transaction']->pos_discount_number)) {
+                            $totals = $totals - $data['transaction']->pos_discount_number;
+                        }
+                        @endphp
+                    @endif
+                    <tr>
+                        <td colspan="3" class="final-price">
+                            <span style="float:left;">ASURANSI PENGIRIMAN</span>
+                        </td>
+                        <td class="final-price">
+                            <span style="float:right;">{{ (number_format($delivery_insurance)) }}</span>
+                        </td>
+                    </tr>
                     <tr>
                         <td colspan="3" class="final-price">
                             <span style="float:left;">BIAYA LAIN</span>
                         </td>
-                        <td class="final-price">
-                            <span style="float:right;">{{ (number_format($data['transaction']->pos_another_cost)) }}</span>
-                        </td>
+                        @if ($data['transaction']->pos_payment > $totals)
+                            <td class="final-price">
+                                <span style="float:right;">{{ (number_format($data['transaction']->pos_payment - $totals - $delivery_insurance)) }}</span>
+                            </td>
+                        @else
+                            <td class="final-price">
+                                <span style="float:right;">{{ (number_format($data['transaction']->pos_another_cost)) }}</span>
+                            </td>
+                        @endif
+
                     </tr>
                     @if ($data['transaction']->is_website == '1')
                     <tr>
@@ -308,44 +370,16 @@
                         </td>
                         <td class="final-price">
                             <span style="float:right;">
-                            @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WEBSITE')
-                                @php 
-//                                $totals = $total_marketplace+$nameset+$data['transaction']->pos_another_cost;
-                                $totals = $total_marketplace+$nameset+$data['transaction']->pos_another_cost+$data['transaction']->pos_shipping;
-                                // if (!empty($data['transaction']->pos_discount)) {
-                                //     $totals = $totals - ($totals/100 * $data['transaction']->pos_discount_number);
-                                // }
-//                                if(!empty($data['transaction']->pos_td_discount_number)) {
-//                                    $totals -= $total_discount;
-//                                }
-                                if ($row_discount_sum > 0) {
-                                    $totals = $totals - $row_discount_sum;
-                                }
-
-                                @endphp
-                                {{ number_format($totals) }}
-                            @else
-                                @php 
-                                if (!empty($total_discount)) {
-                                    $totals = $subtotal-$row_discount_sum+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_another_cost;
-                                } else {
-                                    if ($data['transaction']->is_website == '1') {
-                                        $totals = $subtotal+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_unique_code;
-                                    } else {
-                                        $totals = $subtotal+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_another_cost;
-                                    }
-                                }
-                                if (!empty($data['transaction']->pos_discount)) {
-                                    $totals = $totals - ($totals/100 * $data['transaction']->pos_discount);
-                                }
-
-                                if(!empty($data['transaction']->pos_discount_number)) {
-                                    $totals = $totals - $data['transaction']->pos_discount_number;
-                                }
-                                @endphp 
-                                {{ number_format($totals) }}
-                            @endif
+                            {{ (number_format($data['transaction']->pos_payment)) }}
                             </span>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td colspan="3" class="final-price">
+                            <span style="float:left;">TOTAL BAYAR</span>
+                        </td>
+                        <td class="final-price">
+                            <span style="float:right;">{{ (number_format($data['transaction']->pos_payment)) }}</span>
                         </td>
                     </tr>
                     <tr>
@@ -359,20 +393,24 @@
                 ~~~ Terimakasih ~~~
             </div>
             <div class="azost">
-                www.jez.co.id
+                www.zona-karya.id
             </div>
 
             <div class="separate"></div>
             <div class="ordernumber">
                 <strong>{{ $data['invoice'] }}</strong>
             </div>
-            
-            <div class="title-left">
+
+            @if ($data['invoice'] && str_starts_with($data['invoice'], 'INV'))
+                <div class="title-left">
                 <strong>PENERIMA</strong><br/>
                 {{ $data['customer']->cust_name }}<br/>
                 {{ $data['customer']->cust_address }}, {{ $data['cust_subdistrict'] }}, {{ $data['cust_city'] }}, {{ $data['cust_province'] }}<br/>
                 {{ $data['customer']->cust_phone }}
             </div><br/>
+            @endif
+            
+            
             @if (!empty($data['dropshipper']))
             <div class="title-left">
                 <strong>PENGIRIM</strong><br/>

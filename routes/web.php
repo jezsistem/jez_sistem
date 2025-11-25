@@ -105,6 +105,7 @@ use App\Http\Controllers\ExternalAssignmentRequestController;
 use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
+use App\Http\Controllers\InvoiceControllerV2;
 use App\Http\Controllers\LockController;
 use App\Http\Controllers\WarehouseIndexController;
 use App\Models\PositionAccessController;
@@ -139,6 +140,9 @@ Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice']
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
 Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
 Route::post('/upload-photo', [PhotoController::class, 'upload'])->name('upload.photo');
+
+//Print Invoice V2
+Route::get('print_invoice_v2/{id}', [InvoiceControllerV2::class, 'printInvoice'])->name('print_invoice_v2');
 
 Route::get('daily-schedules/export-weekly-public', [DailyScheduleController::class, 'exportWeeklyPublic'])->name('daily-schedules.export-weekly-public');
 
@@ -481,8 +485,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
     Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
     Route::post('/product/update-link-content/{id}', [ProductController::class, 'updateLinkContent']);
+    Route::post('/product-links/store', [ProductController::class, 'LinkStore']);
+    Route::get('/product-links/marketplace/{articleId}', [ProductController::class, 'marketplaceDataTables']);
+    Route::get('/product-links/social/{articleId}', [ProductController::class, 'socialDataTables']);
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
+    Route::get('/product-links/locations', function() {
+        return DB::table('stores')
+            ->distinct()
+            ->where('st_code', '<>', '')
+            ->pluck('st_code');
+    });
 
     // Product Stock
     Route::post('check_product_stock', [ProductStockController::class, 'checkProductStock']);
@@ -1153,3 +1166,4 @@ require __DIR__ . '/user.php';
 require __DIR__ . '/inventory.php';
 require __DIR__ . '/ecommerce.php';
 require __DIR__ . '/amp.php';
+require __DIR__ . '/it.php';

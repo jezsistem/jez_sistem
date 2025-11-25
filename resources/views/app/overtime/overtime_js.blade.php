@@ -158,26 +158,33 @@
                     console.log('Sending AJAX request...');
                 },
                 success: function(response) {
-                    console.log('Response:', response);
-
                     if (response.success) {
-                        swal('Berhasil', response.message, 'success');
+                        Swal.fire('Berhasil', response.message, 'success');
                         form[0].reset();
                         $('#assigned_staff').val(null).trigger('change');
                         window.location.href = "{{ url('overtime') }}";
                     } else {
-                        swal('Gagal', response.message || 'Terjadi kesalahan', 'error');
+                        Swal.fire('Gagal', response.message || 'Terjadi kesalahan', 'error');
                     }
                 },
                 error: function(xhr) {
-                    console.error('AJAX Error:', xhr);
+                    console.log("xhr.responseJSON:", xhr.responseJSON);
 
                     if (xhr.status === 422) {
+
+                        // Jika respons berisi message (BUKAN errors)
+                        if (xhr.responseJSON.message) {
+                            Swal.fire('Validasi Gagal', xhr.responseJSON.message, 'warning');
+                            return;
+                        }
+
+                        // Jika respons bentuknya errors
                         let errors = xhr.responseJSON.errors;
                         let messages = Object.values(errors).flat().join('\n');
-                        swal('Validasi Gagal', messages, 'warning');
+                        Swal.fire('Validasi Gagal', messages, 'warning');
+
                     } else {
-                        swal('Error', xhr.responseJSON?.message || 'Terjadi kesalahan server', 'error');
+                        Swal.fire('Error', xhr.responseJSON?.message || 'Terjadi kesalahan server', 'error');
                     }
                 }
             });

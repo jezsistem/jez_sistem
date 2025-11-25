@@ -88,9 +88,12 @@
                                        placeholder="Kode Artikel"/>
                             </div>
                             <div class="col-lg-4 pt-1">
-                                <label>Kode Artikel</label><br>
+                                <label>Attachment</label><br>
                                 <button type="button" class="btn btn-sm btn-info mr-2" id="showImageModalBtn">
-                                    <i class="fa fa-image"></i> Lihat Gambar
+                                    <i class="fa fa-image"></i> View Image
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary mr-2" id="showLinkModalBtn">
+                                    <i class="fa fa-link"></i> Social Media
                                 </button>
                             </div>
                             <div class="col-lg-4 pt-1 float-right ml-auto">
@@ -462,7 +465,7 @@
                     </button>
 
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                        <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
                 </div>
             </div>
@@ -473,6 +476,121 @@
                         Tidak ada gambar untuk produk ini.
                     </div>
                 </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal untuk menampilkan semua link -->
+<div class="modal fade" id="ProductLinkModal" tabindex="-1" role="dialog" aria-labelledby="ProductLinkModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header d-flex justify-content-between align-items-center">
+                <h5 class="modal-title" id="ProductLinkModalLabel">Link Produk</h5>
+
+                <div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Nav Tabs -->
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#tabMarketplace">Marketplace</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabSocial">Social Media</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3">
+
+                    <!-- Marketplace -->
+                    <div class="tab-pane fade show active" id="tabMarketplace">
+                        <button class="btn btn-primary mb-3" id="addMarketplaceLinkBtn">+ Add Marketplace</button>
+                        <table id="tableMarketplaceLinks" class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>Platform</th>
+                                <th>URL</th>
+                                <th>Location</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Social Media -->
+                    <div class="tab-pane fade" id="tabSocial">
+                        <button class="btn btn-primary mb-3" id="addSocialLinkBtn">+ Add Social Media</button>
+                        <table id="tableSocialLinks" class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>Platform</th>
+                                <th>URL</th>
+                                <th>Location</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add/Edit Link -->
+<div class="modal fade" id="ProductLinkFormModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="ProductLinkFormTitle">Add Link</h5>
+                <button type="button" class="close" data-dismiss="modal"><i class="ki ki-close"></i></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="pl_product_id">
+                <input type="hidden" id="pl_type">
+
+                <!-- PLATFORM DROPDOWN -->
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select class="form-control" id="pl_platform">
+                        <!-- dinamis -->
+                    </select>
+                </div>
+
+                <!-- URL -->
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="text" id="pl_url" class="form-control">
+                </div>
+
+                <!-- LOCATION -->
+                <div class="form-group">
+                    <label>Lokasi</label>
+                    <select id="pl_location" class="form-control"></select>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="SaveProductLinkBtn">Save</button>
             </div>
 
         </div>

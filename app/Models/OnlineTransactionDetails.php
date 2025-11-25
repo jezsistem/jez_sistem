@@ -27,6 +27,7 @@ class OnlineTransactionDetails extends Model
         'ns_before_admin',
         'platform_name',
         'warehouse',
+        'delivery_insurance',
         'created_by',
         'updated_by',
         'deleted_by',
