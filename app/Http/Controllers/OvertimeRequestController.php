@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class OvertimeRequestController extends Controller
@@ -481,5 +482,26 @@ class OvertimeRequestController extends Controller
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ]);
         }
+    }
+
+    public function exportToExcel (Request $request) {
+        // Implementasi export ke Excel
+        $filter_status = $request->input('status');
+        $filter_division = $request->input('division');
+        $filter_start_date = $request->input('start_date');
+        $filter_end_date = $request->input('end_date');
+        $filter_staff = $request->input('staff');
+
+
+        $overtimeExport = new \App\Exports\OvertimeRequestsExport(
+            $filter_status,
+            $filter_division,
+            $filter_start_date,
+            $filter_end_date,
+            $filter_staff
+        );
+
+        return \Maatwebsite\Excel\Facades\Excel::download($overtimeExport, 'overtime_requests.xlsx');
+        
     }
 }

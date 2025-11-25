@@ -1124,6 +1124,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
     Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
 
+    Route::get('/overtime/export/excel', [OvertimeRequestController::class, 'exportToExcel'])->name('overtime.export.excel');
+
+    Route::get('/overtime/summary-report', [OvertimeRequestController::class, 'summaryReport'])->name('overtime.summary-report');
+    Route::get('/overtime/summary-report/datatables', [OvertimeRequestController::class, 'getOvertimeSummaryDatatables'])->name('overtime.summary-report-datatables');
+    Route::get('/overtime/summary-report/export/excel', [OvertimeRequestController::class, 'exportSummaryToExcel'])->name('overtime.summary-report-export-excel');
+    Route::get('/overtime/summary-report/export/pdf', [OvertimeRequestController::class, 'exportSummaryToPDF'])->name('overtime.summary-report-export-pdf');
+
 
     // absen manual
     Route::get('/manual-attendance', [AttendanceController::class, 'manualAttendance'])->name('manual.absensi');
