@@ -484,7 +484,8 @@ class OvertimeRequestController extends Controller
         }
     }
 
-    public function exportToExcel (Request $request) {
+    public function exportToExcel(Request $request)
+    {
         // Implementasi export ke Excel
         $filter_status = $request->input('status');
         $filter_division = $request->input('division');
@@ -502,6 +503,295 @@ class OvertimeRequestController extends Controller
         );
 
         return \Maatwebsite\Excel\Facades\Excel::download($overtimeExport, 'overtime_requests.xlsx');
-        
+    }
+
+    public function summaryReport(Request $request)
+    {
+        $this->validateAccess();
+
+        $title = 'Overtime Summary Report';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+
+        $summary = [
+            'total'     => OvertimeRequest::count(),
+            'pending'   => OvertimeRequest::where('status', 'Pending')->count(),
+            'approved'  => OvertimeRequest::where('status', 'Approved')->count(),
+            'hr_check'  => OvertimeRequest::where('status', 'HR Check')->count(),
+            'done'      => OvertimeRequest::where('status', 'Done')->count(),
+        ];
+
+
+        // Get date range from request or default to current month
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $dateFilter = $request->get('date_filter', 'this_month');
+
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'divisions' => DB::table('user_divisions')->orderBy('ud_name')->get(),
+            'segment' => request()->segment(1),
+            'overtime_types' => OvertimeType::orderBy('ot_name')->get(),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter,
+        ];
+
+        return view('app.overtime.summary_report', compact('data', 'summary'));
+    }
+
+    public function getOvertimeSummaryDatatables(Request $request)
+    {
+        if (request()->ajax()) {
+            try {
+                \Log::info('Overtime Summary Report Datatables Request', [
+                    'request_data' => $request->all()
+                ]);
+
+                // Get date range
+                $startDate = $request->get('start_date', date('Y-m-01'));
+                $endDate = $request->get('end_date', date('Y-m-t'));
+
+                \Log::info('Overtime Summary Report - Initial date values', [
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                ]);
+
+                $divisionId = $request->get('division');
+                $staffName = $request->get('staff');
+
+                \Log::info('Overtime Summary Report - Getting data', [
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                    'divisionId' => $divisionId,
+                    'staffName' => $staffName
+                ]);
+
+                // Use the same method to get data
+                $summaryData = $this->getOvertimeSummary($startDate, $endDate, $divisionId, $staffName);
+
+
+                // Convert to array for DataTables
+                $data = [];
+                foreach ($summaryData as $index => $item) {
+                    $data[] = (array)$item;
+                    $data[$index]['DT_RowIndex'] = $index + 1;
+                }
+
+                // Apply pagination manually for server-side processing
+                $totalRecords = count($data);
+                $start = $request->get('start', 0);
+                $length = $request->get('length', 25);
+                $paginatedData = array_slice($data, $start, $length);
+
+                return response()->json([
+                    'draw' => $request->get('draw', 1),
+                    'recordsTotal' => $totalRecords,
+                    'recordsFiltered' => $totalRecords,
+                    'data' => $paginatedData
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Overtime Summary Report Datatables Error', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return response()->json(['error' => 'Server error'], 500);
+            }
+        } else {
+            return response()->json(['error' => 'Invalid request'], 400);
+        }
+    }
+
+    public function exportSummaryToExcel(Request $request)
+    {
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $divisionId = $request->get('division');
+        $staffName = $request->get('staff');
+
+        $summaryData = $this->getOvertimeSummary($startDate, $endDate, $divisionId, $staffName);
+
+        $overtimeSummaryExport = new \App\Exports\OvertimeSummaryExport($summaryData);
+
+        return \Maatwebsite\Excel\Facades\Excel::download($overtimeSummaryExport, 'overtime_summary_report.xlsx');
+    }
+
+    private function getOvertimeSummary($startDate = null, $endDate = null, $divisionId = null, $staffName = null)
+    {
+        if (!$startDate) {
+            $startDate = date('2025-01-01');
+        }
+        if (!$endDate) {
+            $endDate = date('Y-m-t');
+        }
+        try {
+            // Get all active users with NIP only
+            $usersQuery = DB::table('users as u')
+                ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+                ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->leftJoin('user_types as ut', 'u.ut_id', '=', 'ut.id')
+                ->where('u.u_delete', '!=', '1')
+                ->whereNotNull('u.u_nip')
+                ->where('u.u_nip', '!=', '')
+                ->where('u.u_name', 'like', '%' . $staffName . '%')
+                ->select([
+                    'u.id as user_id',
+                    'u.u_nip',
+                    'u.u_name',
+                    'up.up_name as position_name',
+                    'ud.ud_name as division_name',
+                    'ut.ut_name as work_type'
+                ]);
+
+            if ($divisionId) {
+                $usersQuery->where('u.ud_id', $divisionId);
+            }
+
+            $users = $usersQuery->orderBy('u.u_name')->get();
+
+            if ($staffName) {
+                $users = $users->filter(function ($user) use ($staffName) {
+                    return stripos($user->u_name, $staffName) !== false;
+                })->values();
+            }
+            // Get overtime types for dynamic columns
+            $overtimeTypes = DB::table('overtime_types')
+                ->orderBy('ot_name')
+                ->get();
+
+            // Process each user to add overtime data
+            foreach ($users as $user) {
+                // Get overtime requests for this user in date range
+                $overtimeRequests = DB::table('overtime_requests as o')
+                    ->leftJoin('overtime_types as ot', 'o.ot_id', '=', 'ot.id')
+                    ->where('o.status', 'Approved')
+                    ->whereBetween('o.start_date', [$startDate, $endDate])
+                    ->whereRaw("JSON_CONTAINS(ts_o.assigned_staff, ?)", [json_encode((string)$user->user_id)])
+                    ->select([
+                        'ot.ot_name',
+                        'o.start_date',
+                        'o.start_time',
+                        'o.end_date',
+                        'o.end_time'
+                    ])
+                    ->get();
+
+                // Calculate totals
+                $user->total_overtime_requests = $overtimeRequests->count();
+                $totalHours = 0;
+
+                foreach ($overtimeRequests as $overtime) {
+                    $startDateTime = Carbon::parse($overtime->start_date . ' ' . $overtime->start_time);
+                    $endDateTime = Carbon::parse($overtime->end_date . ' ' . $overtime->end_time);
+                    $totalHours += $endDateTime->diffInHours($startDateTime, true);
+                }
+
+                $user->total_hours = round($totalHours, 2);
+
+                // Add overtime type specific data
+                foreach ($overtimeTypes as $overtimeType) {
+                    $overtimeData = $overtimeRequests->where('ot_name', $overtimeType->ot_name);
+                    $typeHours = 0;
+
+                    foreach ($overtimeData as $overtime) {
+                        $startDateTime = Carbon::parse($overtime->start_date . ' ' . $overtime->start_time);
+                        $endDateTime = Carbon::parse($overtime->end_date . ' ' . $overtime->end_time);
+                        $typeHours += $endDateTime->diffInHours($startDateTime, true);
+                    }
+
+                    $columnName = 'overtime_type_' . $overtimeType->id;
+                    
+                    // Check if this is "Uang Tunai" overtime type
+                    // Adjust the condition based on your overtime type identifier
+                    if (stripos($overtimeType->ot_name, 'Uang Tunai') !== false) {
+                        // Define overtime fee rates
+                        $overtimeFeeRates = [
+                            3 => 50000,
+                            5 => 100000,
+                            9 => 150000,
+                        ];
+                        
+                        $fee = 0;
+                        
+                        if ($typeHours < 3) {
+                            $fee = 0; // Under 3 hours, no payment
+                        } elseif ($typeHours < 5) {
+                            $fee = $overtimeFeeRates[3]; // Use 3 hour rate
+                        } elseif ($typeHours < 9) {
+                            $fee = $overtimeFeeRates[5]; // Use 5 hour rate
+                        } else {
+                            $fee = $overtimeFeeRates[9]; // Use 9 hour rate
+                        }
+                        
+                        $user->{$columnName} = round($typeHours, 2);
+                        $user->overtime_fee = ($user->overtime_fee ?? 0) + $fee;
+                    } else {
+                        // For other overtime types, just store the hours
+                        $user->{$columnName} = round($typeHours, 2);
+                    }
+                }
+                
+            }
+
+            return $users;
+        } catch (\Exception $e) {
+            \Log::error('Error in getOvertimeSummary: ' . $e->getMessage(), [
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'divisionId' => $divisionId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    private function getDateRangeFromFilter($filter)
+    {
+        $today = now();
+
+        switch ($filter) {
+            case 'this_week':
+                $startDate = $today->copy()->startOfWeek();
+                $endDate = $today->copy()->endOfWeek();
+                break;
+            case 'past_week':
+                $startDate = $today->copy()->subWeek()->startOfWeek();
+                $endDate = $today->copy()->subWeek()->endOfWeek();
+                break;
+            case 'next_week':
+                $startDate = $today->copy()->addWeek()->startOfWeek();
+                $endDate = $today->copy()->addWeek()->endOfWeek();
+                break;
+            case 'this_month':
+                $startDate = $today->copy()->startOfMonth();
+                $endDate = $today->copy()->endOfMonth();
+                break;
+            case 'last_month':
+                $startDate = $today->copy()->subMonth()->startOfMonth();
+                $endDate = $today->copy()->subMonth()->endOfMonth();
+                break;
+            case 'next_month':
+                $startDate = $today->copy()->addMonth()->startOfMonth();
+                $endDate = $today->copy()->addMonth()->endOfMonth();
+                break;
+            default:
+                $startDate = $today->copy()->startOfMonth();
+                $endDate = $today->copy()->endOfMonth();
+        }
+
+        return [
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d')
+        ];
     }
 }
