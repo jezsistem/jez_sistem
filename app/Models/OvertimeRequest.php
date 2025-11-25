@@ -36,4 +36,11 @@ class OvertimeRequest extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'request_by');
     }
+
+    public const overtimeFeeRates = [
+        // hours => rate
+        3 => 50000,
+        5 => 100000,
+        9 => 150000,
+    ];
 }

@@ -238,8 +238,8 @@
                                             </li>
 
                                             @if($hasLeaveType)
-                                                <li class="menu-item {{ request()->is('leave-requests/summary-report*') ? 'active' : '' }}">
-                                                    <a href="{{ url('/leave-requests/summary-report') }}"
+                                                <li class="menu-item {{ request()->is('overtime/summary-report*') ? 'active' : '' }}">
+                                                    <a href="{{ url('/overtime/summary-report/view') }}"
                                                        class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
