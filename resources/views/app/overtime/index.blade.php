@@ -92,12 +92,25 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3 mb-3">
+                                    <label for="division">Division</label>
+                                    <select class="form-control" id="division" name="division">
+                                        <option value="">All</option>
+                                        @foreach($data['divisions'] as $division)
+                                            <option value="{{ $division->id }}">{{ $division->ud_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
                                     <label for="start_date">Start Date</label>
                                     <input type="date" class="form-control" id="start_date" name="start_date">
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label for="end_date">End Date</label>
                                     <input type="date" class="form-control" id="end_date" name="end_date">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="staff">Staff</label>
+                                    <input type="text" class="form-control" id="staff" name="staff" placeholder="Staff Name">
                                 </div>
                                 <div class="col-md-3 mb-3 align-self-end">
                                     <button type="submit" class="btn btn-primary w-100"><i class="fa fa-search"></i> Apply</button>

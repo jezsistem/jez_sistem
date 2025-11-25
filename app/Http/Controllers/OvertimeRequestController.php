@@ -76,6 +76,7 @@ class OvertimeRequestController extends Controller
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'divisions' => DB::table('user_divisions')->orderBy('ud_name')->get(),
             'segment' => request()->segment(1),
         ];
 
@@ -167,7 +168,6 @@ class OvertimeRequestController extends Controller
             ]);
 
             return response()->json(['success' => true, 'message' => 'Overtime request submitted successfully']);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['success' => false, 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
@@ -216,8 +216,23 @@ class OvertimeRequestController extends Controller
         if ($request->end_date) {
             $data->whereDate('o.end_date', '<=', $request->end_date);
         }
+        if ($request->division) {
+            $data->where('o.ud_id', $request->division);
+        }
 
         return DataTables::of($data)
+            ->filter(function ($query) use ($request) {
+                if ($request->has('staff') && !empty($request->staff)) {
+                    $staffName = $request->staff;
+                    $query->where(function ($q) use ($staffName) {
+                        $q->whereRaw("EXISTS (
+                        SELECT 1 FROM ts_users u
+                        WHERE JSON_CONTAINS(ts_o.assigned_staff, CONCAT('\"', u.id, '\"'))
+                        AND u.u_name LIKE ?
+                    )", ["%{$staffName}%"]);
+                    });
+                }
+            })
             ->addIndexColumn()
             ->addColumn('assigned_staff', function ($row) {
                 $staffIds = json_decode($row->assigned_staff, true) ?? [];
@@ -355,7 +370,7 @@ class OvertimeRequestController extends Controller
                 ->exists();
         }
 
-        $data =[
+        $data = [
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'title' => 'Overtime Request',
@@ -366,7 +381,7 @@ class OvertimeRequestController extends Controller
         return view('app.overtime.show', compact('detail', 'data', 'isManager', 'isHR'));
     }
 
-    public function approve(Request $request,$id)
+    public function approve(Request $request, $id)
     {
         $userId = Auth::id();
 
@@ -418,7 +433,6 @@ class OvertimeRequestController extends Controller
                 'success' => true,
                 'message' => 'Report berhasil disimpan dan dikirim ke HR.'
             ]);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
@@ -439,16 +453,16 @@ class OvertimeRequestController extends Controller
         try {
             $overtime = OvertimeRequest::findOrFail($id);
 
-//            // Pastikan hanya HR yang bisa approve
-//            $user = auth()->user();
-//            $isHR = $user->userDivision && $user->userDivision->ud_code === 'HUMANRESRC';
+            //            // Pastikan hanya HR yang bisa approve
+            //            $user = auth()->user();
+            //            $isHR = $user->userDivision && $user->userDivision->ud_code === 'HUMANRESRC';
 
-//            if (!$isHR) {
-//                return response()->json([
-//                    'success' => false,
-//                    'message' => 'Anda tidak memiliki izin untuk approve HR.'
-//                ]);
-//            }
+            //            if (!$isHR) {
+            //                return response()->json([
+            //                    'success' => false,
+            //                    'message' => 'Anda tidak memiliki izin untuk approve HR.'
+            //                ]);
+            //            }
 
             // Update status dan kolom HR approval
             $overtime->update([
@@ -461,7 +475,6 @@ class OvertimeRequestController extends Controller
                 'success' => true,
                 'message' => 'Overtime berhasil disetujui oleh HR.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -469,6 +482,4 @@ class OvertimeRequestController extends Controller
             ]);
         }
     }
-
-
 }

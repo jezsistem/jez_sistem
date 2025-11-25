@@ -12,6 +12,8 @@
                     d.status = $('#status').val();
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
+                    d.division = $('#division').val();
+                    d.staff = $('#staff').val();
                 }
             },
             columns: [
@@ -108,7 +110,7 @@
         });
 
         // Atau otomatis reload saat status diubah
-        $('#status').on('change', function() {
+        $('#status, #division, #start_date, #end_date, #staff').on('change', function() {
             table.ajax.reload();
         });
 
