@@ -927,6 +927,8 @@ class PointOfSaleController extends Controller
                     "---\n".
                     "Pesan ini dikirim otomatis, mohon tidak membalas.";
 
+
+                // ini bagian kirimnya y
                 $response = Http::post('http://jezpro.com:3000/send-message', [
                     'phone' => $nohp,
                     'message' => $pesan
