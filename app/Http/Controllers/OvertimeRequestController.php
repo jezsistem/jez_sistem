@@ -340,13 +340,29 @@ class OvertimeRequestController extends Controller
             $detail->approver_name = DB::table('users')->where('id', $row->approved_by)->value('u_name');
         }
 
+        // tambahan: jika butuh nama HR checker
+        $detail->hr_checked_name = null;
+        if (!empty($row->hr_checked_by)) {
+            $detail->hr_checked_name = DB::table('users')->where('id', $row->hr_checked_by)->value('u_name');
+        }
+
         $approvalLogs = [];
         if (!empty($row->approved_by)) {
             $approvalLogs[] = [
-                'role' => 'Approver',
-                'name' => $detail->approver_name,
-                'date' => $row->approved_at ? date('d M Y H:i', strtotime($row->approved_at)) : null,
-                'note' => null
+            'role' => 'Approver',
+            'name' => $detail->approver_name,
+            'date' => $row->approved_at ? date('d M Y H:i', strtotime($row->approved_at)) : null,
+            'note' => null
+            ];
+        }
+
+        // tambahkan log HR check jika ada
+        if (!empty($row->hr_checked_by)) {
+            $approvalLogs[] = [
+            'role' => 'HR',
+            'name' => $detail->hr_checked_name,
+            'date' => $row->hr_checked_at ? date('d M Y H:i', strtotime($row->hr_checked_at)) : null,
+            'note' => null
             ];
         }
 
@@ -674,7 +690,7 @@ class OvertimeRequestController extends Controller
                 // Get overtime requests for this user in date range
                 $overtimeRequests = DB::table('overtime_requests as o')
                     ->leftJoin('overtime_types as ot', 'o.ot_id', '=', 'ot.id')
-                    ->where('o.status', 'Approved')
+                    ->where('o.status', 'Done')
                     ->whereBetween('o.start_date', [$startDate, $endDate])
                     ->whereRaw("JSON_CONTAINS(ts_o.assigned_staff, ?)", [json_encode((string)$user->user_id)])
                     ->select([
