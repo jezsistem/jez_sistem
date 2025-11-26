@@ -194,68 +194,100 @@ class TrackingController extends Controller
         $qty = $request->_qty;
         $u_id = Auth::user()->id;
 
-        $status = 'INSTOCK';
+        $r = [];
+        DB::beginTransaction();
+        try {
+            $status = 'INSTOCK';
 
-        $update_plst = DB::table('product_location_setup_transactions')
-            ->where('id', $plst_id)->where('pls_id', $pls_id)
-            ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'EXCHANGE', 'REFUND', 'WAITING FOR CHECKOUT'])->update([
-                'u_id_helper' => $u_id,
-                'plst_type' => 'IN',
-                'plst_status' => $status,
-                'updated_at' => date('Y-m-d H:i:s'),
-                'in_stock_time' => date('Y-m-d H:i:s'),
-            ]);
+            $update_plst = DB::table('product_location_setup_transactions')
+                ->where('id', $plst_id)->where('pls_id', $pls_id)
+                ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'EXCHANGE', 'REFUND', 'WAITING FOR CHECKOUT'])->update([
+                    'u_id_helper' => $u_id,
+                    'plst_type' => 'IN',
+                    'plst_status' => $status,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'in_stock_time' => date('Y-m-d H:i:s'),
+                ]);
 
-        $get_product_stocks = DB::table('product_location_setup_transactions')
-            ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->where('product_location_setup_transactions.id', $plst_id)->get()->first();
+            // get product stock & store info
+            $get_product_stocks = DB::table('product_location_setup_transactions')
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->where('product_location_setup_transactions.id', $plst_id)
+                ->select('product_locations.st_id', 'product_stocks.id as pst_id')
+                ->first();
 
-//        dd($get_product_stocks->st_id);
-
-        $bin_refund = DB::table('product_locations')->where('st_id', '=', $get_product_stocks->st_id)->where('pl_default_refund', '=','1')->get()->first()->id;
-
-        $pls_refund = DB::table('product_location_setups')->where('pst_id', '=', $get_product_stocks->pst_id)
-            ->where('pl_id', '=', $bin_refund)->get()->first();
-
-
-        if (empty($pls_refund)) {
-            $params_new = [
-                'pst_id'    => $get_product_stocks->pst_id,
-                'pl_id'     => $bin_refund,
-                'pls_qty'   => $qty,
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
-            $insert_pls = DB::table('product_location_setups')->insert($params_new);
-
-            if ($insert_pls) {
-                $r['status'] = '200';
-            } else {
-                $r['status'] = '400';
+            if (!$get_product_stocks) {
+                throw new \Exception('Transaction product not found');
             }
-        } else {
-            $pls = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_refund->id)->where('pst_id', $get_product_stocks->pst_id)->get()->first();
-            $update = DB::table('product_location_setups')->where('id', $pls_refund->id)->update([
-                'pls_qty' => ($pls_refund->pls_qty + $qty),
-                'updated_at' => date('Y-m-d H:i:s')
-            ]);
 
-            if ($update) {
-                $pls = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_id)->get()->first();
+            $bin_refund = DB::table('product_locations')
+                ->where('st_id', '=', $get_product_stocks->st_id)
+                ->where('pl_default_refund', '=', '1')
+                ->first();
+
+            if (!$bin_refund) {
+                throw new \Exception('Refund bin not configured for store');
+            }
+
+            $bin_refund_id = $bin_refund->id;
+
+            $pls_refund = DB::table('product_location_setups')
+                ->where('pst_id', '=', $get_product_stocks->pst_id)
+                ->where('pl_id', '=', $bin_refund_id)
+                ->first();
+
+            if (empty($pls_refund)) {
+                $params_new = [
+                    'pst_id'    => $get_product_stocks->pst_id,
+                    'pl_id'     => $bin_refund_id,
+                    'pls_qty'   => $qty,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+                $insert_pls_id = DB::table('product_location_setups')->insertGetId($params_new);
+
+                if (!$insert_pls_id) {
+                    throw new \Exception('Failed to create product_location_setups');
+                }
+
+                // activity for inserted bin
+                $pls_for_activity = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $insert_pls_id)->first();
+            } else {
+                $update = DB::table('product_location_setups')->where('id', $pls_refund->id)->update([
+                    'pls_qty' => DB::raw("pls_qty + " . intval($qty)),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+
+                if ($update === false) {
+                    throw new \Exception('Failed to update product_location_setups');
+                }
+
+                $pls_for_activity = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_refund->id)->first();
+            }
+
+            // log user activity
+            if ($pls_for_activity) {
                 $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->where('product_stocks.id', $pls->pst_id)
-                    ->get()->first();
-                $pl_code = ProductLocation::select('pl_code')->where('id', $pls->pl_id)->get()->first()->pl_code;
-                $this->UserActivity($u_id, 'memasukkan artikel [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
-                $r['status'] = '200';
-            } else {
-                $r['status'] = '400';
+                    ->where('product_stocks.id', $pls_for_activity->pst_id)
+                    ->first();
+
+                $pl_code = ProductLocation::select('pl_code')->where('id', $pls_for_activity->pl_id)->first()->pl_code ?? '-';
+                if ($item) {
+                    $this->UserActivity($u_id, 'memasukkan artikel [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
+                }
             }
+
+            DB::commit();
+            $r['status'] = '200';
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
 
         return json_encode($r);
