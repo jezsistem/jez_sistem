@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\UserShift;
 use Illuminate\Support\Carbon;
@@ -913,15 +915,46 @@ class PointOfSaleController extends Controller
                 $st_id = Auth::user()->st_id;
 
                 $store = Store::where('id', $st_id)->first(); // Assuming you want the store object
-                $store_name = $store->name;
+                $store_name = $store->st_name;
 
 
                 $client = new Client();
                 $nohp = $customer->cust_phone;
                 $receipt_url = url('/e_receipt/' . $invoice);
-                $pesan = "Struk belanja $store_name, \n\nTerima kasih telah melakukan pembelian dengan total pembelian Rp. $real_price. \nLihat detail & beri saran di $receipt_url \n\n[ABAIKAN BILA TIDAK MEMBELI]";
+                $pesan = "Terima kasih telah berbelanja di $store_name.\n".
+                    "Total transaksi Anda sebesar Rp " . number_format($real_price, 0, ',', '.') . ".\n".
+                    "Silakan cek detail transaksi di: $receipt_url\n\n".
+                    "---\n".
+                    "Pesan ini dikirim otomatis, mohon tidak membalas.";
+
+                $response = Http::post('http://jezpro.com:3000/send-message', [
+                    'phone' => $nohp,
+                    'message' => $pesan
+                ]);
+
+                Log::info('WA API Response:', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+//                try {
+//                    $response = Http::post('http://localhost:3000/send-message', [
+//                        'phone' => $nohp,
+//                        'message' => $pesan
+//                    ]);
+//
+//                    if ($response->successful()) {
+//                        \Log::info("WA berhasil dikirim ke $nohp");
+//                    } else {
+//                        \Log::error("Gagal kirim WA: " . $response->body());
+//                    }
+//                } catch (\Exception $e) {
+//                    \Log::error("Error kirim WhatsApp: " . $e->getMessage());
+//                }
+
+// ---------------------------------------------
 
                 $st_code = $store->st_code;
+
                 $r['status'] = '200';
                 $r['pt_id'] = $insert_get_id;
                 $r['invoice'] = $invoice;

@@ -1145,19 +1145,19 @@ Route::group(['middleware' => 'auth'], function () {
     //wa api
     Route::get('/whats-app-setting', [WhatsappController::class, 'index']);
     Route::get('/wa/qr', function () {
-        return Http::get('http://localhost:3000/get-qr')->json();
+        return Http::get('http://jezpro.com:3000/get-qr')->json();
     });
 
     Route::get('/wa/status', function () {
-        return Http::get('http://localhost:3000/wa-status')->json();
+        return Http::get('http://jezpro.com:3000/wa-status')->json();
     });
 
     Route::get('/wa/logout', function () {
-        return Http::get('http://localhost:3000/logout')->json();
+        return Http::get('http://jezpro.com:3000/logout')->json();
     });
 
     Route::get('/wa/profile', function () {
-        return Http::get('http://localhost:3000/wa-profile')->json();
+        return Http::get('http://jezpro.com:3000/wa-profile')->json();
     });
     Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
     Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
