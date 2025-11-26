@@ -837,6 +837,7 @@ class AttendanceController extends Controller
 
             // Store message in session before redirect
             session()->flash('success', $message);
+            session()->flash('errors', $errors);
             \Log::info('Session message stored', ['session_id' => session()->getId(), 'message' => $message]);
 
             return redirect()->route('attendance.index');
