@@ -527,7 +527,7 @@ class TransaksiOnlineController extends Controller
         try {
             DB::beginTransaction();
 
-            $plst_list = ProductLocationSetupTransaction::query()->where('otd_id', $otd_id);
+            $plst_list = ProductLocationSetupTransaction::query()->where('otd_id', $otd_id)->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND']);
 
             // get data item that already picked by helper
             $already_picked = ProductLocationSetupTransaction::where('otd_id', $otd_id)
@@ -540,6 +540,19 @@ class TransaksiOnlineController extends Controller
                 return response()->json([
                     'status' => '400',
                     'message' => 'Item sudah dipick oleh helper, tidak dapat dihapus.'
+                ]);
+            }
+
+            // get data item that already waiting receipt
+            $already_waiting_receipt = ProductLocationSetupTransaction::where('otd_id', $otd_id)
+                ->where('plst_status', 'WAITING RECEIPT')
+                ->exists();
+
+            if ($already_waiting_receipt) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Item sudah dalam status WAITING RECEIPT, tidak dapat dihapus.'
                 ]);
             }
 
