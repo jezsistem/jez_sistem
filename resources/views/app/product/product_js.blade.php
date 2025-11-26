@@ -1244,11 +1244,13 @@
 
             $('#showLinkModalBtn').on('click', function () {
                 $('#ProductLinkModal').modal('show');
-                console.log('jancok')
+                initMarketplace($('#article_id').val());
+                initSocial($('#article_id').val());
             });
 
             $('#ProductLinkModal').on('shown.bs.modal', function () {
-                console.log('jancok')
+                initMarketplace($('#article_id').val());
+                initSocial($('#article_id').val());
 
                 const articleId = $('#article_id').val();
 
@@ -1257,10 +1259,13 @@
                 }
             });
 
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-
-                const target = $(e.target).attr("href");
+            $('a[data-toggle="tab"]').on('click', function (e) {
+                e.preventDefault();
+                
+                const target = $(this).attr("href");
                 const articleId = $('#article_id').val();
+
+                $(this).tab('show');
 
                 if (target === '#tabMarketplace') {
                     initMarketplace(articleId);
@@ -1276,7 +1281,7 @@
 // =============================
             function initMarketplace(articleId) {
                 if (!tableMarketplace) {
-                    tableMarketplace = $("#tableMarketplaceLinks").DataTable({
+                    tableMarketplace = jQuery("#tableMarketplaceLinks").DataTable({
                         processing: true,
                         serverSide: true,
                         ajax: `/product-links/marketplace/${articleId}`,
@@ -1294,7 +1299,7 @@
 
             function initSocial(articleId) {
                 if (!tableSocial) {
-                    tableSocial = $("#tableSocialLinks").DataTable({
+                    tableSocial = jQuery("#tableSocialLinks").DataTable({
                         processing: true,
                         serverSide: true,
                         ajax: `/product-links/social/${articleId}`,
@@ -1400,8 +1405,8 @@
                         $("#ProductLinkFormModal").modal("hide");
 
                         // reload datatables
-                        $("#tableMarketplaceLinks").DataTable().ajax.reload();
-                        $("#tableSocialLinks").DataTable().ajax.reload();
+                        jQuery("#tableMarketplaceLinks").DataTable().ajax.reload();
+                        jQuery("#tableSocialLinks").DataTable().ajax.reload();
                     }
                 });
 
