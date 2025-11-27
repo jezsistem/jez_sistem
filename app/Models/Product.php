@@ -171,4 +171,9 @@ class Product extends Model
         'p_turnoverclass',
         'mark_down'
     ];
+
+    public static $massUpdateSKUColumns = [
+        'ps_price_tag',
+        'ps_sell_price',
+    ];
 }

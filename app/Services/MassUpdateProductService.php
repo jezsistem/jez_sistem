@@ -46,7 +46,7 @@ class MassUpdateProductService
         return $error_ids; // Return article IDs with errors if any
     }
 
-    public function processRowSKUlevel($row) {
+    public function processRowSKUlevel($row, $update_column) {
         $error_ids = [];
         DB::beginTransaction();
         try {
@@ -59,7 +59,7 @@ class MassUpdateProductService
                 $update_data = DB::table('product_stocks')
                     ->where('ps_barcode', $ps_barcode)
                     ->update([
-                        'ps_sell_price' => $new_value,
+                        $update_column => $new_value,
                         'updated_at' => now() // Update the updated_at timestamp
                     ]);
 

@@ -1364,14 +1364,15 @@ class ProductController extends Controller
             $massUpdateService = new MassUpdateProductService(); // Instantiate the service
             $error_ids = $massUpdateService->processRowArticleLevel($import_data[0], $update_column); // Call the method on the service with the first array
         } else if ($update_type == 'sku') {
-            if ($update_column != 'ps_sell_price' || $import_data[0][0][0] != 'ps_barcode') {
+            $is_allowed = Product::$massUpdateSKUColumns; // Accessing the property as static
+            if (!in_array($update_column, $is_allowed) || $import_data[0][0][0] != 'ps_barcode') {
                 $r['status'] = '400';
                 $r['message'] = 'Kolom yang akan diupdate tidak sesuai.';
                 return json_encode($r);
             }
 
             $massUpdateService = new MassUpdateProductService(); // Instantiate the service
-            $error_ids = $massUpdateService->processRowSkuLevel($import_data[0]); // Call the method on the service with the first array
+            $error_ids = $massUpdateService->processRowSKUlevel($import_data[0], $update_column); // Call the method on the service with the first array
         } else {
             $r['status'] = '400';
             $r['message'] = 'Tipe update tidak sesuai.';
