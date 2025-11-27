@@ -131,7 +131,7 @@
                             </tr>
                             <tr>
                                 <th>Desc Overtime</th>
-                                <td>{{ $detail->details }}</td>
+                                <td>{!! nl2br(e($detail->details)) !!}</td>
                             </tr>
                             <tr>
                                 <th>Requested By</th>
@@ -204,7 +204,9 @@
                         {{-- =================== VIEW REPORT =================== --}}
                         <div class="mb-3">
                             <h6 class="text-primary"><i class="bi bi-journal-text"></i> Deskripsi Report:</h6>
-                            <p class="border rounded p-3 bg-light">{{ $detail->report_desc }}</p>
+                            <div class="border rounded p-3 bg-light markdown-content">
+                                {!! \Illuminate\Support\Str::markdown($detail->report_desc) !!}
+                            </div>
                         </div>
 
                         @if(!empty($detail->report_attachment))

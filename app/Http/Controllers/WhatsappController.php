@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\ProcessBroadcastJob;
+use App\Models\Store;
 use App\Models\WaBroadcastJob;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\WebConfig;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class WhatsappController extends Controller
@@ -144,6 +148,52 @@ class WhatsappController extends Controller
             'data'    => $job
         ]);
     }
+
+    public function send_whatsapp_nota(Request $request)
+    {
+        $pos_invoice = $request->pos_invoice;
+
+        $trx_target = DB::table('pos_transactions')->where('pos_invoice', '=', $pos_invoice)->first();
+
+        dd($trx_target);
+
+        $customer = DB::table('customers')->where('id', '=', $trx_target->cust_id)->first();
+
+        $st_id = Auth::user()->st_id;
+
+        $store = Store::where('id', $st_id)->first(); // Assuming you want the store object
+        $store_name = $store->st_name;
+
+        $client = new Client();
+        $nohp = $customer->cust_phone;
+        $receipt_url = url('/e_receipt/' . $pos_invoice);
+        $pesan = "Terima kasih telah berbelanja di $store_name.\n".
+            "Total transaksi Anda sebesar Rp " . number_format($trx_target->pos_real_price, 0, ',', '.') . ".\n".
+            "Silakan cek detail transaksi di: $receipt_url\n\n".
+            "---\n".
+            "Pesan ini dikirim otomatis, mohon tidak membalas.";
+
+
+        // ini bagian kirimnya y
+        $response = Http::post('http://jezpro.com:3000/send-message', [
+            'phone' => $nohp,
+            'message' => $pesan
+        ]);
+
+        Log::info('WA API Response:', [
+            'status' => $response->status(),
+            'body' => $response->body()
+        ]);
+
+
+//        Http::post('http://jezpro.com:3000/send-message', [
+//            'phone' => $cust->cust_phone,
+//            'message' => 'Terima kasih telah berbelanja...'
+//        ]);
+
+        return response()->json(['status' => 'ok']);
+    }
+
 
     public function executeBlast(Request $request)
     {

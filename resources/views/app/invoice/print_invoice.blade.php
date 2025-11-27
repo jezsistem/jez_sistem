@@ -253,7 +253,7 @@
                             <span style="float:right;">
                             <span class="text-red">
                                 @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WEBSITE')
-                                    @if ($total_marketplace+$data['discount_platform']+$data['transaction']->pos_shipping > $data['transaction']->pos_payment)
+                                    @if ($total_marketplace-$data['discount_platform']+$data['transaction']->pos_shipping > $data['transaction']->pos_payment)
                                         {{ number_format($total_marketplace+$data['discount_platform']+$data['transaction']->pos_shipping - $data['transaction']->pos_payment) }}
                                     @else
                                         ({{ number_format($data['discount_platform']) }})

@@ -527,7 +527,7 @@ class TransaksiOnlineController extends Controller
         try {
             DB::beginTransaction();
 
-            $plst_list = ProductLocationSetupTransaction::query()->where('otd_id', $otd_id);
+            $plst_list = ProductLocationSetupTransaction::query()->where('otd_id', $otd_id)->whereNotIn('plst_status', ['DONE', 'INSTOCK', 'REFUND']);
 
             // get data item that already picked by helper
             $already_picked = ProductLocationSetupTransaction::where('otd_id', $otd_id)
@@ -540,6 +540,19 @@ class TransaksiOnlineController extends Controller
                 return response()->json([
                     'status' => '400',
                     'message' => 'Item sudah dipick oleh helper, tidak dapat dihapus.'
+                ]);
+            }
+
+            // get data item that already waiting receipt
+            $already_waiting_receipt = ProductLocationSetupTransaction::where('otd_id', $otd_id)
+                ->where('plst_status', 'WAITING RECEIPT')
+                ->exists();
+
+            if ($already_waiting_receipt) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Item sudah dalam status WAITING RECEIPT, tidak dapat dihapus.'
                 ]);
             }
 
@@ -1009,11 +1022,11 @@ class TransaksiOnlineController extends Controller
             $waiting_receipt_items = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
-                ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')
-                ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'))
-                ->groupBy('product_stocks.ps_barcode')
+                ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')->where('product_location_setup_transactions.qc_status', ProductLocationSetupTransaction::QC_STATUS_PASSED)
+                ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'), 'otd_id')
+                ->groupBy('product_stocks.ps_barcode', 'otd_id')
                 ->get()
-                ->keyBy('ps_barcode');
+                ->keyBy('otd_id');
 
             if ($waiting_receipt_items->isEmpty()) {
                 DB::rollBack();
@@ -1025,7 +1038,7 @@ class TransaksiOnlineController extends Controller
 
             // bandingkan qty yang diorder dengan qty yang sudah dipick
             foreach ($active_transaction_items as $item) {
-                $picked_item = $waiting_receipt_items->get($item->sku);
+                $picked_item = $waiting_receipt_items->get($item->id);
                 $picked_qty = $picked_item ? $picked_item->total_picked : 0;
 
                 if ($picked_qty < $item->qty) {

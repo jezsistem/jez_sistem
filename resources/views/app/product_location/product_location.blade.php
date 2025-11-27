@@ -139,6 +139,7 @@
                                             <th class="text-dark">Default Refund</th>
                                             <th class="text-dark">Default Failed QC</th>
                                             <th class="text-dark">BIN Freeze</th>
+                                            <th class="text-dark">BIN Offline</th>
                                             <th class="text-dark">Detail</th>
                                         </tr>
                                     </thead>

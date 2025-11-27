@@ -1124,6 +1124,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
     Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
 
+    Route::get('/overtime/export/excel', [OvertimeRequestController::class, 'exportToExcel'])->name('overtime.export.excel');
+
+    Route::get('/overtime/summary-report/view', [OvertimeRequestController::class, 'summaryReport'])->name('overtime.summary-report');
+    Route::get('/overtime/summary-report/datatables', [OvertimeRequestController::class, 'getOvertimeSummaryDatatables'])->name('overtime.summary-report-datatables');
+    Route::get('/overtime/summary-report/export/excel', [OvertimeRequestController::class, 'exportSummaryToExcel'])->name('overtime.summary-report-export-excel');
+    Route::get('/overtime/summary-report/export/pdf', [OvertimeRequestController::class, 'exportSummaryToPDF'])->name('overtime.summary-report-export-pdf');
+
 
     // absen manual
     Route::get('/manual-attendance', [AttendanceController::class, 'manualAttendance'])->name('manual.absensi');
@@ -1138,20 +1145,21 @@ Route::group(['middleware' => 'auth'], function () {
     //wa api
     Route::get('/whats-app-setting', [WhatsappController::class, 'index']);
     Route::get('/wa/qr', function () {
-        return Http::get('http://localhost:3000/get-qr')->json();
+        return Http::get('http://jezpro.com:3000/get-qr')->json();
     });
 
     Route::get('/wa/status', function () {
-        return Http::get('http://localhost:3000/wa-status')->json();
+        return Http::get('http://jezpro.com:3000/wa-status')->json();
     });
 
     Route::get('/wa/logout', function () {
-        return Http::get('http://localhost:3000/logout')->json();
+        return Http::get('http://jezpro.com:3000/logout')->json();
     });
 
     Route::get('/wa/profile', function () {
-        return Http::get('http://localhost:3000/wa-profile')->json();
+        return Http::get('http://jezpro.com:3000/wa-profile')->json();
     });
+    Route::post('send_whatsapp_nota',  [WhatsappController::class, 'send_whatsapp_nota']);
     Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
     Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
 

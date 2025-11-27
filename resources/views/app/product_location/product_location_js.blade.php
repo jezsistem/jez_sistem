@@ -62,6 +62,10 @@
                     name: 'pl_freeze'
                 },
                 {
+                    data: 'pl_offline',
+                    name: 'pl_offline'
+                },
+                {
                     data: 'detail',
                     name: 'detail'
                 },
@@ -329,6 +333,28 @@
                 data: {
                     plid: plid,
                     pl_freeze: isChecked,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('Data berhasil diubah', 'Berhasil');
+                    product_location_table.draw(false);
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengubah status.', 'Gagal');
+                }
+            });
+        });
+
+        $(document).on('change', '.toggle-offline', function() {
+            let plid = $(this).data('id');
+            let isChecked = $(this).is(':checked') ? '1' : '0';
+
+            $.ajax({
+                url: '{{ url("pl_offline_status") }}',
+                method: 'POST',
+                data: {
+                    plid: plid,
+                    pl_offline: isChecked,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
