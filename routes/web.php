@@ -1159,6 +1159,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/wa/profile', function () {
         return Http::get('http://jezpro.com:3000/wa-profile')->json();
     });
+    Route::post('send_whatsapp_nota',  [WhatsappController::class, 'send_whatsapp_nota']);
     Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
     Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
 
