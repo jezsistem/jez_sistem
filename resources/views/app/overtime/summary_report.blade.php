@@ -116,7 +116,7 @@
 
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">Overtime Requests</h4>
+                            <h4 class="mb-0">Overtime Summary Report</h4>
                             <div>
                                 <button type="button" class="btn btn-light-green font-weight-bolder mr-2"
                                     onclick="exportSummaryToExcel()">
