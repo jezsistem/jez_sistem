@@ -737,7 +737,11 @@ class InvoiceEditorController extends Controller
                         'st_id' => $pos_trx_selected->st_id,
                         'stt_id' => $pos_trx_selected->stt_id,
                         'pm_id' => $pos_trx_selected->pm_id,
+                        'pm_id_partial' => $pos_trx_selected->pm_id_partial,
+                        'sub_payment' => $pos_trx_selected->sub_payment,
+                        'sub_payment_partial' => $pos_trx_selected->sub_payment_partial,
                         'cp_id' => $pos_trx_selected->cp_id,
+                        'cp_id_partial' => $pos_trx_selected->cp_id_partial,
                         'std_id' => $pos_trx_selected->std_id,
                         'cust_id' => $pos_trx_selected->cust_id,
                         'pt_id_ref' => $pos_trx_selected->pt_id_ref,
@@ -753,13 +757,15 @@ class InvoiceEditorController extends Controller
                         'pos_total_discount' => 0,
                         'pos_discount_seller' => 0,
                         'cr_id' => $pos_trx_selected->cr_id,
+                        'cr_id_partial' => $pos_trx_selected->cr_id_partial,
                         'pos_note' => $pos_trx_selected->pos_note,
                         'created_at' => date('Y-m-d H:i:s'),
                         'pos_refund' => '1',
                         'st_id_ref' => $pos_trx_selected->st_id_ref,
                         'cross_order' => $pos_trx_selected->cross_order,
                         'pos_status' => $value,
-                        'pos_payment' => -abs($pos_trx_selected->pos_payment)
+                        'pos_payment' => -abs($pos_trx_selected->pos_payment),
+                        'pos_payment_partial' => -abs($pos_trx_selected->pos_payment_partial)
                     ]);
 
                     //                    $bin_refund = DB::table('product_locations')->where('st_id', '=', $pos_trx_selected->st_id)->where('pl_default_refund', 1)->get()->first()->id;
