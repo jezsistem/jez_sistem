@@ -96,10 +96,8 @@
         },
         yaxis: {
             labels: {
-                formatter: function(val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -139,10 +137,8 @@
         },
         yaxis: {
             labels: {
-                formatter: function(val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -260,14 +256,12 @@
             },
         },
         xaxis: {
-            categories: ['Hutang'],
+            categories: ['Brand Sales'],
         },
         yaxis: {
             labels: {
-                formatter: function(val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -307,10 +301,8 @@
         },
         yaxis: {
             labels: {
-                formatter: function(val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -350,10 +342,8 @@
         },
         yaxis: {
             labels: {
-                formatter: function(val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -415,6 +405,7 @@
     });
 
     function getProfitGraph(div, hidden_range) {
+        $("#loadersalesafteradmin").show();
         $(div).addClass('d-none');
         $('#pr_loading').removeClass('d-none');
         $.ajaxSetup({
@@ -431,16 +422,25 @@
             dataType: 'html',
             url: "{{ url('get_profit_graph')}}",
             success: function(r) {
+                $("#loadersalesafteradmin").hide();
                 $('#pr_loading').addClass('d-none');
                 $('#profitChart').removeClass('d-none');
                 $('#_profits').html(r);
+            },
+
+            error: function() {
+
+                // Tetap sembunyikan overlay loader jika error
+                $("#loadersalesafteradmin").hide();
+
+                alert("Something went wrong, please try again!");
             }
         });
     }
 
     $(document).delegate('#pr_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_pr').addClass('d-none');
+        $('#pr_show_btn').addClass('d-none');
         getProfitGraph('#pr_show_btn', hidden_range);
     });
 
@@ -450,6 +450,7 @@
     });
 
     function getcSalesGraph(div, hidden_range) {
+        $("#loadergrossmargin").show();
         $(div).addClass('d-none');
         $('#cns_loading').removeClass('d-none');
         $.ajaxSetup({
@@ -465,16 +466,22 @@
             dataType: 'html',
             url: "{{ url('get_csales_graph')}}",
             success: function(r) {
+                $("#loadergrossmargin").hide();
                 $('#cns_loading').addClass('d-none');
                 $('#cnettsaleChart').removeClass('d-none');
                 $('#_cnettsales').html(r);
+            },
+            error: function() {
+                $("#loadergrossmargin").hide();
+                alert("Something went wrong!");
             }
+
         });
     }
 
     $(document).delegate('#cns_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_cns').addClass('d-none');
+        $('#cns_show_btn').addClass('d-none');
         getcSalesGraph('#cns_show_btn', hidden_range);
     });
 
@@ -608,6 +615,7 @@
     });
 
     function getDebtGraph(div, hidden_range) {
+        $("#loaderssalesbrand").show();
         $(div).addClass('d-none');
         $('#d_loading').removeClass('d-none');
         $.ajaxSetup({
@@ -626,13 +634,19 @@
                 $('#d_loading').addClass('d-none');
                 $('#debtChart').removeClass('d-none');
                 $('#_debts').html(r);
+                $("#loaderssalesbrand").hide();
+            },
+            error: function() {
+                $("#loaderssalesbrand").hide();
+                alert("Something went wrong!");
             }
         });
+
     }
 
     $(document).delegate('#d_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_d').addClass('d-none');
+        $('#d_show_btn').addClass('d-none');
         getDebtGraph('#d_show_btn', hidden_range);
     });
 

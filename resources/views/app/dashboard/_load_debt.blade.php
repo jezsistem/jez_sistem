@@ -4,9 +4,9 @@
     @if (!empty($data['item']))
     @foreach ($data['item'] as $row)
     {
-        name: '{{ $row['st_name'] }}',
+        name: '{{ $row['br_name'] }}',
         data: [{{ $row['total'] }}],
-        color: primary
+        color: '{{ $row['color'] }}'
     },
     @endforeach
     @endif

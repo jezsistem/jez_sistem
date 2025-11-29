@@ -103,7 +103,14 @@
                     <!--begin::Stats Widget 12-->
                     <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">
                         <!--begin::Body-->
-                        <div class="card-body">
+                        <div class="card-body" style="position: relative;">
+                            <div id="loadersalesafteradmin"
+                                style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;
+                                        z-index:10; text-align:center; border-radius:.625rem;">
+                                <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="35%"
+                                    style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                            padding:10px; border-radius:10px;">
+                            </div>
                             <div class="d-flex">
                                 <div class="col-6 px-0 title">
                                     <span class="font-weight-bold fs-4 d-flex align-items-center mb-2 title">
@@ -113,7 +120,7 @@
                                             <i class="path3"></i>
                                             <i class="path4"></i>
                                         </i>
-                                        Profit
+                                        Cogs
                                     </span>
                                 </div>
                                 <div class="text-right col-6 px-0">
@@ -128,8 +135,6 @@
                             </div>
                             <center class="button-show_pr pt-10">
                                 <a class="btn btn-inventory" id="pr_show_btn">Tampilkan</a>
-                                <img class="d-none" id="pr_loading" src="{{ asset('upload/loading/loading.gif') }}"
-                                    style="width:20%; padding-bottom:20px;" />
                             </center>
                             <div class="d-none" id="profitChart"></div>
                         </div>
@@ -142,7 +147,14 @@
                     <!--begin::Stats Widget 11-->
                     <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">
                         <!--begin::Body-->
-                        <div class="card-body">
+                        <div class="card-body" style="position: relative;">
+                            <div id="loadergrossmargin"
+                                style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;
+                                        z-index:10; text-align:center; border-radius:.625rem;">
+                                <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="35%"
+                                    style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                            padding:10px; border-radius:10px;">
+                            </div>
                             <div class="d-flex align-items-center justify-content-between flex-grow-1">
                                 <span class="font-weight-bold fs-4 d-flex align-items-center mb-2 title">
                                     <i class="ki-outline ki-graph-up fs-2 mr-2">
@@ -153,7 +165,7 @@
                                         <i class="path5"></i>
                                         <i class="path6"></i>
                                     </i>
-                                    Cross Sales
+                                    Gross Sales
                                 </span>
                                 <div class="d-flex flex-column text-right">
                                     <span class="font-weight-bold fs-9 btn" id="cnett_sales_label"
@@ -165,8 +177,6 @@
                             </div>
                             <center class="button-show_cns pt-20">
                                 <a class="btn btn-inventory" id="cns_show_btn">Tampilkan</a>
-                                <img class="d-none" id="cns_loading" src="{{ asset('upload/loading/loading.gif') }}"
-                                    style="width:20%; padding-bottom:20px;" />
                             </center>
                             <div class="d-none" id="cnettsaleChart"></div>
                         </div>
@@ -330,23 +340,32 @@
                     <!--begin::Stats Widget 12-->
                     <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">
                         <!--begin::Body-->
-                        <div class="card-body">
+                        <div class="card-body" style="position: relative;">
+                            <div id="loaderssalesbrand"
+                                style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;
+                                        z-index:10; text-align:center; border-radius:.625rem;">
+                                <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="35%"
+                                    style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                            padding:10px; border-radius:10px;">
+                            </div>
                             <div class="d-flex align-items-center justify-content-between flex-grow-1">
                                 <span class="font-weight-bold fs-4 d-flex align-items-center mb-2 title">
-                                    <i class="ki-outline ki-file-down fs-2 mr-2">
+                                    <i class="ki-outline ki-bill fs-2 mr-2">
                                         <i class="path1"></i>
                                         <i class="path2"></i>
+                                        <i class="path3"></i>
+                                        <i class="path4"></i>
+                                        <i class="path5"></i>
+                                        <i class="path6"></i>
                                     </i>
-                                    Hutang
+                                    Sales By Brand
                                 </span>
-                                <div class="d-flex flex-column text-right">
+                                <!-- <div class="d-flex flex-column text-right">
                                     <span class="font-weight-bold fs-5 btn btn-dark" id="debt_label"></span>
-                                </div>
+                                </div> -->
                             </div>
                             <center class="button-show_d pt-20">
                                 <a class="btn btn-inventory" id="d_show_btn">Tampilkan</a>
-                                <img class="d-none" id="d_loading" src="{{ asset('upload/loading/loading.gif') }}"
-                                    style="width:20%; padding-bottom:20px;" />
                             </center>
                             <div class="d-none" id="debtChart"></div>
                         </div>
