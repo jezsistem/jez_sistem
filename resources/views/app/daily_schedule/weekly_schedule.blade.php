@@ -217,7 +217,7 @@
 {{--                                                    @endforeach--}}
 {{--                                                </select>--}}
 
-                                                <select class="form-control shift-select select2-shift" multiple style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate)) }}" onchange="saveScheduleDirectly(this)">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate)) }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
