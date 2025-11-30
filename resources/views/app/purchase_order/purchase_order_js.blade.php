@@ -787,6 +787,8 @@
                 data: function(d) {
                     d.search = $('#purchase_order_search').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.date = $('#po_date').val();
+                    d.status_purchase = $('#status_purchase').val();
                 }
             },
             columns: [{
@@ -1244,6 +1246,21 @@
         });
 
         $('#st_id_filter').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+        $('#status_purchase').select2({
+            width: "200px",
+            dropdownParent: $('#status_purchase_parent')
+        });
+
+        $('#status_purchase').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+        
+        $('#status_purchase').on('change', function() {
             purchase_order_table.draw();
         });
 
@@ -2113,5 +2130,61 @@
             {{-- window.location.href = "{{ url('po_article_export') }}?po_id="+po_id; --}}
             window.location.href = "{{ url('po_article_export') }}?po_id=" + po_id + "&st_id=" + st_id;
         });
+
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+
+            if ((end - start) < 100 || label == 'Today') {
+                title = 'Today:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Yesterday') {
+                title = 'Yesterday:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
+            } else {
+                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+            console.log(hidden_range);
+            $('#po_date').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+
+            purchase_order_table.draw();
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+                'All Days': [null, null],
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end, '');
     });
 </script>

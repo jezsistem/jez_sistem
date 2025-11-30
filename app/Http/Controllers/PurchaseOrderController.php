@@ -355,6 +355,29 @@ class PurchaseOrderController extends Controller
                             }
                         });
                     }
+                    if ($request->has('status_purchase')) {
+                        $filter = $request->get('status_purchase');
+
+                        if ($filter === 'in_progress') {
+                            //get qty receive
+                            $instance->whereRaw('(SELECT COUNT(*) FROM ts_purchase_order_article_detail_statuses WHERE ts_purchase_order_article_detail_statuses.poad_id IN (SELECT id FROM ts_purchase_order_article_details WHERE poa_id IN (SELECT id FROM ts_purchase_order_articles WHERE po_id = ts_purchase_orders.id)) AND poads_type = "IN") = 0');
+                            
+                        } elseif ($filter === 'partial') {
+                            //count the approved row and not approved yet
+                            $instance->whereExists(function ($query) {
+                                $query->selectRaw('1')
+                                    ->from('purchase_order_articles')
+                                    ->leftJoin('purchase_order_article_details', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                                    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                                    ->whereColumn('purchase_order_articles.po_id', 'purchase_orders.id')
+                                    ->havingRaw('COUNT(CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NULL THEN 1 END) > 0')
+                                    ->havingRaw('COUNT(ts_purchase_order_article_detail_statuses.u_id_approve) > 0');
+                            });
+                        } elseif ($filter === 'done') {
+                            $instance->whereNotNull('u_id_approve')
+                                     ->whereRaw('(SELECT COALESCE(SUM(poads_qty), 0) FROM ts_purchase_order_article_detail_statuses WHERE ts_purchase_order_article_detail_statuses.poad_id IN (SELECT id FROM ts_purchase_order_article_details WHERE poa_id IN (SELECT id FROM ts_purchase_order_articles WHERE po_id = ts_purchase_orders.id)) AND poads_type = "IN") = ts_purchase_orders.po_total_qty');
+                        }
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
