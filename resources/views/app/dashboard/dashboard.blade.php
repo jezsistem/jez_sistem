@@ -276,14 +276,25 @@
                     <!--begin::Stats Widget 12-->
                     <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">
                         <!--begin::Body-->
-                        <div class="card-body">
+                        <div class="card-body" style="position: relative;">
+                            <div id="loaderqty"
+                                style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;
+                                        z-index:10; text-align:center; border-radius:.625rem;">
+                                <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="35%"
+                                    style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                            padding:10px; border-radius:10px;">
+                            </div>
                             <div class="d-flex align-items-center justify-content-between flex-grow-1">
                                 <span class="font-weight-bold fs-4 d-flex align-items-center mb-2 title">
-                                    <i class="ki-outline ki-home-1 fs-2 mr-2">
+                                    <i class="ki-outline ki-bill fs-2 mr-2">
                                         <i class="path1"></i>
                                         <i class="path2"></i>
+                                        <i class="path3"></i>
+                                        <i class="path4"></i>
+                                        <i class="path5"></i>
+                                        <i class="path6"></i>
                                     </i>
-                                    Aset Cash/Credit
+                                    Quantity
                                 </span>
                                 <div class="d-flex flex-column text-right">
                                     <span class="font-weight-bold fs-5 btn btn-dark" id="assets_label">
@@ -294,8 +305,6 @@
                             </div>
                             <center class="button-show_a pt-20">
                                 <a class="btn btn-inventory" id="a_show_btn">Tampilkan</a>
-                                <img class="d-none" id="a_loading" src="{{ asset('upload/loading/loading.gif') }}"
-                                    style="width:20%; padding-bottom:20px;" />
                             </center>
                             <div class="d-none" id="assetChart"></div>
                         </div>
@@ -309,14 +318,25 @@
                     <!--begin::Stats Widget 12-->
                     <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">
                         <!--begin::Body-->
-                        <div class="card-body">
+                        <div class="card-body" style="position: relative;">
+                            <div id="loadercatqty"
+                                style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;
+                                        z-index:10; text-align:center; border-radius:.625rem;">
+                                <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="35%"
+                                    style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                            padding:10px; border-radius:10px;">
+                            </div>
                             <div class="d-flex align-items-center justify-content-between flex-grow-1">
                                 <span class="font-weight-bold fs-4 d-flex align-items-center mb-2 title">
-                                    <i class="ki-outline ki-exit-down fs-2 mr-2">
+                                    <i class="ki-outline ki-bill fs-2 mr-2">
                                         <i class="path1"></i>
                                         <i class="path2"></i>
+                                        <i class="path3"></i>
+                                        <i class="path4"></i>
+                                        <i class="path5"></i>
+                                        <i class="path6"></i>
                                     </i>
-                                    Consignment
+                                    Category Qty Sales
                                 </span>
                                 <div class="d-flex flex-column text-right">
                                     <span class="font-weight-bold fs-5 btn btn-dark" id="consign_assets_label"></span>
@@ -324,8 +344,6 @@
                             </div>
                             <center class="button-show_ca pt-20">
                                 <a class="btn btn-inventory" id="ca_show_btn">Tampilkan</a>
-                                <img class="d-none" id="ca_loading" src="{{ asset('upload/loading/loading.gif') }}"
-                                    style="width:20%; padding-bottom:20px;" />
                             </center>
                             </center>
                             <div class="d-none" id="consignAssetChart"></div>

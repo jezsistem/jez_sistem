@@ -92,7 +92,7 @@
             },
         },
         xaxis: {
-            categories: ['Profit'],
+            categories: ['Cogs Sales'],
         },
         yaxis: {
             labels: {
@@ -133,7 +133,7 @@
             },
         },
         xaxis: {
-            categories: ['Cross Jual Bersih'],
+            categories: ['Gross Sales'],
         },
         yaxis: {
             labels: {
@@ -174,7 +174,7 @@
             },
         },
         xaxis: {
-            categories: ['Cross Profit'],
+            categories: ['Gross Margin'],
         },
         yaxis: {
             labels: {
@@ -297,7 +297,7 @@
             },
         },
         xaxis: {
-            categories: ['Asset Cash/Credit'],
+            categories: ['Quantity'],
         },
         yaxis: {
             labels: {
@@ -557,6 +557,7 @@
     });
 
     function getCCAssetGraph(div, hidden_range) {
+        $("#loaderqty").show();
         $(div).addClass('d-none');
         $('#a_loading').removeClass('d-none');
         $.ajaxSetup({
@@ -575,6 +576,11 @@
                 $('#a_loading').addClass('d-none');
                 $('#assetChart').removeClass('d-none');
                 $('#_cc_assets').html(r);
+                $("#loaderqty").hide();
+            },
+            error: function() {
+                $("#loaderqty").hide();
+                alert("Something went wrong!");
             }
         });
     }
@@ -586,6 +592,7 @@
     });
 
     function getConsignAssetGraph(div, hidden_range) {
+        $("#loadercatqty").show();
         $(div).addClass('d-none');
         $('#ca_loading').removeClass('d-none');
         $.ajaxSetup({
@@ -604,13 +611,18 @@
                 $('#ca_loading').addClass('d-none');
                 $('#consignAssetChart').removeClass('d-none');
                 $('#_c_assets').html(r);
+                $("#loadercatqty").hide();
+            },
+            error: function() {
+                $("#loadercatqty").hide();
+                alert("Something went wrong!");
             }
         });
     }
 
     $(document).delegate('#ca_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_ca').addClass('d-none');
+        $('#ca_show_btn').addClass('d-none');
         getConsignAssetGraph('#ca_show_btn', hidden_range);
     });
 

@@ -441,74 +441,57 @@ ORDER BY ts_stores.st_name;
     public function getCCAssetGraph(Request $request)
     {
         $date = $request->post('_range');
-        $exception = ExceptionLocation::select('pl_code')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
-            ->get()
-            ->toArray();
+
+        // --- DATE RANGE PARSING
         $start = null;
         $end = null;
-        $item = array();
-        $total = 0;
+
         if (!empty($date)) {
             $exp = explode('|', $date);
             if (count($exp) > 1) {
-                $start = $exp[0];
-                $end = $exp[1];
+                $start = $exp[0] . " 00:00:00";
+                $end   = $exp[1] . " 23:59:59";
             } else {
-                $start = $date;
+                $start = $date . " 00:00:00";
+                $end   = $date . " 23:59:59";
             }
         }
-        $store = DB::table('stores')
-            ->where('st_delete', '!=', '1')->get();
-        if (!empty($store->first())) {
-            foreach ($store as $row) {
-                $st_id = $row->id;
 
-                $ccassets = DB::table('product_location_setups')
-                    ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-                    ->whereNotIn('pl_code', $exception)
-                    ->where(function ($w) use ($st_id) {
-                        $w->where('product_locations.st_id', '=', $st_id);
-                    })
-                    ->where('product_location_setups.pls_qty', '>', '0')
-                    ->whereIn('stkt_id', ['1', '3'])
-                    ->groupBy('product_location_setups.id')
-                    ->get();
-                $cc_assets = 0;
-                if (!empty($ccassets->first())) {
-                    foreach ($ccassets as $srow) {
-                        $pp = 0;
-                        if (!empty($srow->purchase)) {
-                            $pp = round($srow->purchase);
-                        } else {
-                            if (!empty($srow->ps_purchase_price)) {
-                                $pp = $srow->ps_purchase_price;
-                            } else {
-                                $pp = $srow->p_purchase_price;
-                            }
-                        }
-                        $cc_assets += ($srow->pls_qty * $pp);
-                    }
-                }
 
-                if ($cc_assets > 0) {
-                    $item[] = [
-                        'st_name' => $row->st_name,
-                        'total' => $cc_assets,
-                    ];
-                }
-                sort($item);
-                $total += $cc_assets;
+        $sql = "
+            SELECT
+    ts_stores.st_name AS Store,
+    SUM(ts_pos_transaction_details.pos_td_qty) AS Quantity
+    FROM ts_pos_transaction_details
+    LEFT JOIN ts_pos_transactions ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
+    LEFT JOIN ts_product_stocks ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
+    LEFT JOIN ts_stores ON ts_pos_transactions.st_id = ts_stores.id
+    WHERE ts_pos_transactions.pos_status NOT IN ('UNPAID')
+    AND ts_pos_transactions.created_at BETWEEN ? AND ?
+    GROUP BY ts_stores.st_name
+    ORDER BY ts_stores.st_name;
+    ";
+
+        $result = DB::select($sql, [$start, $end]);
+
+        $item  = [];
+        $total = 0;
+
+        foreach ($result as $row) {
+            $quantity = $row->Quantity ?? 0;
+            if ($quantity > 0) {
+                $item[] = [
+                    'st_name' => $row->Store,
+                    'total' => $quantity,
+                    'color' => $this->getColorForStore($row->Store),
+                ];
+                $total += $quantity;
             }
         }
+
         $data = [
             'item' => $item,
-            'total' => round($total),
+            'total' => $total,
         ];
         return view('app.dashboard._load_cc_asset', compact('data'));
     }
@@ -516,74 +499,80 @@ ORDER BY ts_stores.st_name;
     public function getCAAssetGraph(Request $request)
     {
         $date = $request->post('_range');
-        $exception = ExceptionLocation::select('pl_code')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
-            ->get()
-            ->toArray();
+
+        // --- DATE RANGE PARSING
         $start = null;
         $end = null;
-        $item = array();
-        $total = 0;
+
         if (!empty($date)) {
             $exp = explode('|', $date);
             if (count($exp) > 1) {
-                $start = $exp[0];
-                $end = $exp[1];
+                $start = $exp[0] . " 00:00:00";
+                $end   = $exp[1] . " 23:59:59";
             } else {
-                $start = $date;
+                $start = $date . " 00:00:00";
+                $end   = $date . " 23:59:59";
             }
         }
-        $store = DB::table('stores')
-            ->where('st_delete', '!=', '1')->get();
-        if (!empty($store->first())) {
-            foreach ($store as $row) {
-                $st_id = $row->id;
 
-                $cassets = DB::table('product_location_setups')
-                    ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-                    ->whereNotIn('pl_code', $exception)
-                    ->where(function ($w) use ($st_id) {
-                        $w->where('product_locations.st_id', '=', $st_id);
-                    })
-                    ->where('product_location_setups.pls_qty', '>', '0')
-                    ->whereIn('stkt_id', ['2'])
-                    ->groupBy('product_location_setups.id')
-                    ->get();
-                $c_assets = 0;
-                if (!empty($cassets->first())) {
-                    foreach ($cassets as $srow) {
-                        $pp = 0;
-                        if (!empty($srow->purchase)) {
-                            $pp = round($srow->purchase);
-                        } else {
-                            if (!empty($srow->ps_purchase_price)) {
-                                $pp = $srow->ps_purchase_price;
-                            } else {
-                                $pp = $srow->p_purchase_price;
-                            }
-                        }
-                        $c_assets += ($srow->pls_qty * $pp);
-                    }
-                }
+        // --- QUERY LANGSUNG GROUP BY STORE
+        $sql = "
+            SELECT
+    ts_product_sub_sub_categories.pssc_name,
 
-                if ($c_assets > 0) {
-                    $item[] = [
-                        'st_name' => $row->st_name,
-                        'total' => $c_assets,
-                    ];
-                }
-                sort($item);
-                $total += $c_assets;
+    SUM(
+        CASE
+            WHEN ts_pos_transactions.pos_invoice NOT LIKE 'INV%'
+                THEN ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+            WHEN ts_pos_transaction_details.pos_td_discount_number > 0
+                AND (
+                    CASE
+                        WHEN ts_products.article_id = 'CUS01' THEN 0
+                        ELSE ROUND(
+                            (ts_product_stocks.ps_price_tag * ts_pos_transaction_details.pos_td_qty) -
+                            ts_pos_transaction_details.pos_td_sell_price, 1
+                        ) + COALESCE(ts_pos_transaction_details.pos_td_nameset_price, 0)
+                    END
+                ) = 0
+                THEN ROUND(ts_pos_transaction_details.pos_td_sell_price, 1) - ts_pos_transaction_details.pos_td_discount_number
+            ELSE ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+        END
+    ) AS Total_Net_Sales,
+
+    SUM(ts_product_stocks.ps_purchase_price * ts_pos_transaction_details.pos_td_qty) AS Total_COGS
+FROM ts_pos_transaction_details
+LEFT JOIN ts_pos_transactions ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
+LEFT JOIN ts_stores ON ts_pos_transactions.st_id = ts_stores.id
+LEFT JOIN ts_product_stocks ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
+LEFT JOIN ts_products ON ts_products.id = ts_product_stocks.p_id
+LEFT JOIN ts_product_sub_sub_categories ON ts_products.pssc_id = ts_product_sub_sub_categories.id
+WHERE ts_pos_transactions.pos_status NOT IN ('UNPAID')
+  AND ts_pos_transactions.created_at BETWEEN ? AND ?
+GROUP BY ts_product_sub_sub_categories.pssc_name
+ORDER BY total_Net_Sales desc
+limit 5;
+    ";
+
+        $result = DB::select($sql, [$start, $end]);
+
+        $item  = [];
+        $total = 0;
+
+        foreach ($result as $row) {
+            $nett_sales = $row->Total_Net_Sales ?? 0;
+            if ($nett_sales > 0) {
+                $item[] = [
+                    'pssc_name' => $row->pssc_name,
+                    'total' => $nett_sales,
+                    'color' => $this->getColorForStore($row->pssc_name),
+                ];
+                $total += $nett_sales;
             }
         }
+
         $data = [
             'item' => $item,
-            'total' => round($total),
+            'total' => $total,
         ];
         return view('app.dashboard._load_c_asset', compact('data'));
     }
@@ -629,8 +618,7 @@ ORDER BY ts_stores.st_name;
                 THEN ROUND(ts_pos_transaction_details.pos_td_sell_price, 1) - ts_pos_transaction_details.pos_td_discount_number
             ELSE ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
         END
-    ) AS Total_Net_Sales,
-
+    ) AS Total_Net_Sales
 FROM ts_pos_transaction_details
 LEFT JOIN ts_pos_transactions ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
 LEFT JOIN ts_stores ON ts_pos_transactions.st_id = ts_stores.id
