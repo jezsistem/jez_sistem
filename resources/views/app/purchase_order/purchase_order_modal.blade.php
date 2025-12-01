@@ -291,6 +291,20 @@
                             </a>
                         </div>
                     </div>
+                    <div class="col-4 mt-5 ">
+                        <label>Klaim Lebih/Piutang</label>
+                        <select class="form-control" name="is_receivable" id="is_receivable">
+                            <option value="">- Pilih -</option>
+                            <option value="0">Tidak</option>
+                            <option value="1">Ya</option>
+                        </select>
+                    </div>
+                    <div class="col-4 mt-5 ">
+                        <label>Nominal Klaim</label>
+                        <input type="number" class="form-control " placeholder="Nominal Klaim" name="claim_amount" id="claim_amount" min="0" />
+                    </div>
+                    <div class="col-4 mt-5 ">
+                    </div>
                     <div class="col-4 mt-5 without_item_input">
                         <label>Total Pembelian</label>
                         <input type="number" class="form-control " placeholder="Total Pembelian" name="total_purchase" id="total_purchase" min="0" />

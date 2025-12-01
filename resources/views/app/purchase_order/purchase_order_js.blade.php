@@ -347,8 +347,7 @@
         });
     }
 
-    function subDiscount(id)
-    {
+    function subDiscount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
         var sub_discount = $('#poa_sub_discount' + id).val();
@@ -1259,7 +1258,7 @@
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
-        
+
         $('#status_purchase').on('change', function() {
             purchase_order_table.draw();
         });
@@ -1364,6 +1363,8 @@
                         $('#total_purchase').val(r.po_total_purchase);
                         $('#payment_amount').val(r.po_payment_amount);
                         $('#total_qty').val(r.po_total_qty);
+                        jQuery('#is_receivable').val(r.is_receivable);
+                        jQuery('#claim_amount').val(r.claim_amount);
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -2118,6 +2119,72 @@
                 },
                 error: function(data) {
                     toastr.error('Terjadi kesalahan saat mengupload data', 'Error');
+                }
+            });
+        });
+
+        $('#is_receivable').on('change', function() {
+            var is_receivable = $(this).val();
+            var po_id = $('#_po_id').val();
+
+            if (is_receivable === '') {
+                return;
+            }
+
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: po_id,
+                    _is_receivable: is_receivable
+                },
+                url: "{{ url('po_change_is_receivable') }}",
+
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Status Receivable berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Status Receivable", "Gagal");
+                }
+            });
+        });
+
+        $('#claim_amount').on('change', function() {
+            var claim_amount = $(this).val();
+            var po_id = $('#_po_id').val();
+
+            if (claim_amount === '') {
+                return;
+            }
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: po_id,
+                    _claim_amount: claim_amount
+                },
+                url: "{{ url('po_change_claim_amount') }}",
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Claim Amount berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Claim Amount", "Gagal");
                 }
             });
         });

@@ -860,6 +860,8 @@ class PurchaseOrderController extends Controller
             $r['po_total_qty'] = $draft->po_total_qty;
             $r['po_payment_amount'] = $draft->po_payment_amount;
             $r['bank_general'] = $draft->bank_general;
+            $r['is_receivable'] = $draft->is_receivable;
+            $r['claim_amount'] = $draft->claim_amount;
         } else {
             $r['status'] = '400';
         }
@@ -1061,5 +1063,41 @@ class PurchaseOrderController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function changeIsReceivable(Request $request) {
+        $request->validate([
+            '_po_id' => 'required|exists:purchase_orders,id',
+            '_is_receivable' => 'required|in:0,1',
+        ]);
+
+        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        $po->is_receivable = $request->_is_receivable;
+        $po->save();
+
+        return response()->json(['message' => 'Status Receivable berhasil disimpan']);
+    }
+
+    public function changeClaimAmount(Request $request){
+        $request->validate([
+            '_po_id' => 'required|exists:purchase_orders,id',
+            '_claim_amount' => 'required|numeric|min:0',
+        ]);
+
+        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        $po->claim_amount = $request->_claim_amount;;
+        $po->save();
+
+        return response()->json(['message' => 'Claim Amount berhasil disimpan']);
     }
 }
