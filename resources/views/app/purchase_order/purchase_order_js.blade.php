@@ -597,6 +597,30 @@
             }
         });
     }
+
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -823,6 +847,10 @@
                 {
                     data: 'po_status',
                     name: 'po_status'
+                },
+                {
+                    data: 'finance_status',
+                    name: 'finance_status'
                 },
             ],
             columnDefs: [{
@@ -1474,7 +1502,46 @@
         checkRequiredSelects();
 
 
-        $('#save_purchase_order_btn').on('click', function(e) {
+        // $('#save_purchase_order_btn').on('click', function(e) {
+        //     e.preventDefault();
+        //     // alert("Modal ditutup, melepaskan lock...");
+        //     var po_id = $('#_po_id').val();
+        //     if (po_id) {
+        //         closeEditModal('purchase_order', po_id, 'pembelian');
+        //     }
+        //     // Hentikan interval extend lock
+        //     if (window.lockExtendInterval) {
+        //         clearInterval(window.lockExtendInterval);
+        //         window.lockExtendInterval = null;
+        //     }
+        //     $('#PurchaseOrderModal').modal('hide');
+        //     var po_id = $('#_po_id').val();
+        //     $.ajaxSetup({
+        //         headers: {
+        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //         }
+        //     });
+        //     $.ajax({
+        //         type: "POST",
+        //         dataType: 'json',
+        //         data: {
+        //             _id: po_id
+        //         },
+        //         url: "{{ url('po_save_draft') }}",
+        //         success: function(r) {
+        //             if (r.status == '200') {
+        //                 //swal("Berhasil", "Data berhasil disimpan", "success");
+        //             } else {
+        //                 //swal('Gagal', 'Gagal simpan data', 'error');
+        //             }
+        //         }
+        //     });
+        //     purchase_order_table.draw(false);
+
+        //     $('#detail_po').removeClass('d-none');
+        // });
+
+        $('.close_modal_po').on('click', function(e) {
             e.preventDefault();
             // alert("Modal ditutup, melepaskan lock...");
             var po_id = $('#_po_id').val();
@@ -1508,6 +1575,7 @@
                     }
                 }
             });
+            changeFinanceStatus(po_id);
             purchase_order_table.draw(false);
 
             $('#detail_po').removeClass('d-none');

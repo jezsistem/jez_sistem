@@ -163,6 +163,7 @@
                                             <th class="text-dark">Nomor Order</th>
                                             <th class="text-dark">Total</th>
                                             <th class="text-dark">Status</th>
+                                            <th class="text-dark">Status Finance</th>
                                         </tr>
                                     </thead>
                                     <tbody>
