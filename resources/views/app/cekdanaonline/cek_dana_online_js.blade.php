@@ -380,7 +380,8 @@
                 filter_trx_date: $('#use_trx_date_filter').is(':checked') ? $('#trx_date').val() :
                     null,
                 filter_cash_out_date: $('#use_cash_out_date_filter').is(':checked') ? $(
-                    '#cash_out_date').val() : null
+                    '#cash_out_date').val() : null,
+                settle_status: $('#filter_settle_status').val()
             };
 
             let query = $.param(params);
