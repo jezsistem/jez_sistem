@@ -2202,8 +2202,18 @@ class TransaksiOnlineController extends Controller
     {
         $to_id = $request->to_id;
 
+        //count pinned transactions
+        $pinned_count = OnlineTransactions::where('is_pinned', 1)->where('st_id', Auth::user()->st_id)->count();
+
         try {
             $transaction = OnlineTransactions::find($to_id);
+
+            $is_current_pinned = $transaction ? $transaction->is_pinned : false;
+
+            //limit to max 50 pinned transactions
+            if ($pinned_count >= 50 && !$is_current_pinned) {
+                return response()->json(['status' => '400', 'message' => 'Maksimal 50 transaksi yang dapat dipin']);
+            }
 
             if (!$transaction) {
                 return response()->json(['status' => '404', 'message' => 'Transaksi tidak ditemukan']);
