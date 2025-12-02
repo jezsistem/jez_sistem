@@ -146,6 +146,7 @@ class PurchaseOrderController extends Controller
                 'po_total_purchase',
                 'po_payment_amount',
                 'po_total_qty',
+                'purchase_orders.finance_status'
             )
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
@@ -278,6 +279,15 @@ class PurchaseOrderController extends Controller
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
                 })
+                ->editColumn('finance_status', function ($data) {
+                    if ($data->finance_status == 'LUNAS') {
+                        return '<span class="badge" style="background-color: #28a745; color: white;">LUNAS</span>';
+                    } else if ($data->finance_status == 'HUTANG') {
+                        return '<span class="badge" style="background-color: #ffc107; color: white;">HUTANG</span>';
+                    } else {
+                        return '<span class="badge" style="background-color: #6c757d; color: white;">UNKNOWN</span>';
+                    }
+                })
                 ->addColumn('is_no_item', function ($data) {
 
                     $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
@@ -300,7 +310,7 @@ class PurchaseOrderController extends Controller
                         return true;
                     }
                 })
-                ->rawColumns(['po_status', 'u_receive'])
+                ->rawColumns(['po_status', 'u_receive', 'finance_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -1099,5 +1109,50 @@ class PurchaseOrderController extends Controller
         $po->save();
 
         return response()->json(['message' => 'Claim Amount berhasil disimpan']);
+    }
+
+    public function changeFinanceStatus(Request $request) {
+        $request->validate([
+            '_po_id' => 'required|exists:purchase_orders,id',
+        ]);
+
+        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        // Get account name
+        $account = Account::find($po->acc_id);
+        $account_name = $account ? $account->a_name : null;
+
+        // Check if has transfer image
+        $has_transfer_image = PurchaseOrderTransferImage::where('purchase_order_id', $po->id)->exists();
+
+        // Check if is_paid from purchase_order_article_detail_statuses
+        $is_paid = DB::table('purchase_order_article_detail_statuses')
+            ->join('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+            ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+            ->where('purchase_order_articles.po_id', $po->id)
+            ->where('purchase_order_article_detail_statuses.is_paid', 1)
+            ->exists();
+
+        // Determine finance status based on conditions
+        $finance_status = 'HUTANG'; // Default
+
+        if (($account_name === 'COD' && $is_paid) || $has_transfer_image) {
+            $finance_status = 'LUNAS';
+        } elseif (in_array($account_name, ['Bank BCA 004', 'Bank BCA 005', 'Bank BCA 002', 'SHOPEE PAY'])) {
+            $finance_status = 'LUNAS';
+        } elseif (in_array($account_name, ['DIREKTUR', 'CONSIGMENT', 'CONSIGNMENT', 'TEMPO 30 HARI', 'TEMPO 60 HARI'])) {
+            if ($is_paid || $has_transfer_image) {
+                $finance_status = 'LUNAS';
+            }
+        }
+
+        $po->finance_status = $finance_status;
+        $po->save();
+
+        return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
     }
 }
