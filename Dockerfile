@@ -1,6 +1,9 @@
 # Use a lean official PHP 8.1 FPM image
 FROM php:8.1-fpm-alpine
 
+# Copy your custom PHP configuration file
+COPY docker/php/conf.d/custom.ini /usr/local/etc/php/conf.d/
+
 # Set working directory
 WORKDIR /var/www/html
 
