@@ -6,6 +6,10 @@
     var modal_opened = null;
     var is_amp = 0;
 
+    var title = '';
+    var range = '';
+    var hidden_range = '';
+
     function getListPicked() {
         $.ajax({
             type: "GET",
@@ -602,6 +606,55 @@
         $(document).on('click', '#open_modal_scan_manifest_btn', function(e) {
             jQuery.noConflict();
             $('#importManifestModal').modal('show');
+
+            var picker = $('#kt_dashboard_daterangepicker');
+            if ($('#kt_dashboard_daterangepicker').length == 0) {
+                return;
+            }
+            var start = moment();
+            var end = moment();
+
+            function cb(start, end, label) {
+
+                if ((end - start) < 100 || label == 'Hari Ini') {
+                    title = 'Hari Ini:';
+                    range = start.format('DD MMM YYYY');
+                    hidden_range = start.format('YYYY-MM-DD');
+                } else if (label == 'Kemarin') {
+                    title = 'Kemarin:';
+                    range = start.format('DD MMM YYYY');
+                    hidden_range = start.format('YYYY-MM-DD');
+                } else {
+                    range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                    hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+                }
+                $('#manifest_date').val(hidden_range);
+                $('#kt_dashboard_daterangepicker_date').html(range);
+                $('#kt_dashboard_daterangepicker_title').html(title);
+                // online_transaction_table.draw();
+                // article_report_table.draw();
+            }
+
+            picker.daterangepicker({
+                direction: KTUtil.isRTL(),
+                startDate: start,
+                endDate: end,
+                opens: 'center',
+                applyClass: 'btn-primary',
+                cancelClass: 'btn-light-primary',
+                ranges: {
+                    'Hari Ini': [moment(), moment()],
+                    'Kemarin': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
+                    '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
+                    'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
+                    'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment()
+                        .subtract(1,
+                            'month').endOf('month')
+                    ]
+                }
+            }, cb);
+            cb(start, end, '');
         })
 
         $(document).on('click', '#open_modal_resi_btn', function(e) {
@@ -767,12 +820,17 @@
         });
 
         $(document).ready(function() {
-            let table = $('#manifestTable').DataTable({
+            var table = $('#manifestTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: "{{ route('manifest.data') }}",
-                    type: "GET"
+                    type: "GET",
+                    data: function(d) {
+                        d.search = $('#filter_search').val();
+                        d.expedition = $('#filter_expeditions').val();
+                        d.date_range = $('#manifest_date').val();
+                    }
                 },
                 columns: [{
                         data: 'DT_RowIndex',
@@ -820,18 +878,25 @@
                 ],
                 order: [
                     [6, 'desc']
-                ], // urut berdasarkan created_at
+                ],
                 language: {
                     processing: '<img src="{{ asset('pos/jez.gif') }}" width="50"> Loading...'
                 },
+                dom: '<"d-flex justify-content-end"l>rt<"text-right"ip>',
+                searching: false,
                 responsive: true,
                 pageLength: 10
             });
 
             // Refresh tabel ketika modal dibuka
             $('#importManifestModal').on('shown.bs.modal', function() {
-                table.ajax.reload();
+                table.draw();
             });
+
+            $('#searchManifestBtn').on('click', function() {
+
+                table.draw();
+            })
         });
 
         $(document).on('click', '.close_scanner', function(e) {

@@ -101,6 +101,7 @@ class HelperOnlineController extends Controller
                 ->orderBy('platform_name', 'ASC')
                 ->get(),
             'modal_lock_active' => ModalLockAllowedModel::where('is_active', true)->where('identifier', 'helper_online')->exists(),
+            'expeditions' => DB::table('couriers')->orderBy('cr_name', 'ASC')->get()
         ];
 
 //        $dataResi = [
