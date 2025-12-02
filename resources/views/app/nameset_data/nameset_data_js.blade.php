@@ -13,6 +13,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
+            deferLoading: 0,
             dom: '<"text-right"l>rt<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
@@ -22,6 +23,7 @@
                 data : function (d) {
                     d.search = $('#nameset_search').val();
                     d.status = $('#status_nameset').val();
+                    d.trx_date = $('#trx_date').val();
                 }
             },
             columns: [
@@ -103,5 +105,69 @@
             jQuery.noConflict();
             //$('#HistoryModal').modal('show');
         });
+
+        $('#export_nameset_btn').on('click', function() {
+            var search = $('#nameset_search').val();
+            var status = $('#status_nameset').val();
+            var trx_date = $('#trx_date').val();
+            var url_export = "{{ route('export.nameset') }}?search="+search+"&status="+status+"&trx_date="+trx_date;
+            window.location.href = url_export;
+        });
+
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+
+            if ((end - start) < 100 || label == 'Today') {
+                title = 'Today:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Yesterday') {
+                title = 'Yesterday:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
+            } else {
+                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+            console.log(hidden_range);
+            $('#trx_date').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+
+            nameset_table.draw();
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+                'All Days': [null, null],
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end, '');
     });
 </script>

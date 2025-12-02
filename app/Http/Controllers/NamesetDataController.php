@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\NamesetExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WebConfig;
@@ -9,6 +10,7 @@ use App\Models\User;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class NameSetDataController extends Controller
 {
@@ -72,36 +74,63 @@ class NameSetDataController extends Controller
         return view('app.nameset_data.nameset_data', compact('data'));
     }
 
+    protected function getNamesetQuery(Request $request)
+    {
+        $query = PosTransactionDetail::select(
+            'pos_transaction_details.id as ptd_id',
+            'p_name',
+            'br_name',
+            'sz_name',
+            'p_color',
+            'pos_invoice',
+            'stt_name',
+            'pos_td_nameset',
+            'pos_transaction_details.created_at as pos_created',
+            'pos_transactions.pos_note as pos_note',
+            'pos_transactions.pos_status as pos_status',
+            'users.u_name as nameset_by',
+            'pos_td_nameset_at'
+        )
+            ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+            ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('users', 'users.id', '=', 'pos_transaction_details.pos_td_nameset_by')
+            ->where('pos_td_nameset', '=', $request->status)
+            ->where('pos_td_nameset_price', '!=', null)
+            ->orderBy('pos_transaction_details.pos_td_nameset', 'DESC');
+
+        // Apply filters
+        if (!empty($request->get('search'))) {
+            $query->where(function ($w) use ($request) {
+                $search = $request->get('search');
+                $w->orWhere('pos_invoice', 'LIKE', "%$search%")
+                    ->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+            });
+        }
+
+        if (!empty($request->get('trx_date'))) {
+            $date = $request->get('trx_date');
+            $exp = explode('|', $date);
+            if (!empty($exp[1])) {
+                $start = $exp[0];
+                $end = $exp[1];
+                $query->whereBetween(DB::raw('DATE(ts_pos_transaction_details.created_at)'), [$start, $end]);
+            } else {
+                $query->whereDate('pos_transaction_details.created_at', '=', $date);
+            }
+        }
+
+        return $query;
+    }
+
     public function getDatatables(Request $request)
     {
         try {
             if (request()->ajax()) {
-                return datatables()->of(PosTransactionDetail::select(
-                    'pos_transaction_details.id as ptd_id',
-                    'p_name',
-                    'br_name',
-                    'sz_name',
-                    'p_color',
-                    'pos_invoice',
-                    'stt_name',
-                    'pos_td_nameset',
-                    'pos_transaction_details.created_at as pos_created',
-                    'pos_transactions.pos_note as pos_note',
-                    'pos_transactions.pos_status as pos_status',
-                    'users.u_name as nameset_by',
-                    'pos_td_nameset_at'
-                )
-                    ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                    ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
-                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->leftJoin('users', 'users.id', '=', 'pos_transaction_details.pos_td_nameset_by')
-                    ->where('pos_td_nameset', '=', $request->status)
-                    ->where('pos_td_nameset_price', '!=', null)
-                    ->orderBy('pos_transaction_details.pos_td_nameset', 'DESC')
-                    ) 
+                return datatables()->of($this->getNamesetQuery($request))
                     ->editColumn('pos_invoice', function ($data) {
                         return '<span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span>';
                     })
@@ -133,18 +162,23 @@ class NameSetDataController extends Controller
                         }
                     })
                     ->rawColumns(['pos_invoice', 'stt_name', 'article', 'action', 'pos_created', 'pos_note'])
-                    ->filter(function ($instance) use ($request) {
-                        if (!empty($request->get('search'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $search = $request->get('search');
-                                $w->orWhere('pos_invoice', 'LIKE', "%$search%")
-                                    ->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
-                            });
-                        }
-                    })
                     ->addIndexColumn()
                     ->make(true);
             }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function exportData(Request $request)
+    {
+        try {
+            $data = $this->getNamesetQuery($request)->get();
+            $export = new NamesetExport($data);
+            return Excel::download($export, 'nameset_data.xlsx');
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
