@@ -21,7 +21,8 @@ class ProductLocation extends Model
         'pl_default',
         'pl_default_refund',
         'pl_default_failed_qc',
-        'pl_capacity'
+        'pl_capacity',
+        'pl_offline'
     ];
 
     public function checkData($select, $where)

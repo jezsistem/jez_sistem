@@ -606,7 +606,7 @@
         var pesan = 'Your message content here'; // Customize your message as needed
         jQuery.ajax({
             type: "GET",
-            url: "http://jezdb.com:3000/api",
+            url: "http://localhost:3000/api",
             data: {
                 nohp: nohp,
                 pesan: pesan

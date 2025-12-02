@@ -896,7 +896,7 @@
             $('#f_mass_img')[0].reset();
         });
 
-        $('#f_mass_img').on('submit', function (e) {
+        $('#f_mass_img').on('submit', function(e) {
             e.preventDefault();
 
             let formData = new FormData(this);
@@ -908,7 +908,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (response) {
+                success: function(response) {
                     $('#import_img_btn').prop('disabled', false).text('Import');
                     $('#MassImgModal').modal('hide');
                     Swal.fire({
@@ -917,12 +917,13 @@
                         text: response.message
                     });
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     $('#import_img_btn').prop('disabled', false).text('Import');
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal',
-                        text: xhr.responseJSON?.message || 'Terjadi kesalahan saat import.'
+                        text: xhr.responseJSON?.message ||
+                            'Terjadi kesalahan saat import.'
                     });
                 }
             });
@@ -1242,13 +1243,15 @@
             let tableMarketplace;
             let tableSocial;
 
-            $('#showLinkModalBtn').on('click', function () {
+            $('#showLinkModalBtn').on('click', function() {
                 $('#ProductLinkModal').modal('show');
-                console.log('jancok')
+                initMarketplace($('#article_id').val());
+                initSocial($('#article_id').val());
             });
 
-            $('#ProductLinkModal').on('shown.bs.modal', function () {
-                console.log('jancok')
+            $('#ProductLinkModal').on('shown.bs.modal', function() {
+                initMarketplace($('#article_id').val());
+                initSocial($('#article_id').val());
 
                 const articleId = $('#article_id').val();
 
@@ -1257,10 +1260,13 @@
                 }
             });
 
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $('a[data-toggle="tab"]').on('click', function(e) {
+                e.preventDefault();
 
-                const target = $(e.target).attr("href");
+                const target = $(this).attr("href");
                 const articleId = $('#article_id').val();
+
+                $(this).tab('show');
 
                 if (target === '#tabMarketplace') {
                     initMarketplace(articleId);
@@ -1271,20 +1277,29 @@
                 }
             });
 
-// =============================
-// FUNCTIONS
-// =============================
+            // =============================
+            // FUNCTIONS
+            // =============================
             function initMarketplace(articleId) {
                 if (!tableMarketplace) {
-                    tableMarketplace = $("#tableMarketplaceLinks").DataTable({
+                    tableMarketplace = jQuery("#tableMarketplaceLinks").DataTable({
                         processing: true,
                         serverSide: true,
                         ajax: `/product-links/marketplace/${articleId}`,
-                        columns: [
-                            { data: "platform" },
-                            { data: "url" },
-                            { data: "location" },
-                            { data: "action", orderable: false, searchable: false }
+                        columns: [{
+                                data: "platform"
+                            },
+                            {
+                                data: "url"
+                            },
+                            {
+                                data: "location"
+                            },
+                            {
+                                data: "action",
+                                orderable: false,
+                                searchable: false
+                            }
                         ]
                     });
                 } else {
@@ -1294,15 +1309,24 @@
 
             function initSocial(articleId) {
                 if (!tableSocial) {
-                    tableSocial = $("#tableSocialLinks").DataTable({
+                    tableSocial = jQuery("#tableSocialLinks").DataTable({
                         processing: true,
                         serverSide: true,
                         ajax: `/product-links/social/${articleId}`,
-                        columns: [
-                            { data: "platform" },
-                            { data: "url" },
-                            { data: "location" },
-                            { data: "action", orderable: false, searchable: false }
+                        columns: [{
+                                data: "platform"
+                            },
+                            {
+                                data: "url"
+                            },
+                            {
+                                data: "location"
+                            },
+                            {
+                                data: "action",
+                                orderable: false,
+                                searchable: false
+                            }
                         ]
                     });
                 } else {
@@ -1310,17 +1334,43 @@
                 }
             }
 
-            const marketplaceList = [
-                { name: "Shopee", icon: "fa fa-shopping-bag", value: "shopee" },
-                { name: "Tokopedia", icon: "fa fa-store", value: "tokopedia" },
-                { name: "TikTok Shop", icon: "fa fa-video", value: "tiktok_shop" },
+            const marketplaceList = [{
+                    name: "Shopee",
+                    icon: "fa fa-shopping-bag",
+                    value: "shopee"
+                },
+                {
+                    name: "Tokopedia",
+                    icon: "fa fa-store",
+                    value: "tokopedia"
+                },
+                {
+                    name: "TikTok Shop",
+                    icon: "fa fa-video",
+                    value: "tiktok_shop"
+                },
             ];
 
-            const socialMediaList = [
-                { name: "Instagram", icon: "fa fa-instagram", value: "instagram" },
-                { name: "Facebook", icon: "fa fa-facebook", value: "facebook" },
-                { name: "TikTok", icon: "fa fa-music", value: "tiktok" },
-                { name: "YouTube", icon: "fa fa-youtube", value: "youtube" },
+            const socialMediaList = [{
+                    name: "Instagram",
+                    icon: "fa fa-instagram",
+                    value: "instagram"
+                },
+                {
+                    name: "Facebook",
+                    icon: "fa fa-facebook",
+                    value: "facebook"
+                },
+                {
+                    name: "TikTok",
+                    icon: "fa fa-music",
+                    value: "tiktok"
+                },
+                {
+                    name: "YouTube",
+                    icon: "fa fa-youtube",
+                    value: "youtube"
+                },
             ];
 
             function loadPlatformOptions(type) {
@@ -1343,10 +1393,11 @@
                 $.ajax({
                     url: "/product-links/locations",
                     method: "GET",
-                    success: function (data) {
+                    success: function(data) {
                         $("#pl_location").empty();
                         data.forEach(function(loc) {
-                            $("#pl_location").append(`<option value="${loc}">${loc}</option>`);
+                            $("#pl_location").append(
+                                `<option value="${loc}">${loc}</option>`);
                         });
 
                         // init select2 for location
@@ -1358,7 +1409,7 @@
                 });
             }
 
-            $("#addMarketplaceLinkBtn").on("click", function () {
+            $("#addMarketplaceLinkBtn").on("click", function() {
                 $("#ProductLinkFormTitle").text("Add Marketplace Link");
                 $("#pl_type").val("marketplace");
                 $("#pl_url").val("");
@@ -1368,7 +1419,7 @@
                 $("#ProductLinkFormModal").modal("show");
             });
 
-            $("#addSocialLinkBtn").on("click", function () {
+            $("#addSocialLinkBtn").on("click", function() {
                 $("#ProductLinkFormTitle").text("Add Social Media Link");
                 $("#pl_type").val("social");
                 $("#pl_url").val("");
@@ -1378,7 +1429,7 @@
                 $("#ProductLinkFormModal").modal("show");
             });
 
-            $("#SaveProductLinkBtn").on("click", function () {
+            $("#SaveProductLinkBtn").on("click", function() {
                 const articleId = $('#article_id').val();
 
 
@@ -1394,14 +1445,14 @@
                         location: $("#pl_location").val(),
                         _token: "{{ csrf_token() }}"
                     },
-                    success: function (res) {
+                    success: function(res) {
                         toastr.success("Link berhasil disimpan!");
 
                         $("#ProductLinkFormModal").modal("hide");
 
                         // reload datatables
-                        $("#tableMarketplaceLinks").DataTable().ajax.reload();
-                        $("#tableSocialLinks").DataTable().ajax.reload();
+                        jQuery("#tableMarketplaceLinks").DataTable().ajax.reload();
+                        jQuery("#tableSocialLinks").DataTable().ajax.reload();
                     }
                 });
 
@@ -1490,20 +1541,25 @@
                             url: `/product-images/${id}`,
                             type: 'DELETE',
                             data: {
-                                _token: $('meta[name="csrf-token"]').attr('content')
+                                _token: $('meta[name="csrf-token"]').attr(
+                                    'content')
                             },
                             success: function(response) {
                                 if (response.success) {
                                     card.fadeOut(300, function() {
                                         $(this).remove();
                                     });
-                                    Swal.fire('Terhapus!', response.message, 'success');
+                                    Swal.fire('Terhapus!', response.message,
+                                        'success');
                                 } else {
-                                    Swal.fire('Gagal!', response.message, 'error');
+                                    Swal.fire('Gagal!', response.message,
+                                        'error');
                                 }
                             },
                             error: function() {
-                                Swal.fire('Gagal!', 'Terjadi kesalahan server.', 'error');
+                                Swal.fire('Gagal!',
+                                    'Terjadi kesalahan server.', 'error'
+                                    );
                             }
                         });
                     }
@@ -1513,19 +1569,19 @@
         });
 
 
-//hehe haha
+        //hehe haha
         $(document).on('click', '.img-box img', function() {
             const src = $(this).attr('src');
             $('#previewImageFull').attr('src', src);
             $('#ImagePreviewModal').modal('show');
         });
 
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             let typingTimer;
             let doneTypingInterval = 800;
 
-            $('#link_content').on('keyup paste', function () {
+            $('#link_content').on('keyup paste', function() {
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(saveLinkContent, doneTypingInterval);
             });
@@ -1541,10 +1597,10 @@
                         _token: '{{ csrf_token() }}',
                         link_content: value
                     },
-                    success: function (res) {
+                    success: function(res) {
                         toastr.success('Link konten berhasil disimpan', 'Berhasil');
                     },
-                    error: function (err) {
+                    error: function(err) {
                         toastr.error('Gagal menyimpan link konten', 'Error');
                     }
                 });
@@ -1560,8 +1616,8 @@
                 }
             });
             $.ajax({
-                    type: "POST",
-                    data: {
+                type: "POST",
+                data: {
                     _article_id: article_id
                 },
                 dataType: 'json',
@@ -1752,6 +1808,16 @@
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
 
+            // Show loading
+            Swal.fire({
+                title: 'Processing...',
+                html: 'Please wait while we process your data',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             $.ajax({
                 type: 'POST',
                 url: "{{ url('mass_update_product') }}",
@@ -1766,12 +1832,14 @@
                     jQuery.noConflict();
 
                     if (data.status == '200') {
+                        Swal.close(); // Close loading
                         $("#MassUpdateModal").modal('hide');
                         toastr.success('Data berhasil diimpor', 'Berhasil');
                         $('#f_import')[0].reset();
                         product_table.ajax.reload();
 
                     } else {
+                        Swal.close(); // Close loading
 
                         // Display error IDs in a table using Swal
                         if (data.error_ids && data.error_ids.length > 0) {
@@ -1779,33 +1847,35 @@
                             Swal.fire({
                                 title: 'Error IDs',
                                 html: `
-                                    <div style="overflow-x:auto;">
-                                        <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
-                                            <thead>
-                                                <tr>
-                                                    <th style="border: 1px solid #ccc; padding: 8px;">Error ID</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="error-table-body">
-                                                <!-- Data masuk sini -->
-                                            </tbody>
-                                        </table>
-                                        <br/>
-                                        <div style="text-align: center;">
-                                            <button id="export_error_ids" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export to Excel</button>
-                                            <button id="close_error_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Close</button>
-                                        </div>
-                                    </div>
-                                `,
+                        <div style="overflow-x:auto;">
+                        <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                            <thead>
+                            <tr>
+                                <th style="border: 1px solid #ccc; padding: 8px;">Error ID</th>
+                            </tr>
+                            </thead>
+                            <tbody id="error-table-body">
+                            <!-- Data masuk sini -->
+                            </tbody>
+                        </table>
+                        <br/>
+                        <div style="text-align: center;">
+                            <button id="export_error_ids" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export to Excel</button>
+                            <button id="close_error_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Close</button>
+                        </div>
+                        </div>
+                    `,
                                 icon: 'warning',
                                 showConfirmButton: false,
                                 didOpen: () => {
-                                    let tbody = document.getElementById('error-table-body');
+                                    let tbody = document.getElementById(
+                                        'error-table-body');
                                     errorIds.forEach(function(id) {
-                                        let row = document.createElement('tr');
+                                        let row = document
+                                            .createElement('tr');
                                         row.innerHTML = `
-                                            <td style="border: 1px solid #ccc; padding: 8px;">${id || '-'}</td>
-                                        `;
+                            <td style="border: 1px solid #ccc; padding: 8px;">${id || '-'}</td>
+                        `;
                                         tbody.appendChild(row);
                                     });
 
@@ -1815,11 +1885,16 @@
                                             let wb = XLSX.utils.book_new();
                                             let ws_data = [
                                                 ["Error ID"], // Header
-                                                ...errorIds.map(id => [id]) // Each ID in its own array
+                                                ...errorIds.map(id => [
+                                                    id
+                                                ]) // Each ID in its own array
                                             ];
-                                            let ws = XLSX.utils.aoa_to_sheet(ws_data);
-                                            XLSX.utils.book_append_sheet(wb, ws, "Error IDs");
-                                            XLSX.writeFile(wb, "Error_IDs.xlsx");
+                                            let ws = XLSX.utils
+                                                .aoa_to_sheet(ws_data);
+                                            XLSX.utils.book_append_sheet(wb,
+                                                ws, "Error IDs");
+                                            XLSX.writeFile(wb,
+                                                "Error_IDs.xlsx");
                                         });
 
                                     // Close button
@@ -1832,13 +1907,17 @@
                         } else {
                             $("#MassUpdateModal").modal('hide');
                             toastr.warning(
-                                data.message || 'Silahkan periksa format input pada template Anda, pastikan kolom biru terisi sesuai dengan sistem',
+                                data.message ||
+                                'Silahkan periksa format input pada template Anda, pastikan kolom biru terisi sesuai dengan sistem',
                                 'Peringatan');
                         }
                     }
                     $("#MassUpdateModal").modal('hide');
                 },
                 error: function(data) {
+                    Swal.close(); // Close loading on error
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
                     console.log(data);
                     toastr.error('Terjadi kesalahan saat mengimpor data', 'Error');
                 }

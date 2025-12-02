@@ -340,7 +340,7 @@ class DeliveryRecapController extends Controller
                 }
 
                 //update status transaksi menjadi "DONE"
-                $change_trx_status = OnlineTransactions::whereIn('no_resi', $uniqueResi)->update(['internal_order_status' => 'DONE', 'scan_manifest' => true ,'print_manifest' => true]);
+                $change_trx_status = OnlineTransactions::whereIn('no_resi', $uniqueResi)->update(['internal_order_status' => 'DONE', 'scan_manifest' => true, 'print_manifest' => true]);
                 if ($change_trx_status != count($uniqueResi)) {
                     DB::rollBack();
                     return response()->json([
@@ -419,7 +419,7 @@ class DeliveryRecapController extends Controller
                 $change_trx_status = OnlineTransactions::where(function ($query) use ($resiList) {
                     $query->whereIn('no_resi', $resiList)
                         ->orWhereIn('order_number', $resiList);
-                })->update(['internal_order_status' => 'DONE', 'scan_manifest' => true ,'print_manifest' => true]);
+                })->update(['internal_order_status' => 'DONE', 'scan_manifest' => true, 'print_manifest' => true]);
 
                 if ($change_trx_status != count($resiList)) {
                     DB::rollBack();
@@ -483,6 +483,18 @@ class DeliveryRecapController extends Controller
 
     public function getData(Request $request)
     {
+        $date = $request->date_range;
+
+        $exp = explode('|', $date);
+        $start = null;
+        $end = null;
+        if (!empty($exp[1])) {
+            $start = $exp[0];
+            $end = $exp[1];
+        } else {
+            $start = $request->get('date');
+        }
+
         $query = DB::table('delivery_recaps')
             ->leftJoin('delivery_receipts', 'delivery_receipts.dr_id', '=', 'delivery_recaps.id')
             ->leftJoin('couriers', 'couriers.id', '=', 'delivery_recaps.expedition_id')
@@ -496,17 +508,41 @@ class DeliveryRecapController extends Controller
                 'users.u_name as pic',
                 'delivery_recaps.created_at',
                 DB::raw('COUNT(ts_delivery_receipts.resi) as qty_resi')
-            )
-            ->groupBy(
-                'delivery_recaps.id',
-                //                'delivery_recaps.document_number',
-                'delivery_recaps.courier_name',
-                'delivery_recaps.courier_phone',
-                'couriers.cr_name',
-                'pic',
-                'delivery_recaps.created_at'
-            )
-            ->orderBy('delivery_recaps.created_at', 'DESC')->get();
+            );
+
+        // Apply filters before grouping
+        if ($request->has('search') && !empty($request->get('search'))) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('delivery_recaps.manifest_number', 'like', "%{$search}%")
+                    ->orWhere('delivery_recaps.courier_name', 'like', "%{$search}%")
+                    ->orWhere('couriers.cr_name', 'like', "%{$search}%")
+                    ->orWhere('users.u_name', 'like', "%{$search}%")
+                    ->orWhere('delivery_receipts.resi', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('expedition') && !empty($request->get('expedition'))) {
+            $expedition = $request->get('expedition');
+            $query->where('delivery_recaps.expedition_id', '=', $expedition);
+        }
+
+        if (!empty($start) && !empty($end)) {
+            $query->whereBetween(DB::raw('DATE(ts_delivery_recaps.created_at)'), [$start, $end]);
+        } elseif (!empty($start)) {
+            $query->whereDate('delivery_recaps.created_at', '=', $start);
+        }
+
+        $query->groupBy(
+            'delivery_recaps.id',
+            //                'delivery_recaps.document_number',
+            'delivery_recaps.courier_name',
+            'delivery_recaps.courier_phone',
+            'couriers.cr_name',
+            'pic',
+            'delivery_recaps.created_at'
+        )
+            ->orderBy('delivery_recaps.created_at', 'DESC');
 
         //        dd($query);
 

@@ -105,6 +105,8 @@ class TransaksiOnlineController extends Controller
                 ->where('order_status', '!=', '')
                 ->orderBy('order_status')
                 ->get()->pluck('order_status')->toArray(),
+            'internal_order_statuses' => OnlineTransactions::select('internal_order_status')->distinct()->whereNotNull('internal_order_status')->where('internal_order_status', '!=', '')->orderBy('internal_order_status')->get(),
+
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
@@ -321,10 +323,17 @@ class TransaksiOnlineController extends Controller
     public function exportDataOnline(Request $request)
     {
         try {
-            $branch = $request->get('branch');
-            $status = $request->get('status');
-            $date = $request->get('date');
-            $changeplatform = $request->get('changeplatform');
+            $store_id = $request->st_id;
+            $date = $request->date;
+
+            $status_print = $request->status_print;
+            // status_print: 4 = semua, 3 = sudah cetak nota, 2 = sudah cetak resi, 1 = sudah cetak nota & resi, 0 = belum cetak
+
+            $platform = $request->platform;
+            $courier = $request->courier;
+            $order_status = $request->order_status;
+            $internal_order_status = $request->internal_order_status;
+
             $exp = explode('|', $date);
             $start = null;
             $end = null;
@@ -339,7 +348,9 @@ class TransaksiOnlineController extends Controller
             $timestamp = $now->format('d-m-Y_H.i.s');
             $fileName = 'item_online_details' . $timestamp . '.xlsx';
 
-            return Excel::download(new OnlineReportExport($branch, $start, $end, $status, $changeplatform), $fileName);
+            $data = new OnlineReportExport($store_id, $start, $end, $status_print, $platform, $courier, $order_status, $internal_order_status);
+            
+            return Excel::download($data, $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -2202,8 +2213,18 @@ class TransaksiOnlineController extends Controller
     {
         $to_id = $request->to_id;
 
+        //count pinned transactions
+        $pinned_count = OnlineTransactions::where('is_pinned', 1)->where('st_id', Auth::user()->st_id)->count();
+
         try {
             $transaction = OnlineTransactions::find($to_id);
+
+            $is_current_pinned = $transaction ? $transaction->is_pinned : false;
+
+            //limit to max 50 pinned transactions
+            if ($pinned_count >= 50 && !$is_current_pinned) {
+                return response()->json(['status' => '400', 'message' => 'Maksimal 50 transaksi yang dapat dipin']);
+            }
 
             if (!$transaction) {
                 return response()->json(['status' => '404', 'message' => 'Transaksi tidak ditemukan']);
@@ -2312,6 +2333,12 @@ class TransaksiOnlineController extends Controller
             )
             ->where('product_location_setup_transactions.plst_status', 'WAITING ONLINE')
             ->where('product_location_setup_transactions.st_id', Auth::user()->st_id)
+            ->where(function ($query) use ($request) {
+                if ($request->has('search') && !empty($request->search)) {
+                    $search = $request->search;
+                    $query->where('online_transaction_details.order_number', 'like', '%' . $search . '%');
+                }
+            })
             ->whereNull('product_location_setup_transactions.pls_id')
             ->orderBy('product_location_setup_transactions.id', 'desc')
             ->get();

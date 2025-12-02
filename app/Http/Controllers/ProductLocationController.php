@@ -89,7 +89,7 @@ class ProductLocationController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default', 'pl_default_refund','pl_freeze', 'pl_capacity', 'pl_default_failed_qc')
+            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default', 'pl_default_refund','pl_freeze', 'pl_capacity', 'pl_default_failed_qc', 'pl_offline')
                 ->join('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->where('pl_delete', '!=', '1')
                 ->where('st_id', '=', $request->st_id))
@@ -122,11 +122,19 @@ class ProductLocationController extends Controller
                             <span class='slider round'></span>
                         </label>";
                 })
+                ->editColumn('pl_offline', function ($data) {
+                    $checked = $data->pl_offline == '1' ? 'checked' : '';
+                    return "
+                        <label class='switch'>
+                            <input type='checkbox' $checked data-id='{$data->pl_id}' class='toggle-offline'>
+                            <span class='slider round'></span>
+                        </label>";
+                })
                 ->editColumn('detail', function ($data) {
                     return '<button type="button" class="btn btn-primary btn-detail" data-plid="' . $data->pl_id . '">Detail</button>';
                 })
 
-                ->rawColumns(['pl_freeze', 'detail'])
+                ->rawColumns(['pl_freeze', 'detail', 'pl_offline'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -221,6 +229,20 @@ class ProductLocationController extends Controller
         DB::table('product_locations') // Updated table name
             ->where('id', $request->plid)
             ->update(['pl_freeze' => $request->pl_freeze]);
+    
+        return response()->json(['message' => 'Status berhasil diperbarui.']);
+    }
+
+    public function updateOfflineStatus(Request $request)
+    {
+        $request->validate([
+            'plid' => 'required|exists:product_locations,id', // Removed Rule facade
+            'pl_offline' => 'required|in:0,1',
+        ]);
+    
+        DB::table('product_locations') // Updated table name
+            ->where('id', $request->plid)
+            ->update(['pl_offline' => $request->pl_offline]);
     
         return response()->json(['message' => 'Status berhasil diperbarui.']);
     }

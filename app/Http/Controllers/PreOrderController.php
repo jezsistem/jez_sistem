@@ -204,6 +204,7 @@ class PreOrderController extends Controller
                             $w->orWhere('pre_order_code', 'LIKE', "%$search%")
                                 ->orWhere('st_name', 'LIKE', "%$search%")
                                 ->orWhere('ps_name', 'LIKE', "%$search%")
+                                ->orWhere('article_id', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', ["%$search%"]);
                         });
                     }
@@ -560,53 +561,62 @@ class PreOrderController extends Controller
 
     public function checkPreOrderPurchaseOrder(Request $request)
     {
+        DB::beginTransaction();
         try {
-            if ($request->_pro_id == null) {
-                return;
+            if (empty($request->_pro_id)) {
+                return json_encode(['status' => '400', 'message' => '_pro_id is required']);
             }
 
             // get p_id from pre_order_articles
-            $proa = DB::table('pre_order_articles')->where(['po_id' => $request->_pro_id])->pluck('id');
+            $proaIds = DB::table('pre_order_articles')->where('po_id', $request->_pro_id)->pluck('id')->toArray();
 
             // get pst_id, poad_qty, and poa_id from pre_order_article_details
-            $proad = DB::table('pre_order_article_details')->whereIn('poa_id', $proa)->get(['pst_id', 'poad_qty', 'poa_id']);
+            $proad = DB::table('pre_order_article_details')->whereIn('poa_id', $proaIds)->get(['pst_id', 'poad_qty', 'poa_id']);
 
             // get p_id from purchase_order_articles
-            $poa = DB::table('purchase_order_articles')->where(['po_id' => $request->_po_id])->pluck('id');
+            $poaIds = DB::table('purchase_order_articles')->where('po_id', $request->_po_id)->pluck('id')->toArray();
 
             // get pst_id, poad_qty, and poa_id from purchase_order_article_details
-            $poad = DB::table('purchase_order_article_details')->whereIn('poa_id', $poa)->get(['pst_id', 'poad_qty', 'poa_id']);
+            $poad = DB::table('purchase_order_article_details')->whereIn('poa_id', $poaIds)->get(['pst_id', 'poad_qty', 'poa_id']);
 
             // update quantities
             foreach ($proad as $proad_row) {
                 foreach ($poad as $poad_row) {
                     if ($proad_row->pst_id == $poad_row->pst_id) {
-
                         // reduce proad_qty by poad_qty
                         $new_proad_qty = $proad_row->poad_qty - $poad_row->poad_qty;
+                        if ($new_proad_qty < 0) {
+                            $new_proad_qty = 0;
+                        }
 
-                        // update pre_order_article_details with new quantity
+                        // update pre_order_article_details with new quantity and total price
+                        $pst = DB::table('product_stocks')->where('id', $proad_row->pst_id)->first();
+                        $price = $pst->ps_price_tag ?? 0;
+
                         DB::table('pre_order_article_details')->where([
                             'pst_id' => $proad_row->pst_id,
                             'poa_id' => $proad_row->poa_id
-                        ])->update(['poad_qty' => $new_proad_qty]);
+                        ])->update([
+                            'poad_qty' => $new_proad_qty,
+                            'poad_total_price' => $price * $new_proad_qty
+                        ]);
 
                         // update total price for purchase_order_article_details
-                        $pst = DB::table('product_stocks')->where(['id' => $proad_row->pst_id])->first();
-                        $total_price = $pst->ps_price_tag * $poad_row->poad_qty;
                         DB::table('purchase_order_article_details')->where([
                             'pst_id' => $proad_row->pst_id,
                             'poa_id' => $poad_row->poa_id
-                        ])->update(['poad_total_price' => $total_price]);
+                        ])->update([
+                            'poad_total_price' => $price * $poad_row->poad_qty
+                        ]);
                     }
                 }
             }
 
-            $response['status'] = '200';
-
-            return json_encode($response);
+            DB::commit();
+            return json_encode(['status' => '200']);
         } catch (\Exception $e) {
-            return json_encode($e->getMessage());
+            DB::rollBack();
+            return json_encode(['status' => '400', 'message' => $e->getMessage()]);
         }
     }
 

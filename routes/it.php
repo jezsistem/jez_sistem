@@ -4,6 +4,7 @@ use App\Http\Controllers\ModalLockConfigController;
 use App\Http\Controllers\ModalLockAllowedModelController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ModalLockController;
+use App\Http\Controllers\UserActivityController;
 
 Route::middleware(['auth'])->group(function () {
     // Modal Lock
@@ -30,6 +31,10 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/delete/{id}', [ModalLockAllowedModelController::class, 'deleteAllowedModel']);
             Route::get('/datatables', [ModalLockAllowedModelController::class, 'getAllowedModelsDatatables']);
         });
+    });
+
+    Route::prefix('user_activity_log')->group(function () {
+        Route::get('/', [UserActivityController::class, 'index']);
     });
     
 });

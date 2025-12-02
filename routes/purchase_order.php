@@ -65,6 +65,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_payment_amount', [PurchaseOrderController::class, 'paymentAmountPo']);
     Route::post('status_dispute_save', [PurchaseOrderController::class, 'statusdisputeSave']);
     Route::post('po_change_bank_general', [PurchaseOrderController::class, 'changeBankGeneral']);
+    Route::post('po_change_is_receivable', [PurchaseOrderController::class, 'changeIsReceivable']);
+    Route::post('po_change_claim_amount', [PurchaseOrderController::class, 'changeClaimAmount']);
+    Route::post('po_change_finance_status', [PurchaseOrderController::class, 'changeFinanceStatus']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
