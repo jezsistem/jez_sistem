@@ -21,7 +21,7 @@
                 url : "{{ url('nameset_datatables') }}",
                 data : function (d) {
                     d.search = $('#nameset_search').val();
-                    d.status = $('#status_filter').val();
+                    d.status = $('#status_nameset').val();
                 }
             },
             columns: [
@@ -31,6 +31,8 @@
             { data: 'article', name: 'article' },
             { data: 'pos_created', name: 'pos_created' },
             { data: 'pos_note', name: 'pos_note' },
+            { data: 'nameset_by', name: 'nameset_by' },
+            { data: 'pos_td_nameset_at', name: 'pos_td_nameset_at' },
             { data: 'action', name: 'action' },
             ], 
             columnDefs: [
@@ -47,6 +49,10 @@
         });
 
         $('#nameset_search').on('change', function() {
+            nameset_table.draw();
+        });
+
+        $('#status_nameset').on('change', function() {
             nameset_table.draw();
         });
 

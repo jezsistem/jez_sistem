@@ -15,10 +15,10 @@ class NameSetDataController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -27,7 +27,7 @@ class NameSetDataController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -40,9 +40,9 @@ class NameSetDataController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -51,7 +51,7 @@ class NameSetDataController extends Controller
         }
         return $sidebar;
     }
-    
+
     public function index()
     {
         $this->validateAccess();
@@ -75,18 +75,33 @@ class NameSetDataController extends Controller
     public function getDatatables(Request $request)
     {
         try {
-            if(request()->ajax()) {
-                return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name',
-                    'sz_name', 'p_color', 'pos_invoice', 'stt_name',
-                    'pos_transaction_details.created_at as pos_created', 'pos_transactions.pos_note as pos_note', 'pos_transactions.pos_status as pos_status')
+            if (request()->ajax()) {
+                return datatables()->of(PosTransactionDetail::select(
+                    'pos_transaction_details.id as ptd_id',
+                    'p_name',
+                    'br_name',
+                    'sz_name',
+                    'p_color',
+                    'pos_invoice',
+                    'stt_name',
+                    'pos_td_nameset',
+                    'pos_transaction_details.created_at as pos_created',
+                    'pos_transactions.pos_note as pos_note',
+                    'pos_transactions.pos_status as pos_status',
+                    'users.u_name as nameset_by',
+                    'pos_td_nameset_at'
+                )
                     ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                     ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
                     ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->where('pos_td_nameset', '=', '1')
-                    ->where('pos_td_nameset_price', '!=', null))
+                    ->leftJoin('users', 'users.id', '=', 'pos_transaction_details.pos_td_nameset_by')
+                    ->where('pos_td_nameset', '=', $request->status)
+                    ->where('pos_td_nameset_price', '!=', null)
+                    ->orderBy('pos_transaction_details.pos_td_nameset', 'DESC')
+                    ) 
                     ->editColumn('pos_invoice', function ($data) {
                         return '<span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span>';
                     })
@@ -111,12 +126,11 @@ class NameSetDataController extends Controller
                         }
                     })
                     ->editColumn('action', function ($data) {
-                        if ($data->pos_status == 'NAMESET') {
-                            return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm btn-success" id="nameset_finish_btn">Selesai</span>';
+                        if ($data->pos_td_nameset == '1') {
+                            return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm" id="nameset_finish_btn" style="background-color: #dc3545; color: white;">Selesaikan Name Set</span>';
                         } else {
-                            return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm btn-success">Done Nameset</span>';
+                            return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm" style="background-color: #28a745; color: white;">Done Nameset</span>';
                         }
-
                     })
                     ->rawColumns(['pos_invoice', 'stt_name', 'article', 'action', 'pos_created', 'pos_note'])
                     ->filter(function ($instance) use ($request) {
@@ -131,7 +145,7 @@ class NameSetDataController extends Controller
                     ->addIndexColumn()
                     ->make(true);
             }
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
@@ -141,57 +155,90 @@ class NameSetDataController extends Controller
 
     public function updateData(Request $request)
     {
-        $ptd_id = $request->_ptd_id;
-        $type = $request->_type;
+        try {
+            DB::beginTransaction();
 
-        if ($type == 'finish_nameset') {
-            $get_ptd = DB::table('pos_transaction_details')
-            ->select('pt_id', 'pst_id', 'pl_id')
-            ->where('id', '=', $ptd_id)->get()->first();
-            $pls_id = DB::table('product_location_setups')
-            ->select('id')
-            ->where('pst_id', '=', $get_ptd->pst_id)
-            ->where('pl_id', '=', $get_ptd->pl_id)->get()->first()->id;
-            $update = DB::table('pos_transaction_details')->where('id', '=', $ptd_id)->update([
-                'pos_td_nameset' => '0'
-            ]);
-            if(!empty($update)) {
-                $division = DB::table('pos_transaction_details')->select('stt_name')
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
-                ->where('pos_transaction_details.id', '=', $ptd_id)
-                ->get()->first()->stt_name;
-                if (strtoupper($division) == 'ONLINE') {
-                    if (Auth::user()->st_id == '2') {
-                        $status = 'SHIPPING NUMBER';
-                    } else {
-                        $status = 'SHIPPING NUMBER';
-                    }
-                    $pos_status = 'SHIPPING NUMBER';
-                } else {
-                    $status = 'DONE';
-                    $pos_status = 'DONE';
-                }
-                $update_plst = DB::table('product_location_setup_transactions')
-                ->where('pls_id', '=', $pls_id)
-                ->where('pt_id', '=', $get_ptd->pt_id)->update([
-                    'plst_status' => $status
+            $ptd_id = $request->_ptd_id;
+            $type = $request->_type;
+
+            if ($type == 'finish_nameset') {
+                $get_ptd = DB::table('pos_transaction_details')
+                    ->select('pt_id', 'pst_id', 'pl_id')
+                    ->where('id', '=', $ptd_id)->get()->first();
+
+                $pls_id = DB::table('product_location_setups')
+                    ->select('id')
+                    ->where('pst_id', '=', $get_ptd->pst_id)
+                    ->where('pl_id', '=', $get_ptd->pl_id)->get()->first()->id;
+
+                $update = DB::table('pos_transaction_details')->where('id', '=', $ptd_id)->update([
+                    'pos_td_nameset' => '0',
+                    'pos_td_nameset_by' => Auth::user()->id,
+                    'pos_td_nameset_at' => date('Y-m-d H:i:s')
                 ]);
-                $check_nameset = DB::table('pos_transactions')
-                ->join('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-                ->where('pos_transactions.id', '=', $get_ptd->pt_id)
-                ->where('pos_transaction_details.pos_td_nameset', '=', '1')->exists();
-                if (!$check_nameset) {
-                    $update_invoice = DB::table('pos_transactions')
-                    ->where('id', '=', $get_ptd->pt_id)->update([
-                        'pos_status' => $pos_status
-                    ]);
+
+                if (!empty($update)) {
+                    $division = DB::table('pos_transaction_details')->select('stt_name')
+                        ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+                        ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
+                        ->where('pos_transaction_details.id', '=', $ptd_id)
+                        ->get()->first()->stt_name;
+
+                    if (strtoupper($division) == 'ONLINE') {
+                        $status = 'SHIPPING NUMBER';
+                        $pos_status = 'SHIPPING NUMBER';
+                    } else {
+                        $status = 'DONE';
+                        $pos_status = 'DONE';
+                    }
+
+                    if (strtoupper($division) == 'ONLINE') {
+                        //update plst with nameset log
+                        $update_plst = DB::table('product_location_setup_transactions')
+                            ->where('pls_id', '=', $pls_id)
+                            ->where('pt_id', '=', $get_ptd->pt_id)->update([
+                                'plst_status' => $status,
+                                'nameset_by' => Auth::user()->id,
+                                'nameset_at' => date('Y-m-d H:i:s')
+                            ]);
+
+                        $check_nameset = DB::table('pos_transactions')
+                            ->join('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                            ->where('pos_transactions.id', '=', $get_ptd->pt_id)
+                            ->where('pos_transaction_details.pos_td_nameset', '=', '1')->exists();
+
+                        if (!$check_nameset) {
+                            $update_invoice = DB::table('pos_transactions')
+                                ->where('id', '=', $get_ptd->pt_id)->update([
+                                    'pos_status' => $pos_status
+                                ]);
+                        }
+                    } else {
+                        //update plst with nameset log
+                        $update_plst = DB::table('product_location_setup_transactions')
+                            ->where('pls_id', '=', $pls_id)
+                            ->where('pt_id', '=', $get_ptd->pt_id)->update([
+                                'plst_status' => $status,
+                                'nameset_by' => Auth::user()->id,
+                                'nameset_at' => date('Y-m-d H:i:s')
+                            ]);
+                    }
+
+                    DB::commit();
+                    $r['status'] = '200';
+                } else {
+                    DB::rollBack();
+                    $r['status'] = '400';
                 }
-                $r['status'] = '200';
-            } else {
-                $r['status'] = '400';
             }
+
+            return json_encode($r);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
         }
-        return json_encode($r);
     }
 }
