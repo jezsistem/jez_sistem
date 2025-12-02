@@ -918,26 +918,26 @@ class PointOfSaleController extends Controller
                 $store_name = $store->st_name;
 
 
-                $client = new Client();
-                $nohp = $customer->cust_phone;
-                $receipt_url = url('/e_receipt/' . $invoice);
-                $pesan = "Terima kasih telah berbelanja di $store_name.\n".
-                    "Total transaksi Anda sebesar Rp " . number_format($real_price, 0, ',', '.') . ".\n".
-                    "Silakan cek detail transaksi di: $receipt_url\n\n".
-                    "---\n".
-                    "Pesan ini dikirim otomatis, mohon tidak membalas.";
+                // $client = new Client();
+                // $nohp = $customer->cust_phone;
+                // $receipt_url = url('/e_receipt/' . $invoice);
+                // $pesan = "Terima kasih telah berbelanja di $store_name.\n".
+                //     "Total transaksi Anda sebesar Rp " . number_format($real_price, 0, ',', '.') . ".\n".
+                //     "Silakan cek detail transaksi di: $receipt_url\n\n".
+                //     "---\n".
+                //     "Pesan ini dikirim otomatis, mohon tidak membalas.";
 
 
-                // ini bagian kirimnya y
-                $response = Http::post('http://jezpro.com:3000/send-message', [
-                    'phone' => $nohp,
-                    'message' => $pesan
-                ]);
+                // // ini bagian kirimnya y
+                // $response = Http::post('http://jezpro.com:3000/send-message', [
+                //     'phone' => $nohp,
+                //     'message' => $pesan
+                // ]);
 
-                Log::info('WA API Response:', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
+                // Log::info('WA API Response:', [
+                //     'status' => $response->status(),
+                //     'body' => $response->body()
+                // ]);
 //                try {
 //                    $response = Http::post('http://localhost:3000/send-message', [
 //                        'phone' => $nohp,
@@ -960,7 +960,7 @@ class PointOfSaleController extends Controller
                 $r['status'] = '200';
                 $r['pt_id'] = $insert_get_id;
                 $r['invoice'] = $invoice;
-                $r['no_hp'] = $nohp;
+                // $r['no_hp'] = $nohp;
             } else {
                 $r['status'] = '400';
             }
