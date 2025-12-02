@@ -87,8 +87,8 @@
                                 <div class="col-md-3 mb-3">
                                     <label for="status">Status</label>
                                     <select class="form-control" id="status" name="status">
-                                        <option value="">All</option>
                                         <option value="Pending">Pending</option>
+                                        <option value="">All</option>
                                         <option value="Approved">Approved</option>
                                         <option value="Rejected">Rejected</option>
                                         <option value="HR Check">HR Check</option>

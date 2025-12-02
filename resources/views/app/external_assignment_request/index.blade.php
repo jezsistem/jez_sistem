@@ -383,8 +383,8 @@
                                     <div class="col-md-2">
                                         <label for="status">Status</label>
                                         <select class="form-control" id="status" name="status">
-                                            <option value="" {{ empty($status) ? 'selected' : '' }}>All Status</option>
                                             <option value="Pending Approval" {{ $status == 'Pending Approval' ? 'selected' : '' }}>Pending Approval</option>
+                                            <option value="">All Status</option>
                                             <option value="Approved" {{ $status == 'Approved' ? 'selected' : '' }}>Approved</option>
                                             <option value="Rejected" {{ $status == 'Rejected' ? 'selected' : '' }}>Rejected</option>
                                             <option value="HR Check" {{ $status == 'HR Check' ? 'selected' : '' }}>HR Check</option>
