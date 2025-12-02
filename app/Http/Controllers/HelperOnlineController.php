@@ -94,7 +94,7 @@ class HelperOnlineController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1),
             'st_id' => Auth::user()->st_id,
-            'warehouse' => WarehouseIndex::query()->where('st_id', Auth::user()->st_id)->first()->w_code,
+            // 'warehouse' => WarehouseIndex::query()->where('st_id', Auth::user()->st_id)->first()->w_code,
             'platforms' => DB::table('online_transactions')
                 ->select('platform_name')
                 ->distinct()
