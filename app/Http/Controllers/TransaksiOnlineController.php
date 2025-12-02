@@ -2333,6 +2333,12 @@ class TransaksiOnlineController extends Controller
             )
             ->where('product_location_setup_transactions.plst_status', 'WAITING ONLINE')
             ->where('product_location_setup_transactions.st_id', Auth::user()->st_id)
+            ->where(function ($query) use ($request) {
+                if ($request->has('search') && !empty($request->search)) {
+                    $search = $request->search;
+                    $query->where('online_transaction_details.order_number', 'like', '%' . $search . '%');
+                }
+            })
             ->whereNull('product_location_setup_transactions.pls_id')
             ->orderBy('product_location_setup_transactions.id', 'desc')
             ->get();

@@ -614,7 +614,7 @@
             ajax: {
                 url: "{{ url('transaksi_online_waiting_online_items') }}", // Endpoint DataTables
                 data: function(d) {
-                    // You can add additional parameters here if needed
+                    d.search = $('#searchWaitingOnlineItem').val();
                 }
             },
             columns: [{
@@ -777,6 +777,10 @@
 
         $('#online_transaction_search').on('keyup', function() {
             online_transaction_table.draw(); // Memuat ulang tabel setiap kali ada perubahan pencarian
+        });
+
+        $('#searchWaitingOnlineItem').on('keyup', function() {
+            waiting_online_items_table.draw(); // Memuat ulang tabel setiap kali ada perubahan pencarian
         });
 
         {{-- $('#f_import').on('submit' , function (e) { --}}
