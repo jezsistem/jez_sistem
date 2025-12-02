@@ -6,7 +6,7 @@
     {
         name: '{{ $row['st_name'] }}',
         data: [{{ $row['total'] }}],
-        color: primary
+        color: '{{ $row['color'] }}'
     },
     @endforeach
     @endif
