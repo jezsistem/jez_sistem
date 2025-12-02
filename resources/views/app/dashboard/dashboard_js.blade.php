@@ -587,7 +587,7 @@
 
     $(document).delegate('#a_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_a').addClass('d-none');
+        $('#a_show_btn').addClass('d-none');
         getCCAssetGraph('#a_show_btn', hidden_range);
     });
 

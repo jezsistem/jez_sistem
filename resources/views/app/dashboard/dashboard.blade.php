@@ -338,9 +338,9 @@
                                     </i>
                                     Category Qty Sales
                                 </span>
-                                <div class="d-flex flex-column text-right">
+                                <!-- <div class="d-flex flex-column text-right">
                                     <span class="font-weight-bold fs-5 btn btn-dark" id="consign_assets_label"></span>
-                                </div>
+                                </div> -->
                             </div>
                             <center class="button-show_ca pt-20">
                                 <a class="btn btn-inventory" id="ca_show_btn">Tampilkan</a>
