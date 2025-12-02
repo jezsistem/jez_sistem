@@ -713,6 +713,63 @@
             minimumResultsForSearch: 0
         });
 
+        $('#st_id_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#st_id_filter_export_parent')
+        });
+
+        $('#st_id_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#status_print_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#status_trx_filter_export_parent')
+        });
+
+        $('#status_print_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#platform_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#platform_trx_filter_export_parent')
+        });
+
+        $('#platform_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#courier_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#courier_trx_filter_export_parent')
+        });
+
+        $('#courier_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#order_status_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#order_status_trx_filter_export_parent')
+        });
+
+        $('#order_status_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#internal_order_status_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#internal_order_status_trx_filter_export_parent')
+        });
+
+        $('#internal_order_status_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        // Add margin-left to Select2 containers
+        $('.select2-container').css('margin-left', '10px');
+
         $('#filter_order_status').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (array)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
@@ -1478,22 +1535,24 @@
         // $('#sales_online_export').on('click', function () {
         $(document).delegate('#sales_online_export', 'click', function(e) {
             e.preventDefault();
-            let date = $('#kt_dashboard_daterangepicker_date')
-                .text(); // Ensure this gets the correct date range
-            let branch_trx = $('#branch_trx').val();
-            let status_trx = $('#status_trx').val();
-            let changeplatform = $('#changeplatform').val();
-
-            console.log("Branch:", branch_trx);
-            console.log("Status:", status_trx);
-            console.log("Platform:", changeplatform);
-            console.log("Date:", date);
+            
+            let date = $('#sales_date').val(); // Get hidden date value
+            let st_id_filter_export = $('#st_id_filter_export').val();
+            let status_print_filter_export = $('#status_print_filter_export').val();
+            let platform_trx_filter_export = $('#platform_trx_filter_export').val();
+            let courier_trx_filter_export = $('#courier_trx_filter_export').val();
+            let order_status_trx_filter_export = $('#order_status_trx_filter_export').val();
+            let internal_order_status_trx_filter_export = $('#internal_order_status_trx_filter_export').val();
 
             // Redirect with parameters
-            window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx +
-                "&date=" + date +
-                "&status=" + status_trx +
-                "&changeplatform=" + changeplatform;
+            window.location.href = "{{ url('online_sales_export') }}" +
+                "?st_id=" + (st_id_filter_export || '') +
+                "&date=" + (date || '') +
+                "&status_print=" + (status_print_filter_export || '') +
+                "&platform=" + (platform_trx_filter_export || '') +
+                "&courier=" + (courier_trx_filter_export || '') +
+                "&order_status=" + (order_status_trx_filter_export || '') +
+                "&internal_order_status=" + (internal_order_status_trx_filter_export || '');
         });
 
 

@@ -105,6 +105,8 @@ class TransaksiOnlineController extends Controller
                 ->where('order_status', '!=', '')
                 ->orderBy('order_status')
                 ->get()->pluck('order_status')->toArray(),
+            'internal_order_statuses' => OnlineTransactions::select('internal_order_status')->distinct()->whereNotNull('internal_order_status')->where('internal_order_status', '!=', '')->orderBy('internal_order_status')->get(),
+
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
@@ -321,10 +323,17 @@ class TransaksiOnlineController extends Controller
     public function exportDataOnline(Request $request)
     {
         try {
-            $branch = $request->get('branch');
-            $status = $request->get('status');
-            $date = $request->get('date');
-            $changeplatform = $request->get('changeplatform');
+            $store_id = $request->st_id;
+            $date = $request->date;
+
+            $status_print = $request->status_print;
+            // status_print: 4 = semua, 3 = sudah cetak nota, 2 = sudah cetak resi, 1 = sudah cetak nota & resi, 0 = belum cetak
+
+            $platform = $request->platform;
+            $courier = $request->courier;
+            $order_status = $request->order_status;
+            $internal_order_status = $request->internal_order_status;
+
             $exp = explode('|', $date);
             $start = null;
             $end = null;
@@ -339,7 +348,9 @@ class TransaksiOnlineController extends Controller
             $timestamp = $now->format('d-m-Y_H.i.s');
             $fileName = 'item_online_details' . $timestamp . '.xlsx';
 
-            return Excel::download(new OnlineReportExport($branch, $start, $end, $status, $changeplatform), $fileName);
+            $data = new OnlineReportExport($store_id, $start, $end, $status_print, $platform, $courier, $order_status, $internal_order_status);
+            
+            return Excel::download($data, $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }

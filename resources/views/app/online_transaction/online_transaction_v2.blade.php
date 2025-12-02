@@ -32,73 +32,102 @@
                 </div>
             </div>
         </div>
+        <!--begin::Export Section-->
         <div class="d-flex flex-column-fluid">
-            <!--begin::Container-->
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-12 col-xxl-12">
-                        <!--begin::Card-->
-                        <div class="card card-custom gutter-b edit-style">
-                            <Label style="margin-left: 20px; margin-top: 20px;">
-                                <h5 class="text-dark font-weight-bold my-1 mr-5">Export Laporan</h5>
-                            </Label><br>
-                            <div class="card-header h-auto align-items-center justify-content-between">
-                                <!--begin::Title-->
-                                <input type="hidden" id="sales_date" value="" />
-
-                                <div class="card-title py-5">
-                                    <select class="form-control" id="branch_trx" name="st_id_filter" required>
-                                        <option value="">-- Cabang --</option>
-                                        @foreach ($data['st_id'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="card-title py-5">
-                                    <select class="form-control" id="status_trx">
-                                        <option value="">-- Pilih Status Cetak ---</option>
-                                        <option value="2">Semua Status</option>
-                                        <option value="1">Sudah Cetak</option>
-                                        <option value="0">Belum Cetak</option>
-                                    </select>
-                                </div>
-
-                                <div class="card-title py-5">
-                                    <select class="form-control" id="changeplatform">
-                                        <option value="">-- Platform ---</option>
-                                        <option value="">Semua Platform</option>
-                                        <option value="Shopee">Shopee</option>
-                                        <option value="TikTok">Tiktok</option>
-                                    </select>
-                                </div>
-
-
-                                <div class="" role="alert">
-                                    <input type="hidden" id="sales_date" value="" />
-                                    <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12"
-                                        id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal"
-                                        data-placement="left">
-                                        <span class="text-muted font-size-base font-weight-bold mr-2"
-                                            id="kt_dashboard_daterangepicker_title">Today</span>
-                                        <span class="text-primary font-size-base font-weight-bolder"
-                                            id="kt_dashboard_daterangepicker_date"></span>
-                                    </a>
-                                </div>&nbsp;
-
-                                <div class="justify-content-center">
-                                    <a href="#" class="btn btn-sm btn-success mr-2 col-12" id="sales_online_export">
-                                        Export laporan
-                                    </a>
+                    <div class="col-lg-12">
+                        <div class="card card-custom gutter-b" style="background-color: rgba(255, 130, 130, 0.781)">
+                            <div class="card-header">
+                                <h3 class="card-title">Export Laporan</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label>Cabang</label>
+                                        <select class="form-control select2" id="st_id_filter_export"
+                                            name="st_id_filter_export">
+                                            <option value="">Semua Cabang</option>
+                                            @foreach ($data['st_id'] as $key => $value)
+                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="st_id_filter_export_parent"></div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Status Cetak</label>
+                                        <select class="form-control select2" id="status_print_filter_export">
+                                            <option value="4">Semua Status</option>
+                                            <option value="3">Sudah Cetak Nota</option>
+                                            <option value="2">Sudah Cetak Resi</option>
+                                            <option value="1">Sudah Cetak Nota & Resi</option>
+                                            <option value="0">Belum Cetak</option>
+                                        </select>
+                                        <div id="status_trx_filter_export_parent"></div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Platform</label>
+                                        <select class="form-control select2" id="platform_trx_filter_export">
+                                            <option value="">Semua Platform</option>
+                                            <option value="Shopee">Shopee</option>
+                                            <option value="TikTok">TikTok</option>
+                                        </select>
+                                        <div id="platform_trx_filter_export_parent"></div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Ekspedisi</label>
+                                        <select class="form-control select2" id="courier_trx_filter_export">
+                                            <option value="">Semua Ekspedisi</option>
+                                            @foreach ($data['couriers'] as $courier)
+                                                <option value="{{ $courier->courier }}">{{ $courier->courier }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="courier_trx_filter_export_parent"></div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Status Order</label>
+                                        <select class="form-control select2" id="order_status_trx_filter_export">
+                                            <option value="">Semua Status Order</option>
+                                            @foreach ($data['order_statuses'] as $status)
+                                                <option value="{{ $status }}">{{ $status }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="order_status_trx_filter_export_parent"></div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Status Jezpro</label>
+                                        <select class="form-control select2" id="internal_order_status_trx_filter_export">
+                                            <option value="">Semua Status Jezpro</option>
+                                            @foreach ($data['internal_order_statuses'] as $status)
+                                                <option value="{{ $status->internal_order_status }}">
+                                                    {{ $status->internal_order_status }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="internal_order_status_trx_filter_export_parent"></div>
+                                    </div>
+                                    <div class="col-md-8 mb-3">
+                                        <label>Periode Tanggal</label>
+                                        <input type="hidden" id="sales_date" value="" />
+                                        <a href="#" class="btn btn-light-primary btn-block"
+                                            id="kt_dashboard_daterangepicker">
+                                            <i class="la la-calendar"></i>
+                                            <span id="kt_dashboard_daterangepicker_date"></span>
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>&nbsp;</label>
+                                        <button class="btn btn-success btn-block" id="sales_online_export">
+                                            <i class="la la-download"></i> Export Laporan
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!--end::Card-->
                 </div>
             </div>
-            <!--end::Container-->
         </div>
+        <!--end::Export Section-->
         <!--begin::Entry-->
         <div class="d-flex flex-column-fluid">
             <!--begin::Container-->
@@ -190,7 +219,7 @@
                             <div class="container mt-6">
                                 <div class="row">
                                     <div class="col-3">
-                                        <input type="search" class="form-control" id="online_transaction_search"
+                                        <input type="search" class="form-control" id="online_transaction_search" style="margin-left: 10px"
                                             placeholder="Cari No Order / No resi" />
                                     </div>
                                 </div>
@@ -216,7 +245,8 @@
                                         <select name="filter_warehouse" id="filter_warehouse" class="form-control col-6">
                                             <option value="">-- Pilih Warehouse --</option>
                                             @foreach ($data['warehouses'] as $warehouse)
-                                                <option value="{{ $warehouse->w_code }}">{{ $warehouse->w_code }}</option>
+                                                <option value="{{ $warehouse->w_code }}">{{ $warehouse->w_code }}
+                                                </option>
                                             @endforeach
                                         </select>
                                         <div id="filter_warehouse_parent"></div>
