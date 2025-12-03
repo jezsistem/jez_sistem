@@ -1410,32 +1410,68 @@
             }
 
             $("#addMarketplaceLinkBtn").on("click", function() {
-                $("#ProductLinkFormTitle").text("Add Marketplace Link");
+                $("#ProductLinkFormTitle").html("<span>Add</span> Marketplace Link");
+                $("#pl_id").val("");
                 $("#pl_type").val("marketplace");
                 $("#pl_url").val("");
                 $("#pl_location").val("");
+                $("#mode").val("add");
                 loadPlatformOptions("marketplace");
                 loadLocations();
                 $("#ProductLinkFormModal").modal("show");
             });
 
             $("#addSocialLinkBtn").on("click", function() {
-                $("#ProductLinkFormTitle").text("Add Social Media Link");
+                $("#ProductLinkFormTitle").html("<span>Add</span> Social Media Link");
+                $("#pl_id").val("");
                 $("#pl_type").val("social");
                 $("#pl_url").val("");
                 $("#pl_location").val("");
+                $("#mode").val("add");
                 loadPlatformOptions("social");
                 loadLocations();
                 $("#ProductLinkFormModal").modal("show");
             });
 
-            $("#SaveProductLinkBtn").on("click", function() {
-                const articleId = $('#article_id').val();
-
+            $(document).on("click", ".editLink", function() {
+                const id = $(this).data("id");
+                const type = $(this).data("type");
 
                 $.ajax({
-                    url: "/product-links/store",
-                    method: "POST",
+                    url: `/product-links/${id}`,
+                    method: "GET",
+                    success: function(data) {
+                        $("#ProductLinkFormTitle").html("<span>Edit</span> " + (type === "marketplace" ? "Marketplace" : "Social Media") + " Link");
+                        $("#pl_id").val(data.data.id);
+                        $("#pl_product_id").val(data.data.product_id);
+                        $("#pl_type").val(data.data.type);
+                        $("#pl_url").val(data.data.url);
+                        $("#mode").val("edit");
+                        
+                        loadPlatformOptions(data.data.type);
+                        loadLocations();
+                        
+                        setTimeout(() => {
+                            $("#pl_platform").val(data.data.platform).trigger('change');
+                            $("#pl_location").val(data.data.location).trigger('change');
+                        }, 300);
+
+                        $("#ProductLinkFormModal").modal("show");
+                    }
+                });
+            });
+
+            $("#SaveProductLinkBtn").on("click", function() {
+                const articleId = $('#article_id').val();
+                const mode = $("#mode").val();
+                const id = $("#pl_id").val();
+
+                const url = mode === "edit" ? `/product-links/${id}` : "/product-links/store";
+                const method = mode === "edit" ? "PUT" : "POST";
+
+                $.ajax({
+                    url: url,
+                    method: method,
                     data: {
                         product_id: $("#pl_product_id").val(),
                         type: $("#pl_type").val(),
@@ -1446,16 +1482,57 @@
                         _token: "{{ csrf_token() }}"
                     },
                     success: function(res) {
-                        toastr.success("Link berhasil disimpan!");
+                        toastr.success(mode === "edit" ? "Link berhasil diupdate!" : "Link berhasil disimpan!");
 
                         $("#ProductLinkFormModal").modal("hide");
 
                         // reload datatables
-                        jQuery("#tableMarketplaceLinks").DataTable().ajax.reload();
-                        jQuery("#tableSocialLinks").DataTable().ajax.reload();
+                        if (tableMarketplace) tableMarketplace.ajax.reload();
+                        if (tableSocial) tableSocial.ajax.reload();
+                    },
+                    error: function(xhr) {
+                        toastr.error("Gagal menyimpan link!");
                     }
                 });
+            });
 
+            $(document).on("click", ".deleteLink", function() {
+                const id = $(this).data("id");
+                const type = $(this).data("type");
+
+                Swal.fire({
+                    title: 'Hapus Link?',
+                    text: "Link ini akan dihapus secara permanen.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/product-links/${id}`,
+                            method: "DELETE",
+                            data: {
+                                _token: "{{ csrf_token() }}"
+                            },
+                            success: function(res) {
+                                toastr.success("Link berhasil dihapus!");
+                                
+                                // reload datatables
+                                if (type === "marketplace" && tableMarketplace) {
+                                    tableMarketplace.ajax.reload();
+                                } else if (type === "social" && tableSocial) {
+                                    tableSocial.ajax.reload();
+                                }
+                            },
+                            error: function(xhr) {
+                                toastr.error("Gagal menghapus link!");
+                            }
+                        });
+                    }
+                });
             });
 
 
