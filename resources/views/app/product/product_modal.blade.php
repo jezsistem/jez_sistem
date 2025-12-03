@@ -59,7 +59,8 @@
 </div>
 
 <!-- Modal-->
-<div class="modal fade" id="ProductModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="ProductModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false" style="overflow-y: auto;">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <form id="f_product">
