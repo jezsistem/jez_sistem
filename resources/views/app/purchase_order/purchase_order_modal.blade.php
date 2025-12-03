@@ -36,7 +36,7 @@
                                     <!--end::Svg Icon-->
                                 </span>Import</a>
                     </div>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close close_modal_po" data-dismiss="modal" aria-label="Close">
                         <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
                     <!--begin::Dropdown Menu-->
@@ -221,7 +221,7 @@
                     </div>
                     <div class="col-4 mt-5">
                         <label>Pre Order</label>
-                        <select class="form-control" id="pro_id" name="pro_id" required>
+                        <select class="form-control" id="pro_id" name="pro_id">
                             <option value="">- Pre Order -</option>
                             @foreach ($data['pro_id'] as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
@@ -291,6 +291,20 @@
                             </a>
                         </div>
                     </div>
+                    <div class="col-4 mt-5 ">
+                        <label>Klaim Lebih/Piutang</label>
+                        <select class="form-control" name="is_receivable" id="is_receivable">
+                            <option value="">- Pilih -</option>
+                            <option value="0">Tidak</option>
+                            <option value="1">Ya</option>
+                        </select>
+                    </div>
+                    <div class="col-4 mt-5 ">
+                        <label>Nominal Klaim</label>
+                        <input type="number" class="form-control " placeholder="Nominal Klaim" name="claim_amount" id="claim_amount" min="0" />
+                    </div>
+                    <div class="col-4 mt-5 ">
+                    </div>
                     <div class="col-4 mt-5 without_item_input">
                         <label>Total Pembelian</label>
                         <input type="number" class="form-control " placeholder="Total Pembelian" name="total_purchase" id="total_purchase" min="0" />
@@ -329,7 +343,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-danger font-weight-bold" style="margin-right: 20px" id="cancel_purchase_order_btn">Hapus PO</button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn" disabled>Tutup</button>
+                <button type="button" class="btn btn-dark font-weight-bold close_modal_po" id="save_purchase_order_btn" disabled>Tutup</button>
             </div>
             </form>
         </div>

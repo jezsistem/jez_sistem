@@ -94,13 +94,14 @@ class HelperOnlineController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1),
             'st_id' => Auth::user()->st_id,
-            'warehouse' => WarehouseIndex::query()->where('st_id', Auth::user()->st_id)->first()->w_code,
+            // 'warehouse' => WarehouseIndex::query()->where('st_id', Auth::user()->st_id)->first()->w_code,
             'platforms' => DB::table('online_transactions')
                 ->select('platform_name')
                 ->distinct()
                 ->orderBy('platform_name', 'ASC')
                 ->get(),
             'modal_lock_active' => ModalLockAllowedModel::where('is_active', true)->where('identifier', 'helper_online')->exists(),
+            'expeditions' => DB::table('couriers')->orderBy('cr_name', 'ASC')->get()
         ];
 
 //        $dataResi = [

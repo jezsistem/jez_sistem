@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('data_nameset', [NamesetDataController::class, 'index'])->name('nameset_data');
     Route::get('nameset_datatables', [NamesetDataController::class, 'getDatatables']);
     Route::post('update_data_nameset', [NamesetDataController::class, 'updateData']);
+    Route::get('export_nameset', [NamesetDataController::class, 'exportData'])->name('export.nameset');
 
     // Target
     Route::get('target', [TargetController::class, 'index'])->name('target');

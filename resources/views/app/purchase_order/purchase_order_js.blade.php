@@ -347,8 +347,7 @@
         });
     }
 
-    function subDiscount(id)
-    {
+    function subDiscount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
         var sub_discount = $('#poa_sub_discount' + id).val();
@@ -598,6 +597,30 @@
             }
         });
     }
+
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -787,6 +810,8 @@
                 data: function(d) {
                     d.search = $('#purchase_order_search').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.date = $('#po_date').val();
+                    d.status_purchase = $('#status_purchase').val();
                 }
             },
             columns: [{
@@ -822,6 +847,10 @@
                 {
                     data: 'po_status',
                     name: 'po_status'
+                },
+                {
+                    data: 'finance_status',
+                    name: 'finance_status'
                 },
             ],
             columnDefs: [{
@@ -1247,6 +1276,21 @@
             purchase_order_table.draw();
         });
 
+        $('#status_purchase').select2({
+            width: "200px",
+            dropdownParent: $('#status_purchase_parent')
+        });
+
+        $('#status_purchase').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#status_purchase').on('change', function() {
+            purchase_order_table.draw();
+        });
+
         $('#br_id_filter_item').select2({
             width: "150px",
             dropdownParent: $('#br_id_filter_parent_item')
@@ -1347,6 +1391,8 @@
                         $('#total_purchase').val(r.po_total_purchase);
                         $('#payment_amount').val(r.po_payment_amount);
                         $('#total_qty').val(r.po_total_qty);
+                        jQuery('#is_receivable').val(r.is_receivable);
+                        jQuery('#claim_amount').val(r.claim_amount);
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -1456,7 +1502,46 @@
         checkRequiredSelects();
 
 
-        $('#save_purchase_order_btn').on('click', function(e) {
+        // $('#save_purchase_order_btn').on('click', function(e) {
+        //     e.preventDefault();
+        //     // alert("Modal ditutup, melepaskan lock...");
+        //     var po_id = $('#_po_id').val();
+        //     if (po_id) {
+        //         closeEditModal('purchase_order', po_id, 'pembelian');
+        //     }
+        //     // Hentikan interval extend lock
+        //     if (window.lockExtendInterval) {
+        //         clearInterval(window.lockExtendInterval);
+        //         window.lockExtendInterval = null;
+        //     }
+        //     $('#PurchaseOrderModal').modal('hide');
+        //     var po_id = $('#_po_id').val();
+        //     $.ajaxSetup({
+        //         headers: {
+        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //         }
+        //     });
+        //     $.ajax({
+        //         type: "POST",
+        //         dataType: 'json',
+        //         data: {
+        //             _id: po_id
+        //         },
+        //         url: "{{ url('po_save_draft') }}",
+        //         success: function(r) {
+        //             if (r.status == '200') {
+        //                 //swal("Berhasil", "Data berhasil disimpan", "success");
+        //             } else {
+        //                 //swal('Gagal', 'Gagal simpan data', 'error');
+        //             }
+        //         }
+        //     });
+        //     purchase_order_table.draw(false);
+
+        //     $('#detail_po').removeClass('d-none');
+        // });
+
+        $('.close_modal_po').on('click', function(e) {
             e.preventDefault();
             // alert("Modal ditutup, melepaskan lock...");
             var po_id = $('#_po_id').val();
@@ -1490,6 +1575,7 @@
                     }
                 }
             });
+            changeFinanceStatus(po_id);
             purchase_order_table.draw(false);
 
             $('#detail_po').removeClass('d-none');
@@ -2105,6 +2191,72 @@
             });
         });
 
+        $('#is_receivable').on('change', function() {
+            var is_receivable = $(this).val();
+            var po_id = $('#_po_id').val();
+
+            if (is_receivable === '') {
+                return;
+            }
+
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: po_id,
+                    _is_receivable: is_receivable
+                },
+                url: "{{ url('po_change_is_receivable') }}",
+
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Status Receivable berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Status Receivable", "Gagal");
+                }
+            });
+        });
+
+        $('#claim_amount').on('change', function() {
+            var claim_amount = $(this).val();
+            var po_id = $('#_po_id').val();
+
+            if (claim_amount === '') {
+                return;
+            }
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: po_id,
+                    _claim_amount: claim_amount
+                },
+                url: "{{ url('po_change_claim_amount') }}",
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Claim Amount berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Claim Amount", "Gagal");
+                }
+            });
+        });
+
 
         $(document).delegate('#ExportArticleData', 'click', function(e) {
             e.preventDefault();
@@ -2113,5 +2265,61 @@
             {{-- window.location.href = "{{ url('po_article_export') }}?po_id="+po_id; --}}
             window.location.href = "{{ url('po_article_export') }}?po_id=" + po_id + "&st_id=" + st_id;
         });
+
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+
+            if ((end - start) < 100 || label == 'Today') {
+                title = 'Today:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Yesterday') {
+                title = 'Yesterday:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
+            } else {
+                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+            console.log(hidden_range);
+            $('#po_date').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+
+            purchase_order_table.draw();
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+                'All Days': [null, null],
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end, '');
     });
 </script>

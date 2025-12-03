@@ -10,8 +10,7 @@
 <div id="_cc_assets"></div>
 <div id="_c_assets"></div>
 <script>
-    function addCommas(nStr)
-    {
+    function addCommas(nStr) {
         nStr += '';
         x = nStr.split('.');
         x1 = x[0];
@@ -41,9 +40,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -52,14 +51,12 @@
             },
         },
         xaxis: {
-            categories: ['Jual Bersih'],
+            categories: ['Net Sales'],
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -84,9 +81,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -95,14 +92,12 @@
             },
         },
         xaxis: {
-            categories: ['Profit'],
+            categories: ['Cogs Sales'],
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -127,9 +122,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -138,14 +133,12 @@
             },
         },
         xaxis: {
-            categories: ['Cross Jual Bersih'],
+            categories: ['Gross Sales'],
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -170,9 +163,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -181,14 +174,12 @@
             },
         },
         xaxis: {
-            categories: ['Cross Profit'],
+            categories: ['Gross Margin'],
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -213,9 +204,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -228,10 +219,8 @@
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -256,9 +245,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -267,14 +256,12 @@
             },
         },
         xaxis: {
-            categories: ['Hutang'],
+            categories: ['Brand Sales'],
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -299,9 +286,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -310,14 +297,12 @@
             },
         },
         xaxis: {
-            categories: ['Asset Cash/Credit'],
+            categories: ['Quantity'],
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -342,9 +327,9 @@
             curve: 'straight'
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-        }
+            bar: {
+                borderRadius: 4,
+            }
         },
         grid: {
             row: {
@@ -357,10 +342,8 @@
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
-                    return addCommas(val)
-                },
-                show: false
+                formatter: val => addCommas(val),
+                show: true
             },
         },
         colors: [primary]
@@ -368,31 +351,51 @@
     var casChart_render = new ApexCharts(document.querySelector(casChart), casChart_options);
     casChart_render.render();
 
-    function getSalesGraph(div, hidden_range)
-    {
+    function getSalesGraph(div, hidden_range) {
+        // Tampilkan overlay loader
+        $("#loadersales").show();
+
         $(div).addClass('d-none');
         $('#ns_loading').removeClass('d-none');
+
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range, type:$('#scross_filter').val()},
+            data: {
+                _range: hidden_range,
+                type: $('#scross_filter').val()
+            },
             dataType: 'html',
             url: "{{ url('get_sales_graph')}}",
             success: function(r) {
+
+                // Sembunyikan overlay loader
+                $("#loadersales").hide();
+
                 $('#ns_loading').addClass('d-none');
                 $('#nettsaleChart').removeClass('d-none');
                 $('#_nettsales').html(r);
+            },
+
+            error: function() {
+
+                // Tetap sembunyikan overlay loader jika error
+                $("#loadersales").hide();
+
+                alert("Something went wrong, please try again!");
             }
         });
     }
 
+
     $(document).delegate('#ns_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_ns').addClass('d-none');
+        $('#ns_show_btn').addClass('d-none');
         getSalesGraph('#ns_show_btn', hidden_range);
     });
 
@@ -401,31 +404,43 @@
         getSalesGraph('#ns_show_btn', hidden_range);
     });
 
-    function getProfitGraph(div, hidden_range)
-    {
+    function getProfitGraph(div, hidden_range) {
+        $("#loadersalesafteradmin").show();
         $(div).addClass('d-none');
         $('#pr_loading').removeClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range, type:$('#pcross_filter').val()},
+            data: {
+                _range: hidden_range,
+                type: $('#pcross_filter').val()
+            },
             dataType: 'html',
             url: "{{ url('get_profit_graph')}}",
             success: function(r) {
+                $("#loadersalesafteradmin").hide();
                 $('#pr_loading').addClass('d-none');
                 $('#profitChart').removeClass('d-none');
                 $('#_profits').html(r);
+            },
+
+            error: function() {
+
+                // Tetap sembunyikan overlay loader jika error
+                $("#loadersalesafteradmin").hide();
+
+                alert("Something went wrong, please try again!");
             }
         });
     }
 
     $(document).delegate('#pr_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_pr').addClass('d-none');
+        $('#pr_show_btn').addClass('d-none');
         getProfitGraph('#pr_show_btn', hidden_range);
     });
 
@@ -434,178 +449,223 @@
         getProfitGraph('#pr_show_btn', hidden_range);
     });
 
-    function getcSalesGraph(div, hidden_range)
-    {
+    function getcSalesGraph(div, hidden_range) {
+        $("#loadergrossmargin").show();
         $(div).addClass('d-none');
         $('#cns_loading').removeClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range},
+            data: {
+                _range: hidden_range
+            },
             dataType: 'html',
             url: "{{ url('get_csales_graph')}}",
             success: function(r) {
+                $("#loadergrossmargin").hide();
                 $('#cns_loading').addClass('d-none');
                 $('#cnettsaleChart').removeClass('d-none');
                 $('#_cnettsales').html(r);
+            },
+            error: function() {
+                $("#loadergrossmargin").hide();
+                alert("Something went wrong!");
             }
+
         });
     }
 
     $(document).delegate('#cns_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_cns').addClass('d-none');
+        $('#cns_show_btn').addClass('d-none');
         getcSalesGraph('#cns_show_btn', hidden_range);
     });
 
-    function getcProfitGraph(div, hidden_range)
-    {
+    function getcProfitGraph(div, hidden_range) {
+        $("#loadergmp").show();
         $(div).addClass('d-none');
         $('#cpr_loading').removeClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range},
+            data: {
+                _range: hidden_range,
+                type: $('#scross_filter').val()
+            },
             dataType: 'html',
             url: "{{ url('get_cprofit_graph')}}",
             success: function(r) {
+                $("#loadergmp").hide();
                 $('#cpr_loading').addClass('d-none');
                 $('#cprofitChart').removeClass('d-none');
                 $('#_cprofits').html(r);
+            },
+            error: function() {
+                $("#loadergmp").hide();
+                alert("Something went wrong!");
             }
         });
     }
 
     $(document).delegate('#cpr_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_cpr').addClass('d-none');
+        $('.cpr_show_btn').addClass('d-none');
         getcProfitGraph('#cpr_show_btn', hidden_range);
     });
 
-    function getPurchaseGraph(div, hidden_range)
-    {
+    function getPurchaseGraph(div, hidden_range) {
+        $("#loaderpurchase").show();
         $(div).addClass('d-none');
         $('#pc_loading').removeClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range},
+            data: {
+                _range: hidden_range
+            },
             dataType: 'html',
             url: "{{ url('get_purchase_graph')}}",
             success: function(r) {
                 $('#pc_loading').addClass('d-none');
                 $('#purchaseChart').removeClass('d-none');
                 $('#_purchases').html(r);
+                $("#loaderpurchase").hide();
+            },
+            error: function() {
+                $("#loaderpurchase").hide();
+                alert("Something went wrong!");
             }
         });
     }
 
     $(document).delegate('#pc_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_pc').addClass('d-none');
+        $('#pc_show_btn').addClass('d-none');
         getPurchaseGraph('#pc_show_btn', hidden_range);
     });
 
-    function getCCAssetGraph(div, hidden_range)
-    {
+    function getCCAssetGraph(div, hidden_range) {
+        $("#loaderqty").show();
         $(div).addClass('d-none');
         $('#a_loading').removeClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range},
+            data: {
+                _range: hidden_range
+            },
             dataType: 'html',
             url: "{{ url('get_cc_asset_graph')}}",
             success: function(r) {
                 $('#a_loading').addClass('d-none');
                 $('#assetChart').removeClass('d-none');
                 $('#_cc_assets').html(r);
+                $("#loaderqty").hide();
+            },
+            error: function() {
+                $("#loaderqty").hide();
+                alert("Something went wrong!");
             }
         });
     }
 
     $(document).delegate('#a_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_a').addClass('d-none');
+        $('#a_show_btn').addClass('d-none');
         getCCAssetGraph('#a_show_btn', hidden_range);
     });
 
-    function getConsignAssetGraph(div, hidden_range)
-    {
+    function getConsignAssetGraph(div, hidden_range) {
+        $("#loadercatqty").show();
         $(div).addClass('d-none');
         $('#ca_loading').removeClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range},
+            data: {
+                _range: hidden_range
+            },
             dataType: 'html',
             url: "{{ url('get_ca_asset_graph')}}",
             success: function(r) {
                 $('#ca_loading').addClass('d-none');
                 $('#consignAssetChart').removeClass('d-none');
                 $('#_c_assets').html(r);
+                $("#loadercatqty").hide();
+            },
+            error: function() {
+                $("#loadercatqty").hide();
+                alert("Something went wrong!");
             }
         });
     }
 
     $(document).delegate('#ca_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_ca').addClass('d-none');
+        $('#ca_show_btn').addClass('d-none');
         getConsignAssetGraph('#ca_show_btn', hidden_range);
     });
 
-    function getDebtGraph(div, hidden_range)
-    {
+    function getDebtGraph(div, hidden_range) {
+        $("#loaderssalesbrand").show();
         $(div).addClass('d-none');
         $('#d_loading').removeClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_range:hidden_range},
+            data: {
+                _range: hidden_range
+            },
             dataType: 'html',
             url: "{{ url('get_debt_graph')}}",
             success: function(r) {
                 $('#d_loading').addClass('d-none');
                 $('#debtChart').removeClass('d-none');
                 $('#_debts').html(r);
+                $("#loaderssalesbrand").hide();
+            },
+            error: function() {
+                $("#loaderssalesbrand").hide();
+                alert("Something went wrong!");
             }
         });
+
     }
 
     $(document).delegate('#d_show_btn', 'click', function() {
         var hidden_range = $('#dashboard_date').val();
-        $('.button-show_d').addClass('d-none');
+        $('#d_show_btn').addClass('d-none');
         getDebtGraph('#d_show_btn', hidden_range);
     });
 
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -615,37 +675,55 @@
             serverSide: true,
             responsive: false,
             dom: 'Blrt<"text-right"ipB>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('brand_value_datatables') }}",
-                data : function (d) {
+                url: "{{ url('brand_value_datatables') }}",
+                data: function(d) {
                     d.data_type = $('#data_type').val();
                     d.search = $('#brands_value_search').val();
                     d.dashboard_date = $('#dashboard_date').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'br_name', name: 'br_name' },
-            { data: 'qty', name: 'qty' },
-            { data: 'value', name: 'value' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'qty',
+                    name: 'qty'
+                },
+                {
+                    data: 'value',
+                    name: 'value'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[3, 'desc']],
+            order: [
+                [3, 'desc']
+            ],
         });
 
-        $('#brands_value_search').on('keyup', function () {
+        $('#brands_value_search').on('keyup', function() {
             brand_value_table.draw(false);
         });
 
@@ -655,36 +733,54 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('user_activity_datatables') }}",
-                data : function (d) {
+                url: "{{ url('user_activity_datatables') }}",
+                data: function(d) {
                     d.search = $('#user_activity_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'uaid', searchable: false},
-            { data: 'st_name', name: 'st_name' },
-            { data: 'u_name', name: 'u_name' },
-            { data: 'ua_description', name: 'ua_description' },
-            { data: 'ua_created_at_show', name: 'ua_created_at' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'uaid',
+                    searchable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'ua_description',
+                    name: 'ua_description'
+                },
+                {
+                    data: 'ua_created_at_show',
+                    name: 'ua_created_at'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         // =================== BY STORE ==================== //
 
         $('#purchase_label').on('click', function() {
             $('#data_type').val('purchases');
-            $('#BrandValueModal').on('show.bs.modal', function(){
+            $('#BrandValueModal').on('show.bs.modal', function() {
                 brand_value_table.draw(false);
             }).modal('show');
         });
@@ -699,12 +795,14 @@
             $('#BrandProfitModal').modal('show');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {dashboard_date:$('#dashboard_date').val()},
+                data: {
+                    dashboard_date: $('#dashboard_date').val()
+                },
                 dataType: 'json',
                 url: "{{ url('load_assets')}}",
                 success: function(r) {
@@ -712,7 +810,7 @@
                     setTimeout(() => {
                         $(r.item).each(function(index, row) {
                             if (row['cc_assets'] > 0) {
-                                jQuery('#BrandProfittb tr:last').after("<tr><td>"+row['br_name']+"</td><td>"+addCommas(row['cc_assets'])+"</td></tr>");
+                                jQuery('#BrandProfittb tr:last').after("<tr><td>" + row['br_name'] + "</td><td>" + addCommas(row['cc_assets']) + "</td></tr>");
                             }
                         });
                     }, 1000);
@@ -726,12 +824,14 @@
             $('#BrandProfitModal').modal('show');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {dashboard_date:$('#dashboard_date').val()},
+                data: {
+                    dashboard_date: $('#dashboard_date').val()
+                },
                 dataType: 'json',
                 url: "{{ url('load_cassets')}}",
                 success: function(r) {
@@ -739,7 +839,7 @@
                     setTimeout(() => {
                         $(r.item).each(function(index, row) {
                             if (row['c_assets'] > 0) {
-                                jQuery('#BrandProfittb tr:last').after("<tr><td>"+row['br_name']+"</td><td>"+addCommas(row['c_assets'])+"</td></tr>");
+                                jQuery('#BrandProfittb tr:last').after("<tr><td>" + row['br_name'] + "</td><td>" + addCommas(row['c_assets']) + "</td></tr>");
                             }
                         });
                     }, 1000);
@@ -749,7 +849,7 @@
 
         $('#nett_sales_label').on('click', function() {
             $('#data_type').val('sales');
-            $('#BrandValueModal').on('show.bs.modal', function(){
+            $('#BrandValueModal').on('show.bs.modal', function() {
                 brand_value_table.draw(false);
             }).modal('show');
         });
@@ -760,12 +860,14 @@
             $('#BrandProfitModal').modal('show');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {dashboard_date:$('#dashboard_date').val()},
+                data: {
+                    dashboard_date: $('#dashboard_date').val()
+                },
                 dataType: 'json',
                 url: "{{ url('load_profit')}}",
                 success: function(r) {
@@ -773,7 +875,7 @@
                     setTimeout(() => {
                         $(r.item).each(function(index, row) {
                             if (row['profits'] > 0) {
-                                jQuery('#BrandProfittb tr:last').after("<tr><td>"+row['br_name']+"</td><td>"+addCommas(row['profits'])+"</td></tr>");
+                                jQuery('#BrandProfittb tr:last').after("<tr><td>" + row['br_name'] + "</td><td>" + addCommas(row['profits']) + "</td></tr>");
                             }
                         });
                     }, 1000);
@@ -783,7 +885,7 @@
 
         $('#cnett_sales_label').on('click', function() {
             $('#data_type').val('csales');
-            $('#BrandValueModal').on('show.bs.modal', function(){
+            $('#BrandValueModal').on('show.bs.modal', function() {
                 brand_value_table.draw(false);
             }).modal('show');
         });
@@ -794,12 +896,14 @@
             $('#BrandProfitModal').modal('show');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {dashboard_date:$('#dashboard_date').val()},
+                data: {
+                    dashboard_date: $('#dashboard_date').val()
+                },
                 dataType: 'json',
                 url: "{{ url('load_cprofit')}}",
                 success: function(r) {
@@ -807,7 +911,7 @@
                     setTimeout(() => {
                         $(r.item).each(function(index, row) {
                             if (row['cprofits'] > 0) {
-                                jQuery('#BrandProfittb tr:last').after("<tr><td>"+row['br_name']+"</td><td>"+addCommas(row['cprofits'])+"</td></tr>");
+                                jQuery('#BrandProfittb tr:last').after("<tr><td>" + row['br_name'] + "</td><td>" + addCommas(row['cprofits']) + "</td></tr>");
                             }
                         });
                     }, 1000);

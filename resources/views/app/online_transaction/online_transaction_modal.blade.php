@@ -509,6 +509,7 @@
                 </button>
             </div>
             <div class="modal-body">
+                <input type="text" placeholder="Search Order Number..." class="form-control mb-3" id="searchWaitingOnlineItem" />
                 <div class="table-responsive">
                     <table class="table table-hover table-checkable table-striped" id="waitingOnlineTb">
                         <thead class="bg-dark text-light">

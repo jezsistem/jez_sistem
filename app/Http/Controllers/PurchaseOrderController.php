@@ -146,6 +146,7 @@ class PurchaseOrderController extends Controller
                 'po_total_purchase',
                 'po_payment_amount',
                 'po_total_qty',
+                'purchase_orders.finance_status'
             )
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
@@ -278,6 +279,15 @@ class PurchaseOrderController extends Controller
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
                 })
+                ->editColumn('finance_status', function ($data) {
+                    if ($data->finance_status == 'LUNAS') {
+                        return '<span class="badge" style="background-color: #28a745; color: white;">LUNAS</span>';
+                    } else if ($data->finance_status == 'HUTANG') {
+                        return '<span class="badge" style="background-color: #ffc107; color: white;">HUTANG</span>';
+                    } else {
+                        return '<span class="badge" style="background-color: #6c757d; color: white;">UNKNOWN</span>';
+                    }
+                })
                 ->addColumn('is_no_item', function ($data) {
 
                     $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
@@ -300,7 +310,7 @@ class PurchaseOrderController extends Controller
                         return true;
                     }
                 })
-                ->rawColumns(['po_status', 'u_receive'])
+                ->rawColumns(['po_status', 'u_receive', 'finance_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -354,6 +364,29 @@ class PurchaseOrderController extends Controller
                                 $w->whereDate('purchase_orders.created_at', $start);
                             }
                         });
+                    }
+                    if ($request->has('status_purchase')) {
+                        $filter = $request->get('status_purchase');
+
+                        if ($filter === 'in_progress') {
+                            //get qty receive
+                            $instance->whereRaw('(SELECT COUNT(*) FROM ts_purchase_order_article_detail_statuses WHERE ts_purchase_order_article_detail_statuses.poad_id IN (SELECT id FROM ts_purchase_order_article_details WHERE poa_id IN (SELECT id FROM ts_purchase_order_articles WHERE po_id = ts_purchase_orders.id)) AND poads_type = "IN") = 0');
+                            
+                        } elseif ($filter === 'partial') {
+                            //count the approved row and not approved yet
+                            $instance->whereExists(function ($query) {
+                                $query->selectRaw('1')
+                                    ->from('purchase_order_articles')
+                                    ->leftJoin('purchase_order_article_details', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                                    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                                    ->whereColumn('purchase_order_articles.po_id', 'purchase_orders.id')
+                                    ->havingRaw('COUNT(CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NULL THEN 1 END) > 0')
+                                    ->havingRaw('COUNT(ts_purchase_order_article_detail_statuses.u_id_approve) > 0');
+                            });
+                        } elseif ($filter === 'done') {
+                            $instance->whereNotNull('u_id_approve')
+                                     ->whereRaw('(SELECT COALESCE(SUM(poads_qty), 0) FROM ts_purchase_order_article_detail_statuses WHERE ts_purchase_order_article_detail_statuses.poad_id IN (SELECT id FROM ts_purchase_order_article_details WHERE poa_id IN (SELECT id FROM ts_purchase_order_articles WHERE po_id = ts_purchase_orders.id)) AND poads_type = "IN") = ts_purchase_orders.po_total_qty');
+                        }
                     }
                 })
                 ->addIndexColumn()
@@ -837,6 +870,8 @@ class PurchaseOrderController extends Controller
             $r['po_total_qty'] = $draft->po_total_qty;
             $r['po_payment_amount'] = $draft->po_payment_amount;
             $r['bank_general'] = $draft->bank_general;
+            $r['is_receivable'] = $draft->is_receivable;
+            $r['claim_amount'] = $draft->claim_amount;
         } else {
             $r['status'] = '400';
         }
@@ -1038,5 +1073,86 @@ class PurchaseOrderController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function changeIsReceivable(Request $request) {
+        $request->validate([
+            '_po_id' => 'required|exists:purchase_orders,id',
+            '_is_receivable' => 'required|in:0,1',
+        ]);
+
+        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        $po->is_receivable = $request->_is_receivable;
+        $po->save();
+
+        return response()->json(['message' => 'Status Receivable berhasil disimpan']);
+    }
+
+    public function changeClaimAmount(Request $request){
+        $request->validate([
+            '_po_id' => 'required|exists:purchase_orders,id',
+            '_claim_amount' => 'required|numeric|min:0',
+        ]);
+
+        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        $po->claim_amount = $request->_claim_amount;;
+        $po->save();
+
+        return response()->json(['message' => 'Claim Amount berhasil disimpan']);
+    }
+
+    public function changeFinanceStatus(Request $request) {
+        $request->validate([
+            '_po_id' => 'required|exists:purchase_orders,id',
+        ]);
+
+        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        // Get account name
+        $account = Account::find($po->acc_id);
+        $account_name = $account ? $account->a_name : null;
+
+        // Check if has transfer image
+        $has_transfer_image = PurchaseOrderTransferImage::where('purchase_order_id', $po->id)->exists();
+
+        // Check if is_paid from purchase_order_article_detail_statuses
+        $is_paid = DB::table('purchase_order_article_detail_statuses')
+            ->join('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+            ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+            ->where('purchase_order_articles.po_id', $po->id)
+            ->where('purchase_order_article_detail_statuses.is_paid', 1)
+            ->exists();
+
+        // Determine finance status based on conditions
+        $finance_status = 'HUTANG'; // Default
+
+        if (($account_name === 'COD' && $is_paid) || $has_transfer_image) {
+            $finance_status = 'LUNAS';
+        } elseif (in_array($account_name, ['Bank BCA 004', 'Bank BCA 005', 'Bank BCA 002', 'SHOPEE PAY'])) {
+            $finance_status = 'LUNAS';
+        } elseif (in_array($account_name, ['DIREKTUR', 'CONSIGMENT', 'CONSIGNMENT', 'TEMPO 30 HARI', 'TEMPO 60 HARI'])) {
+            if ($is_paid || $has_transfer_image) {
+                $finance_status = 'LUNAS';
+            }
+        }
+
+        $po->finance_status = $finance_status;
+        $po->save();
+
+        return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
     }
 }
