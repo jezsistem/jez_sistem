@@ -351,8 +351,8 @@ class ProductController extends Controller
         return datatables()->of($data)
             ->addColumn('action', function ($row) {
                 return '
-                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'">Edit</button>
-                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'">Delete</button>
+                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'" data-type="marketplace">Edit</button>
+                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'" data-type="marketplace">Delete</button>
             ';
             })
             ->make(true);
@@ -369,8 +369,8 @@ class ProductController extends Controller
         return datatables()->of($data)
             ->addColumn('action', function ($row) {
                 return '
-                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'">Edit</button>
-                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'">Delete</button>
+                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'" data-type="social">Edit</button>
+                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'" data-type="social">Delete</button>
             ';
             })
             ->make(true);
@@ -396,6 +396,48 @@ class ProductController extends Controller
             'url'        => $request->url,
             'location'   => $request->location,
             'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['status' => 'success']);
+    }
+
+    public function getLinks($id)
+    {
+        $data = DB::table('product_links')
+            ->where('id', $id)
+            ->first();
+
+        return response()->json(['data' => $data]);
+    }
+
+    public function destroyLinks($id)
+    {
+        $link = DB::table('product_links')->where('id', $id)->first();
+
+        if (!$link) {
+            return response()->json(['success' => false, 'message' => 'Link tidak ditemukan']);
+        }
+
+        DB::table('product_links')->where('id', $id)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Link berhasil dihapus']);
+    }
+
+    public function updateLinks(Request $request, $id)
+    {
+        $request->validate([
+            'type'       => 'required|in:marketplace,social',
+            'platform'   => 'required|string',
+            'url'        => 'required|string',
+            'location'   => 'nullable|string',
+        ]);
+
+        DB::table('product_links')->where('id', $id)->update([
+            'type'       => $request->type,
+            'platform'   => $request->platform,
+            'url'        => $request->url,
+            'location'   => $request->location,
             'updated_at' => now(),
         ]);
 

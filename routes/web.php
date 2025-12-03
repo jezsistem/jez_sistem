@@ -496,6 +496,9 @@ Route::group(['middleware' => 'auth'], function () {
             ->where('st_code', '<>', '')
             ->pluck('st_code');
     });
+    Route::get('/product-links/{id}', [ProductController::class, 'getLinks']);
+    Route::delete('/product-links/{id}', [ProductController::class, 'destroyLinks']);
+    Route::put('/product-links/{id}', [ProductController::class, 'updateLinks']);
 
     // Product Stock
     Route::post('check_product_stock', [ProductStockController::class, 'checkProductStock']);

@@ -558,14 +558,16 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title" id="ProductLinkFormTitle">Add Link</h5>
+                <h5 class="modal-title" id="ProductLinkFormTitle"><span>Add</span> Link</h5>
                 <button type="button" class="close" data-dismiss="modal"><i class="ki ki-close"></i></button>
             </div>
 
             <div class="modal-body">
 
+                <input type="hidden" id="pl_id">
                 <input type="hidden" id="pl_product_id">
                 <input type="hidden" id="pl_type">
+                <input type="hidden" id="mode">
 
                 <!-- PLATFORM DROPDOWN -->
                 <div class="form-group">
@@ -590,6 +592,7 @@
             </div>
 
             <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button class="btn btn-primary" id="SaveProductLinkBtn">Save</button>
             </div>
 
