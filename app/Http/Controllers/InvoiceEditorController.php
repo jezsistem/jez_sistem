@@ -757,7 +757,6 @@ class InvoiceEditorController extends Controller
                         'pos_total_discount' => 0,
                         'pos_discount_seller' => 0,
                         'cr_id' => $pos_trx_selected->cr_id,
-                        'cr_id_partial' => $pos_trx_selected->cr_id_partial,
                         'pos_note' => $pos_trx_selected->pos_note,
                         'created_at' => date('Y-m-d H:i:s'),
                         'pos_refund' => '1',
