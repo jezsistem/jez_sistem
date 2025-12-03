@@ -850,6 +850,15 @@ class PurchaseOrderController extends Controller
         $check = PurchaseOrder::where(['id' => $po_id])->exists();
         if ($check) {
             $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
+            $total_po=0;
+            //get total purchase order
+            $total_po = PurchaseOrderArticle::query()
+                ->where('po_id', $draft->id)
+                ->join('purchase_order_article_details', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->select(DB::raw('SUM(ts_purchase_order_article_details.poad_total_price) as total_purchase'))
+                ->first()
+                ->total_purchase;
+
             $r['status'] = '200';
             $r['po_id'] = $draft->id;
             $r['st_id'] = $draft->st_id;
@@ -872,6 +881,7 @@ class PurchaseOrderController extends Controller
             $r['bank_general'] = $draft->bank_general;
             $r['is_receivable'] = $draft->is_receivable;
             $r['claim_amount'] = $draft->claim_amount;
+            $r['total_po'] = $total_po;
         } else {
             $r['status'] = '400';
         }

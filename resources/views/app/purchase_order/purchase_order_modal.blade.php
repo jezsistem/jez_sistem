@@ -303,7 +303,9 @@
                         <label>Nominal Klaim</label>
                         <input type="number" class="form-control " placeholder="Nominal Klaim" name="claim_amount" id="claim_amount" min="0" />
                     </div>
-                    <div class="col-4 mt-5 ">
+                    <div class="col-4 mt-5 " title="(Nominal Klaim + Nominal Payment - Total PO)">
+                        <label>Sisa Payment</label>
+                        <input type="number" class="form-control " placeholder="Sisa Payment" id="remaining_payment" readonly />
                     </div>
                     <div class="col-4 mt-5 without_item_input">
                         <label>Total Pembelian</label>
