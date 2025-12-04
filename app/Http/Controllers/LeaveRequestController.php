@@ -1129,7 +1129,7 @@ class LeaveRequestController extends Controller
                         ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
                 });
             }
-
+//teees
             return datatables()->eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('lr_date', function ($row) {
