@@ -114,6 +114,16 @@
             window.location.href = url_export;
         });
 
+        $(document).delegate('#pos_invoice', 'click', function() {
+            var invoice = $(this).text();
+            var temp = $('<input>');
+            $('body').append(temp);
+            temp.val(invoice).select();
+            document.execCommand('copy');
+            temp.remove();
+            toast('Berhasil', 'Invoice berhasil disalin', 'success');
+        });
+
         jQuery.noConflict();
         var picker = $('#kt_dashboard_daterangepicker');
         if ($('#kt_dashboard_daterangepicker').length == 0) {
