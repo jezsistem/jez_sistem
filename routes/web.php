@@ -488,6 +488,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/product-links/store', [ProductController::class, 'LinkStore']);
     Route::get('/product-links/marketplace/{articleId}', [ProductController::class, 'marketplaceDataTables']);
     Route::get('/product-links/social/{articleId}', [ProductController::class, 'socialDataTables']);
+    Route::get('/product-links/related/{articleName}', [ProductController::class, 'relatedDataTables']);
+    Route::post('/product-links/related/toggle', [ProductController::class, 'toggleRelatedProduct']);
+
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
     Route::get('/product-links/locations', function() {
