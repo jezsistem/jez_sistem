@@ -1441,19 +1441,23 @@
                     url: `/product-links/${id}`,
                     method: "GET",
                     success: function(data) {
-                        $("#ProductLinkFormTitle").html("<span>Edit</span> " + (type === "marketplace" ? "Marketplace" : "Social Media") + " Link");
+                        $("#ProductLinkFormTitle").html("<span>Edit</span> " + (
+                            type === "marketplace" ? "Marketplace" :
+                            "Social Media") + " Link");
                         $("#pl_id").val(data.data.id);
                         $("#pl_product_id").val(data.data.product_id);
                         $("#pl_type").val(data.data.type);
                         $("#pl_url").val(data.data.url);
                         $("#mode").val("edit");
-                        
+
                         loadPlatformOptions(data.data.type);
                         loadLocations();
-                        
+
                         setTimeout(() => {
-                            $("#pl_platform").val(data.data.platform).trigger('change');
-                            $("#pl_location").val(data.data.location).trigger('change');
+                            $("#pl_platform").val(data.data.platform)
+                                .trigger('change');
+                            $("#pl_location").val(data.data.location)
+                                .trigger('change');
                         }, 300);
 
                         $("#ProductLinkFormModal").modal("show");
@@ -1482,7 +1486,8 @@
                         _token: "{{ csrf_token() }}"
                     },
                     success: function(res) {
-                        toastr.success(mode === "edit" ? "Link berhasil diupdate!" : "Link berhasil disimpan!");
+                        toastr.success(mode === "edit" ? "Link berhasil diupdate!" :
+                            "Link berhasil disimpan!");
 
                         $("#ProductLinkFormModal").modal("hide");
 
@@ -1491,9 +1496,17 @@
                         if (tableSocial) tableSocial.ajax.reload();
                     },
                     error: function(xhr) {
-                        toastr.error("Gagal menyimpan link!");
+                        toastr.error(xhr.responseJSON?.message ||
+                            "Gagal menyimpan link!");
                     }
                 });
+            });
+
+            $('.close_product_link_detail').on('click', function() {
+                $('#ProductLinkFormModal').modal('hide');
+
+                if (tableMarketplace) tableMarketplace.ajax.reload();
+                if (tableSocial) tableSocial.ajax.reload();
             });
 
             $(document).on("click", ".deleteLink", function() {
@@ -1519,11 +1532,13 @@
                             },
                             success: function(res) {
                                 toastr.success("Link berhasil dihapus!");
-                                
+
                                 // reload datatables
-                                if (type === "marketplace" && tableMarketplace) {
+                                if (type === "marketplace" &&
+                                    tableMarketplace) {
                                     tableMarketplace.ajax.reload();
-                                } else if (type === "social" && tableSocial) {
+                                } else if (type === "social" &&
+                                    tableSocial) {
                                     tableSocial.ajax.reload();
                                 }
                             },
@@ -1636,7 +1651,7 @@
                             error: function() {
                                 Swal.fire('Gagal!',
                                     'Terjadi kesalahan server.', 'error'
-                                    );
+                                );
                             }
                         });
                     }
@@ -2218,9 +2233,9 @@
             $('#detail_platform').text(platform);
             $('#detail_url').attr('href', url).text(url);
             $('#detail_location').text(location);
-            
+
             $('#ProductLinkDetailModal').modal('show');
-            
+
             getRelatedArticle(articleName, linkId);
         });
 

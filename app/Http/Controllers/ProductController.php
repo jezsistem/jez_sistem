@@ -392,6 +392,24 @@ class ProductController extends Controller
 
         $product_id = (int)DB::table('products')->where('article_id', $request->articleId)->value('id');
 
+        // Check if a link already exists with the same product_id, type, platform, and location
+        $existingLink = DB::table('product_links')
+            ->where('type', $request->type)
+            ->where('platform', $request->platform)
+            ->where('location', $request->location)
+            ->get()
+            ->first(function($link) use ($product_id) {
+                $productIds = json_decode($link->product_id, true) ?? [];
+                return in_array($product_id, $productIds);
+            });
+
+        if ($existingLink) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Product link already exists with the same type, platform, and location.'
+            ], 422);
+        }
+
         DB::table('product_links')->insert([
             'product_id' => json_encode([$product_id]),
             'type'       => $request->type,
@@ -440,6 +458,38 @@ class ProductController extends Controller
             'location'   => 'nullable|string',
         ]);
 
+        // Get the current link being updated
+        $currentLink = DB::table('product_links')->where('id', $id)->first();
+        
+        if (!$currentLink) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Link not found'
+            ], 404);
+        }
+
+        $currentProductIds = json_decode($currentLink->product_id, true) ?? [];
+
+        // Check if another link exists with the same product_id(s), type, platform, and location
+        $existingLink = DB::table('product_links')
+            ->where('id', '!=', $id)
+            ->where('type', $request->type)
+            ->where('platform', $request->platform)
+            ->where('location', $request->location)
+            ->get()
+            ->first(function($link) use ($currentProductIds) {
+                $productIds = json_decode($link->product_id, true) ?? [];
+                // Check if there's any overlap between product IDs
+                return !empty(array_intersect($currentProductIds, $productIds));
+            });
+
+        if ($existingLink) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'A link with the same product(s), type, platform, and location already exists.'
+            ], 422);
+        }
+
         DB::table('product_links')->where('id', $id)->update([
             'type'       => $request->type,
             'platform'   => $request->platform,
@@ -472,11 +522,27 @@ class ProductController extends Controller
             ->where('id', $request->link_id)
             ->first();
 
+        $product_ids_in_link = json_decode($product_link->product_id, true) ?? [];
+        
+        // Get product IDs that should be excluded (already in other links with same platform, type, location)
+        $excluded_product_ids = DB::table('product_links')
+            ->where('id', '!=', $request->link_id)
+            ->where('platform', $product_link->platform)
+            ->where('type', $product_link->type)
+            ->where('location', $product_link->location)
+            ->get()
+            ->flatMap(function($link) {
+                return json_decode($link->product_id, true) ?? [];
+            })
+            ->toArray();
+
         $products = DB::table('products')
             ->select('products.id', 'products.article_id', 'products.p_color', 'mc_name', 'products.p_active', 'products.p_name')
             ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
             ->where('p_name', $articleName)
             ->where('p_delete', '!=', '1')
+            ->whereNotIn('products.id', $excluded_product_ids)
+            ->orderBy('products.created_at', 'asc')
             ->get();
         
         if ($products->isEmpty()) {
@@ -487,7 +553,6 @@ class ProductController extends Controller
         }
 
         $html = '';
-        $product_ids_in_link = json_decode($product_link->product_id, true) ?? [];
         
         foreach ($products as $product) {
             $isInLink = in_array((int)$product->id, $product_ids_in_link);
