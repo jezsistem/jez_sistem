@@ -5,6 +5,24 @@
 
 
 <script>
+    function formatDateTime(dateTimeString) {
+        const date = new Date(dateTimeString);
+        
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        
+        const dayName = days[date.getDay()];
+        const day = date.getDate();
+        const monthName = months[date.getMonth()];
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${dayName}, ${day} ${monthName} ${year} ${hours}:${minutes}:${seconds}`;
+    }
+
     function toggleFlag(column, productId) {
         fetch(`/data_produk/update-flag/${productId}`, {
                 method: 'POST',
@@ -2227,12 +2245,21 @@
             const url = $(this).data('url');
             const location = $(this).data('location');
             const linkId = $(this).data('id');
+            const createdBy = $(this).data('created_by');
+            const updatedBy = $(this).data('updated_by');
+            const createdAt = $(this).data('created_at');
+            const updatedAt = $(this).data('updated_at');
+
 
             // Set modal details
             $('#detail_link_type').text(linkType);
             $('#detail_platform').text(platform);
             $('#detail_url').attr('href', url).text(url);
             $('#detail_location').text(location);
+            $('#detail_created_by').text(createdBy);
+            $('#detail_updated_by').text(updatedBy);
+            $('#detail_created_at').text(formatDateTime(createdAt));
+            $('#detail_updated_at').text(formatDateTime(updatedAt));
 
             $('#ProductLinkDetailModal').modal('show');
 

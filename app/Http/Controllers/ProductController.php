@@ -31,7 +31,7 @@ use App\Exports\ProductExport;
 use App\Imports\MassUpdateProductImport;
 use App\Services\MassUpdateProductService;
 use Maatwebsite\Excel\Facades\Excel;
-    use App\Jobs\ProcessMassImageImport;
+use App\Jobs\ProcessMassImageImport;
 use Svg\Tag\Rect;
 use ZipArchive;
 
@@ -151,139 +151,139 @@ class ProductController extends Controller
         return response()->json(['success' => true, 'newValue' => $product->$column]);
     }
 
-//    public function massImportImg(Request $request)
-//    {
-//        $request->validate([
-//            'p_mass_import' => 'required|file|mimes:zip'
-//        ]);
-//
-//        $file = $request->file('p_mass_import');
-//        $fileName = time() . '_' . $file->getClientOriginalName();
-//        $zipPath = storage_path('app/uploads/' . $fileName);
-//        $file->move(storage_path('app/uploads'), $fileName);
-//
-//        $extractPath = storage_path('app/temp_import_' . time());
-//        File::makeDirectory($extractPath);
-//
-//        $zip = new \ZipArchive;
-//        if ($zip->open($zipPath) === true) {
-//            $zip->extractTo($extractPath);
-//            $zip->close();
-//        } else {
-//            return response()->json(['message' => 'Gagal membuka file ZIP.'], 422);
-//        }
-//
-//        $imported = 0;
-//        $directories = File::directories($extractPath);
-//
-//        foreach ($directories as $dir) {
-//            $articleId = basename($dir);
-//            $product = Product::where('article_id', $articleId)->first();
-//
-//            if (!$product) continue;
-//
-//            $files = File::files($dir);
-//
-//            // Pastikan folder tujuan ada: storage/app/public/image_products/{article_id}
-//            $targetDir = storage_path("app/public/image_products/{$articleId}");
-//            if (!File::exists($targetDir)) {
-//                File::makeDirectory($targetDir, 0755, true);
-//            }
-//
-//            foreach ($files as $file) {
-//                $fileName = $file->getFilename();
-//                $destinationPath = $targetDir . '/' . $fileName;
-//
-//                // Copy file
-//                File::copy($file->getRealPath(), $destinationPath);
-//
-//                // Simpan ke database
-//                \App\Models\ProductImage::create([
-//                    'p_id' => $product->id,
-//                    'file_name' => $fileName,
-//                    'file_path' => "storage/image_products/{$articleId}/{$fileName}",
-//                ]);
-//
-//                $imported++;
-//            }
-//        }
-//
-//        // Cleanup
-//        File::deleteDirectory($extractPath);
-//        File::delete($zipPath);
-//
-//        return response()->json([
-//            'message' => "Berhasil mengimpor {$imported} gambar produk."
-//        ]);
-//    }
+    //    public function massImportImg(Request $request)
+    //    {
+    //        $request->validate([
+    //            'p_mass_import' => 'required|file|mimes:zip'
+    //        ]);
+    //
+    //        $file = $request->file('p_mass_import');
+    //        $fileName = time() . '_' . $file->getClientOriginalName();
+    //        $zipPath = storage_path('app/uploads/' . $fileName);
+    //        $file->move(storage_path('app/uploads'), $fileName);
+    //
+    //        $extractPath = storage_path('app/temp_import_' . time());
+    //        File::makeDirectory($extractPath);
+    //
+    //        $zip = new \ZipArchive;
+    //        if ($zip->open($zipPath) === true) {
+    //            $zip->extractTo($extractPath);
+    //            $zip->close();
+    //        } else {
+    //            return response()->json(['message' => 'Gagal membuka file ZIP.'], 422);
+    //        }
+    //
+    //        $imported = 0;
+    //        $directories = File::directories($extractPath);
+    //
+    //        foreach ($directories as $dir) {
+    //            $articleId = basename($dir);
+    //            $product = Product::where('article_id', $articleId)->first();
+    //
+    //            if (!$product) continue;
+    //
+    //            $files = File::files($dir);
+    //
+    //            // Pastikan folder tujuan ada: storage/app/public/image_products/{article_id}
+    //            $targetDir = storage_path("app/public/image_products/{$articleId}");
+    //            if (!File::exists($targetDir)) {
+    //                File::makeDirectory($targetDir, 0755, true);
+    //            }
+    //
+    //            foreach ($files as $file) {
+    //                $fileName = $file->getFilename();
+    //                $destinationPath = $targetDir . '/' . $fileName;
+    //
+    //                // Copy file
+    //                File::copy($file->getRealPath(), $destinationPath);
+    //
+    //                // Simpan ke database
+    //                \App\Models\ProductImage::create([
+    //                    'p_id' => $product->id,
+    //                    'file_name' => $fileName,
+    //                    'file_path' => "storage/image_products/{$articleId}/{$fileName}",
+    //                ]);
+    //
+    //                $imported++;
+    //            }
+    //        }
+    //
+    //        // Cleanup
+    //        File::deleteDirectory($extractPath);
+    //        File::delete($zipPath);
+    //
+    //        return response()->json([
+    //            'message' => "Berhasil mengimpor {$imported} gambar produk."
+    //        ]);
+    //    }
 
-//    public function massImportImg(Request $request)
-//    {
-//        $request->validate([
-//            'p_mass_import' => 'required|file|mimes:zip'
-//        ]);
-//
-//        // Simpan file ZIP sementara
-//        $file = $request->file('p_mass_import');
-//        $fileName = time() . '_' . $file->getClientOriginalName();
-//        $zipPath = storage_path('app/uploads/' . $fileName);
-//        $file->move(storage_path('app/uploads'), $fileName);
-//
-//        // Ekstrak isi ZIP
-//        $extractPath = storage_path('app/temp_import_' . time());
-//        File::makeDirectory($extractPath);
-//
-//        $zip = new \ZipArchive;
-//        if ($zip->open($zipPath) === true) {
-//            $zip->extractTo($extractPath);
-//            $zip->close();
-//        } else {
-//            return response()->json(['message' => 'Gagal membuka file ZIP.'], 422);
-//        }
-//
-//        $imported = 0;
-//        $directories = File::directories($extractPath);
-//
-//        foreach ($directories as $dir) {
-//            $articleId = basename($dir);
-//            $product = Product::where('article_id', $articleId)->first();
-//
-//            if (!$product) continue;
-//
-//            $files = File::files($dir);
-//
-//            foreach ($files as $file) {
-//                $fileName = $file->getFilename();
-//                $fileStream = fopen($file->getRealPath(), 'r');
-//
-//                // Upload ke NEO Object Storage (S3)
-//                $path = "image_products/{$articleId}/{$fileName}";
-//                Storage::disk('s3')->put($path, $fileStream, 'public');
-//
-//                fclose($fileStream);
-//
-//                // Dapatkan URL publik
-//                $url = Storage::disk('s3')->url($path);
-//
-//                // Simpan ke database
-//                ProductImage::create([
-//                    'p_id' => $product->id,
-//                    'file_name' => $fileName,
-//                    'file_path' => $url,
-//                ]);
-//
-//                $imported++;
-//            }
-//        }
-//
-//        // Bersihkan file sementara
-//        File::deleteDirectory($extractPath);
-//        File::delete($zipPath);
-//
-//        return response()->json([
-//            'message' => "Berhasil mengimpor {$imported} gambar produk ke NEO Object Storage."
-//        ]);
-//    }
+    //    public function massImportImg(Request $request)
+    //    {
+    //        $request->validate([
+    //            'p_mass_import' => 'required|file|mimes:zip'
+    //        ]);
+    //
+    //        // Simpan file ZIP sementara
+    //        $file = $request->file('p_mass_import');
+    //        $fileName = time() . '_' . $file->getClientOriginalName();
+    //        $zipPath = storage_path('app/uploads/' . $fileName);
+    //        $file->move(storage_path('app/uploads'), $fileName);
+    //
+    //        // Ekstrak isi ZIP
+    //        $extractPath = storage_path('app/temp_import_' . time());
+    //        File::makeDirectory($extractPath);
+    //
+    //        $zip = new \ZipArchive;
+    //        if ($zip->open($zipPath) === true) {
+    //            $zip->extractTo($extractPath);
+    //            $zip->close();
+    //        } else {
+    //            return response()->json(['message' => 'Gagal membuka file ZIP.'], 422);
+    //        }
+    //
+    //        $imported = 0;
+    //        $directories = File::directories($extractPath);
+    //
+    //        foreach ($directories as $dir) {
+    //            $articleId = basename($dir);
+    //            $product = Product::where('article_id', $articleId)->first();
+    //
+    //            if (!$product) continue;
+    //
+    //            $files = File::files($dir);
+    //
+    //            foreach ($files as $file) {
+    //                $fileName = $file->getFilename();
+    //                $fileStream = fopen($file->getRealPath(), 'r');
+    //
+    //                // Upload ke NEO Object Storage (S3)
+    //                $path = "image_products/{$articleId}/{$fileName}";
+    //                Storage::disk('s3')->put($path, $fileStream, 'public');
+    //
+    //                fclose($fileStream);
+    //
+    //                // Dapatkan URL publik
+    //                $url = Storage::disk('s3')->url($path);
+    //
+    //                // Simpan ke database
+    //                ProductImage::create([
+    //                    'p_id' => $product->id,
+    //                    'file_name' => $fileName,
+    //                    'file_path' => $url,
+    //                ]);
+    //
+    //                $imported++;
+    //            }
+    //        }
+    //
+    //        // Bersihkan file sementara
+    //        File::deleteDirectory($extractPath);
+    //        File::delete($zipPath);
+    //
+    //        return response()->json([
+    //            'message' => "Berhasil mengimpor {$imported} gambar produk ke NEO Object Storage."
+    //        ]);
+    //    }
 
     public function massImportImg(Request $request)
     {
@@ -347,15 +347,22 @@ class ProductController extends Controller
         $product_id = (int)$product->id;
 
         $data = DB::table('product_links')
+            ->select(
+                'product_links.*',
+                'created_by.u_name as created_by_name',
+                'updated_by.u_name as updated_by_name'
+            )
+            ->leftJoin('users as created_by', 'created_by.id', '=', 'product_links.created_by')
+            ->leftJoin('users as updated_by', 'updated_by.id', '=', 'product_links.updated_by')
             ->whereRaw('JSON_CONTAINS(product_id, ?)', json_encode($product_id))
             ->where('type', 'marketplace');
 
         return datatables()->of($data)
             ->addColumn('action', function ($row) use ($product) {
                 return '
-                <button class="btn btn-sm btn-info relatedColor" data-id="'.$row->id.'" data-article="'.$product->p_name.'" data-type="Marketplace" data-url="'.$row->url.'" data-location="'.$row->location.'" data-platform="'.$row->platform.'">Show Details</button>
-                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'" data-type="marketplace">Edit</button>
-                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'" data-type="marketplace">Delete</button>
+                <button class="btn btn-sm btn-info relatedColor" data-id="' . $row->id . '" data-article="' . $product->p_name . '" data-type="Marketplace" data-url="' . $row->url . '" data-location="' . $row->location . '" data-platform="' . $row->platform . '" data-created_by="' . $row->created_by_name . '" data-updated_by="' . $row->updated_by_name . '" data-created_at="' . $row->created_at . '" data-updated_at="' . $row->updated_at . '">Show Details</button>
+                <button class="btn btn-sm btn-warning editLink" data-id="' . $row->id . '" data-type="marketplace">Edit</button>
+                <button class="btn btn-sm btn-danger deleteLink" data-id="' . $row->id . '" data-type="marketplace">Delete</button>
             ';
             })
             ->make(true);
@@ -367,15 +374,22 @@ class ProductController extends Controller
         $product_id = (int)$product->id;
 
         $data = DB::table('product_links')
+            ->select(
+                'product_links.*',
+                'created_by.u_name as created_by_name',
+                'updated_by.u_name as updated_by_name'
+            )
+            ->leftJoin('users as created_by', 'created_by.id', '=', 'product_links.created_by')
+            ->leftJoin('users as updated_by', 'updated_by.id', '=', 'product_links.updated_by')
             ->whereRaw('JSON_CONTAINS(product_id, ?)', json_encode($product_id))
             ->where('type', 'social');
 
         return datatables()->of($data)
             ->addColumn('action', function ($row) use ($product) {
                 return '
-                <button class="btn btn-sm btn-info relatedColor" data-id="'.$row->id.'" data-article="'.$product->p_name.'" data-type="Social Media" data-url="'.$row->url.'" data-location="'.$row->location.'" data-platform="'.$row->platform.'">Show Details</button>
-                <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'" data-type="social">Edit</button>
-                <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'" data-type="social">Delete</button>
+                <button class="btn btn-sm btn-info relatedColor" data-id="' . $row->id . '" data-article="' . $product->p_name . '" data-type="Social Media" data-url="' . $row->url . '" data-location="' . $row->location . '" data-platform="' . $row->platform . '" data-created_by="' . $row->created_by_name . '" data-updated_by="' . $row->updated_by_name . '" data-created_at="' . $row->created_at . '" data-updated_at="' . $row->updated_at . '">Show Details</button>
+                <button class="btn btn-sm btn-warning editLink" data-id="' . $row->id . '" data-type="social">Edit</button>
+                <button class="btn btn-sm btn-danger deleteLink" data-id="' . $row->id . '" data-type="social">Delete</button>
             ';
             })
             ->make(true);
@@ -398,7 +412,7 @@ class ProductController extends Controller
             ->where('platform', $request->platform)
             ->where('location', $request->location)
             ->get()
-            ->first(function($link) use ($product_id) {
+            ->first(function ($link) use ($product_id) {
                 $productIds = json_decode($link->product_id, true) ?? [];
                 return in_array($product_id, $productIds);
             });
@@ -416,6 +430,8 @@ class ProductController extends Controller
             'platform'   => $request->platform,
             'url'        => $request->url,
             'location'   => $request->location,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -460,7 +476,7 @@ class ProductController extends Controller
 
         // Get the current link being updated
         $currentLink = DB::table('product_links')->where('id', $id)->first();
-        
+
         if (!$currentLink) {
             return response()->json([
                 'status' => 'error',
@@ -477,7 +493,7 @@ class ProductController extends Controller
             ->where('platform', $request->platform)
             ->where('location', $request->location)
             ->get()
-            ->first(function($link) use ($currentProductIds) {
+            ->first(function ($link) use ($currentProductIds) {
                 $productIds = json_decode($link->product_id, true) ?? [];
                 // Check if there's any overlap between product IDs
                 return !empty(array_intersect($currentProductIds, $productIds));
@@ -496,6 +512,7 @@ class ProductController extends Controller
             'url'        => $request->url,
             'location'   => $request->location,
             'updated_at' => now(),
+            'updated_by' => auth()->id(),
         ]);
 
         return response()->json(['status' => 'success']);
@@ -516,14 +533,14 @@ class ProductController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function relatedDataTables($articleName, Request $request) 
+    public function relatedDataTables($articleName, Request $request)
     {
         $product_link = DB::table('product_links')
             ->where('id', $request->link_id)
             ->first();
 
         $product_ids_in_link = json_decode($product_link->product_id, true) ?? [];
-        
+
         // Get product IDs that should be excluded (already in other links with same platform, type, location)
         $excluded_product_ids = DB::table('product_links')
             ->where('id', '!=', $request->link_id)
@@ -531,7 +548,7 @@ class ProductController extends Controller
             ->where('type', $product_link->type)
             ->where('location', $product_link->location)
             ->get()
-            ->flatMap(function($link) {
+            ->flatMap(function ($link) {
                 return json_decode($link->product_id, true) ?? [];
             })
             ->toArray();
@@ -544,7 +561,7 @@ class ProductController extends Controller
             ->whereNotIn('products.id', $excluded_product_ids)
             ->orderBy('products.created_at', 'asc')
             ->get();
-        
+
         if ($products->isEmpty()) {
             return response()->json([
                 'success' => false,
@@ -553,11 +570,11 @@ class ProductController extends Controller
         }
 
         $html = '';
-        
+
         foreach ($products as $product) {
             $isInLink = in_array((int)$product->id, $product_ids_in_link);
             $checked = $isInLink ? 'checked' : '';
-            
+
             $html .= "<tr>
             <td>{$product->article_id}</td>
             <td>{$product->p_color} ({$product->mc_name})</td>
@@ -576,7 +593,8 @@ class ProductController extends Controller
         ]);
     }
 
-    public function toggleRelatedProduct(Request $request){
+    public function toggleRelatedProduct(Request $request)
+    {
         $product_link = DB::table('product_links')
             ->where('id', $request->link_id)
             ->first();
@@ -599,7 +617,7 @@ class ProductController extends Controller
         } else {
             // Remove product from link if present
             if (in_array($product_id, $product_ids)) {
-                $product_ids = array_filter($product_ids, function($id) use ($product_id) {
+                $product_ids = array_filter($product_ids, function ($id) use ($product_id) {
                     return (int)$id !== $product_id;
                 });
             }
@@ -608,7 +626,11 @@ class ProductController extends Controller
         // Update database with JSON integer array
         DB::table('product_links')
             ->where('id', $request->link_id)
-            ->update(['product_id' => json_encode(array_values($product_ids))]);
+            ->update([
+                'product_id' => json_encode(array_values($product_ids)),
+                'updated_at' => now(),
+                'updated_by' => auth()->id(),
+            ]);
 
         return response()->json([
             'success' => true,
@@ -650,7 +672,7 @@ class ProductController extends Controller
 
     public function downloadAll($articleId)
     {
-//        $images = ProductImage::where('article_id', $articleId)->get();
+        //        $images = ProductImage::where('article_id', $articleId)->get();
 
         $images = DB::table('product_images')
             ->join('products', 'products.id', '=', 'product_images.p_id')
@@ -1092,8 +1114,7 @@ class ProductController extends Controller
                 ->editColumn('ps_name_show', function ($data) {
                     return '<span style="white-space: nowrap;">' . $data->ps_name . '</span>';
                 })
-                ->editColumn('p_size', function ($data) {
-                })
+                ->editColumn('p_size', function ($data) {})
                 ->editColumn('p_action', function ($data) {
                     $product_stock = new ProductStock;
                     $select = ['product_stocks.id as psid', 'p_id', 'sz_id', 'sz_name', 'ps_qty', 'ps_barcode', 'ps_running_code'];
@@ -1604,31 +1625,30 @@ class ProductController extends Controller
 
             foreach ($productLinks as $link) {
                 $currentProductId = $link->product_id;
-                
+
                 // Remove quotes and decode if it's a JSON string
                 $currentProductId = trim($currentProductId, '"');
                 $productIdArray = json_decode($currentProductId, true);
-                
+
                 // If not valid JSON, treat as single integer value
                 if (!is_array($productIdArray)) {
                     $productIdArray = [(int)$currentProductId];
                 }
-                
+
                 // Ensure all values are integers
                 $productIdArray = array_map('intval', $productIdArray);
-                
+
                 DB::table('product_links')
                     ->where('id', $link->id)
                     ->update([
                         'product_id' => json_encode($productIdArray, JSON_NUMERIC_CHECK),
                         'updated_at' => now()
                     ]);
-                
+
                 $updated++;
             }
 
             return 'Successfully updated ' . $updated . ' records by converting product_id to JSON array format [59582]';
-
         } catch (\Exception $e) {
             return 'Error: ' . $e->getMessage();
         }
