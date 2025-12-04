@@ -2205,9 +2205,73 @@
             });
             return false;
         });
+        $(document).on('click', '.relatedColor', function() {
+            const articleName = $(this).data('article');
+            const linkType = $(this).data('type');
+            const platform = $(this).data('platform');
+            const url = $(this).data('url');
+            const location = $(this).data('location');
+            const linkId = $(this).data('id');
 
+            // Set modal details
+            $('#detail_link_type').text(linkType);
+            $('#detail_platform').text(platform);
+            $('#detail_url').attr('href', url).text(url);
+            $('#detail_location').text(location);
+            
+            $('#ProductLinkDetailModal').modal('show');
+            
+            getRelatedArticle(articleName, linkId);
+        });
 
+        $(document).on('change', '#related_toggle', function() {
+            const isChecked = $(this).is(':checked');
+            const linkId = $(this).data('product_link_id');
+            const articleName = $(this).data('article');
+            const productId = $(this).data('product_id');
 
+            $.ajax({
+                url: '/product-links/related/toggle',
+                method: 'POST',
+                data: {
+                    link_id: linkId,
+                    status: isChecked ? 1 : 0,
+                    product_id: productId,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('Status produk terkait berhasil diperbarui');
+                        // Reload the related articles list
+                        getRelatedArticle(articleName, linkId);
+                    } else {
+                        toastr.error('Gagal memperbarui status produk terkait');
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal memperbarui status produk terkait');
+                }
+            });
+        });
+
+        function getRelatedArticle(articleName, linkId) {
+            $.ajax({
+                url: `/product-links/related/${articleName}`,
+                method: 'GET',
+                data: {
+                    link_id: linkId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Populate modal with product details
+                        $('#productColorSkuBody').html(response.html);
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengambil data produk terkait');
+                }
+            });
+        }
 
     });
 </script>

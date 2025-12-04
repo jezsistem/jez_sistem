@@ -32,6 +32,7 @@ use App\Imports\MassUpdateProductImport;
 use App\Services\MassUpdateProductService;
 use Maatwebsite\Excel\Facades\Excel;
     use App\Jobs\ProcessMassImageImport;
+use Svg\Tag\Rect;
 use ZipArchive;
 
 
@@ -342,15 +343,17 @@ class ProductController extends Controller
 
     public function marketplaceDataTables($articleId)
     {
-        $product_id = DB::table('products')->where('article_id', $articleId)->value('id');
+        $product = DB::table('products')->where('article_id', $articleId)->get()->first();
+        $product_id = (int)$product->id;
 
         $data = DB::table('product_links')
-            ->where('product_id', $product_id)
+            ->whereRaw('JSON_CONTAINS(product_id, ?)', json_encode($product_id))
             ->where('type', 'marketplace');
 
         return datatables()->of($data)
-            ->addColumn('action', function ($row) {
+            ->addColumn('action', function ($row) use ($product) {
                 return '
+                <button class="btn btn-sm btn-info relatedColor" data-id="'.$row->id.'" data-article="'.$product->p_name.'" data-type="Marketplace" data-url="'.$row->url.'" data-location="'.$row->location.'" data-platform="'.$row->platform.'">Show Details</button>
                 <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'" data-type="marketplace">Edit</button>
                 <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'" data-type="marketplace">Delete</button>
             ';
@@ -360,15 +363,17 @@ class ProductController extends Controller
 
     public function socialDataTables($articleId)
     {
-        $product_id = DB::table('products')->where('article_id', $articleId)->value('id');
+        $product = DB::table('products')->where('article_id', $articleId)->get()->first();
+        $product_id = (int)$product->id;
 
         $data = DB::table('product_links')
-            ->where('product_id', $product_id)
+            ->whereRaw('JSON_CONTAINS(product_id, ?)', json_encode($product_id))
             ->where('type', 'social');
 
         return datatables()->of($data)
-            ->addColumn('action', function ($row) {
+            ->addColumn('action', function ($row) use ($product) {
                 return '
+                <button class="btn btn-sm btn-info relatedColor" data-id="'.$row->id.'" data-article="'.$product->p_name.'" data-type="Social Media" data-url="'.$row->url.'" data-location="'.$row->location.'" data-platform="'.$row->platform.'">Show Details</button>
                 <button class="btn btn-sm btn-warning editLink" data-id="'.$row->id.'" data-type="social">Edit</button>
                 <button class="btn btn-sm btn-danger deleteLink" data-id="'.$row->id.'" data-type="social">Delete</button>
             ';
@@ -385,12 +390,10 @@ class ProductController extends Controller
             'location'   => 'nullable|string',
         ]);
 
-        $product_id = DB::table('products')->where('article_id', $request->articleId)->value('id');
-
-//        dd($product_id);
+        $product_id = (int)DB::table('products')->where('article_id', $request->articleId)->value('id');
 
         DB::table('product_links')->insert([
-            'product_id' => $product_id,
+            'product_id' => json_encode([$product_id]),
             'type'       => $request->type,
             'platform'   => $request->platform,
             'url'        => $request->url,
@@ -407,6 +410,10 @@ class ProductController extends Controller
         $data = DB::table('product_links')
             ->where('id', $id)
             ->first();
+
+        if ($data && $data->product_id) {
+            $data->product_id = json_decode($data->product_id);
+        }
 
         return response()->json(['data' => $data]);
     }
@@ -457,6 +464,91 @@ class ProductController extends Controller
         $product->save();
 
         return response()->json(['success' => true]);
+    }
+
+    public function relatedDataTables($articleName, Request $request) 
+    {
+        $product_link = DB::table('product_links')
+            ->where('id', $request->link_id)
+            ->first();
+
+        $products = DB::table('products')
+            ->select('products.id', 'products.article_id', 'products.p_color', 'mc_name', 'products.p_active', 'products.p_name')
+            ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
+            ->where('p_name', $articleName)
+            ->where('p_delete', '!=', '1')
+            ->get();
+        
+        if ($products->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada produk terkait ditemukan'
+            ]);
+        }
+
+        $html = '';
+        $product_ids_in_link = json_decode($product_link->product_id, true) ?? [];
+        
+        foreach ($products as $product) {
+            $isInLink = in_array((int)$product->id, $product_ids_in_link);
+            $checked = $isInLink ? 'checked' : '';
+            
+            $html .= "<tr>
+            <td>{$product->article_id}</td>
+            <td>{$product->p_color} ({$product->mc_name})</td>
+            <td class='text-center d-flex justify-content-center align-items-center'>
+            <label class='switch switch-sm mb-0'>
+            <input type='checkbox' {$checked} data-product_link_id='{$product_link->id}' data-product_id='{$product->id}' data-article_name='{$product->p_name}' class='toggle-color-status' id='related_toggle'>
+            <span class='slider round'></span>
+            </label>
+            </td>
+            </tr>";
+        }
+
+        return response()->json([
+            'success' => true,
+            'html' => $html
+        ]);
+    }
+
+    public function toggleRelatedProduct(Request $request){
+        $product_link = DB::table('product_links')
+            ->where('id', $request->link_id)
+            ->first();
+
+        if (!$product_link) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Link produk tidak ditemukan'
+            ]);
+        }
+
+        $product_ids = json_decode($product_link->product_id, true) ?? [];
+        $product_id = (int)$request->product_id;
+
+        if ($request->status) {
+            // Add product to link if not already present
+            if (!in_array($product_id, $product_ids)) {
+                $product_ids[] = $product_id;
+            }
+        } else {
+            // Remove product from link if present
+            if (in_array($product_id, $product_ids)) {
+                $product_ids = array_filter($product_ids, function($id) use ($product_id) {
+                    return (int)$id !== $product_id;
+                });
+            }
+        }
+
+        // Update database with JSON integer array
+        DB::table('product_links')
+            ->where('id', $request->link_id)
+            ->update(['product_id' => json_encode(array_values($product_ids))]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status produk terkait berhasil diperbarui'
+        ]);
     }
 
     public function destroyImages($id)
@@ -1432,5 +1524,48 @@ class ProductController extends Controller
         }
 
         return json_encode($r);
+    }
+
+    public function updateProductStockIds()
+    {
+        try {
+            $productLinks = DB::table('product_links')->get();
+
+            if ($productLinks->isEmpty()) {
+                return 'No records found';
+            }
+
+            $updated = 0;
+
+            foreach ($productLinks as $link) {
+                $currentProductId = $link->product_id;
+                
+                // Remove quotes and decode if it's a JSON string
+                $currentProductId = trim($currentProductId, '"');
+                $productIdArray = json_decode($currentProductId, true);
+                
+                // If not valid JSON, treat as single integer value
+                if (!is_array($productIdArray)) {
+                    $productIdArray = [(int)$currentProductId];
+                }
+                
+                // Ensure all values are integers
+                $productIdArray = array_map('intval', $productIdArray);
+                
+                DB::table('product_links')
+                    ->where('id', $link->id)
+                    ->update([
+                        'product_id' => json_encode($productIdArray, JSON_NUMERIC_CHECK),
+                        'updated_at' => now()
+                    ]);
+                
+                $updated++;
+            }
+
+            return 'Successfully updated ' . $updated . ' records by converting product_id to JSON array format [59582]';
+
+        } catch (\Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
     }
 }
