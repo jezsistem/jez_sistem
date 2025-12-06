@@ -84,6 +84,13 @@
                                                         <span class="menu-text">Staff</span>
                                                     </a>
                                                 </li>
+                                                <li class="menu-item">
+                                                    <a href="{{ url('/staff-information') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Staff Information</span>
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </div>
                                     </li>
