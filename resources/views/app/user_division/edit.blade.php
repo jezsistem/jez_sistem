@@ -59,7 +59,7 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="ud_status">Status <span class="text-danger">*</span></label>
                                             <select class="form-control @error('ud_status') is-invalid @enderror" 
@@ -69,6 +69,20 @@
                                                 <option value="inactive" {{ old('ud_status', $division->ud_status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
                                             </select>
                                             @error('ud_status')
+                                                <span class="invalid-feedback">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="division_type">Type <span class="text-danger">*</span></label>
+                                            <select class="form-control @error('division_type') is-invalid @enderror"
+                                                    id="division_type" name="division_type" required>
+                                                <option value="">Select Type</option>
+                                                <option value="FRONTLINE" {{ old('division_type', $division->division_type) == 'FRONTLINE' ? 'selected' : '' }}>FRONTLINE</option>
+                                                <option value="BACKOFFICE" {{ old('division_type', $division->division_type) == 'BACKOFFICE' ? 'selected' : '' }}>BACKOFFICE</option>
+                                            </select>
+                                            @error('division_type')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -198,6 +212,7 @@ $(document).ready(function() {
         const leadID = $('#lead_id').val().trim();
         const managerID = $('#manager_id').val().trim();
         const udStatus = $('#ud_status').val();
+        const divisionType = $('#division_type').val();
         
         if (!udCode || !udName || !udStatus) {
             showToast('Validation Error', 'Please fill in all required fields', 'error');
@@ -218,6 +233,7 @@ $(document).ready(function() {
             manager_id: managerID,
             ud_description: $('#ud_description').val(),
             ud_status: udStatus,
+            division_type: divisionType,
             _method: 'PUT',
             _token: csrfToken
         };
