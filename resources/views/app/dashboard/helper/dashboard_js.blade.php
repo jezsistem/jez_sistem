@@ -1641,7 +1641,7 @@
         $('#binTable tbody tr').each(function () {
             let binText = $(this).find('td:first').text().toLowerCase();
 
-            if (binText.includes(searchText)) {
+            if (binText === searchText) {
                 $(this).show();
                 matchingRows.push(this);
             } else {
