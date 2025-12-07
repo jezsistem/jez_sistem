@@ -1154,6 +1154,13 @@ class LeaveRequestController extends Controller
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
 
+                    // Copy Link
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="copyLeaveLink(' . $row->id . ')" class="menu-link px-3">Copy Link</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
                     $btn .= '            <a href="' . route('leave-requests.edit', $row->id) . '" class="menu-link px-3">Edit</a>';
