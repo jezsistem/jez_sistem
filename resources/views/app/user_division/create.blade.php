@@ -52,7 +52,7 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="ud_status">Status <span class="text-danger">*</span></label>
                                         <select class="form-control @error('ud_status') is-invalid @enderror" 
@@ -64,6 +64,17 @@
                                         @error('ud_status')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="division_type">Type <span class="text-danger">*</span></label>
+                                        <select class="form-control @error('division_type') is-invalid @enderror"
+                                                id="division_type" name="division_type" required>
+                                            <option value="">Select Type</option>
+                                            <option value="FRONTLINE">FRONTLINE</option>
+                                            <option value="BACKOFFICE">BACKOFFICE</option>
+                                            </select>
                                     </div>
                                 </div>
                                 <div class="col-md-3">

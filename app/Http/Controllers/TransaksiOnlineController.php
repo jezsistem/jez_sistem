@@ -1578,7 +1578,7 @@ class TransaksiOnlineController extends Controller
         $store_id = Auth::user()->st_id;
         $st_code = Store::where('id', $store_id)->first()->st_code;
 
-        if ($type === 'Shopee') {
+        if ($type == 'Shopee') {
             foreach ($data as $item) {
                 $order_number = $item[0];
                 $order_status = $item[1];

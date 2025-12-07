@@ -107,6 +107,7 @@ use App\Http\Controllers\WebConfigController;
 use App\Http\Controllers\DataPerusahaanController;
 use App\Http\Controllers\InvoiceControllerV2;
 use App\Http\Controllers\LockController;
+use App\Http\Controllers\StaffInformationController;
 use App\Http\Controllers\WarehouseIndexController;
 use App\Models\PositionAccessController;
 use Illuminate\Support\Facades\DB;
@@ -991,6 +992,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('staff/{id}/division', [StaffController::class, 'updateDivision'])->name('staff.update-division');
     Route::post('staff/{id}/user-type', [StaffController::class, 'updateUserType'])->name('staff.update-user-type');
     Route::post('staff/{id}/leave-balance', [StaffController::class, 'updateLeaveBalance'])->name('staff.update-leave-balance');
+
+    // StaffInformationController
+    Route::get('staff-information', [StaffInformationController::class, 'index'])->name('staff-information.index');
+    Route::get('staff-information/datatables', [StaffInformationController::class, 'getDatatables'])->name('staff-information.datatables');
+    Route::get('staff-information/export', [StaffInformationController::class, 'export'])->name('staff-information.export');
+    Route::get('staff-information/{id}', [StaffInformationController::class, 'show'])->name('staff-information.show');
 
     // User Select for AJAX
     Route::get('users/select', [UserController::class, 'select'])->name('users.select');

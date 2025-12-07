@@ -196,7 +196,7 @@
         <!--begin::Nav-->
         <div class="navi navi-spacer-x-0 p-0">
             <!--begin::Item-->
-            <a href="#" data-toggle="modal" data-target="#staffModal" class="navi-item">
+            <a href="{{url('personal_data')}}" class="navi-item">
                 <div class="navi-link">
                     <i class="ki-outline ki-document bg-icon-sm fs-2 mr-2"></i>
                     <div class="navi-text">
