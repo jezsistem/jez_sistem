@@ -939,6 +939,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
 
+    //leave reequest comments
+    Route::post('/leave-requests/{id}/comment', [LeaveRequestController::class, 'storeComment'])
+        ->name('leave-requests.comment');
+
     // Debug route for testing CSRF
     Route::get('test-csrf', function () {
         return response()->json([
