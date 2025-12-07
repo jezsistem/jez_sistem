@@ -128,7 +128,8 @@ class POReceiveApprovalController extends Controller
                     ts_purchase_orders.due_date,
                     ts_purchase_orders.putaway,
                     ts_purchase_orders.status_dispute,
-                    received_date
+                    received_date,
+                    ts_purchase_orders.po_payment_amount as payment_amount
                 ")
                     ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                     ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
