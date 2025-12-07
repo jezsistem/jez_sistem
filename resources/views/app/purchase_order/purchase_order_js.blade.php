@@ -1780,7 +1780,7 @@
                 url: "{{ url('po_payment_amount') }}",
                 success: function(r) {
                     if (r.status == '200') {
-
+                        toastr.success("Jumlah pembayaran berhasil di Update", "Success");
                     } else {}
                 }
             });

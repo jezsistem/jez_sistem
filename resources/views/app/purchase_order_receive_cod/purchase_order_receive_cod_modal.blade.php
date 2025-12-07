@@ -230,6 +230,12 @@
                                 </div>
                             </div>
 
+                            <div class="col-4 mt-5 without_item_input">
+                                <label>Nominal Payment</label>
+                                <input type="number" class="form-control " placeholder="Nominal Payment"
+                                    name="payment_amount" id="payment_amount" min="0" />
+                            </div>
+
                         </div>
                         <br>
 
@@ -261,7 +267,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light-primary font-weight-bold close_detail" data-dismiss="modal">Tutup
+                    <button type="button" class="btn btn-light-primary font-weight-bold close_detail"
+                        data-dismiss="modal">Tutup
                     </button>
                     <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Bayar</button>
                 </div>
