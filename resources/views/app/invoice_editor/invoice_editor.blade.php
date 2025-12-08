@@ -184,6 +184,7 @@
                                             <th class="text-dark">Artikel</th>
                                             <th class="text-dark">Qty</th>
                                             <th class="text-dark">Status</th>
+                                            <th class="text-dark">Lokasi Refund</th>
                                         </tr>
                                     </thead>
                                     <tbody>

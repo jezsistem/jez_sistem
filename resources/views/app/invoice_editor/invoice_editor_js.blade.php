@@ -364,6 +364,11 @@
                     data: 'status',
                     name: 'plst_status'
                 },
+                {
+                    data: 'refund_location',
+                    name: 'refund_location',
+                    orderable: false
+                },
             ],
             columnDefs: [{
                 "targets": 0,
@@ -679,6 +684,14 @@
         $(document).delegate('#status', 'change', function(e) {
             e.preventDefault();
             var type = 'status';
+            var id = $(this).attr('data-id');
+            var value = $(this).val();
+            doEdit(type, id, value, '', '', '', '', '');
+        });
+
+        $(document).delegate('#refund_location', 'change', function(e) {
+            e.preventDefault();
+            var type = 'refund_location';
             var id = $(this).attr('data-id');
             var value = $(this).val();
             doEdit(type, id, value, '', '', '', '', '');
