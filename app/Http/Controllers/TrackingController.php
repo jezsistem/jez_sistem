@@ -937,6 +937,7 @@ class TrackingController extends Controller
                 'pl_code',
                 'pl_name',
                 'sz_name',
+                'ps_barcode',
                 DB::raw('COALESCE(ts_product_location_setup_transactions.st_id_refund, ts_product_locations.st_id) as stores_id'),
                 'product_location_setup_transactions.created_at as TanggalTrx',
                 'invoice_editors.note',
@@ -1008,7 +1009,7 @@ class TrackingController extends Controller
                     }
 
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
-                    <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
+                    <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . '] - ' . $data->ps_barcode . '<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
                     <span style="white-space: nowrap; font-weight:bold;">' . $time . '</span><br/>
                     <span style="white-space: nowrap; font-weight:bold; color: green;">' . $new_note . '</span> / <span style="white-space: nowrap; font-weight:bold; color: blue;">' . $data->pos_invoice . '</span><br/>
                     <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>

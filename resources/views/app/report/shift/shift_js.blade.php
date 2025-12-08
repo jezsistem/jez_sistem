@@ -2,8 +2,7 @@
 <!-- DATERANGE -->
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script>
-    function replaceComma(str)
-    {
+    function replaceComma(str) {
         var str_replace = str.replace(/,/g, '');
         return str_replace;
     }
@@ -16,48 +15,86 @@
         });
 
         var user_shift_table = $('#UserShiftTb').DataTable({
-            destroy: true,
-            processing: false,
+            processing: true,
             serverSide: true,
-            responsive: false,
-            dom: '<"text-right"l>Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs', "exportOptions": { orthogonal: 'export' } }
-            ],
+            deferLoading: 0,
             ajax: {
                 url: "{{ url('report_shift_datatables') }}",
                 type: 'GET',
-                data: function (d) {
-                    d.search = $('#user_shift_search').val();
+                data: function(d) {
+                    d.sales_date = $('#sales_date').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.search = $('#user_shift_search').val();
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'id', searchable: false},
-                {data: 'u_name', name: 'u_name'},
-                {data: 'st_name', name: 'st_name'},
-                {data: 'date', name: 'date'},
-                {data: 'start_time', name: 'start_time'},
-                {data: 'end_time', name: 'end_time'},
-                {data: 'total_pos_real_price', name: 'total_pos_real_price'},
-                {data: 'total_pos_payment_price', name: 'total_pos_payment_price'},
-                {data: 'laba_shift', name: 'laba_shift'},
-                {data: 'difference', name: 'difference'},
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            language: {
-                "lengthMenu": "_MENU_",
-            },
-            order: [[0, 'asc']]
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'date',
+                    name: 'date'
+                },
+                {
+                    data: 'start_time',
+                    name: 'start_time'
+                },
+                {
+                    data: 'end_time',
+                    name: 'end_time'
+                },
+                {
+                    data: 'total_trx',
+                    name: 'total_trx'
+                },
+                {
+                    data: 'trx_cash',
+                    name: 'trx_cash'
+                },
+                {
+                    data: 'actual_cash',
+                    name: 'actual_cash'
+                },
+                {
+                    data: 'cash_difference',
+                    name: 'cash_difference'
+                },
+                {
+                    data: 'trx_not_cash',
+                    name: 'trx_not_cash'
+                }
+            ],
+            order: [
+                [0, 'desc']
+            ],
+            dom: 'Blfrtip',
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+            searching: false,
+            buttons: [{
+                extend: 'excelHtml5',
+                title: 'Laporan Shift User',
+                className: 'btn btn-sm btn-light-primary',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            }]
         });
 
-        user_shift_table.buttons().container().appendTo($('#user_shift_excel_btn' ));
+        user_shift_table.buttons().container().appendTo($('#user_shift_excel_btn'));
 
         $('#user_shift_search').on('keyup', function() {
             console.log(user_shift_table.data());
@@ -68,7 +105,7 @@
             width: "300px",
             dropdownParent: $('#st_id_filter_parent')
         });
-        $('#st_id_filter').on('select2:open', function (e) {
+        $('#st_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -78,7 +115,7 @@
             user_shift_table.draw();
         });
 
-        $('#UserShiftTb tbody').on('click', 'tr', function () {
+        $('#UserShiftTb tbody').on('click', 'tr', function() {
             var data = user_shift_table.row(this).data().id;
             var st_id = user_shift_table.row(this).data().st_id;
             var start_time_original = user_shift_table.row(this).data().start_time_original;
@@ -117,16 +154,17 @@
                     u_name: u_name,
                     st_id: st_id
                 },
-                success: function (response) {
+                success: function(response) {
                     jQuery.noConflict();
                     $('#UserShiftModal').modal('show');
                     console.log(response);
                     $('#UserShiftModalBody').html(response);
 
-                    $('#userShiftDetailSoldBtn').on('click', function () {
+                    $('#userShiftDetailSoldBtn').on('click', function() {
                         $.ajaxSetup({
                             headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]')
+                                    .attr('content')
                             }
                         });
                         $.ajax({
@@ -137,22 +175,25 @@
                                 start_time_original: start_time_original,
                                 end_time_original: end_time_original,
                             },
-                            success: function (response_detail) {
+                            success: function(response_detail) {
                                 // console.log(response_detail);
                                 jQuery.noConflict();
-                                $('#UserShiftDetailSoldModal').modal('show');
-                                $('#UserShiftDetailSoldModalBody').html(response_detail);
+                                $('#UserShiftDetailSoldModal').modal(
+                                    'show');
+                                $('#UserShiftDetailSoldModalBody').html(
+                                    response_detail);
                             },
-                            error: function (response) {
+                            error: function(response) {
                                 console.log(response);
                             }
                         });
                     });
 
-                    $('#userShiftDetailRefundBtn').on('click', function () {
+                    $('#userShiftDetailRefundBtn').on('click', function() {
                         $.ajaxSetup({
                             headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]')
+                                    .attr('content')
                             }
                         });
                         $.ajax({
@@ -163,13 +204,15 @@
                                 start_time_original: start_time_original,
                                 end_time_original: end_time_original,
                             },
-                            success: function (response_detail) {
+                            success: function(response_detail) {
                                 // console.log(response_detail);
                                 jQuery.noConflict();
-                                $('#UserShiftDetailRefundModal').modal('show');
-                                $('#UserShiftDetailRefundModalBody').html(response_detail);
+                                $('#UserShiftDetailRefundModal').modal(
+                                    'show');
+                                $('#UserShiftDetailRefundModalBody')
+                                    .html(response_detail);
                             },
-                            error: function (response) {
+                            error: function(response) {
                                 console.log(response);
                             }
                         });
@@ -177,7 +220,7 @@
                         // $('#UserShiftProductRefundModalBody').html(response);
                     });
                 },
-                error: function (response) {
+                error: function(response) {
                     console.log(response);
                 }
             });
@@ -218,44 +261,44 @@
             var title = '';
             var range = '';
             var hidden_range = '';
-            var st_id = $('#st_id_filter').val();
 
-            if ((end - start) < 100 || label == 'Hari Ini') {
-                title = 'Hari Ini:';
+            if ((end - start) < 100 || label == 'Today') {
+                title = 'Today:';
                 range = start.format('DD MMM YYYY');
                 hidden_range = start.format('YYYY-MM-DD');
-            } else if (label == 'Kemarin') {
-                title = 'Kemarin:';
+            } else if (label == 'Yesterday') {
+                title = 'Yesterday:';
                 range = start.format('DD MMM YYYY');
                 hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
             } else {
                 range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
                 hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
+            console.log(hidden_range);
             $('#sales_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
 
-            // refresh table
-            // invoice_report_table.draw();
-            // article_report_table.draw();
-            console.log($('#kt_dashboard_daterangepicker_date').text());
+            user_shift_table.draw();
         }
 
         picker.daterangepicker({
             direction: KTUtil.isRTL(),
             startDate: start,
             endDate: end,
-            opens: 'center',
+            opens: 'left',
             applyClass: 'btn-primary',
             cancelClass: 'btn-light-primary',
             ranges: {
-                'Hari Ini': [moment(), moment()],
-                'Kemarin': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
-                '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
-                'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
-                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
                     'month').endOf('month')]
             }
         }, cb);

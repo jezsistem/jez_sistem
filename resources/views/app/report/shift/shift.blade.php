@@ -108,18 +108,17 @@
 {{--                                            </a>--}}
 {{--                                        </div>--}}
 
-                                        <div class=""
-                                             role="alert">
-                                            <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12"
-                                               id="kt_dashboard_daterangepicker" data-toggle="tooltip"
-                                               title="Filter Tanggal"
-                                               data-placement="left">
-                                        <span class="text-muted font-size-base font-weight-bold mr-2"
-                                              id="kt_dashboard_daterangepicker_title">Today</span>
-                                                <span class="text-primary font-size-base font-weight-bolder"
-                                                      id="kt_dashboard_daterangepicker_date"></span>
-                                            </a>
-                                        </div>
+                                        <div class="form-group ml-5">
+                                        <a href="#" class="btn btn-date-info font-weight-bold mr-2"
+                                            id="kt_dashboard_daterangepicker" data-toggle="tooltip"
+                                            title="Tanggal Sales dibuat" data-placement="left">
+                                            <span class="font-size-base"
+                                                id="kt_dashboard_daterangepicker_title">Today</span>
+                                            <span class="font-size-base font-weight-bolder"
+                                                id="kt_dashboard_daterangepicker_date"></span>
+                                            <input type="hidden" id="sales_date" />
+                                        </a>
+                                    </div>
                                     </div>
                                 </div>
                                 <table class="table table-hover table-checkable" id="UserShiftTb">
@@ -131,10 +130,11 @@
                                         <th class="text-dark">Tanggal</th>
                                         <th class="text-dark">Mulai</th>
                                         <th class="text-dark">Selesai</th>
-                                        <th class="text-dark">Total Expected</th>
-                                        <th class="text-dark">Total Actual</th>
-                                        <th class="text-dark">Actual Ending Cash</th>
-                                        <th class="text-dark">Difference</th>
+                                        <th class="text-dark">Total Nominal Transaksi</th>
+                                        <th class="text-dark">Nominal Cash Transaksi</th>
+                                        <th class="text-dark">Nominal Cash Sebenarnya</th>
+                                        <th class="text-dark">Perbedaan Cash</th>
+                                        <th class="text-dark">Nominal Non Cash</th>
                                     </tr>
                                     </thead>
                                     <tbody>
