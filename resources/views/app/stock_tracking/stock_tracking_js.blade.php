@@ -191,6 +191,7 @@
             var pos_note = $(this).attr('pos_note');
             var refund_exchange_note = $(this).attr('refund_exchange_note');
             var last_updated = $(this).attr('updated');
+            var refund_location = $(this).attr('refund_location');
 
             $('#article_label').text(article);
             $('#invoice_label').text(invoice);
@@ -203,6 +204,7 @@
             $('#invoice_note_label').text(pos_note);
             $('#refund_exchange_note_label').text(refund_exchange_note);
             $('#last_updated_label').text(last_updated);
+            $('#refund_location_label').text(refund_location);
             $('#UserModal').modal('show');
             if (invoice != '') {
                 $('#delete_btn').addClass('d-none');

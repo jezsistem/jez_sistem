@@ -422,6 +422,7 @@
             approval = po_approval_table.row(this).data().u_receive;
             var bank_general = po_approval_table.row(this).data().bank_general;
             var payment = po_approval_table.row(this).data().acc_id;
+            var payment_amount = po_approval_table.row(this).data().payment_amount;
             jQuery.noConflict();
 
             console.log('STORES : ', tgl_terima);
@@ -477,6 +478,7 @@
                     $('#tax_name').val(tx_name);
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
+                    $('#payment_amount').val(payment_amount);
                     console.log('BANK GENERAL : ', bank_general, 'PAYMENT : ', payment);
                     jQuery('#bank_general').val(bank_general).trigger('change');
                     jQuery('#acc_id').val(payment).trigger('change');
@@ -500,6 +502,31 @@
             $('#invoice_label').text(poads_invoice.replace("&amp;", "&"));
 
             apd_table.draw();
+        });
+
+        $('#payment_amount').on('change', function() {
+            var payment_amount = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _payment_amount: payment_amount
+                },
+                url: "{{ url('po_payment_amount') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+                        toastr.success("Jumlah pembayaran berhasil di Update", "Success");
+                    } else if (r.status == '500') {
+                        swal('Error', r.message);
+                    } else {}
+                }
+            });
         });
 
         $(document).delegate('#bank_general', 'change', function() {
