@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UserShiftExport;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportShiftController extends Controller
 {
@@ -208,6 +210,68 @@ class ReportShiftController extends Controller
         }
     }
 
+    protected function userShiftQuery($start_sales_date, $end_sales_date, $st_id = null, $search = null)
+    {
+        $shiftData = UserShift::select(
+            'user_id',
+            DB::raw('MIN(start_time) AS shift_start'),
+            DB::raw('MAX(end_time) AS shift_end'),
+            DB::raw('SUM(laba_shift) AS total_actual_cash')
+        )
+            ->groupBy('user_id', DB::raw('DATE(start_time)'));
+
+        $query = PosTransaction::select(
+            'users.u_name',
+            'stores.st_name',
+            DB::raw('DATE(ts_pos_transactions.created_at) AS date'),
+            's.shift_start as start_time',
+            's.shift_end as end_time',
+            's.total_actual_cash as actual_cash',
+            DB::raw('SUM(ts_pos_transactions.pos_real_price) AS total_trx'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name = "CASH" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_cash'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name != "CASH" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_not_cash'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name LIKE "EDC BCA%" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_edc_bca'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name LIKE "EDC BNI%" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_edc_bni'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name LIKE "EDC BRI%" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_edc_bri'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name LIKE "TRANSFER BCA%" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_transfer_bca'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name LIKE "TRANSFER BNI%" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_transfer_bni'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name LIKE "TRANSFER BRI%" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_transfer_bri'),
+            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name LIKE "QRIS%" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_qris'),
+            'users.id as user_id',
+            'stores.id as st_id',
+        )
+        ->leftJoin('users', 'users.id', '=', 'pos_transactions.kasir_id')
+            ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
+            ->leftJoin('payment_methods', 'pos_transactions.pm_id', '=', 'payment_methods.id')
+            ->joinSub($shiftData, 's', function ($join) {
+                $join->on('s.user_id', '=', 'users.id')
+                    ->on('s.shift_start', '<=', DB::raw('ts_pos_transactions.created_at'))
+                    ->on('s.shift_end', '>=', DB::raw('ts_pos_transactions.created_at'));
+            })
+            ->whereIn('pos_transactions.pos_status', ['DONE', 'NAMESET'])
+            ->when($start_sales_date, function ($query) use ($start_sales_date, $end_sales_date) {
+                if (!empty($end_sales_date)) {
+                    $query->whereDate('pos_transactions.created_at', '>=', $start_sales_date)
+                        ->whereDate('pos_transactions.created_at', '<=', $end_sales_date);
+                } else {
+                    $query->whereDate('pos_transactions.created_at', $start_sales_date);
+                }
+            })
+            ->when($st_id, function ($query) use ($st_id) {
+                $query->where('stores.id', $st_id);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('users.u_name', 'LIKE', "%{$search}%")
+                        ->orWhere('stores.st_name', 'LIKE', "%{$search}%");
+                });
+            })
+            ->groupBy('user_id', 'st_id', DB::raw('DATE(ts_pos_transactions.created_at)'))
+            ->orderBy(DB::raw('DATE(ts_pos_transactions.created_at)'));
+
+        return $query;
+    }
+
     public function getDatatables(Request $request)
     {
         $st_id = $request->st_id;
@@ -227,54 +291,12 @@ class ReportShiftController extends Controller
             $start = $date;
         }
 
-        $query = UserShift::select(
-            DB::raw('MAX(ts_user_shifts.id) AS id'),
-            'users.u_name',
-            'stores.st_name',
-            'date',
-            DB::raw('MAX(ts_user_shifts.start_time) as start_time'),
-            DB::raw('MAX(ts_user_shifts.end_time) as end_time'),
-            'user_shifts.laba_shift as actual_cash',
-            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name = "CASH" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_cash'),
-            DB::raw('SUM(CASE WHEN ts_payment_methods.pm_name != "CASH" THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS trx_not_cash'),
-            DB::raw('SUM(ts_pos_transactions.pos_real_price) AS total_trx'),
-            'users.id as user_id',
-            'stores.id as st_id'
-        )
-            ->leftJoin('pos_transactions', function ($join) {
-                $join->on('user_shifts.user_id', '=', 'pos_transactions.kasir_id')
-                    ->whereColumn('pos_transactions.created_at', '>=', 'user_shifts.start_time')
-                    ->whereColumn('pos_transactions.created_at', '<=', 'user_shifts.end_time');
-            })
-            ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
-            ->leftJoin('users', 'users.id', '=', 'user_shifts.user_id')
-            ->leftJoin('payment_methods', 'pos_transactions.pm_id', '=', 'payment_methods.id')
-            ->whereIn('pos_transactions.pos_status', ['DONE', 'NAMESET'])
-            ->when($request->get('sales_date'), function ($query) use ($start, $end) {
-                if (!empty($end)) {
-                    $query->whereDate('pos_transactions.created_at', '>=', $start)
-                          ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $query->whereDate('pos_transactions.created_at', $start);
-                }
-            })
-            ->when($request->get('st_id'), function ($query) use ($request) {
-                $query->where('stores.id', $request->get('st_id'));
-            })
-            ->when($request->get('search'), function ($query) use ($request) {
-                $search = $request->get('search');
-                $query->where(function ($q) use ($search) {
-                    $q->where('users.u_name', 'LIKE', "%{$search}%")
-                        ->orWhere('stores.st_name', 'LIKE', "%{$search}%");
-                });
-            })
-            ->groupBy('users.u_name')
-            ->orderBy('start_time');
+        $query = $this->userShiftQuery($start, $end, $st_id, $request->get('search'));
 
         if (request()->ajax()) {
             return datatables()->of($query)
-                ->editColumn('start_time', fn($row) => date('Y-m-d H:i:s', strtotime($row->start_time)))
-                ->editColumn('end_time', fn($row) => date('Y-m-d H:i:s', strtotime($row->end_time)))
+                ->editColumn('start_time', fn($row) => date('H:i', strtotime($row->start_time)))
+                ->editColumn('end_time', fn($row) => date('H:i', strtotime($row->end_time)))
                 ->editColumn('date', fn($row) => date('Y-m-d', strtotime($row->date)))
                 ->editColumn('actual_cash', fn($row) => 'Rp. ' . number_format($row->actual_cash, 0, ',', '.'))
                 ->editColumn('trx_cash', fn($row) => 'Rp. ' . number_format($row->trx_cash, 0, ',', '.'))
@@ -285,7 +307,7 @@ class ReportShiftController extends Controller
                 ->rawColumns(['actual_cash', 'trx_cash', 'trx_not_cash', 'total_trx'])
                 ->addIndexColumn()
                 ->addColumn('cash_difference', function ($row) {
-                    $difference =  $row->actual_cash - $row->trx_cash;
+                    $difference =  (int)$row->actual_cash - (int)$row->trx_cash;
                     return 'Rp. ' . number_format($difference, 0, ',', '.');
                 })
                 ->make(true);
@@ -407,6 +429,35 @@ class ReportShiftController extends Controller
         }
     }
 
+    public function exportData(Request $request)
+    {
+        $st_id = $request->st_id;
+
+        $date = $request->get('sales_date');
+        $start = null;
+        $end = null;
+        $exp = explode('|', $date);
+        if (count($exp) > 1) {
+            if ($exp[0] != $exp[1]) {
+                $start = $exp[0];
+                $end = $exp[1];
+            } else {
+                $start = $exp[0];
+            }
+        } else {
+            $start = $date;
+        }
+
+        $data = $this->userShiftQuery($start, $end, $st_id, $request->get('search'));
+        $datas = $data->get()->map(function ($item) {
+            unset($item->st_id);
+            unset($item->user_id);
+            unset($item->trx_not_cash);
+            return $item;
+        });
+
+        return Excel::download(new UserShiftExport($datas), 'shift_report_' . date('Ymd') . '.xlsx');
+    }
 
     public function detail(Request $request)
     {

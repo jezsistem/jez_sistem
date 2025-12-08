@@ -77,28 +77,36 @@
             order: [
                 [0, 'desc']
             ],
-            dom: 'Blfrtip',
             pageLength: 10,
             lengthMenu: [
                 [10, 25, 50, 100, -1],
                 [10, 25, 50, 100, "All"]
             ],
-            searching: false,
-            buttons: [{
-                extend: 'excelHtml5',
-                title: 'Laporan Shift User',
-                className: 'btn btn-sm btn-light-primary',
-                exportOptions: {
-                    columns: ':visible'
-                }
-            }]
+            searching: false
         });
 
-        user_shift_table.buttons().container().appendTo($('#user_shift_excel_btn'));
+        $('#user_shift_excel_btn').on('click', function() {
+            var sales_date = $('#sales_date').val();
+            var st_id = $('#st_id_filter').val();
+            var search = $('#user_shift_search').val();
 
+            var queryParams = $.param({
+                sales_date: sales_date,
+                st_id: st_id,
+                search: search
+            });
+
+            var url = "{{ url('report_shift_export') }}" + '?' + queryParams;
+            window.location.href = url;
+        });
+
+        var searchTimer;
         $('#user_shift_search').on('keyup', function() {
-            console.log(user_shift_table.data());
-            user_shift_table.draw();
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                console.log(user_shift_table.data());
+                user_shift_table.draw();
+            }, 500);
         });
 
         $('#st_id_filter').select2({
