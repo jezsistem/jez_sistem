@@ -68,6 +68,7 @@
                 showConfirmButton: false
             });
         });
+    }
 
     let cashRowIndex = 1;
 
