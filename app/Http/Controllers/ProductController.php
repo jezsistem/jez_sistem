@@ -959,7 +959,16 @@ class ProductController extends Controller
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
                     ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
-                    ->where('p_delete', '!=', '1'))
+                    ->leftJoin('product_images', 'product_images.p_id', '=', 'products.id')
+                    ->where('p_delete', '!=', '1')
+                    ->when($request->input('p_photo_status_filter'), function ($query, $p_photo_status_filter) {
+                        if ($p_photo_status_filter == '1') {
+                            $query->whereNotNull('product_images.id');
+                        } elseif ($p_photo_status_filter == '0') {
+                            $query->whereNull('product_images.id');
+                        }
+                    })
+                    ->groupBy('products.id'))
                     ->editColumn('p_name_show', function ($data) {
                         return '<span style="white-space: nowrap;">' . $data->p_name . '</span>';
                     })
