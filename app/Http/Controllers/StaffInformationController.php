@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\UserInformationExport;
+use App\Models\StaffDataComment;
 use App\Models\User;
 use App\Models\UserPosition;
 use Illuminate\Http\Request;
@@ -118,7 +119,9 @@ class StaffInformationController extends Controller
                 'users.u_bank_account_number',
                 'users.u_bank_account_holder',
                 'user_positions.up_name',
-                'user_divisions.ud_name'
+                'user_divisions.ud_name',
+                'users.contract_number',
+                'users.u_active'
             )
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
@@ -148,6 +151,9 @@ class StaffInformationController extends Controller
                     $btn = '<a href="' . route('staff-information.show', $row->id) . '" class="btn btn-sm btn-primary">View Details</a>';
                     return $btn;
                 })
+                ->editColumn('u_active', function ($row) {
+                    return date('d M Y', strtotime($row->u_active));
+                })
                 ->rawColumns(['u_name', 'u_ktp', 'u_npwp', 'u_bpjs_kes_number', 'u_bpjs_tk_number', 'action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('position'))) {
@@ -170,71 +176,80 @@ class StaffInformationController extends Controller
         }
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $staff = User::select(
-                'users.id',
-                'users.u_name',
-                'users.u_ktp',
-                'users.u_ktp_image',
-                'users.u_npwp',
-                'users.u_npwp_image',
-                'users.u_birthday',
-                'users.u_address',
-                'users.u_photo',
-                'users.u_bpjs_kes_number',
-                'users.u_bpjs_kes_image',
-                'users.u_bpjs_tk_number',
-                'users.u_bpjs_tk_image',
-                'users.u_bank_name',
-                'users.u_bank_account_number',
-                'users.u_bank_account_holder',
-                'user_positions.up_name',
-                'user_divisions.ud_name'
-            )
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
-                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-                ->where('users.u_delete', '0')
-                ->where('users.id', $id)
-                ->first();
+            'users.id',
+            'users.u_name',
+            'users.u_ktp',
+            'users.u_ktp_image',
+            'users.u_npwp',
+            'users.u_npwp_image',
+            'users.u_birthday',
+            'users.u_address',
+            'users.u_photo',
+            'users.u_bpjs_kes_number',
+            'users.u_bpjs_kes_image',
+            'users.u_bpjs_tk_number',
+            'users.u_bpjs_tk_image',
+            'users.u_bank_name',
+            'users.u_bank_account_number',
+            'users.u_bank_account_holder',
+            'user_positions.up_name',
+            'user_divisions.ud_name',
+            'users.u_active'
+        )
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->where('users.u_delete', '0')
+            ->where('users.id', $id)
+            ->first();
 
         if (!$staff) {
             abort(404);
         }
+
+        $comments = StaffDataComment::where('staff_id', $id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $data = array(
             'title' => 'Staff Information Detail',
             'user' => auth()->user(),
             'sidebar' => $this->sidebar(),
             'subtitle' => 'Staff Information Detail',
+
         );
 
-        return view('app.staff_information.show', compact('staff', 'data'));
+        return view('app.staff_information.show', compact('staff', 'data', 'comments'));
     }
 
-    public function export(Request $request) {
+    public function export(Request $request)
+    {
         $users = User::select(
-                'users.id',
-                'users.u_name',
-                'users.u_ktp',
-                'users.u_ktp_image',
-                'users.u_npwp',
-                'users.u_npwp_image',
-                'users.u_birthday',
-                'users.u_address',
-                'users.u_photo',
-                'users.u_bpjs_kes_number',
-                'users.u_bpjs_kes_image',
-                'users.u_bpjs_tk_number',
-                'users.u_bpjs_tk_image',
-                'users.u_bank_name',
-                'users.u_bank_account_number',
-                'users.u_bank_account_holder',
-                'user_positions.up_name',
-                'user_divisions.ud_name'
-            )
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
-                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-                ->where('users.u_delete', '0');
+            'users.id',
+            'users.u_name',
+            'users.u_ktp',
+            'users.u_ktp_image',
+            'users.u_npwp',
+            'users.u_npwp_image',
+            'users.u_birthday',
+            'users.u_address',
+            'users.u_photo',
+            'users.u_bpjs_kes_number',
+            'users.u_bpjs_kes_image',
+            'users.u_bpjs_tk_number',
+            'users.u_bpjs_tk_image',
+            'users.u_bank_name',
+            'users.u_bank_account_number',
+            'users.u_bank_account_holder',
+            'user_positions.up_name',
+            'user_divisions.ud_name'
+        )
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->where('users.u_delete', '0');
 
         if ($request->has('position') && !empty($request->get('position'))) {
             $users->where('users.up_id', $request->get('position'));
@@ -257,5 +272,46 @@ class StaffInformationController extends Controller
         $users = $users->get();
 
         return Excel::download(new UserInformationExport($users), 'staff_information.xlsx');
+    }
+
+    public function storeComment(Request $request, $id)
+    {
+        $request->validate([
+            'comment' => 'required|string'
+        ]);
+
+        $comment = StaffDataComment::create([
+            'staff_id' => $id,
+            'user_id' => auth()->id(),
+            'comment' => $request->comment
+        ]);
+
+        if (!$comment) {
+            return redirect()->route('staff-information.show', $id)->with('error', 'Failed to add comment.');
+        }
+
+        return redirect()->route('staff-information.show', $id)->with('success', 'Comment added successfully.');
+    }
+
+    public function changeContractNumber(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $user->contract_number = $request->contract_number;
+        $user->save();
+
+        return redirect()->route('staff-information.show', $id)->with('success', 'Contract number updated successfully.');
+    }
+
+    public function changeContractEnd(Request $request, $id)
+    {
+        $request->validate([
+            'contract_end_date' => 'required|date',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->u_active = $request->contract_end_date;
+        $user->save();
+
+        return redirect()->route('staff-information.show', $id)->with('success', 'Contract end date updated successfully.');
     }
 }

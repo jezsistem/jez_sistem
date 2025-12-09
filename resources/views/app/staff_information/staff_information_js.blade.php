@@ -70,6 +70,14 @@
                     name: 'ud_name'
                 },
                 {
+                    data: 'contract_number',
+                    name: 'contract_number'
+                },
+                {
+                    data: 'u_active',
+                    name: 'u_active'
+                },
+                {
                     data: 'action',
                     name: 'action',
                     orderable: false,

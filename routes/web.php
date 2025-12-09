@@ -995,6 +995,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('staff-information/export', [StaffInformationController::class, 'export'])->name('staff-information.export');
     Route::get('staff-information/{id}', [StaffInformationController::class, 'show'])->name('staff-information.show');
 
+    //Staff Comments
+    Route::post('staff/{id}/comment', [StaffInformationController::class, 'storeComment'])->name('staff.comment');
+    Route::post('staff/{id}/change-contract-number', [StaffInformationController::class, 'changeContractNumber'])->name('staff.change-contract-number');
+    Route::post('staff/{id}/change-contract-end', [StaffInformationController::class, 'changeContractEnd'])->name('staff.change-contract-end');
+    
     // User Select for AJAX
     Route::get('users/select', [UserController::class, 'select'])->name('users.select');
 

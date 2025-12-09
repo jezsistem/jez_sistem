@@ -80,6 +80,8 @@
                                             <th>Bank Holder</th>
                                             <th>Position</th>
                                             <th>Division</th>
+                                            <th>PKWT Number</th>
+                                            <th>Contract End</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>

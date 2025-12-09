@@ -60,6 +60,7 @@ class User extends Authenticatable
         'u_bank_name',
         'u_bank_account_number',
         'u_bank_account_holder',
+        'contract_number',
     ];
 
     /**
