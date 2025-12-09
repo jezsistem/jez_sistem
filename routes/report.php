@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('report_shift_detail', [ReportShiftController::class, 'detail']);
     Route::post('report_shift_product_sold', [ReportShiftController::class, 'productSold']);
     Route::post('report_shift_product_refund', [ReportShiftController::class, 'productRefund']);
+    Route::get('report_shift_export', [ReportShiftController::class, 'exportData']);
     //    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
     //    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
     //    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);

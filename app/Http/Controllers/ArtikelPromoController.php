@@ -301,11 +301,13 @@ class ArtikelPromoController extends Controller
     public function exportData(Request $request)
     {
         try {
-            $type = $request->get('type');
+            $search = $request->get('search');
+            $dateRange = $request->get('date_range');
+            $store = $request->get('artikel_promo_store');
 
             $fileName = 'Export_Artikel_Promo_' . date('Y-m-d') . '.xlsx';
 
-            return Excel::download(new ArtikelPromoExport($type), $fileName);
+            return Excel::download(new ArtikelPromoExport($search, $dateRange, $store), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }

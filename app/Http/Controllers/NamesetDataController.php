@@ -99,7 +99,7 @@ class NameSetDataController extends Controller
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transaction_details.pos_td_nameset_by')
             ->where('pos_td_nameset', '=', $request->status)
-            ->where('pos_td_nameset_price', '!=', null)
+            ->where('pos_td_nameset_price', '>', 0)
             ->orderBy('pos_transaction_details.pos_td_nameset', 'DESC');
 
         // Apply filters
@@ -132,7 +132,7 @@ class NameSetDataController extends Controller
             if (request()->ajax()) {
                 return datatables()->of($this->getNamesetQuery($request))
                     ->editColumn('pos_invoice', function ($data) {
-                        return '<span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span>';
+                        return '<span class="btn btn-sm btn-primary" id="pos_invoice">' . $data->pos_invoice . '</span>';
                     })
                     ->editColumn('stt_name', function ($data) {
                         if (strtolower($data->stt_name) == 'offline') {
@@ -226,7 +226,7 @@ class NameSetDataController extends Controller
                         $pos_status = 'DONE';
                     }
 
-                    if (strtoupper($division) == 'ONLINE') {
+                    if (strtoupper($division) != 'ONLINE') {
                         //update plst with nameset log
                         $update_plst = DB::table('product_location_setup_transactions')
                             ->where('pls_id', '=', $pls_id)

@@ -5,6 +5,24 @@
 
 
 <script>
+    function formatDateTime(dateTimeString) {
+        const date = new Date(dateTimeString);
+        
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        
+        const dayName = days[date.getDay()];
+        const day = date.getDate();
+        const monthName = months[date.getMonth()];
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${dayName}, ${day} ${monthName} ${year} ${hours}:${minutes}:${seconds}`;
+    }
+
     function toggleFlag(column, productId) {
         fetch(`/data_produk/update-flag/${productId}`, {
                 method: 'POST',
@@ -505,6 +523,7 @@
                     d.mc_id_filter = $('#mc_id_filter').val();
                     d.sz_id_filter = $('#sz_id_filter').val();
                     d.p_active_filter = $('#p_active_filter').val();
+                    d.p_photo_status_filter = $('#p_photo_status_filter').val();
                 }
             },
             columns: [{
@@ -602,7 +621,7 @@
             product_table.draw();
         });
 
-        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_active_filter, #pc_id_filter, #psc_id_filter, #pssc_id_filter')
+        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_photo_status_filter, #pc_id_filter, #psc_id_filter, #pssc_id_filter')
             .on('change', function() {
                 product_table.draw();
             });
@@ -794,6 +813,10 @@
         });
 
         $('#p_active_filter').select2({
+            width: "150px",
+        });
+
+        $('#p_photo_status_filter').select2({
             width: "130px",
         });
 
@@ -1441,19 +1464,23 @@
                     url: `/product-links/${id}`,
                     method: "GET",
                     success: function(data) {
-                        $("#ProductLinkFormTitle").html("<span>Edit</span> " + (type === "marketplace" ? "Marketplace" : "Social Media") + " Link");
+                        $("#ProductLinkFormTitle").html("<span>Edit</span> " + (
+                            type === "marketplace" ? "Marketplace" :
+                            "Social Media") + " Link");
                         $("#pl_id").val(data.data.id);
                         $("#pl_product_id").val(data.data.product_id);
                         $("#pl_type").val(data.data.type);
                         $("#pl_url").val(data.data.url);
                         $("#mode").val("edit");
-                        
+
                         loadPlatformOptions(data.data.type);
                         loadLocations();
-                        
+
                         setTimeout(() => {
-                            $("#pl_platform").val(data.data.platform).trigger('change');
-                            $("#pl_location").val(data.data.location).trigger('change');
+                            $("#pl_platform").val(data.data.platform)
+                                .trigger('change');
+                            $("#pl_location").val(data.data.location)
+                                .trigger('change');
                         }, 300);
 
                         $("#ProductLinkFormModal").modal("show");
@@ -1482,7 +1509,8 @@
                         _token: "{{ csrf_token() }}"
                     },
                     success: function(res) {
-                        toastr.success(mode === "edit" ? "Link berhasil diupdate!" : "Link berhasil disimpan!");
+                        toastr.success(mode === "edit" ? "Link berhasil diupdate!" :
+                            "Link berhasil disimpan!");
 
                         $("#ProductLinkFormModal").modal("hide");
 
@@ -1491,9 +1519,17 @@
                         if (tableSocial) tableSocial.ajax.reload();
                     },
                     error: function(xhr) {
-                        toastr.error("Gagal menyimpan link!");
+                        toastr.error(xhr.responseJSON?.message ||
+                            "Gagal menyimpan link!");
                     }
                 });
+            });
+
+            $('.close_product_link_detail').on('click', function() {
+                $('#ProductLinkFormModal').modal('hide');
+
+                if (tableMarketplace) tableMarketplace.ajax.reload();
+                if (tableSocial) tableSocial.ajax.reload();
             });
 
             $(document).on("click", ".deleteLink", function() {
@@ -1519,11 +1555,13 @@
                             },
                             success: function(res) {
                                 toastr.success("Link berhasil dihapus!");
-                                
+
                                 // reload datatables
-                                if (type === "marketplace" && tableMarketplace) {
+                                if (type === "marketplace" &&
+                                    tableMarketplace) {
                                     tableMarketplace.ajax.reload();
-                                } else if (type === "social" && tableSocial) {
+                                } else if (type === "social" &&
+                                    tableSocial) {
                                     tableSocial.ajax.reload();
                                 }
                             },
@@ -1636,7 +1674,7 @@
                             error: function() {
                                 Swal.fire('Gagal!',
                                     'Terjadi kesalahan server.', 'error'
-                                    );
+                                );
                             }
                         });
                     }
@@ -2205,9 +2243,82 @@
             });
             return false;
         });
+        $(document).on('click', '.relatedColor', function() {
+            const articleName = $(this).data('article');
+            const linkType = $(this).data('type');
+            const platform = $(this).data('platform');
+            const url = $(this).data('url');
+            const location = $(this).data('location');
+            const linkId = $(this).data('id');
+            const createdBy = $(this).data('created_by');
+            const updatedBy = $(this).data('updated_by');
+            const createdAt = $(this).data('created_at');
+            const updatedAt = $(this).data('updated_at');
 
 
+            // Set modal details
+            $('#detail_link_type').text(linkType);
+            $('#detail_platform').text(platform);
+            $('#detail_url').attr('href', url).text(url);
+            $('#detail_location').text(location);
+            $('#detail_created_by').text(createdBy);
+            $('#detail_updated_by').text(updatedBy);
+            $('#detail_created_at').text(formatDateTime(createdAt));
+            $('#detail_updated_at').text(formatDateTime(updatedAt));
 
+            $('#ProductLinkDetailModal').modal('show');
+
+            getRelatedArticle(articleName, linkId);
+        });
+
+        $(document).on('change', '#related_toggle', function() {
+            const isChecked = $(this).is(':checked');
+            const linkId = $(this).data('product_link_id');
+            const articleName = $(this).data('article');
+            const productId = $(this).data('product_id');
+
+            $.ajax({
+                url: '/product-links/related/toggle',
+                method: 'POST',
+                data: {
+                    link_id: linkId,
+                    status: isChecked ? 1 : 0,
+                    product_id: productId,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('Status produk terkait berhasil diperbarui');
+                        // Reload the related articles list
+                        getRelatedArticle(articleName, linkId);
+                    } else {
+                        toastr.error('Gagal memperbarui status produk terkait');
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal memperbarui status produk terkait');
+                }
+            });
+        });
+
+        function getRelatedArticle(articleName, linkId) {
+            $.ajax({
+                url: `/product-links/related/${articleName}`,
+                method: 'GET',
+                data: {
+                    link_id: linkId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Populate modal with product details
+                        $('#productColorSkuBody').html(response.html);
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengambil data produk terkait');
+                }
+            });
+        }
 
     });
 </script>

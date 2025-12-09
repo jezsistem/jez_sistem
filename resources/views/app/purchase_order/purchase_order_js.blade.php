@@ -1393,6 +1393,7 @@
                         $('#total_qty').val(r.po_total_qty);
                         jQuery('#is_receivable').val(r.is_receivable);
                         jQuery('#claim_amount').val(r.claim_amount);
+                        $('#remaining_payment').val(r.claim_amount + r.po_payment_amount - r.total_po);
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -1779,7 +1780,7 @@
                 url: "{{ url('po_payment_amount') }}",
                 success: function(r) {
                     if (r.status == '200') {
-
+                        toastr.success("Jumlah pembayaran berhasil di Update", "Success");
                     } else {}
                 }
             });

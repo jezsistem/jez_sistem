@@ -7,7 +7,7 @@ COPY docker/php/conf.d/custom.ini /usr/local/etc/php/conf.d/
 # Set working directory
 WORKDIR /var/www/html
 
-# Install system dependencies (git, common libraries)
+# Install system dependencies (git, common libraries) and ADD tzdata
 RUN apk add --no-cache \
     git \
     build-base \
@@ -17,7 +17,9 @@ RUN apk add --no-cache \
     libwebp-dev \
     freetype-dev \
     mariadb-client \
-    bash
+    bash \
+    # New: Install timezone data package for Alpine
+    tzdata
 
 # Install required PHP extensions for Laravel 8.1
 # pdo_mysql is necessary for MariaDB connection

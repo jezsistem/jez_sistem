@@ -224,7 +224,16 @@
         $('#export_btn').on('click', function(e) {
             e.preventDefault();
             
-            window.location.href = "{{ url('export_artikel_promo') }}";
+            var search = $('#artikel_promo_search').val();
+            var dateRange = $('#artikel_promo_date_start').val();
+            var store = $('#artikel_promo_store').val();
+            
+            var url = "{{ url('export_artikel_promo') }}" + 
+                  "?search=" + encodeURIComponent(search) +
+                  "&date_range=" + encodeURIComponent(dateRange) +
+                  "&artikel_promo_store=" + encodeURIComponent(store);
+            
+            window.location.href = url;
         });
 
 

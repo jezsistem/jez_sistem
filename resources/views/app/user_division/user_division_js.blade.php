@@ -59,6 +59,7 @@
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
                 { data: 'ud_code', name: 'ud_code', width: '15%' },
                 { data: 'ud_name', name: 'ud_name', width: '25%' },
+                { data: 'division_type', name: 'division_type', width: '15%' },
                 { data: 'ud_description', name: 'ud_description', width: '30%' },
                 { data: 'leader_name', name: 'leader_name', width: '30%' },
                 { data: 'manager_name', name: 'manager_name', width: '30%' },

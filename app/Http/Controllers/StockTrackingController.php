@@ -131,7 +131,7 @@ class StockTrackingController extends Controller
             }
         }
         if (request()->ajax()) {
-            return datatables()->of(DB::table('product_location_setup_transactions')->select('product_location_setup_transactions.id as plst_id', 'pos_invoice', 'ps_barcode', 'rt_id', 'pt_id', 'pt_id_ref', 'pos_transactions.stt_id', 'pos_note', 'is_website', 'pos_transactions.u_id as pos_user', 'product_location_setup_transactions.u_id as u_id', 'cross_order', 'u_id_helper', 'u_id_packer', 'u_id_refund', 'p_price_tag', 'ps_price_tag', 'p_sell_price', 'ps_sell_price', 'pt_id', 'br_name', 'cust_name', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'plst_status', 'plst_qty', 'product_location_setup_transactions.created_at as plst_created', 'product_location_setup_transactions.updated_at as plst_updated')
+            return datatables()->of(DB::table('product_location_setup_transactions')->select('product_location_setup_transactions.id as plst_id', 'pos_invoice', 'ps_barcode', 'rt_id', 'pt_id', 'pt_id_ref', 'pos_transactions.stt_id', 'pos_note', 'is_website', 'pos_transactions.u_id as pos_user', 'product_location_setup_transactions.u_id as u_id', 'cross_order', 'u_id_helper', 'u_id_packer', 'u_id_refund', 'p_price_tag', 'ps_price_tag', 'p_sell_price', 'ps_sell_price', 'pt_id', 'br_name', 'cust_name', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'plst_status', 'plst_qty', 'product_location_setup_transactions.created_at as plst_created', 'product_location_setup_transactions.updated_at as plst_updated', 'product_location_setup_transactions.pt_id', 'product_location_setup_transactions.st_id_refund')
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'product_location_setup_transactions.pt_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -177,6 +177,7 @@ class StockTrackingController extends Controller
                     $updated = null;
                     $pos_note = null;
                     $refund_exchange_note = null;
+                    $refund_location = null;
 
                     if (!empty($data->pos_invoice)) {
                         $invoice = $data->pos_invoice;
@@ -218,7 +219,14 @@ class StockTrackingController extends Controller
                     if (!empty($data->pos_note)) {
                         $pos_note = $data->pos_note;
                     }
-                    return '<span style="white-space: nowrap; text-align:left; font-weight:bold;" updated="' . $updated . '" pos_note="' . $pos_note . '" backend="' . $backend . '" refund_exchange_note="' . $refund_exchange_note . '" status="' . $data->plst_status . '" invoice="' . $invoice . '" picker="' . $picker . '" cashier="' . $cashier . '" customer="' . $customer . '" helper="' . $helper . '" packer="' . $packer . '" class="btn btn-sm btn-primary" id="user_detail_btn">' . $article . '</span>';
+
+                    if (!empty($data->st_id_refund)) {
+                        $store = Store::select('st_name')->where('id', $data->st_id_refund)->get()->first();
+                        if (!empty($store)) {
+                            $refund_location = $store->st_name;
+                        }
+                    }
+                    return '<span style="white-space: nowrap; text-align:left; font-weight:bold;" updated="' . $updated . '" pos_note="' . $pos_note . '" backend="' . $backend . '" refund_exchange_note="' . $refund_exchange_note . '" status="' . $data->plst_status . '" invoice="' . $invoice . '" picker="' . $picker . '" cashier="' . $cashier . '" customer="' . $customer . '" helper="' . $helper . '" packer="' . $packer . '" refund_location="' . $refund_location . '" class="btn btn-sm btn-primary" id="user_detail_btn">' . $article . '</span>';
                 })
                 ->editColumn('invoice', function ($data) {
                     if (!empty($data->pos_invoice)) {
