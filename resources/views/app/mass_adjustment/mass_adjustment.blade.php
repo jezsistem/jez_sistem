@@ -302,6 +302,7 @@
                                     <th class="text-dark">Eksekutor</th>
                                     <th class="text-dark">Editor</th>
                                     <th class="text-dark">Note</th>
+                                    <th class="text-dark">Proof Files</th>
                                     <th class="text-dark">Tipe</th>
                                     <th class="text-dark">Dibuat</th>
                                     <th class="text-dark">Diupdate</th>

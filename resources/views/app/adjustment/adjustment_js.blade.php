@@ -138,6 +138,7 @@
             { data: 'ba_new_qty', name: 'ba_new_qty', orderable: false },
             { data: 'adjust', name: 'adjust', orderable: false },
             { data: 'ba_note', name: 'ba_note', orderable: false },
+            { data: 'ba_proof_file', name: 'ba_proof_file', orderable: false },
             { data: 'ba_status', name: 'ba_status', orderable: false },
             ], 
             columnDefs: [
@@ -663,57 +664,144 @@
             jQuery('#itemList').fadeOut();
         });
 
-        $('#f_article').on('submit', function(e) {
+        $('#article_note').on('change', function () {
+            let val = $(this).val();
+
+            if (val === 'KESALAHAN SYSTEM') {
+                $('#bukti_kesalahan_group').removeClass('d-none');
+                $('#proof_file').attr('required', true);
+            } else {
+                $('#bukti_kesalahan_group').addClass('d-none');
+                $('#proof_file').removeAttr('required');
+                $('#proof_file').val('');
+            }
+        });
+
+        {{--$('#f_article').on('submit', function(e) {--}}
+        {{--    e.preventDefault();--}}
+        {{--    swal({--}}
+        {{--        title: "Tambah Artikel..?",--}}
+        {{--        text: "Menambah artikel akan menambah jumlah QTY artikel pada bin ini dan juga QTY secara global tanpa melewati PO ?",--}}
+        {{--        icon: "info",--}}
+        {{--        buttons: [--}}
+        {{--            'Batal',--}}
+        {{--            'Yakin'--}}
+        {{--        ],--}}
+        {{--        dangerMode: false,--}}
+        {{--    }).then(function(isConfirm) {--}}
+        {{--        if (isConfirm) {--}}
+        {{--            $('#save_add_article_btn').prop('disabled', true);--}}
+        {{--            var pst_id = $('#pst_id_hidden').val();--}}
+        {{--            var pls_qty = $('#pls_qty').val();--}}
+        {{--            var article_note = $('#article_note').val();--}}
+        {{--            var bin_label = $('#adjustment_label').text().split(" ");--}}
+        {{--            var bin = $('#_pl_id').val();--}}
+        {{--            //alert(pst_id+' '+pls_qty+' '+bin);--}}
+        {{--            $.ajaxSetup({--}}
+        {{--                headers: {--}}
+        {{--                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+        {{--                }--}}
+        {{--            });--}}
+        {{--            $.ajax({--}}
+        {{--                type: "POST",--}}
+        {{--                dataType: 'json',--}}
+        {{--                data: {_pst_id:pst_id, _pls_qty:pls_qty, _bin:bin, _article_note:article_note},--}}
+        {{--                url: "{{ url('add_article_adjustment')}}",--}}
+        {{--                success: function(r) {--}}
+        {{--                    if (r.status == '200'){--}}
+        {{--                        validated_table.draw();--}}
+        {{--                        not_validated_table.draw();--}}
+        {{--                        reloadLocation();--}}
+        {{--                        article_table.draw();--}}
+        {{--                        adjustment_history_table.draw();--}}
+        {{--                        $('#f_article')[0].reset();--}}
+        {{--                        $('#pst_id').val('').trigger('change');--}}
+        {{--                        $('#AddArticleModal').modal('hide');--}}
+        {{--                        $('#save_add_article_btn').prop('disabled', false);--}}
+        {{--                        swal('Berhasil', 'Artikel baru berhasil ditambah pada bin ini', 'success');--}}
+        {{--                    } else {--}}
+        {{--                        $('#save_add_article_btn').prop('disabled', false);--}}
+        {{--                        toast('Error', 'Ada error, info ke programmer', 'error');--}}
+        {{--                    }--}}
+        {{--                }--}}
+        {{--            });--}}
+        {{--            return false;--}}
+        {{--        }--}}
+        {{--    })--}}
+        {{--});--}}
+
+        $('#f_article').on('submit', function (e) {
             e.preventDefault();
+
             swal({
                 title: "Tambah Artikel..?",
-                text: "Menambah artikel akan menambah jumlah QTY artikel pada bin ini dan juga QTY secara global tanpa melewati PO ?",
+                text: "Menambah artikel akan menambah QTY tanpa melewati PO.",
                 icon: "info",
-                buttons: [
-                    'Batal',
-                    'Yakin'
-                ],
+                buttons: ['Batal', 'Yakin'],
                 dangerMode: false,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
+
                     $('#save_add_article_btn').prop('disabled', true);
-                    var pst_id = $('#pst_id_hidden').val();
-                    var pls_qty = $('#pls_qty').val();
-                    var article_note = $('#article_note').val();
-                    var bin_label = $('#adjustment_label').text().split(" ");
-                    var bin = $('#_pl_id').val();
-                    //alert(pst_id+' '+pls_qty+' '+bin);
-                    $.ajaxSetup({
-                        headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
+
+                    let formData = new FormData();
+                    formData.append('_pst_id', $('#pst_id_hidden').val());
+                    formData.append('_pls_qty', $('#pls_qty').val());
+                    formData.append('_article_note', $('#article_note').val());
+                    formData.append('_bin', $('#_pl_id').val());
+                    formData.append('_token', $('meta[name="csrf-token"]').attr('content')); // FIX CSRF
+
+                    // file bukti kesalahan
+                    let fileInput = $('#proof_file')[0].files[0];
+                    if (fileInput) {
+                        formData.append('proof_file', fileInput);
+                    }
+
                     $.ajax({
+                        url: "{{ url('add_article_adjustment') }}",
                         type: "POST",
+                        data: formData,
                         dataType: 'json',
-                        data: {_pst_id:pst_id, _pls_qty:pls_qty, _bin:bin, _article_note:article_note},
-                        url: "{{ url('add_article_adjustment')}}",
-                        success: function(r) {
-                            if (r.status == '200'){
+                        contentType: false,
+                        processData: false,
+                        enctype: 'multipart/form-data',
+
+                        success: function (r) {
+                            if (r.status == '200') {
+
                                 validated_table.draw();
                                 not_validated_table.draw();
                                 reloadLocation();
                                 article_table.draw();
                                 adjustment_history_table.draw();
+
                                 $('#f_article')[0].reset();
-                                $('#pst_id').val('').trigger('change');
                                 $('#AddArticleModal').modal('hide');
-                                $('#save_add_article_btn').prop('disabled', false);
-                                swal('Berhasil', 'Artikel baru berhasil ditambah pada bin ini', 'success');
+
+                                swal('Berhasil', 'Artikel baru berhasil ditambah.', 'success');
                             } else {
-                                $('#save_add_article_btn').prop('disabled', false);
-                                toast('Error', 'Ada error, info ke programmer', 'error');
+                                toast('Error', 'Ada error, info ke programmer.', 'error');
                             }
+
+                            $('#save_add_article_btn').prop('disabled', false);
+
+                            $('#bukti_kesalahan_group').addClass('d-none');
+                            $('#proof_file').removeAttr('required');
+                            $('#proof_file').val('');
+                        },
+
+                        error: function (xhr) {
+                            console.log(xhr.responseText);
+                            $('#save_add_article_btn').prop('disabled', false);
+                            toast('Error', 'Server error / CSRF mismatch.', 'error');
+
+                            $('#bukti_kesalahan_group').addClass('d-none');
+                            $('#proof_file').removeAttr('required');
+                            $('#proof_file').val('');
                         }
                     });
-                    return false;
                 }
-            })
+            });
         });
 
         $('#add_article_btn').on('click', function(e) {

@@ -56,6 +56,20 @@
         });
     });
 
+    function copyLeaveLink(id) {
+        const url = `${window.location.origin}/external-assignment-requests/${id}`;
+
+        navigator.clipboard.writeText(url).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Link disalin',
+                text: 'URL telah disalin ke clipboard!',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    }
+
     let cashRowIndex = 1;
 
     $(document).on('click', '#addCashDetailRow', function() {

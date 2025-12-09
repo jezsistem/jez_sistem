@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LeaveRequestComment;
 use Illuminate\Http\Request;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
@@ -1150,6 +1151,13 @@ class LeaveRequestController extends Controller
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
                     $btn .= '            <a href="' . route('leave-requests.show', $row->id) . '" class="menu-link px-3">View</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+
+                    // Copy Link
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="copyLeaveLink(' . $row->id . ')" class="menu-link px-3">Copy Link</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
 
@@ -2538,6 +2546,28 @@ class LeaveRequestController extends Controller
         } else {
             return $bytes . ' bytes';
         }
+    }
+
+    public function storeComment(Request $request, $id)
+    {
+        $request->validate([
+            'comment' => 'required|string'
+        ]);
+
+        $comment = LeaveRequestComment::create([
+            'lr_id' => $id,
+            'user_id' => auth()->id(),
+            'comment' => $request->comment
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'name' => $comment->user->u_name,
+                'datetime' => $comment->created_at->format('d/m/Y H:i'),
+                'comment' => $comment->comment
+            ]
+        ]);
     }
 
     /**
