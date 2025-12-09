@@ -295,7 +295,7 @@
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="text-center text-muted py-10">
+                                        <div class="text-center text-muted py-10 no-comment">
                                             <i class="flaticon2-chat-1 icon-3x mb-3"></i>
                                             <p class="font-size-sm">No comments yet.</p>
                                         </div>
@@ -303,13 +303,13 @@
                                 </div>
                             </div>
                             <div class="card-footer">
-                                <form action="{{ route('staff.comment', $staff->id) }}" method="POST" id="commentForm">
+                                <form id="commentForm">
                                     @csrf
                                     <div class="form-group mb-3">
-                                        <textarea name="comment" class="form-control form-control-sm" rows="3" placeholder="Add a comment..."
+                                        <textarea name="comment" id="commentInput" class="form-control form-control-sm" rows="3" placeholder="Add a comment..."
                                             required></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-primary btn-sm btn-block">
+                                    <button type="button" class="btn btn-primary btn-sm btn-block" id="btnAddComment">
                                         <i class="flaticon2-send"></i> Submit Comment
                                     </button>
                                 </form>
@@ -328,41 +328,105 @@
     @include('app.staff_information.staff_information_js')
 
     <script>
-        $('#contract_number').change(function() {
-            var contractNumber = $(this).val();
+        document.getElementById('contract_number').addEventListener('change', function() {
+            var contractNumber = this.value;
             var staffId = '{{ $staff->id }}';
-            $.ajax({
-                url: '/staff/' + staffId + '/change-contract-number',
-                type: 'POST',
-                data: {
-                    contract_number: contractNumber,
-                    _token: '{{ csrf_token() }}'
+            
+            fetch('/staff/' + staffId + '/change-contract-number', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                success: function(response) {
-                    toastr.success('Contract Number updated successfully.');
-                },
-                error: function(xhr) {
-                    toastr.error('Failed to update Contract Number.');
-                }
+                body: JSON.stringify({
+                    contract_number: contractNumber
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                toastr.success('Contract Number updated successfully.');
+            })
+            .catch(error => {
+                toastr.error('Failed to update Contract Number.');
             });
         });
 
-        $('#contract_end_date').change(function() {
-            var contractEndDate = $(this).val();
+        document.getElementById('contract_end_date').addEventListener('change', function() {
+            var contractEndDate = this.value;
             var staffId = '{{ $staff->id }}';
-            $.ajax({
-                url: '/staff/' + staffId + '/change-contract-end',
-                type: 'POST',
-                data: {
-                    contract_end_date: contractEndDate,
-                    _token: '{{ csrf_token() }}'
+            
+            fetch('/staff/' + staffId + '/change-contract-end', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                success: function(response) {
-                    toastr.success('Contract End Date updated successfully.');
+                body: JSON.stringify({
+                    contract_end_date: contractEndDate
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                toastr.success('Contract End Date updated successfully.');
+            })
+            .catch(error => {
+                toastr.error('Failed to update Contract End Date.');
+            });
+        });
+
+        document.getElementById('btnAddComment').addEventListener('click', function() {
+            let comment = document.getElementById('commentInput').value.trim();
+            if (!comment) return;
+
+            fetch('{{ route('comments.store', $staff->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                error: function(xhr) {
-                    toastr.error('Failed to update Contract End Date.');
+                body: JSON.stringify({ 
+                    comment: comment,
+                    identifier: 'staff-information',
+                    key_id: {{ $staff->id }}
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    // hapus jika ada text kosong
+                    let emptyText = document.querySelector('.no-comment');
+                    if (emptyText) emptyText.remove();
+
+                    // append komentar baru
+                    document.getElementById('commentList').insertAdjacentHTML('afterbegin', `
+                        <div class="mb-5 pb-4" style="border-bottom: 1px solid #EBEDF3;">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="symbol symbol-35 mr-3">
+                                    <span class="symbol-label font-size-h5 font-weight-bold text-primary">
+                                        ${res.data.name.charAt(0)}
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="font-weight-bold text-dark-75 font-size-sm">
+                                        ${res.data.name}
+                                    </div>
+                                    <div class="text-muted font-size-xs">
+                                        ${res.data.datetime}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-dark-75 font-size-sm">
+                                ${res.data.comment.replace(/\n/g, '<br>')}
+                            </div>
+                        </div>
+                    `);
+
+                    document.getElementById('commentInput').value = '';
+                    toastr.success('Comment added successfully.');
                 }
+            })
+            .catch(error => {
+                toastr.error('Failed to add comment.');
             });
         });
     </script>

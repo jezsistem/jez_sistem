@@ -215,7 +215,7 @@
 
                             <div class="card-body" id="commentList" style="max-height:300px; overflow:auto;">
 
-                                @forelse ($leaveRequest->comments as $c)
+                                @forelse ($comments as $c)
                                     <div class="mb-3 p-2" style="border-bottom:1px solid #eee;">
                                         <strong>{{ $c->user->u_name }}</strong>
                                         <div style="font-size:12px; color:#888;">
@@ -273,13 +273,13 @@
             let comment = document.getElementById("commentInput").value.trim();
             if (!comment) return;
 
-            fetch("{{ route('leave-requests.comment', $leaveRequest->id) }}", {
+            fetch("{{ route('comments.store', $leaveRequest->id) }}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRF-TOKEN": "{{ csrf_token() }}"
                 },
-                body: JSON.stringify({ comment: comment })
+                body: JSON.stringify({ comment: comment, identifier: 'leave-requests', key_id: {{ $leaveRequest->id }} })
             })
                 .then(res => res.json())
                 .then(res => {

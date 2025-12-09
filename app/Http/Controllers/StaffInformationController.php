@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\UserInformationExport;
+use App\Models\Comment;
 use App\Models\StaffDataComment;
 use App\Models\User;
 use App\Models\UserPosition;
@@ -209,8 +210,8 @@ class StaffInformationController extends Controller
             abort(404);
         }
 
-        $comments = StaffDataComment::where('staff_id', $id)
-            ->with('user')
+        $comments = Comment::where('identifier', 'staff-information')
+            ->where('key_id', $id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -272,25 +273,6 @@ class StaffInformationController extends Controller
         $users = $users->get();
 
         return Excel::download(new UserInformationExport($users), 'staff_information.xlsx');
-    }
-
-    public function storeComment(Request $request, $id)
-    {
-        $request->validate([
-            'comment' => 'required|string'
-        ]);
-
-        $comment = StaffDataComment::create([
-            'staff_id' => $id,
-            'user_id' => auth()->id(),
-            'comment' => $request->comment
-        ]);
-
-        if (!$comment) {
-            return redirect()->route('staff-information.show', $id)->with('error', 'Failed to add comment.');
-        }
-
-        return redirect()->route('staff-information.show', $id)->with('success', 'Comment added successfully.');
     }
 
     public function changeContractNumber(Request $request, $id)

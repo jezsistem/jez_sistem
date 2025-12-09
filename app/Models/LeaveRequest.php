@@ -214,9 +214,4 @@ class LeaveRequest extends Model
             return false;
         }
     }
-
-    public function comments()
-    {
-        return $this->hasMany(LeaveRequestComment::class, 'lr_id')->orderBy('id', 'DESC');
-    }
 }

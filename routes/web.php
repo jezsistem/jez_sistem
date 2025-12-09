@@ -99,6 +99,7 @@ use App\Http\Controllers\UserDivisionV2Controller;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnnouncementCategoryController;
 use App\Http\Controllers\AnnouncementReactionController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ExternalAssignmentRequestController;
 
 
@@ -940,10 +941,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
 
-    //leave reequest comments
-    Route::post('/leave-requests/{id}/comment', [LeaveRequestController::class, 'storeComment'])
-        ->name('leave-requests.comment');
-
     // Debug route for testing CSRF
     Route::get('test-csrf', function () {
         return response()->json([
@@ -1184,6 +1181,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('send_whatsapp_nota',  [WhatsappController::class, 'send_whatsapp_nota']);
     Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
     Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
+
+    //Comment Route
+    Route::post('/comments/store/{id}', [CommentController::class, 'store'])->name('comments.store');
 
 });
 

@@ -15,7 +15,9 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LeaveSummaryExport;
 use App\Exports\LeaveRequestExport;
+use App\Models\Comment as ModelsComment;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Comment;
 
 class LeaveRequestController extends Controller
 {
@@ -374,6 +376,12 @@ class LeaveRequestController extends Controller
             ->whereBetween('daily_schedules.ds_date', [$leaveRequest->lr_start_date, $leaveRequest->lr_end_date])
             ->get();
 
+        $comments = Comment::where('identifier', 'leave-requests')
+            ->where('key_id', $leaveRequest->id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
 
         $data = [
             'title' => $title,
@@ -383,7 +391,7 @@ class LeaveRequestController extends Controller
             'segment' => request()->segment(1)
         ];
 
-        return view('app.leave_request.show', compact('leaveRequest', 'dailySchedules', 'data'));
+        return view('app.leave_request.show', compact('leaveRequest', 'dailySchedules', 'data', 'comments'));
     }
 
     public function edit($id)
@@ -2546,28 +2554,6 @@ class LeaveRequestController extends Controller
         } else {
             return $bytes . ' bytes';
         }
-    }
-
-    public function storeComment(Request $request, $id)
-    {
-        $request->validate([
-            'comment' => 'required|string'
-        ]);
-
-        $comment = LeaveRequestComment::create([
-            'lr_id' => $id,
-            'user_id' => auth()->id(),
-            'comment' => $request->comment
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'name' => $comment->user->u_name,
-                'datetime' => $comment->created_at->format('d/m/Y H:i'),
-                'comment' => $comment->comment
-            ]
-        ]);
     }
 
     /**

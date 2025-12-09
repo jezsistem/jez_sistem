@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateStaffDataCommentsTable extends Migration
+class AddCommentsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,14 @@ class CreateStaffDataCommentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('staff_data_comments', function (Blueprint $table) {
+        Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('staff_id');
+            $table->string('identifier');
+            $table->unsignedBigInteger('key_id');
             $table->unsignedBigInteger('user_id');
             $table->text('comment');
             $table->timestamps();
 
-            $table->foreign('staff_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
@@ -32,6 +32,6 @@ class CreateStaffDataCommentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('staff_data_comments');
+        //
     }
 }
