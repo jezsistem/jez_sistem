@@ -284,6 +284,20 @@
         }
     }
 
+    function copyLeaveLink(id) {
+        const url = `${window.location.origin}/leave-requests/${id}`;
+
+        navigator.clipboard.writeText(url).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Link disalin',
+                text: 'URL telah disalin ke clipboard!',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -841,5 +855,7 @@
             });
         }
     }
+
+
     
 </script> 

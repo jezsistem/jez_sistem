@@ -165,7 +165,7 @@ class MassAdjustmentController extends Controller
     public function adjustmentDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name','st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe', 'product_stocks.ps_barcode')
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_proof_file','ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name','st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe', 'product_stocks.ps_barcode')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
                 ->leftJoin('mass_adjustment_details', 'mass_adjustment_details.ma_id', '=', 'mass_adjustments.id')
@@ -201,6 +201,13 @@ class MassAdjustmentController extends Controller
                     if (!empty($d->ma_editor)) {
                         return DB::table('users')->where('id', '=', $d->ma_editor)->first()->u_name;
                     } else {
+                        return '-';
+                    }
+                })
+                ->editColumn('ma_proof_file', function ($d) {
+                    if(!empty($d->ma_proof_file)){
+                        return "<a href='https://nos.wjv-1.neo.id/$d->ma_proof_file' target='_blank' data-id='" . $d->id . "'>View Files</a>";
+                    } else{
                         return '-';
                     }
                 })
@@ -246,7 +253,7 @@ class MassAdjustmentController extends Controller
                     $st_code_alias = $aliases[$d->st_code] ?? $d->st_code;
                     return $st_code_alias . ' - ' . ($d->note ?? '-');
                 })
-                ->rawColumns(['ma_code_show', 'action', 'note'])
+                ->rawColumns(['ma_code_show', 'action', 'note', 'ma_proof_file'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -472,6 +479,41 @@ class MassAdjustmentController extends Controller
         return Excel::download(new MassResult($ma_id), 'mass_adjustment_results.xlsx');
     }
 
+//    public function importData(Request $req)
+//    {
+//        $st_id = $req->post('st_id');
+//        $psc_id = $req->post('psc_id');
+//        $br_id = $req->post('br_id');
+//        $pl_id = $req->post('pl_id');
+//        $qty_filter = $req->post('qty_filter');
+//        $note = $req->post('note_adjustment');
+//        $tipe = $req->post('tipe_adjustment');
+//
+//
+//        if (request()->hasFile('template')) {
+//            try {
+//                $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note, $tipe);
+//                Excel::import($import, request()->file('template'));;
+//                if (!empty($import->invalidPlsIds)) {
+//                    // Kalau ada data tidak valid
+//                    $r['status'] = '500';
+//                    $r['invalid_skus'] = $import->invalidPlsIds;
+//                } else {
+//                    // Kalau tidak ada error, sukses
+//                    $r['status'] = '200';
+//                    $r['ma_id'] = $import->getRowCount()['ma_id'];
+//                    $r['ma_code'] = $import->getRowCount()['ma_code'];
+//                }
+//            } catch (\Exception $e) {
+//                $r['status'] = '500';
+//                $r['message'] = $e->getMessage();
+//            }
+//        } else {
+//            $r['status'] = '500';
+//        }
+//        return json_encode($r);
+//    }
+
     public function importData(Request $req)
     {
         $st_id = $req->post('st_id');
@@ -482,21 +524,56 @@ class MassAdjustmentController extends Controller
         $note = $req->post('note_adjustment');
         $tipe = $req->post('tipe_adjustment');
 
+//        $bucketName = env('AWS_BUCKET');
+        $proof_file_url = null;
+        $bucketName = config('filesystems.disks.s3.bucket');
+
+        // ==================================================
+        // UPLOAD BUKTI KESALAHAN KE S3 (CLOUD STORAGE)
+        // ==================================================
+        if ($req->hasFile('proof_file')) {
+
+            $file = $req->file('proof_file');
+
+            // Nama file unik
+            $proofFileName = 'MA_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            // Folder penyimpanan
+            $folder = 'mass_adjustments/proofs';
+
+            // Upload ke S3
+            $proofPath = $file->storeAs($folder, $proofFileName, 's3');
+
+            // URL lengkap untuk disimpan di DB
+            $proof_file_url = $bucketName . '/' . $proofPath;
+        }
 
         if (request()->hasFile('template')) {
             try {
-                $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note, $tipe);
-                Excel::import($import, request()->file('template'));;
+
+                // Tambahkan parameter bukti ke MassImport
+                $import = new MassImport(
+                    $st_id,
+                    $psc_id,
+                    $br_id,
+                    $pl_id,
+                    $qty_filter,
+                    $note,
+                    $tipe,
+                    $proof_file_url // <== tambahan
+                );
+
+                Excel::import($import, request()->file('template'));
+
                 if (!empty($import->invalidPlsIds)) {
-                    // Kalau ada data tidak valid
                     $r['status'] = '500';
                     $r['invalid_skus'] = $import->invalidPlsIds;
                 } else {
-                    // Kalau tidak ada error, sukses
                     $r['status'] = '200';
                     $r['ma_id'] = $import->getRowCount()['ma_id'];
                     $r['ma_code'] = $import->getRowCount()['ma_code'];
                 }
+
             } catch (\Exception $e) {
                 $r['status'] = '500';
                 $r['message'] = $e->getMessage();
@@ -504,6 +581,7 @@ class MassAdjustmentController extends Controller
         } else {
             $r['status'] = '500';
         }
+
         return json_encode($r);
     }
 

@@ -1,5 +1,57 @@
 <script>
 
+    function initializeSimpleDropdown() {
+        console.log('Initializing simple dropdown system for Leave Request');
+
+        // Remove any existing event handlers
+        $(document).off('click', '[data-kt-menu-trigger="click"]');
+
+        // Add click handler for dropdown toggle
+        $(document).on('click', '[data-kt-menu-trigger="click"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $this = $(this);
+            var $menu = $this.siblings('.menu');
+            var $cardBody = $this.closest('.card.card-custom').find('> .card-body');
+            var $row = $this.closest('tr');
+
+            // Tutup semua menu lain
+            $('.menu').not($menu).removeClass('show');
+            $cardBody.removeClass('pb-extra2'); // reset padding
+
+            // Toggle menu ini
+            $menu.toggleClass("show");
+
+            // Jika menu terbuka & baris ini adalah row terakhir
+            if ($menu.hasClass('show') && $row.is(':last-child')) {
+                $cardBody.addClass('pb-extra2');
+            }
+        });
+
+        // Close menu when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.dropdown').length) {
+                $('.menu').removeClass('show');
+            }
+        });
+
+        // Close menu when clicking on menu items
+        $(document).on('click', '.menu-link', function(e) {
+            if ($(this).attr('onclick')) {
+                // For buttons with onclick, let the onclick handle it
+                return;
+            }
+            // For other links, close menu after a short delay
+            setTimeout(function() {
+                $('.menu').removeClass('show');
+            }, 100);
+        });
+
+        console.log('Simple dropdown system initialized for Leave Request');
+        console.log('Dropdown elements found:', document.querySelectorAll('.dropdown').length);
+    }
+
     function exportRequestToExcel() {
         // Implement the export functionality here
         let status = $('#status').val();
@@ -46,6 +98,20 @@
             error: function(xhr) {
                 Swal.fire('Error', 'Failed to export data to Excel.', 'error');
             }
+        });
+    }
+
+    function copyOvertimeLink(id) {
+        const url = `${window.location.origin}/overtime/${id}`;
+
+        navigator.clipboard.writeText(url).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Link disalin',
+                text: 'URL telah disalin ke clipboard!',
+                timer: 1500,
+                showConfirmButton: false
+            });
         });
     }
 
@@ -146,7 +212,11 @@
             columnDefs: [
                 { width: '150rem', targets: [4, 5] }
             ]
+
         });
+
+        // Initialize dropdown menu system
+        initializeSimpleDropdown();
 
         // ==========================
         // 🔍 Event Filter
