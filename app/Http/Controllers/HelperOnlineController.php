@@ -240,7 +240,7 @@ class HelperOnlineController extends Controller
                 DB::raw('SUM(ts_online_transaction_details.qty) AS total_picked'),
                 DB::raw('COUNT(DISTINCT ts_online_transaction_chat_history.id) as unreaded_chat'),
                 DB::raw("MAX(CASE WHEN ts_online_transaction_chat_history.is_readed = 0 AND ts_online_transaction_chat_history.is_amp = 1 THEN ts_online_transaction_chat_history.created_at END) as last_chat_time"),
-                DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
+                DB::raw('CASE WHEN shipping_method LIKE "%Instan%" THEN 1 ELSE 0 END as is_instant'),
                 'online_print',
                 'shipping_method',
                 'print_resi',
