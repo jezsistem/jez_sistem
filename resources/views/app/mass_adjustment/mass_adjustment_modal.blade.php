@@ -51,6 +51,11 @@
                                 <option value="KERUGIAN RETUR MP">KERUGIAN RETUR MP</option>
                             </select>
                         </div>
+
+                        <div class="form-group d-none" id="bukti_kesalahan_group">
+                            <label>Bukti Kesalahan System <span class="text-danger">*</span></label>
+                            <input type="file" name="proof_file" id="proof_file" class="form-control">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
