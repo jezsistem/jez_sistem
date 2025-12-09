@@ -290,11 +290,41 @@ class OvertimeRequestController extends Controller
                 return $badge;
             })
             ->addColumn('action', function ($row) {
-                return '
-                <a href="' . route('overtime.show', $row->id) . '" class="btn btn-sm btn-info">
-                    <i class="fa fa-eye"></i> View
-                </a>
-            ';
+                $btn = '<div class="dropdown">';
+                $btn .= '    <!--begin::Toggle-->';
+                $btn .= '    <button type="button" class="btn btn-sm btn-light btn-active-light-primary" 
+                        data-kt-menu-trigger="click" 
+                        data-kt-menu-placement="bottom-start">
+                    Actions
+                </button>';
+                $btn .= '    <!--end::Toggle-->';
+
+                $btn .= '    <!--begin::Menu-->';
+                $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded 
+                        menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" 
+                        data-kt-menu="true">';
+
+                // VIEW
+                $btn .= '        <div class="menu-item px-3">
+                        <a href="' . route('overtime.show', $row->id) . '" class="menu-link px-3">
+                            View
+                        </a>
+                    </div>';
+
+                // COPY LINK
+                $btn .= '        <div class="menu-item px-3">
+                        <a href="javascript:void(0)" onclick="copyOvertimeLink(' . $row->id . ')" 
+                            class="menu-link px-3">
+                            Copy Link
+                        </a>
+                    </div>';
+
+                $btn .= '    </div>';
+                $btn .= '    <!--end::Menu-->';
+
+                $btn .= '</div>';
+
+                return $btn;
             })
             ->rawColumns(['approved_info', 'action', 'assigned_staff', 'status'])
             ->make(true);
