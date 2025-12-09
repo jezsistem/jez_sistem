@@ -56,7 +56,7 @@
         });
     });
 
-    function copyLink(id) {
+    function copyLeaveLink(id) {
         const url = `${window.location.origin}/external-assignment-requests/${id}`;
 
         navigator.clipboard.writeText(url).then(() => {

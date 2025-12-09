@@ -1387,7 +1387,7 @@ class ExternalAssignmentRequestController extends Controller
                     // Copy Link
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="copyLink(' . $row->id . ')" class="menu-link px-3">Copy Link</a>';
+                    $btn .= '            <a href="javascript:void(0)" onclick="copyLeaveLink(' . $row->id . ')" class="menu-link px-3">Copy Link</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
 
