@@ -371,6 +371,11 @@
                     orderable: false
                 },
                 {
+                    data: 'ma_proof_file',
+                    name: 'ma_proof_file',
+                    orderable: false
+                },
+                {
                     data: 'tipe',
                     name: 'tipe',
                     orderable: false
@@ -926,6 +931,19 @@
             })
         });
 
+        $('#note_adjustment').on('change', function () {
+            let val = $(this).val();
+
+            if (val === 'KESALAHAN SYSTEM') {
+                $('#bukti_kesalahan_group').removeClass('d-none');
+                $('#bukti_kesalahan').attr('required', true);
+            } else {
+                $('#bukti_kesalahan_group').addClass('d-none');
+                $('#bukti_kesalahan').removeAttr('required');
+                $('#bukti_kesalahan').val('');
+            }
+        });
+
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
             if (st_id == 'all') {
@@ -934,6 +952,10 @@
             }
             var formData = new FormData(this);
             formData.append('st_id', st_id);
+
+            if ($('#proof_file')[0].files.length > 0) {
+                formData.append('proof_file', $('#proof_file')[0].files[0]);
+            }
 
             // console.log(formData);
             $("#import_data_btn").html('Proses ..');

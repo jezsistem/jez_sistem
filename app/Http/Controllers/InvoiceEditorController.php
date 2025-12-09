@@ -340,7 +340,7 @@ class InvoiceEditorController extends Controller
         if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setup_transactions')
                 ->selectRaw("ts_product_location_setup_transactions.id as id, CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) as article,
-            pl_code, plst_qty, plst_status")
+            pl_code, plst_qty, plst_status, st_id_refund")
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -368,7 +368,22 @@ class InvoiceEditorController extends Controller
                     $stts .= "</select>";
                     return $stts;
                 })
-                ->rawColumns(['status'])
+                ->addColumn('refund_location', function ($d) {
+                    $stores = DB::table('stores')->where('st_delete', '!=', '1')->where('st_name','not like','ONLINE%')->orderBy('st_name')->get();
+                    $loc = '';
+                    $loc .= "<select data-id='" . $d->id . "' id='refund_location'>";
+                    $loc .= "<option value=''>-- Pilih Lokasi --</option>";
+                    foreach ($stores as $row) {
+                        if ($d->st_id_refund == $row->id) {
+                            $loc .= "<option value='" . $row->id . "' selected>" . $row->st_name . "</option>";
+                        } else {
+                            $loc .= "<option value='" . $row->id . "'>" . $row->st_name . "</option>";
+                        }
+                    }
+                    $loc .= "</select>";
+                    return $loc;
+                })
+                ->rawColumns(['status', 'refund_location'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -928,6 +943,11 @@ class InvoiceEditorController extends Controller
             $update = DB::table('product_location_setup_transactions')->where('id', '=', $id)
                 ->update([
                     'plst_status' => $value
+                ]);
+        } else if ($type == 'refund_location') {
+            $update = DB::table('product_location_setup_transactions')->where('id', '=', $id)
+                ->update([
+                    'st_id_refund' => $value
                 ]);
         }
 

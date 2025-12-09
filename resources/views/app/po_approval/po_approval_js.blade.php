@@ -382,6 +382,7 @@
             var due_date = po_approval_table.row(this).data().due_date;
             var arrived_at = po_approval_table.row(this).data().arrived_at;
             approval = po_approval_table.row(this).data().u_receive;
+            var payment_amount = po_approval_table.row(this).data().payment_amount;
             jQuery.noConflict();
 
             let dispute_text = '';
@@ -480,6 +481,7 @@
                     $('#due_date').val(due_date);
                     $('#putaway').val(putaway_text);
                     $('#status_dispute').val(status_dispute_text);
+                    $('#payment_amount').val(payment_amount);
                     // Format arrived_at to 'YYYY-MM-DDTHH:mm'
                     let formattedArrivedAt = '';
                     if (arrived_at) {

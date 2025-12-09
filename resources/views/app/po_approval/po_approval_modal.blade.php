@@ -238,6 +238,10 @@
                             <label>Putaway</label>
                             <input type="text" id="putaway" class="form-control" name="putaway" disabled />
                         </div>
+                        <div class="col-4 mt-5">
+                        <label>Nominal Payment</label>
+                        <input type="number" class="form-control " placeholder="Nominal Payment" name="payment_amount" id="payment_amount" min="0" disabled />
+                    </div>
                     </div>
                     <br>
                     <!--end::Row-->

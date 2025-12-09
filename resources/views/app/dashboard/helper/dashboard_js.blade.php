@@ -1981,6 +1981,7 @@
         var bin = $(this).attr('data-bin');
         var current_qty = $(this).attr('data-qty');
         var secret_code = $('#u_secret_code').val();
+        var st_id_refund = $(this).attr('data-st_id_refund');
         //alert(plst_id+' '+pls_id+' '+p_name+' '+bin+' '+current_qty+' '+secret_code);
         if (current_qty != 0) {
             swal({
@@ -2007,7 +2008,8 @@
                             _plst_qty: plst_qty,
                             _pls_id: pls_id,
                             _plst_id: plst_id,
-                            _secret_code: secret_code
+                            _secret_code: secret_code,
+                            _st_id_refund: st_id_refund
                         },
                         dataType: 'json',
                         url: "{{ url('save_in_refund_activity') }}",
@@ -2621,7 +2623,7 @@
         modal_opened = 'ScanInRefundModal';
         $('#st_id').val('');
         $('#ScanInRefundModal').modal('show');
-        scan_in_table.draw();
+        scan_in_refund_table.draw();
         scanner_scan_in_refund.render(success, error);
     });
 

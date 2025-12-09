@@ -41,20 +41,16 @@
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">NIK</label>
                                         <div class="col-lg-9">
-                                            <input type="text form_input" name="nik" class="form-control"
-                                                placeholder="Masukkan NIK"
-                                                value="{{ old('nik', $user_data->u_ktp ?? '') }}">
+                                            <input type="text form_input" name="nik" class="form-control" placeholder="Masukkan NIK" value="{{ old('nik', $user_data->u_ktp ?? '') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">Foto KTP</label>
                                         <div class="col-lg-9">
                                             <div class="d-flex align-items-center">
-                                                <input type="file" name="ktp_image" class="form-control"
-                                                    accept="image/*">
-                                                @if (isset($user_data->ktp_image))
-                                                    <button type="button" class="btn btn-sm btn-info ml-2"
-                                                        data-toggle="modal" data-target="#modalFotoKTP">
+                                                <input type="file" name="ktp_image" class="form-control" accept="image/*">
+                                                @if(isset($user_data->u_ktp_image))
+                                                    <button type="button" class="btn btn-sm btn-info ml-2" data-toggle="modal" data-target="#modalFotoKTP">
                                                         <i class="fa fa-eye"></i> View
                                                     </button>
                                                 @endif
@@ -65,20 +61,16 @@
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">NPWP</label>
                                         <div class="col-lg-9">
-                                            <input type="text" name="npwp" class="form-control"
-                                                placeholder="Masukkan NPWP"
-                                                value="{{ old('npwp', $user_data->u_npwp ?? '') }}">
+                                            <input type="text" name="npwp" class="form-control" placeholder="Masukkan NPWP" value="{{ old('npwp', $user_data->u_npwp ?? '') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">Foto NPWP</label>
                                         <div class="col-lg-9">
                                             <div class="d-flex align-items-center">
-                                                <input type="file" name="npwp_image" class="form-control"
-                                                    accept="image/*">
-                                                @if (isset($user_data->npwp_image))
-                                                    <button type="button" class="btn btn-sm btn-info ml-2"
-                                                        data-toggle="modal" data-target="#modalFotoNPWP">
+                                                <input type="file" name="npwp_image" class="form-control" accept="image/*">
+                                                @if(isset($user_data->u_npwp_image))
+                                                    <button type="button" class="btn btn-sm btn-info ml-2" data-toggle="modal" data-target="#modalFotoNPWP">
                                                         <i class="fa fa-eye"></i> View
                                                     </button>
                                                 @endif
@@ -89,8 +81,7 @@
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">Tanggal Lahir</label>
                                         <div class="col-lg-9">
-                                            <input type="date" name="tanggal_lahir" class="form-control"
-                                                value="{{ old('tanggal_lahir', $user_data->u_birthday ?? '') }}">
+                                            <input type="date" name="tanggal_lahir" class="form-control" placeholder="Masukkan tanggal lahir" value="{{ old('tanggal_lahir', $user_data->u_birthday ?? '') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-0">
@@ -117,11 +108,9 @@
                                         <label class="col-lg-3 col-form-label">Foto Formal</label>
                                         <div class="col-lg-9">
                                             <div class="d-flex align-items-center">
-                                                <input type="file" name="foto_formal" class="form-control"
-                                                    accept="image/*">
-                                                @if (isset($user_data->foto_formal))
-                                                    <button type="button" class="btn btn-sm btn-info ml-2"
-                                                        data-toggle="modal" data-target="#modalFotoFormal">
+                                                <input type="file" name="foto_formal" class="form-control" accept="image/*">
+                                                @if(isset($user_data->u_photo))
+                                                    <button type="button" class="btn btn-sm btn-info ml-2" data-toggle="modal" data-target="#modalFotoFormal">
                                                         <i class="fa fa-eye"></i> View
                                                     </button>
                                                 @endif
@@ -132,19 +121,16 @@
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">No BPJS Kesehatan</label>
                                         <div class="col-lg-9">
-                                            <input type="text" name="no_bpjs_kesehatan" class="form-control"
-                                                placeholder="Masukkan No BPJS Kesehatan" value="{{ $user_data->u_bpjs_kes_number ?? '' }}">
+                                            <input type="text" name="no_bpjs_kesehatan" class="form-control" placeholder="Masukkan No BPJS Kesehatan" value="{{ old('no_bpjs_kesehatan', $user_data->u_bpjs_kes_number ?? '') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-0">
                                         <label class="col-lg-3 col-form-label">Foto BPJS Kesehatan</label>
                                         <div class="col-lg-9">
                                             <div class="d-flex align-items-center">
-                                                <input type="file" name="foto_bpjs_kesehatan"
-                                                    class="form-control" accept="image/*">
-                                                @if (isset($user_data->foto_bpjs_kesehatan))
-                                                    <button type="button" class="btn btn-sm btn-info ml-2"
-                                                        data-toggle="modal" data-target="#modalFotoBPJS">
+                                                <input type="file" name="foto_bpjs_kesehatan" class="form-control" accept="image/*">
+                                                @if(isset($user_data->u_bpjs_kes_image))
+                                                    <button type="button" class="btn btn-sm btn-info ml-2" data-toggle="modal" data-target="#modalFotoBPJSKesehatan">
                                                         <i class="fa fa-eye"></i> View
                                                     </button>
                                                 @endif
@@ -155,25 +141,23 @@
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">No BPJS Ketenagakerjaan</label>
                                         <div class="col-lg-9">
-                                            <input type="text" name="no_bpjs_ketenagakerjaan" class="form-control"
-                                                placeholder="Masukkan No BPJS Ketenagakerjaan" value="{{ $user_data->u_bpjs_tk_number ?? '' }}">
+                                            <input type="text" name="no_bpjs_ketenagakerjaan" class="form-control" placeholder="Masukkan No BPJS Ketenagakerjaan" value="{{ old('no_bpjs_ketenagakerjaan', $user_data->u_bpjs_tk_number ?? '') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-0">
                                         <label class="col-lg-3 col-form-label">Foto BPJS Ketenagakerjaan</label>
                                         <div class="col-lg-9">
                                             <div class="d-flex align-items-center">
-                                                <input type="file" name="foto_bpjs_ketenagakerjaan"
-                                                    class="form-control" accept="image/*">
-                                                @if (isset($user_data->foto_bpjs_ketenagakerjaan))
-                                                    <button type="button" class="btn btn-sm btn-info ml-2"
-                                                        data-toggle="modal" data-target="#modalFotoBPJS">
+                                                <input type="file" name="foto_bpjs_ketenagakerjaan" class="form-control" accept="image/*">
+                                                @if(isset($user_data->u_bpjs_tk_image))
+                                                    <button type="button" class="btn btn-sm btn-info ml-2" data-toggle="modal" data-target="#modalFotoBPJSKetenagakerjaan">
                                                         <i class="fa fa-eye"></i> View
                                                     </button>
                                                 @endif
                                             </div>
                                             <small class="form-text text-muted">Format: JPG, PNG (Max: 2MB)</small>
                                         </div>
+                                    </div>
                                 </div>
                             </div>
                             <!--end::Card - Kepegawaian-->
@@ -189,22 +173,19 @@
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">Nama Bank</label>
                                         <div class="col-lg-9">
-                                            <input type="text" name="nama_bank" class="form-control"
-                                                placeholder="Masukkan nama bank" value="{{ $user_data->u_bank_name ?? '' }}">
+                                            <input type="text" name="nama_bank" class="form-control" placeholder="Masukkan nama bank" value="{{ old('nama_bank', $user_data->u_bank_name ?? '') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <label class="col-lg-3 col-form-label">No Rekening</label>
                                         <div class="col-lg-9">
-                                            <input type="text" name="no_rekening" class="form-control"
-                                                placeholder="Masukkan nomor rekening" value="{{ $user_data->u_bank_account_number ?? '' }}">
+                                            <input type="text" name="no_rekening" class="form-control" placeholder="Masukkan nomor rekening" value="{{ old('no_rekening', $user_data->u_bank_account_number ?? '') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-0">
                                         <label class="col-lg-3 col-form-label">Atas Nama</label>
                                         <div class="col-lg-9">
-                                            <input type="text" name="atas_nama_rekening" class="form-control"
-                                                placeholder="Masukkan nama pemilik rekening" value="{{ $user_data->u_bank_account_holder ?? '' }}">
+                                            <input type="text" name="atas_nama_rekening" class="form-control" placeholder="Masukkan nama pemilik rekening" value="{{ old('atas_nama_rekening', $user_data->u_bank_account_holder ?? '') }}">
                                         </div>
                                     </div>
                                 </div>
@@ -229,68 +210,84 @@
     <!--end::Content-->
 
     <!-- Modals for Image Preview -->
-    @if (isset($user_data->ktp_image))
-        <div class="modal fade" id="modalFotoKTP" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Foto KTP</h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img src="{{ asset($user_data->ktp_image) }}" class="img-fluid" alt="Foto KTP">
-                    </div>
+    @if(isset($user_data->u_ktp_image))
+    <div class="modal fade" id="modalFotoKTP" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto KTP</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ Storage::disk('s3')->url($user_data->u_ktp_image) }}" class="img-fluid" alt="Foto KTP">
                 </div>
             </div>
         </div>
+    </div>
     @endif
 
-    @if (isset($user_data->npwp_image))
-        <div class="modal fade" id="modalFotoNPWP" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Foto NPWP</h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img src="{{ asset($user_data->npwp_image) }}" class="img-fluid" alt="Foto NPWP">
-                    </div>
+    @if(isset($user_data->u_npwp_image))
+    <div class="modal fade" id="modalFotoNPWP" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto NPWP</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ Storage::disk('s3')->url($user_data->u_npwp_image) }}" class="img-fluid" alt="Foto NPWP">
                 </div>
             </div>
         </div>
+    </div>
     @endif
 
-    @if (isset($user_data->foto_formal))
-        <div class="modal fade" id="modalFotoFormal" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Foto Formal</h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img src="{{ asset($user_data->foto_formal) }}" class="img-fluid" alt="Foto Formal">
-                    </div>
+    @if(isset($user_data->u_photo))
+    <div class="modal fade" id="modalFotoFormal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto Formal</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ Storage::disk('s3')->url($user_data->u_photo) }}" class="img-fluid" alt="Foto Formal">
                 </div>
             </div>
         </div>
+    </div>
     @endif
 
-    @if (isset($user_data->foto_bpjs_ketenagakerjaan))
-        <div class="modal fade" id="modalFotoBPJS" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Foto BPJS Ketenagakerjaan</h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img src="{{ asset($user_data->foto_bpjs_ketenagakerjaan) }}" class="img-fluid" alt="Foto BPJS">
-                    </div>
+    @if(isset($user_data->u_bpjs_kes_image))
+    <div class="modal fade" id="modalFotoBPJSKesehatan" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto BPJS Kesehatan</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ Storage::disk('s3')->url($user_data->u_bpjs_kes_image) }}" class="img-fluid" alt="Foto BPJS">
                 </div>
             </div>
         </div>
+    </div>
+    @endif
+
+    @if(isset($user_data->u_bpjs_tk_image))
+    <div class="modal fade" id="modalFotoBPJSKetenagakerjaan" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto BPJS Ketenagakerjaan</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ Storage::disk('s3')->url($user_data->u_bpjs_tk_image) }}" class="img-fluid" alt="Foto BPJS">
+                </div>
+            </div>
+        </div>
+    </div>
     @endif
 
     @include('app._partials.js')

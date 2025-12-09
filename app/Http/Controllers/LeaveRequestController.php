@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LeaveRequestComment;
 use Illuminate\Http\Request;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
@@ -14,7 +15,9 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LeaveSummaryExport;
 use App\Exports\LeaveRequestExport;
+use App\Models\Comment as ModelsComment;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Comment;
 
 class LeaveRequestController extends Controller
 {
@@ -169,6 +172,29 @@ class LeaveRequestController extends Controller
             $totalHours = 0;
         }
 
+
+        // cut saldo
+        $leaveType = DB::table('leave_types')->where('id', $request->leave_type_id)->first()->lt_code;
+
+//        dd($leaveRequest);
+
+        if ($leaveType == 'ANNUAL') {
+            $leaveRemaining = LeaveBalance::with('user')
+                ->where('user_id', $userId)
+                ->first();
+
+            $newLeaveRemaining = $leaveRemaining->lb_remaining_balance - $totalDays;
+
+            $leaveUsedBalance = $leaveRemaining->lb_used_balance + $totalDays;
+
+            // update leave balance
+            $leaveRemaining->update([
+                'lb_remaining_balance' => $newLeaveRemaining,
+                'lb_used_balance' => $leaveUsedBalance,
+            ]);
+        }
+
+
         // Handle multiple file uploads
         $attachmentData = null;
         if ($request->hasFile('lr_attachments')) {
@@ -232,6 +258,95 @@ class LeaveRequestController extends Controller
         }
     }
 
+    public function approve(Request $request, $id)
+    {
+        $currentUser = auth()->user();
+
+        // Ambil leave request + relasi user
+        $leaveRequest = LeaveRequest::with('user')->findOrFail($id);
+        $leaveRequester = $leaveRequest->user;
+
+        $start = Carbon::parse($leaveRequest->lr_start_date);
+        $end = Carbon::parse($leaveRequest->lr_end_date);
+        $totalDays = $start->diffInDays($end) + 1;
+
+//        $leaveType = DB::table('leave_types')->where('id', $leaveRequest->leave_type_id)->first()->lt_code;
+
+//        dd($leaveRequest);
+
+//        if ($leaveType == 'ANNUAL') {
+//            $leaveRemaining = LeaveBalance::with('user')
+//                ->where('user_id', $leaveRequest->user_id)
+//                ->first();
+//
+//            $newLeaveRemaining = $leaveRemaining->lb_remaining_balance - $totalDays;
+//
+//            $leaveUsedBalance = $leaveRemaining->lb_used_balance + $totalDays;
+//
+//            // update leave balance
+//            $leaveRemaining->update([
+//                'lb_remaining_balance' => $newLeaveRemaining,
+//                'lb_used_balance' => $leaveUsedBalance,
+//            ]);
+//        }
+
+        $leaveRequest->update([
+            'lr_status' => 'APPROVED',
+            'lr_approved_by' => $currentUser->id,
+            'lr_approved_at' => now(),
+        ]);
+
+//        $leaveRequestType =
+
+        if ($currentUser->id === $leaveRequester->id) {
+            \Log::warning("User {$currentUser->id} mencoba self-approve");
+            return $this->deny($request, 'You cannot approve your own leave request');
+        }
+
+        $currentUserLevel = $currentUser->position->up_level ?? 0;
+        $requesterLevel = $leaveRequester->position->up_level ?? 0;
+
+        $requesterDivision = DB::table('user_divisions')
+            ->where('id', $leaveRequester->ud_id)
+            ->first();
+
+//        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
+//            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
+//            return $this->deny($request, 'You can only approve leave requests within your division');
+//        }
+
+        $isDivisionLead = $requesterDivision && $currentUser->id == $requesterDivision->lead_id;
+        $isDivisionManager = $requesterDivision && $currentUser->id == $requesterDivision->manager_id;
+
+        if ($isDivisionLead) {
+            \Log::info("User {$currentUser->id} adalah LEADER divisi, boleh approve");
+        } elseif ($isDivisionManager) {
+            \Log::info("User {$currentUser->id} adalah MANAGER divisi, boleh approve");
+        } else {
+
+            if ($currentUserLevel <= $requesterLevel) {
+                \Log::warning("User {$currentUser->id} mencoba approve level >= dirinya ({$currentUserLevel} <= {$requesterLevel})");
+                return $this->deny($request, 'You cannot approve leave requests from someone with higher or equal position level');
+            }
+        }
+
+
+        $leaveRequest->update([
+            'lr_status' => 'APPROVED',
+            'lr_approved_by' => $currentUser->id,
+            'lr_approved_at' => now(),
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request approved successfully',
+            ]);
+        }
+
+        return back()->with('success', 'Leave request approved successfully');
+    }
+
     public function show($id)
     {
         // $this->validateAccess();
@@ -261,6 +376,12 @@ class LeaveRequestController extends Controller
             ->whereBetween('daily_schedules.ds_date', [$leaveRequest->lr_start_date, $leaveRequest->lr_end_date])
             ->get();
 
+        $comments = Comment::where('identifier', 'leave-requests')
+            ->where('key_id', $leaveRequest->id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
 
         $data = [
             'title' => $title,
@@ -270,7 +391,7 @@ class LeaveRequestController extends Controller
             'segment' => request()->segment(1)
         ];
 
-        return view('app.leave_request.show', compact('leaveRequest', 'dailySchedules', 'data'));
+        return view('app.leave_request.show', compact('leaveRequest', 'dailySchedules', 'data', 'comments'));
     }
 
     public function edit($id)
@@ -773,95 +894,6 @@ class LeaveRequestController extends Controller
     //        }
     //    }
 
-    public function approve(Request $request, $id)
-    {
-        $currentUser = auth()->user();
-
-        // Ambil leave request + relasi user
-        $leaveRequest = LeaveRequest::with('user')->findOrFail($id);
-        $leaveRequester = $leaveRequest->user;
-
-        $start = Carbon::parse($leaveRequest->lr_start_date);
-        $end   = Carbon::parse($leaveRequest->lr_end_date);
-        $totalDays = $start->diffInDays($end) + 1;
-
-        $leaveType = DB::table('leave_types')->where('id', $leaveRequest->leave_type_id)->first()->lt_code;
-
-//        dd($leaveRequest);
-
-        if ($leaveType == 'ANNUAL') {
-            $leaveRemaining = LeaveBalance::with('user')
-                ->where('user_id', $leaveRequest->user_id)
-                ->first();
-
-            $newLeaveRemaining = $leaveRemaining->lb_remaining_balance - $totalDays;
-
-            $leaveUsedBalance = $leaveRemaining->lb_used_balance + $totalDays;
-
-            // update leave balance
-            $leaveRemaining->update([
-                'lb_remaining_balance' => $newLeaveRemaining,
-                'lb_used_balance'      => $leaveUsedBalance,
-            ]);
-        }
-
-        $leaveRequest->update([
-            'lr_status' => 'APPROVED',
-            'lr_approved_by' => $currentUser->id,
-            'lr_approved_at' => now(),
-        ]);
-
-//        $leaveRequestType =
-
-        if ($currentUser->id === $leaveRequester->id) {
-            \Log::warning("User {$currentUser->id} mencoba self-approve");
-            return $this->deny($request, 'You cannot approve your own leave request');
-        }
-
-        $currentUserLevel = $currentUser->position->up_level ?? 0;
-        $requesterLevel = $leaveRequester->position->up_level ?? 0;
-
-        $requesterDivision = DB::table('user_divisions')
-            ->where('id', $leaveRequester->ud_id)
-            ->first();
-
-//        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
-//            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
-//            return $this->deny($request, 'You can only approve leave requests within your division');
-//        }
-
-        $isDivisionLead = $requesterDivision && $currentUser->id == $requesterDivision->lead_id;
-        $isDivisionManager = $requesterDivision && $currentUser->id == $requesterDivision->manager_id;
-
-        if ($isDivisionLead) {
-            \Log::info("User {$currentUser->id} adalah LEADER divisi, boleh approve");
-        } elseif ($isDivisionManager) {
-            \Log::info("User {$currentUser->id} adalah MANAGER divisi, boleh approve");
-        } else {
-
-            if ($currentUserLevel <= $requesterLevel) {
-                \Log::warning("User {$currentUser->id} mencoba approve level >= dirinya ({$currentUserLevel} <= {$requesterLevel})");
-                return $this->deny($request, 'You cannot approve leave requests from someone with higher or equal position level');
-            }
-        }
-
-
-
-        $leaveRequest->update([
-            'lr_status' => 'APPROVED',
-            'lr_approved_by' => $currentUser->id,
-            'lr_approved_at' => now(),
-        ]);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave request approved successfully',
-            ]);
-        }
-
-        return back()->with('success', 'Leave request approved successfully');
-    }
 
     protected function deny(Request $request, string $message)
     {
@@ -943,6 +975,32 @@ class LeaveRequestController extends Controller
         }
 
         try {
+
+            $leaveType = DB::table('leave_types')->where('id', $leaveRequest->leave_type_id)->first()->lt_code;
+
+//            dd($leaveRequest);
+
+            $start = Carbon::parse($leaveRequest->lr_start_date);
+            $end = Carbon::parse($leaveRequest->lr_end_date);
+            $totalDays = $start->diffInDays($end) + 1;
+
+            if ($leaveType == 'ANNUAL') {
+                $leaveRemaining = LeaveBalance::with('user')
+                    ->where('user_id', $leaveRequest->user_id)
+                    ->first();
+
+                $newLeaveRemaining = $leaveRemaining->lb_remaining_balance + $totalDays;
+
+                $leaveUsedBalance = $leaveRemaining->lb_used_balance - $totalDays;
+
+                // update leave balance
+                $leaveRemaining->update([
+                    'lb_remaining_balance' => $newLeaveRemaining,
+                    'lb_used_balance' => $leaveUsedBalance,
+                ]);
+            }
+
+
             \Log::info('Updating leave request for rejection', [
                 'old_status' => $leaveRequest->lr_status,
                 'new_status' => 'rejected',
@@ -1080,7 +1138,7 @@ class LeaveRequestController extends Controller
                         ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
                 });
             }
-
+//teees
             return datatables()->eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('lr_date', function ($row) {
@@ -1101,6 +1159,13 @@ class LeaveRequestController extends Controller
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
                     $btn .= '            <a href="' . route('leave-requests.show', $row->id) . '" class="menu-link px-3">View</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+
+                    // Copy Link
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="copyLeaveLink(' . $row->id . ')" class="menu-link px-3">Copy Link</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
 
@@ -2392,7 +2457,7 @@ class LeaveRequestController extends Controller
             $approvers = User::where('ud_id', $requestingUser->ud_id)
                 ->whereHas('userPosition', function ($query) {
                     $query->where('up_level', '>=', 2) // Supervisor level or higher
-                        ->where('up_can_approve_leave', true);
+                    ->where('up_can_approve_leave', true);
                 })
                 ->where('id', '!=', $userId) // Don't notify the requester
                 ->get();

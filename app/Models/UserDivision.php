@@ -15,7 +15,7 @@ class UserDivision extends Model
     
     protected $fillable = [
         'ud_name', 'ud_description', 'ud_status', 
-        'created_by', 'updated_by'
+        'created_by', 'updated_by', 'created_at', 'updated_at', 'lead_id', 'manager_id', 'division_type'
     ];
     
     // Store data method for compatibility - but write to store_types
@@ -41,6 +41,10 @@ class UserDivision extends Model
             }
             if (isset($data['ud_status'])) {
                 $mappedData['stt_delete'] = $data['ud_status'] == 'active' ? '0' : '1';
+            }
+
+            if (isset($data['division_type'])) {
+                $mappedData['division_type'] = $data['division_type'];
             }
             
             // Add audit fields

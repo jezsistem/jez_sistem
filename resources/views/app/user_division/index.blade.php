@@ -144,6 +144,7 @@
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Code</th>
                                         <th class="text-dark">Name</th>
+                                        <th class="text-dark">Type</th>
                                         <th class="text-dark">Description</th>
                                         <th class="text-dark">SPV</th>
                                         <th class="text-dark">Manager</th>

@@ -97,6 +97,7 @@
                                         <th class="text-dark">New Qty</th>
                                         <th class="text-dark">Adjust</th>
                                         <th class="text-dark">Note</th>
+                                        <th class="text-dark">Proof File</th>
                                         <th class="text-dark">Status</th>
                                     </tr>
                                 </thead>

@@ -99,6 +99,7 @@ use App\Http\Controllers\UserDivisionV2Controller;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnnouncementCategoryController;
 use App\Http\Controllers\AnnouncementReactionController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ExternalAssignmentRequestController;
 
 
@@ -107,6 +108,7 @@ use App\Http\Controllers\WebConfigController;
 use App\Http\Controllers\DataPerusahaanController;
 use App\Http\Controllers\InvoiceControllerV2;
 use App\Http\Controllers\LockController;
+use App\Http\Controllers\StaffInformationController;
 use App\Http\Controllers\WarehouseIndexController;
 use App\Models\PositionAccessController;
 use Illuminate\Support\Facades\DB;
@@ -488,6 +490,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/product-links/store', [ProductController::class, 'LinkStore']);
     Route::get('/product-links/marketplace/{articleId}', [ProductController::class, 'marketplaceDataTables']);
     Route::get('/product-links/social/{articleId}', [ProductController::class, 'socialDataTables']);
+    Route::get('/product-links/related/{articleName}', [ProductController::class, 'relatedDataTables']);
+    Route::post('/product-links/related/toggle', [ProductController::class, 'toggleRelatedProduct']);
+
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
     Route::get('/product-links/locations', function() {
@@ -985,6 +990,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('staff/{id}/user-type', [StaffController::class, 'updateUserType'])->name('staff.update-user-type');
     Route::post('staff/{id}/leave-balance', [StaffController::class, 'updateLeaveBalance'])->name('staff.update-leave-balance');
 
+    // StaffInformationController
+    Route::get('staff-information', [StaffInformationController::class, 'index'])->name('staff-information.index');
+    Route::get('staff-information/datatables', [StaffInformationController::class, 'getDatatables'])->name('staff-information.datatables');
+    Route::get('staff-information/export', [StaffInformationController::class, 'export'])->name('staff-information.export');
+    Route::get('staff-information/{id}', [StaffInformationController::class, 'show'])->name('staff-information.show');
+
+    //Staff Comments
+    Route::post('staff/{id}/comment', [StaffInformationController::class, 'storeComment'])->name('staff.comment');
+    Route::post('staff/{id}/change-contract-number', [StaffInformationController::class, 'changeContractNumber'])->name('staff.change-contract-number');
+    Route::post('staff/{id}/change-contract-end', [StaffInformationController::class, 'changeContractEnd'])->name('staff.change-contract-end');
+    
     // User Select for AJAX
     Route::get('users/select', [UserController::class, 'select'])->name('users.select');
 
@@ -1165,6 +1181,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('send_whatsapp_nota',  [WhatsappController::class, 'send_whatsapp_nota']);
     Route::post('/wa-job/store', [WhatsappController::class, 'store'])->name('wa.job.store');
     Route::get('/wa-job/datatable', [WhatsappController::class, 'datatable'])->name('wa.job.datatable');
+
+    //Comment Route
+    Route::post('/comments/store/{id}', [CommentController::class, 'store'])->name('comments.store');
 
 });
 
