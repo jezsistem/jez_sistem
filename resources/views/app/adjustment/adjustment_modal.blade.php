@@ -110,6 +110,11 @@
                             <option value="MARKETPLACE IN">MARKETPLACE IN</option>
                         </select>
                     </div>
+
+                    <div class="form-group mb-1 pb-1 d-none" id="bukti_kesalahan_group">
+                        <label>Bukti Kesalahan System <span class="text-danger">*</span></label>
+                        <input type="file" name="proof_file" id="proof_file" class="form-control">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold"
