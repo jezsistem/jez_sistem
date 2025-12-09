@@ -139,7 +139,7 @@ class TransaksiOnlineController extends Controller
                     DB::raw('COUNT(DISTINCT ts_online_transaction_chat_history.id) as unread_count'),
                     DB::raw('MAX(ts_online_transaction_chat_history.created_at) as last_chat_time'),
                     'courier',
-                    DB::raw('CASE WHEN shipping_method LIKE "%Instant%" THEN 1 ELSE 0 END as is_instant'),
+                    DB::raw('CASE WHEN shipping_method LIKE "%Instan%" THEN 1 ELSE 0 END as is_instant'),
                     'shipping_method',
                     'is_pinned'
                 ])

@@ -226,7 +226,7 @@ class NameSetDataController extends Controller
                         $pos_status = 'DONE';
                     }
 
-                    if (strtoupper($division) == 'ONLINE') {
+                    if (strtoupper($division) != 'ONLINE') {
                         //update plst with nameset log
                         $update_plst = DB::table('product_location_setup_transactions')
                             ->where('pls_id', '=', $pls_id)
