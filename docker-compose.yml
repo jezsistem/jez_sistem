@@ -7,11 +7,12 @@ services:
         container_name: laravel-php-fpm
         restart: always
         volumes:
-            # Mount your Laravel project code
             - .:/var/www/html 
         depends_on:
             - db
         environment:
+            # Add the Timezone setting here
+            TZ: Asia/Jakarta
             # Laravel Environment Variables
             DB_CONNECTION: mysql
             DB_HOST: db
@@ -39,6 +40,8 @@ services:
         container_name: mariadb-db
         restart: always
         environment:
+            # Add the Timezone setting here
+            TZ: Asia/Jakarta 
             MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
             MYSQL_DATABASE: ${DB_DATABASE}
             MYSQL_USER: ${DB_USERNAME}
@@ -50,14 +53,16 @@ services:
 
     # 4. CLI/Artisan Service (for running composer, artisan commands)
     artisan:
-        image: php:8.1-cli-alpine # Use a separate, simple CLI image for fast commands
+        image: php:8.1-cli-alpine 
         container_name: laravel-artisan-cli
         volumes:
             - .:/var/www/html
         depends_on:
             - db
         working_dir: /var/www/html
-        # We install composer here so the command is available
+        environment:
+            # Add the Timezone setting here
+            TZ: Asia/Jakarta
         entrypoint: [ 'sh', '-c', 'apk add --no-cache git && composer install --ignore-platform-reqs && php artisan' ]
         # NOTE: This entrypoint is more complex because the base CLI image doesn't have composer/git by default.
         # It's usually easier to run commands explicitly (see below).
