@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AIController;
 use App\Http\Controllers\MenuAccessTemplateController;
 use App\Http\Controllers\MenuAccessTemplateDetailController;
 use App\Http\Controllers\ModalLockConfigController;
@@ -49,4 +50,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/datatable', [MenuAccessTemplateController::class, 'datatable'])->name('menu.access.templates.datatable');
         Route::get('/get-menu-accesses', [MenuAccessTemplateController::class, 'getMenuAccesses'])->name('menu.access.templates.get_menu_accesses');
     });
+
+    Route::get('/ai-chat', [AIController::class, 'index']);
+    Route::post('/ai-process', [AIController::class, 'chat']);
 });
