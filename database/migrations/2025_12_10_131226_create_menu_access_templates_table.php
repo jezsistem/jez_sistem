@@ -13,7 +13,7 @@ class CreateMenuAccessTemplatesTable extends Migration
      */
     public function up()
     {
-        Schema::create('ts_menu_access_templates', function (Blueprint $table) {
+        Schema::create('menu_access_templates', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('division_id');
             $table->string('template_name');
@@ -29,6 +29,6 @@ class CreateMenuAccessTemplatesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ts_menu_access_templates');
+        Schema::dropIfExists('menu_access_templates');
     }
 }
