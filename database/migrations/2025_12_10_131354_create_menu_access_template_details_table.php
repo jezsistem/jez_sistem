@@ -19,15 +19,8 @@ class CreateMenuAccessTemplateDetailsTable extends Migration
             $table->unsignedBigInteger('menu_access_id');
             $table->timestamps();
 
-            $table->foreign('menu_access_template_id')
-                ->references('id')
-                ->on('menu_access_templates')
-                ->onDelete('cascade');
-
-            $table->foreign('menu_access_id')
-                ->references('id')
-                ->on('menu_accesses')
-                ->onDelete('cascade');
+            $table->foreign('menu_access_template_id')->references('id')->on('menu_access_templates')->onDelete('cascade');
+            $table->foreign('menu_access_id')->references('id')->on('menu_accesses')->onDelete('cascade');
         });
     }
 
