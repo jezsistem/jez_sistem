@@ -116,4 +116,45 @@ class UserMenuAccessController extends Controller
         }
         return json_encode($r);
     }
+
+    public function storeDataUseTemplate(Request $req)
+    {
+        $template_id = $req->post('template_id');
+        $u_id = $req->post('u_id');
+
+        // Get menu access IDs from the selected template
+        $menu_access_ids = DB::table('menu_access_template_details')
+            ->where('menu_access_template_id', '=', $template_id)
+            ->pluck('menu_access_id')
+            ->toArray();
+
+        //check is there are same menu access for the user
+        $existing_ma_ids = DB::table('user_menu_accesses')
+            ->where('u_id', '=', $u_id)
+            ->pluck('ma_id')
+            ->toArray();
+
+        $menu_access_ids = array_diff($menu_access_ids, $existing_ma_ids);
+
+        // Prepare data for insertion
+        $data = [];
+        foreach ($menu_access_ids as $ma_id) {
+            $data[] = [
+                'ma_id' => $ma_id,
+                'u_id' => $u_id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        // Insert data into user_menu_accesses
+        $save = DB::table('user_menu_accesses')->insert($data);
+
+        if (!empty($save)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
 }

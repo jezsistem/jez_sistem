@@ -730,6 +730,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('uma_save', [UserMenuAccessController::class, 'storeData']);
     Route::post('uma_delete', [UserMenuAccessController::class, 'deleteData']);
     Route::post('uma_default', [UserMenuAccessController::class, 'setDefault']);
+    Route::post('uma_save_use_template', [UserMenuAccessController::class, 'storeDataUseTemplate']);
 
     // MainMenuController
     Route::get('main_menu', [MainMenuController::class, 'index']);
