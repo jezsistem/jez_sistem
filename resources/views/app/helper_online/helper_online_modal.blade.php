@@ -51,15 +51,17 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title">Pick History Timeline</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-history"></i> Activity Log History
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
 
-            <div class="modal-body">
-                <div class="timeline" id="pickHistoryTimeline"></div>
+            <div class="modal-body" style="max-height: 600px; overflow-y: auto;">
+                <div id="pickHistoryTimeline" class="activity-log-container"></div>
             </div>
 
             <div class="modal-footer">
@@ -71,6 +73,148 @@
         </div>
     </div>
 </div>
+
+<style>
+    .activity-log-container {
+        padding: 10px 0;
+    }
+
+    .log-item {
+        position: relative;
+        padding-left: 50px;
+        padding-bottom: 30px;
+        border-left: 2px solid #e0e0e0;
+        margin-left: 20px;
+    }
+
+    .log-item:last-child {
+        border-left: 2px solid transparent;
+        padding-bottom: 0;
+    }
+
+    .log-icon {
+        position: absolute;
+        left: -10px;
+        top: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .log-icon.import { background-color: #3498db; }
+    .log-icon.pick { background-color: #f39c12; }
+    .log-icon.quality { background-color: #27ae60; }
+    .log-icon.print { background-color: #9b59b6; }
+    .log-icon.packed { background-color: #2ecc71; }
+    .log-icon.manifest { background-color: #e74c3c; }
+    .log-icon.default { background-color: #95a5a6; }
+
+    .log-content {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .log-activity {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .log-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        font-size: 12px;
+    }
+
+    .log-user {
+        color: #7f8c8d;
+    }
+
+    .log-user i {
+        margin-right: 4px;
+    }
+
+    .log-time {
+        color: #95a5a6;
+    }
+
+    .log-time i {
+        margin-right: 4px;
+    }
+
+    .log-details {
+        margin-top: 10px;
+        padding: 10px;
+        background: white;
+        border-radius: 4px;
+        border-left: 3px solid #3498db;
+    }
+
+    .log-details-item {
+        font-size: 12px;
+        color: #34495e;
+        margin-bottom: 3px;
+    }
+
+    .log-details-item strong {
+        color: #2c3e50;
+        min-width: 80px;
+        display: inline-block;
+    }
+
+    .log-location {
+        display: inline-block;
+        background: #e8f4f8;
+        color: #2980b9;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    .log-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    .log-status.passed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .log-status.failed {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .log-manifest-number {
+        display: inline-block;
+        background: #fee;
+        color: #c62828;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+</style>
 
 
 
