@@ -368,6 +368,8 @@ class AIController extends Controller
                 1. Jika mencari stok barcode → query_type = \"stok_sku\"
                 2. Jika minta rekomendasi sepatu → query_type = \"rekom_sepatu\"
                 3. Selain itu → general
+                
+                TUGASMU: mengembalikan 1 OBJECT JSON SAJA. 
 
                 Pesan user:
                 $message
