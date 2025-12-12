@@ -111,7 +111,9 @@
 </head>
 <body>
 
-<div class="header">Jezy Assistant</div>
+<div class="header"><img src="https://i.ibb.co.com/9kHSJ8gX/Chat-GPT-Image-12-Des-2025-14-26-07.png"
+                         alt=""
+                         style="max-width: 100px; object-fit: contain;"></div>
 
 <div class="chat-area" id="chatBox">
     <div class="message bot">

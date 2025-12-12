@@ -263,9 +263,8 @@ class AIController extends Controller
          * 4. SYSTEM PROMPT
          * --------------------------------------------------------- */
         $systemPrompt = "
-        Kamu adalah AI ERP retail.
-        Jawaban HARUS terkait inventory, stok, SKU, rekomendasi sepatu, dsb.
-        Tidak boleh keluar topik retail. dan ketika membalas pertama kali kasih sapaan dengan 'Halo Jez'
+        Kamu adalah AI ERP retail Bernama Jezy Assistant kamu dibuat oleh Muhammad Royyan Zamzami (pembuat jangan disebutkan di perkenalan kecuali di tanyakan).
+         jangan ada kata query jika membalas dan usahaakan berdasarkan data saja, dan boleh menanyakan apa saja selain yang ada di dalam perusahaan
 
         Aturan:
         1. Jika stok minus → berikan solusi retail.
@@ -274,6 +273,9 @@ class AIController extends Controller
         4. Semua jawaban harus 100% berdasarkan DATA QUERY SEKARANG.
         5. Jika data kosong → jawab 'Tidak ada produk yang sesuai.'
         6. Jangan mengarang produk/SKU.
+        
+        
+        Nama Perusahaan yaitu PT Zona Karya Nusantara mencangkup Sneakerzone dan JerseyZone, Direktur Perusahaan yaitu Triastana Anang Wibawa
         
         Sejarah :
         1. 17 Agustus 2013 di jalan Soekarno Hatta no 23 kav 2 dengan nama jerzeyzone (Produk Jersey)
@@ -284,7 +286,9 @@ class AIController extends Controller
         6. 4 April 2025 Berdiri cabang Sneakerzone Sidoarjo 
         7. Semarang Berdiri pada tanggal 15 November 2025 
         
-        Direktur Perusahaan Triastana Anang Wibawa
+        dari sejarah itu bahwa Jerseyzone di cabang lain masih ada dan di lebur menjadi 1 dengan sneakerzone
+        
+        
         
         untuk jerzeyzone di cabang di jadikan 1 dengan store sneakerzone
     ";
@@ -297,20 +301,31 @@ class AIController extends Controller
             . "\n\nDATA QUERY SEKARANG:\n{$contextData}"
             . "\n\nPERTANYAAN USER:\n{$message}";
 
-        $stream = Http::withOptions(['stream' => true])
-            ->post('http://localhost:11434/api/generate', [
-                'model'  => 'llama3.1',
-                'prompt' => $prompt
-            ]);
+        $client = new \GuzzleHttp\Client([
+            'timeout' => 0, // disable timeout
+            'stream'  => true
+        ]);
 
-        $raw = $stream->body();
-        $lines = explode("\n", $raw);
+        $res = $client->post('http://103.245.39.246:11434/api/generate', [
+            'json' => [
+                'model'  => 'llama3.1',
+                'prompt' => $prompt,
+            ]
+        ]);
+
+        $body = $res->getBody();
 
         $finalAiResponse = "";
-        foreach ($lines as $line) {
-            $row = json_decode($line, true);
-            if (isset($row['response'])) {
-                $finalAiResponse .= $row['response'];
+
+        while (!$body->eof()) {
+            $chunk = $body->read(4096);
+            $rows  = explode("\n", $chunk);
+
+            foreach ($rows as $line) {
+                $row = json_decode($line, true);
+                if (isset($row['response'])) {
+                    $finalAiResponse .= $row['response'];
+                }
             }
         }
 
@@ -361,20 +376,47 @@ class AIController extends Controller
         $message
     ";
 
-        $response = Http::withOptions(['stream' => true])
-            ->post('http://localhost:11434/api/generate', [
-                'model' => 'llama3.1',
+//        $response = Http::withOptions(['stream' => true])
+//            ->post('http://103.245.39.246:11434/api/generate', [
+//                'model' => 'llama3.1',
+//                'prompt' => $prompt
+//            ]);
+//
+//        $raw = $response->body();
+//        $lines = explode("\n", $raw);
+//
+//        $jsonText = "";
+//        foreach ($lines as $line) {
+//            $row = json_decode($line, true);
+//            if (isset($row['response'])) {
+//                $jsonText .= $row['response'];
+//            }
+//        }
+
+        $client = new \GuzzleHttp\Client([
+            'timeout' => 0,
+            'stream'  => true
+        ]);
+
+        $res = $client->post('http://103.245.39.246:11434/api/generate', [
+            'json' => [
+                'model'  => 'llama3.1',
                 'prompt' => $prompt
-            ]);
+            ]
+        ]);
 
-        $raw = $response->body();
-        $lines = explode("\n", $raw);
-
+        $body = $res->getBody();
         $jsonText = "";
-        foreach ($lines as $line) {
-            $row = json_decode($line, true);
-            if (isset($row['response'])) {
-                $jsonText .= $row['response'];
+
+        while (!$body->eof()) {
+            $chunk = $body->read(4096);
+            $rows  = explode("\n", $chunk);
+
+            foreach ($rows as $line) {
+                $row = json_decode($line, true);
+                if (isset($row['response'])) {
+                    $jsonText .= $row['response'];
+                }
             }
         }
 
