@@ -154,6 +154,7 @@ class PersonalDataController extends Controller
         $updateData['u_birthday'] = $request->input('tanggal_lahir');
         $updateData['u_address'] = $request->input('alamat_domisili');
         $updateData['u_bpjs_kes_number'] = $request->input('no_bpjs_kesehatan');
+        $updateData['u_bpjs_tk_number'] = $request->input('no_bpjs_ketenagakerjaan');
         $updateData['u_bank_name'] = $request->input('nama_bank');
         $updateData['u_bank_account_number'] = $request->input('no_rekening');
         $updateData['u_bank_account_holder'] = $request->input('atas_nama_rekening');
