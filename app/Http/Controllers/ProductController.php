@@ -79,13 +79,17 @@ class ProductController extends Controller
         return $sidebar;
     }
 
-    protected function UserActivity($activity)
+    protected function UserActivity($u_id, $activity,$key_identifier)
     {
-        UserActivity::create([
-            'user_id' => Auth::user()->id,
-            'ua_description' => $activity,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
+        if (!empty($u_id)) {
+            UserActivity::create([
+                'user_id' => $u_id,
+                'ua_description' => $activity,
+                'identifier' => 'data-products',
+                'key_identifier' => $key_identifier,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
     }
 
     public function create()
@@ -96,6 +100,18 @@ class ProductController extends Controller
         // Kirim data ke view
         return view('app.product.product_modal', compact('columns'));
     }
+
+//    protected function UserActivityLogin($u_id, $activity)
+//    {
+//        if (!empty($u_id)) {
+//            UserActivity::create([
+//                'user_id' => $u_id,
+//                'ua_description' => $activity,
+//                'identifier' => 'data-products',
+//                'created_at' => date('Y-m-d H:i:s')
+//            ]);
+//        }
+//    }
 
     public function index()
     {
@@ -314,6 +330,8 @@ class ProductController extends Controller
 
         File::delete($zipPath);
 
+        $this->UserActivity(Auth::user()->id, 'Melakukan Mass Image Import', null);
+
         return response()->json([
             'message' => 'File sedang diproses di background. Gambar akan diunggah ke NEO Object Storage.',
         ]);
@@ -424,7 +442,7 @@ class ProductController extends Controller
             ], 422);
         }
 
-        DB::table('product_links')->insert([
+        $link_id = DB::table('product_links')->insertGetId([
             'product_id' => json_encode([$product_id]),
             'type'       => $request->type,
             'platform'   => $request->platform,
@@ -435,6 +453,8 @@ class ProductController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        $this->UserActivity(Auth::user()->id, 'Menambahkan Product Link', $link_id);
 
         return response()->json(['status' => 'success']);
     }
@@ -1419,11 +1439,11 @@ class ProductController extends Controller
                         }
                     }
                 }
-                if ($mode == 'add') {
-                    $this->UserActivity('menambah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
-                } else {
-                    $this->UserActivity('mengubah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
-                }
+//                if ($mode == 'add') {
+//                    $this->UserActivity('menambah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
+//                } else {
+//                    $this->UserActivity('mengubah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
+//                }
                 $r['status'] = '200';
             } else {
                 $exp = explode('|', $request->_sz_id);
@@ -1468,9 +1488,10 @@ class ProductController extends Controller
         $running = $request->_running;
         $barcode = $request->_barcode;
         $id_barcode = $request->_id;
+        $p_id = ProductStock::where(['id' => $running])->first()->p_id;
         $ps = ProductStock::where(['id' => $running])->update(['ps_barcode' => $barcode]);
         if (!empty($ps)) {
-            $this->UserActivity('mengubah barcode produk ' . $barcode . ' Berhasil ');
+            $this->UserActivity(Auth::user()->id,'mengubah barcode produk ' . $barcode . ' Berhasil ', $p_id);
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -1600,7 +1621,7 @@ class ProductController extends Controller
                 return json_encode($r);
             }
 
-            $massUpdateService = new MassUpdateProductService(); // Instantiate the service
+            $massUpdateService = new MassUpdateProductService();
             $error_ids = $massUpdateService->processRowSKUlevel($import_data[0], $update_column); // Call the method on the service with the first array
         } else {
             $r['status'] = '400';

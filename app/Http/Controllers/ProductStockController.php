@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Store;
+use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WebConfig;
@@ -12,6 +13,19 @@ use Illuminate\Support\Facades\DB;
 
 class ProductStockController extends Controller
 {
+
+    protected function UserActivity($u_id, $activity,$key_identifier)
+    {
+        if (!empty($u_id)) {
+            UserActivity::create([
+                'user_id' => $u_id,
+                'ua_description' => $activity,
+                'identifier' => 'data-products',
+                'key_identifier' => $key_identifier,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+    }
     public function checkProductStock(Request $request)
     {
         $product_stock = new ProductStock;
@@ -69,8 +83,17 @@ class ProductStockController extends Controller
 
     public function updatePriceTag(Request $request)
     {
+        $get_data =  ProductStock::where(['ps_barcode' => $request->_barcode])->first();
         $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_price_tag' => $request->_price_tag]);
         if (!empty($check)) {
+            $this->UserActivity(
+                Auth::user()->id,
+                $get_data->ps_barcode. ' - Mengubah Harga Brandrol dari ' . $get_data->ps_price_tag .
+                ' ke ' . $request->_price_tag .
+                ', ',
+                $get_data->p_id
+            );
+
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -80,8 +103,16 @@ class ProductStockController extends Controller
 
     public function updateSellPrice(Request $request)
     {
+        $get_data =  ProductStock::where(['ps_barcode' => $request->_barcode])->first();
         $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_sell_price' => $request->_sell_price]);
         if (!empty($check)) {
+            $this->UserActivity(
+                Auth::user()->id,
+                $get_data->ps_barcode. ' - Mengubah Harga Jual dari ' . $get_data->ps_sell_price .
+                ' ke ' . $request->_sell_price .
+                ', ',
+                $get_data->p_id
+            );
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -91,8 +122,16 @@ class ProductStockController extends Controller
 
     public function updatePurchasePrice(Request $request)
     {
+        $get_data =  ProductStock::where(['ps_barcode' => $request->_barcode])->first();
         $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_purchase_price' => $request->_purchase_price]);
         if (!empty($check)) {
+            $this->UserActivity(
+                Auth::user()->id,
+                $get_data->ps_barcode. ' - Mengubah Harga Beli dari ' . $get_data->ps_purchase_price .
+                ' ke ' . $request->_purchase_price .
+                ', ',
+                $get_data->p_id
+            );
             $r['status'] = '200';
         } else {
             $r['status'] = '400';

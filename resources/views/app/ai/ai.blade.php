@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat - Dark Mode</title>
+    <title>Jezy Chat</title>
     <style>
         body {
             margin: 0;
@@ -111,7 +111,7 @@
 </head>
 <body>
 
-<div class="header">AI Assistant – Retail Dashboard</div>
+<div class="header">Jezy Assistant</div>
 
 <div class="chat-area" id="chatBox">
     <div class="message bot">
@@ -134,7 +134,7 @@
         document.getElementById("message").value = "";
 
         // Tampilkan typing dulu
-        let loading = appendMessage("...", "bot");
+        let loading = appendMessage("sabar, Mikir dulu y hehe", "bot");
 
         // Kirim ke Laravel → lalu ke Ollama
         const res = await fetch("/ai-process", {
