@@ -386,6 +386,23 @@ class ProductController extends Controller
             ->make(true);
     }
 
+    public function historyDataTables($articleId)
+    {
+        $p_id = DB::table('products')->where('article_id', $articleId)->pluck('id');
+//        $product = DB::table('user_activities')->where('identifier', 'data-products')->where('key_identifier', $p_id)->get();
+//        $product_id = (int)$product->id;
+
+        $data = DB::table('user_activities')
+            ->select(
+                'users.u_name', 'user_activities.ua_description'
+            )
+            ->leftJoin('users', 'users.id', '=', 'user_activities.user_id')
+            ->leftJoin('products', 'products.id', '=', 'user_activities.key_identifier')
+            ->where('key_identifier', $p_id);
+
+        return datatables()->of($data)->make(true);
+    }
+
     public function socialDataTables($articleId)
     {
         $product = DB::table('products')->where('article_id', $articleId)->get()->first();

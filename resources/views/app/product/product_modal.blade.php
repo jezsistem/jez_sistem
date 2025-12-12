@@ -404,19 +404,35 @@
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-12 pt-1">
-                                <label class="label-space">Size Artikel: <span id="barcode_running_label"
-                                        style="display:none;"></span>
-                                    <a class="btn btn-sm btn-primary" onclick="return activateColumn()">undisabled</a>
-                                </label>
+                                <div class="row">
 
-                                <label> Schema Display
-                                    <button type="button" class="btn btn-primary" onclick="showAllSchema()">All
-                                        Schema
-                                    </button>
-                                    <button type="button" class="btn btn-secondary"
-                                        onclick="showStockedSchema()">Stocked Schema
-                                    </button>
-                                </label>
+                                    <!-- Grid 1 -->
+                                    <div class="col-md-4">
+                                        <label class="label-space">
+                                            Size Artikel:
+                                            <span id="barcode_running_label" style="display:none;"></span>
+                                            <a class="btn btn-sm btn-primary" onclick="return activateColumn()">undisabled</a>
+                                        </label>
+                                    </div>
+
+                                    <!-- Grid 2 -->
+                                    <div class="col-md-4 d-flex align-items-center">
+                                        <button type="button" class="btn btn-info btn-sm" id="btnLogHistory">
+                                            Log History updated
+                                        </button>
+                                    </div>
+
+                                    <!-- Grid 3 -->
+                                    <div class="col-md-4">
+                                        <label>
+                                            Schema Display
+                                            <button type="button" class="btn btn-primary" onclick="showAllSchema()">All Schema</button>
+                                            <button type="button" class="btn btn-secondary" onclick="showStockedSchema()">Stocked Schema</button>
+                                        </label>
+                                    </div>
+
+                                </div>
+
                                 @if (!Str::contains($data['stt'], ['MARKOM', 'ONLINE']))
                                     <div id="reload_size"></div>
                                 @endif
@@ -480,6 +496,47 @@
                         Tidak ada gambar untuk produk ini.
                     </div>
                 </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal untuk menampilkan semua link -->
+<div class="modal fade" id="HistoryModal" tabindex="-1" role="dialog" aria-labelledby="HistoryModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header d-flex justify-content-between align-items-center">
+                <h5 class="modal-title" id="HistoryModalLabel">Log History Changes</h5>
+
+                <div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="tab-content mt-3">
+                    <!-- Marketplace -->
+                    <div class="tab-pane fade show active">
+{{--                        <button class="btn btn-primary mb-3" id="tableHistory">+ Add Marketplace</button>--}}
+                        <table id="tableHistory" class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>user</th>
+                                <th>Activity</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
         </div>
