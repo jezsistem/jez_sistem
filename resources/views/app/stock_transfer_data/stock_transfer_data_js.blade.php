@@ -135,6 +135,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
+            scrollX: true,
             dom: '<"text-left"l>rt<"text-right"p>',
             buttons: [{
                 "extend": 'excelHtml5',
@@ -326,6 +327,7 @@
         });
 
         $('#accept_qty_btn').on('click', function() {
+            var $button = $(this);
             swal({
                 title: "Terima..?",
                 text: "Yakin jumlah sudah sesuai untuk diterima ?",
@@ -337,7 +339,7 @@
                 dangerMode: false,
             }).then(function(isConfirm) {
                 if (isConfirm) {
-                    $(this).addClass('disabled');
+                    $button.addClass('disabled');
                     var arr = [];
                     var i = 0;
                     var stf_id = $('#stf_id').val();
@@ -357,20 +359,35 @@
 
                         if (parseInt(accept_qty) > parseInt(transfer_qty)) {
                             isValid = false;
-                            swal('Error', 
-                                'Barcode: ' + barcode + '\nJumlah yang diterima (' + accept_qty + ') melebihi jumlah yang ditransfer (' + transfer_qty + ')', 
+                            swal('Error',
+                                'Barcode: ' + barcode + '\nJumlah yang diterima (' +
+                                accept_qty + ') melebihi jumlah yang ditransfer (' +
+                                transfer_qty + ')',
                                 'error');
                             return false;
                         }
                     });
 
                     if (!isValid) {
+                        $button.removeClass('disabled');
                         return false;
                     }
                     if (arr.length <= 0) {
+                        $button.removeClass('disabled');
                         swal('Qty kosong', 'silahkan tentukan qty yang diterima', 'warning');
                         return false;
                     }
+
+                    // Show loading swal
+                    Swal.fire({
+                        title: 'Memproses...',
+                        html: 'Mohon tunggu sebentar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -386,16 +403,23 @@
                         dataType: 'json',
                         url: "{{ url('stock_transfer_accept') }}",
                         success: function(r) {
+                            Swal.close(); // Close loading swal
+                            $button.removeClass('disabled');
                             if (r.status == '200') {
+                                $('#StockTransferDataModal').modal('hide');
                                 stock_transfer_data_table.draw();
                                 stock_transfer_data_accept_table.draw();
-                                $(this).removeClass('disabled');
                                 swal("Berhasil", "Data berhasil diterima",
                                     "success");
                             } else {
-                                $(this).removeClass('disabled');
                                 swal('Gagal', 'Gagal terima data', 'error');
                             }
+                        },
+                        error: function() {
+                            Swal.close(); // Close loading swal
+                            $button.removeClass('disabled');
+                            swal('Error', 'Terjadi kesalahan saat memproses data',
+                                'error');
                         }
                     });
                     return false;
