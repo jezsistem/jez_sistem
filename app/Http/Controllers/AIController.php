@@ -279,6 +279,7 @@ class AIController extends Controller
         4. Semua jawaban harus 100% berdasarkan DATA QUERY SEKARANG.
         5. Jika data kosong → jawab 'Tidak ada produk yang sesuai.'
         6. Jangan mengarang produk/SKU.
+        7. Jika Stok sudah hampir habis berikan rekomendasi untuk pengguna.
         
         
         Nama Perusahaan yaitu PT Zona Karya Nusantara mencangkup Sneakerzone dan JerseyZone, Direktur Perusahaan yaitu Triastana Anang Wibawa
