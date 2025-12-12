@@ -1513,7 +1513,7 @@ class ProductController extends Controller
                     $item_name = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
                     $save_product = $product->deleteData($id);
                     if ($save_product) {
-                        $this->UserActivity('menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
+//                        $this->UserActivity(A,'menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
                         $r['status'] = '200';
                     } else {
                         $r['status'] = '400';
@@ -1525,7 +1525,7 @@ class ProductController extends Controller
                 $item_name = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
                 $save_product = $product->deleteData($id);
                 if ($save_product) {
-                    $this->UserActivity('menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
+//                    $this->UserActivity('menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
                     $r['status'] = '200';
                 } else {
                     $r['status'] = '400';
