@@ -77,9 +77,6 @@ class AIController extends Controller
     {
         $message = $request->input('message');
 
-        /* ---------------------------------------------------------
-         * 0. RESET CHAT / GANTI TOPIK
-         * --------------------------------------------------------- */
         if (preg_match('/\b(reset|ganti topik|clear|mulai baru|hapus context|mantap|oke jez|terima kasih)\b/i', $message)) {
             session()->forget(['last_sku','last_stock_data','last_ai_answer']);
 
@@ -88,9 +85,6 @@ class AIController extends Controller
             ]);
         }
 
-        /* ---------------------------------------------------------
-         * 1. DETECT INTENT
-         * --------------------------------------------------------- */
         $intent    = $this->detectIntent($message);
         $queryType = $intent['query_type'] ?? 'general';
         $sku       = $intent['sku'] ?? null;
@@ -157,90 +151,132 @@ class AIController extends Controller
          * --------------------------------------------------------- */
         if ($queryType === 'rekom_sepatu') {
 
-            // 1. AI Extraction
+            /** ============================================
+             * 1. Normalisasi Category
+             * ============================================ */
             $category = strtolower($intent['category'] ?? 'running');
-            $branch   = strtolower($intent['branch'] ?? 'malang');
-            $size     = $intent['size'] ?? null;
 
-            // 2. Range harga AI
-            $min = $intent['min_price'] ?? 0;
-            $max = $intent['max_price'] ?? null;
+            // Normalisasi kata umum
+            $mapKategori = [
+                'running'   => 'running',
+                'lari'      => 'running',
+                'jogging'   => 'running',
+                'sneakers'  => 'sneakers',
+                'casual'    => 'casual',
+                'daily'     => 'casual',
+                'sepatu'    => '', // fallback agar LIKE tidak error
+            ];
 
-            // 3. Ekstraksi angka manual dari pesan
+            $category = $mapKategori[$category] ?? $category;
+
+
+            /** ============================================
+             * 2. Area Cabang
+             * ============================================ */
+            $branch = strtolower($intent['branch'] ?? 'malang');
+
+
+            /** ============================================
+             * 3. Size Normalization
+             * ============================================ */
+            $size = null;
+
+            if (!empty($intent['size'])) {
+                $size = preg_replace('/[^0-9]/', '', $intent['size']);
+            }
+
+            // Extra: deteksi size dari pesan
+            if (!$size && preg_match('/size\s*(\d+)/', strtolower($message), $mss)) {
+                $size = $mss[1];
+            }
+
+
+            /** ============================================
+             * 4. Ekstraksi Range Harga Dari Pesan
+             * ============================================ */
             $pesan = strtolower($message);
-            $angka1 = $this->normalizeHarga($pesan);
-            $angka2 = null;
+            $min = 0;
+            $max = 99999999;
 
-            if (preg_match('/(\d+)\s*(?:-|to|sampai|s\/d|–)\s*(\d+)/', $pesan, $mm)) {
-                $angka1 = $this->normalizeHarga($mm[1]);
-                $angka2 = $this->normalizeHarga($mm[2]);
+            // Ambil semua angka
+            preg_match_all('/\d+/', $pesan, $angka);
+
+            if (count($angka[0]) >= 2) {
+                // Jika user input 300000 sampai 500000 dll
+                $min = min($angka[0]);
+                $max = max($angka[0]);
+            } elseif (count($angka[0]) == 1) {
+                // 300 ribu → jadikan max saja
+                $max = $angka[0][0];
             }
 
-            if ($angka1 && !$angka2) $max = $angka1;
-            if ($angka1 && $angka2) {
-                $min = min($angka1, $angka2);
-                $max = max($angka1, $angka2);
-            }
-            if (!$max) $max = 99999999;
 
-            // 4. Bind Params
+            /** ============================================
+             * 5. Bind Parameters
+             * ============================================ */
             $params = [
-                "%{$category}%",
+                "%{$category}%",   // kategori (pssc)
                 $min,
                 $max,
-                "%{$branch}%",
+                "%{$branch}%",     // kota / lokasi
             ];
 
             $sizeQuery = "";
-            if (!empty($size)) {
+            if ($size) {
                 $sizeQuery = " AND T7.sz_name = ? ";
-                $params[]  = $size;
+                $params[] = $size;
             }
 
-            // 5. Query
+
+            /** ============================================
+             * 6. SQL Query Bersih + Akurat
+             * ============================================ */
             $sql = "
-                SELECT
-                    T5.p_name,
-                    T5.p_color,
-                    T7.sz_name,
-                    T6.pssc_name,
-                    T4.st_name,
-                    T3.ps_barcode AS sku,
-                    T2.pl_description,
-                    SUM(T1.pls_qty) AS total_qty,
-                    MIN(T3.ps_sell_price) AS harga
-                FROM ts_product_location_setups T1
-                LEFT JOIN ts_product_locations T2 ON T1.pl_id = T2.id
-                LEFT JOIN ts_product_stocks T3 ON T3.id = T1.pst_id
-                LEFT JOIN ts_stores T4 ON T4.id = T2.st_id
-                LEFT JOIN ts_products T5 ON T5.id = T3.p_id
-                LEFT JOIN ts_product_sub_sub_categories T6 ON T6.id = T5.pssc_id
-                LEFT JOIN ts_sizes T7 ON T7.id = T3.sz_id
-                WHERE
-                    LOWER(T6.pssc_name) LIKE ?
-                    AND T1.pls_qty > 0
-                    AND T3.ps_sell_price BETWEEN ? AND ?
-                    AND LOWER(T2.pl_description) LIKE ?
-                    $sizeQuery
-                GROUP BY
-                    T5.p_name, T5.p_color, T7.sz_name,
-                    T6.pssc_name, T4.st_name,
-                    T3.ps_barcode, T2.pl_description
-                ORDER BY harga ASC
-                LIMIT 20
-            ";
+        SELECT
+            T5.p_name,
+            T5.p_color,
+            T7.sz_name,
+            T6.pssc_name,
+            T4.st_name,
+            T3.ps_barcode AS sku,
+            T2.pl_description,
+            SUM(T1.pls_qty) AS total_qty,
+            MIN(T3.ps_sell_price) AS harga
+        FROM ts_product_location_setups T1
+        LEFT JOIN ts_product_locations T2 ON T1.pl_id = T2.id
+        LEFT JOIN ts_product_stocks T3 ON T3.id = T1.pst_id
+        LEFT JOIN ts_stores T4 ON T4.id = T2.st_id
+        LEFT JOIN ts_products T5 ON T5.id = T3.p_id
+        LEFT JOIN ts_product_sub_sub_categories T6 ON T6.id = T5.pssc_id
+        LEFT JOIN ts_sizes T7 ON T7.id = T3.sz_id
+        WHERE
+            LOWER(T6.pssc_name) LIKE ?
+            AND T1.pls_qty > 0
+            AND T3.ps_sell_price BETWEEN ? AND ?
+            AND LOWER(T2.pl_description) LIKE ?
+            $sizeQuery
+        GROUP BY
+            T5.p_name, T5.p_color, T7.sz_name,
+            T6.pssc_name, T4.st_name,
+            T3.ps_barcode, T2.pl_description
+        ORDER BY harga ASC
+        LIMIT 20
+    ";
 
             $data = DB::select($sql, $params);
 
-            // 6. Format context
-            $contextData .= "Tampilkan hanya data berikut tanpa menambah merek lain, dan jangan mengarang jika data tidak ditemukan.\n";
-            $contextData .= "REKOMENDASI SEPATU '{$category}' | Harga {$min} - {$max} | Cabang: {$branch}\n";
+
+            /** ============================================
+             * 7. Hasil Chat Context
+             * ============================================ */
+            $contextData .= "Tampilkan hanya data berikut tanpa menambah merek/model lain.\n";
+            $contextData .= "REKOMENDASI SEPATU '{$category}' | Size: {$size} | Harga: {$min} - {$max} | Cabang: {$branch}\n\n";
 
             if (empty($data)) {
                 $contextData .= "- Tidak ada produk ditemukan.\n";
             } else {
                 foreach ($data as $d) {
-                    $contextData .= "- {$d->p_name} ({$d->pssc_name}, Size {$d->sz_name}) | Rp {$d->harga} | Lokasi: {$d->pl_description} | Stock Total: {$d->total_qty}\n";
+                    $contextData .= "- {$d->p_name} ({$d->p_color}, {$d->pssc_name}) | Size {$d->sz_name} | Rp {$d->harga} | Lokasi: {$d->pl_description} | Stock: {$d->total_qty}\n";
                 }
             }
         }
