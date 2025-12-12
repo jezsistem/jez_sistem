@@ -95,6 +95,8 @@ class AIController extends Controller
         $queryType = $intent['query_type'] ?? 'general';
         $sku       = $intent['sku'] ?? null;
 
+//        dd($intent);
+
         // Load Memory
         $lastSku  = session('last_sku');
         $lastData = session('last_stock_data');
@@ -140,10 +142,14 @@ class AIController extends Controller
             ORDER BY s.lokasi
         ", [$sku]);
 
-            $contextData .= "DATA STOK SKU $sku:\n";
+            $contextData .= "[STOK_SKU]\n";
+            $contextData .= "SKU: $sku\n";
+
             foreach ($data as $d) {
-                $contextData .= "- {$d->lokasi}: {$d->total_qty}\n";
+                $contextData .= "{$d->lokasi} = {$d->total_qty}\n";
             }
+
+            $contextData .= "[END_STOK_SKU]\n";
         }
 
         /* ---------------------------------------------------------
@@ -327,53 +333,49 @@ class AIController extends Controller
     private function detectIntent($message)
     {
         $prompt = "
-            Kamu adalah AI intent classifier.
-            Balas HANYA JSON VALID tanpa kalimat tambahan.
-            
-            Tugas:
-            - Tentukan jenis query user.
-            - Jika ngomong tentang rekomendasi sepatu → query_type = \"rekom_sepatu\".
-            - Ekstrak kategori sepatu (contoh: futsal, running, sepak bola).
-            - Ekstrak ukuran jika ada (contoh: size 42).
-            - Ekstrak kota/cabang jika ada (contoh: Malang, Surabaya).
-            - Ekstrak harga:
-              • \"300 ribu\" → 300000
-              • \"300-500\" → min_price = 300000, max_price = 500000
-              • \"300rb – 400rb\" → range
-              • Jika hanya satu angka → max_price = angka, min_price = 0
-            
-            Format JSON:
-            {
-              \"query_type\": \"rekom_sepatu\",
-              \"category\": \"futsal\",
-              \"size\": 42,
-              \"min_price\": 200000,
-              \"max_price\": 400000,
-              \"branch\": \"malang\"
-            }
-            
-            Jika tidak tahu → query_type = \"general\".
-            
-            Balas hanya JSON tanpa penjelasan.
-            
-            Pesan user:
-            $message
-                ";
+        Kamu adalah AI intent classifier.
+        Balas HANYA JSON VALID tanpa kalimat tambahan.
+        
+        Tugas:
 
-        $apiKey = env('GEMINI_API_KEY');
+        1. Jika user menanyakan stok barang:
+           query_type = \"stok_sku\" + SKU.
 
-        $response = Http::post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey",
-            [
-                "contents" => [
-                    [
-                        "parts" => [
-                            ["text" => $prompt]
-                        ]
+        2. SKU adalah kode seperti:
+           ASAVO06BLA, JS25RMAHPIL, ABC123XYZ.
+
+        3. Jika minta rekomendasi sepatu:
+           query_type = \"rekom_sepatu\".
+
+        4. Jika tidak tahu:
+           query_type = \"general\".
+
+        Contoh:
+        {
+          \"query_type\": \"stok_sku\",
+          \"sku\": \"JS25RMAHPIL\"
+        }
+
+        Pesan user:
+        $message
+    ";
+
+        $apiKey = 'AIzaSyBuo87ikW2WRnmjo3g0dallifNtMuvRe5Q';
+
+        // ✔ gunakan gemini-2.5-flash
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
+
+        $response = Http::withHeaders([
+            "Content-Type" => "application/json"
+        ])->post($url, [
+            "contents" => [
+                [
+                    "parts" => [
+                        ["text" => $prompt]
                     ]
                 ]
             ]
-        );
+        ]);
 
         if ($response->failed()) {
             return ["query_type" => "general"];
@@ -381,10 +383,9 @@ class AIController extends Controller
 
         $json = $response->json();
 
-        $raw = $json['candidates'][0]['content']['parts'][0]['text']
-            ?? "";
+        $raw = $json['candidates'][0]['content']['parts'][0]['text'] ?? "";
 
-        // Bersihkan teks sehingga hanya menyisakan JSON
+        // Ekstrak JSON saja
         preg_match('/\{.*\}/s', $raw, $match);
 
         if (!isset($match[0])) {
