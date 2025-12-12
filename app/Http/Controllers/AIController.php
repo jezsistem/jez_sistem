@@ -307,7 +307,7 @@ class AIController extends Controller
             . "\n\nDATA QUERY SEKARANG:\n{$contextData}"
             . "\n\nPERTANYAAN USER:\n{$message}";
 
-        $finalAiResponse = $this->callGemini($prompt);
+        $finalAiResponse = $this->callAI($prompt);
 
         /* ---------------------------------------------------------
          * 6. SAVE MEMORY
@@ -330,50 +330,99 @@ class AIController extends Controller
     // --------------------------------------------
     // DETECT INTENT DENGAN LLM
     // --------------------------------------------
+//    private function detectIntent($message)
+//    {
+//        $prompt = "
+//        Kamu adalah AI intent classifier.
+//        Balas HANYA JSON VALID tanpa kalimat tambahan.
+//
+//        Tugas:
+//
+//        1. Jika user menanyakan stok barang:
+//           query_type = \"stok_sku\" + SKU.
+//
+//        2. SKU adalah kode seperti:
+//           ASAVO06BLA, JS25RMAHPIL, ABC123XYZ.
+//
+//        3. Jika minta rekomendasi sepatu:
+//           query_type = \"rekom_sepatu\".
+//
+//        4. Jika tidak tahu:
+//           query_type = \"general\".
+//
+//        Contoh:
+//        {
+//          \"query_type\": \"stok_sku\",
+//          \"sku\": \"JS25RMAHPIL\"
+//        }
+//
+//        Pesan user:
+//        $message
+//    ";
+//
+//        $apiKey = 'AIzaSyBuo87ikW2WRnmjo3g0dallifNtMuvRe5Q';
+//
+//        // ✔ gunakan gemini-2.5-flash
+//        $url = "https://api.google.ai/v1beta/models/gemini-2.5-flash-lite:generateContent";
+//
+//        $response = Http::withHeaders([
+//            "Content-Type" => "application/json",
+//            "x-goog-api-key" => $apiKey
+//        ])->post($url, [
+//            "contents" => [
+//                [
+//                    "parts" => [
+//                        ["text" => $prompt]
+//                    ]
+//                ]
+//            ]
+//        ]);
+//
+//        if ($response->failed()) {
+//            return ["query_type" => "general"];
+//        }
+//
+//        $json = $response->json();
+//
+//        $raw = $json['candidates'][0]['content']['parts'][0]['text'] ?? "";
+//
+//        // Ekstrak JSON saja
+//        preg_match('/\{.*\}/s', $raw, $match);
+//
+//        if (!isset($match[0])) {
+//            return ["query_type" => "general"];
+//        }
+//
+//        $parsed = json_decode($match[0], true);
+//
+//        if (!is_array($parsed)) {
+//            return ["query_type" => "general"];
+//        }
+//
+//        return $parsed;
+//    }
+
     private function detectIntent($message)
     {
         $prompt = "
-        Kamu adalah AI intent classifier.
-        Balas HANYA JSON VALID tanpa kalimat tambahan.
-        
-        Tugas:
+    Kamu adalah AI intent classifier.
+    Balas HANYA JSON VALID tanpa kalimat tambahan.
 
-        1. Jika user menanyakan stok barang:
-           query_type = \"stok_sku\" + SKU.
+    1. Jika menanyakan stok, query_type = \"stok_sku\" + SKU.
+    2. Jika minta rekomendasi sepatu → query_type = \"rekom_sepatu\".
+    3. Jika tidak paham → query_type = \"general\".
 
-        2. SKU adalah kode seperti:
-           ASAVO06BLA, JS25RMAHPIL, ABC123XYZ.
-
-        3. Jika minta rekomendasi sepatu:
-           query_type = \"rekom_sepatu\".
-
-        4. Jika tidak tahu:
-           query_type = \"general\".
-
-        Contoh:
-        {
-          \"query_type\": \"stok_sku\",
-          \"sku\": \"JS25RMAHPIL\"
-        }
-
-        Pesan user:
-        $message
+    Pesan user:
+    $message
     ";
 
-        $apiKey = 'AIzaSyBuo87ikW2WRnmjo3g0dallifNtMuvRe5Q';
-
-        // ✔ gunakan gemini-2.5-flash
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
-
         $response = Http::withHeaders([
-            "Content-Type" => "application/json"
-        ])->post($url, [
-            "contents" => [
-                [
-                    "parts" => [
-                        ["text" => $prompt]
-                    ]
-                ]
+            "Authorization" => "Bearer ".env('GROQ_API_KEY'),
+            "Content-Type"  => "application/json"
+        ])->post("https://api.groq.com/openai/v1/chat/completions", [
+            "model" => "llama-3.1-8b-instant",// cepat untuk intent
+            "messages" => [
+                ["role" => "user", "content" => $prompt]
             ]
         ]);
 
@@ -381,11 +430,9 @@ class AIController extends Controller
             return ["query_type" => "general"];
         }
 
-        $json = $response->json();
+        $raw = $response->json()['choices'][0]['message']['content'] ?? "";
 
-        $raw = $json['candidates'][0]['content']['parts'][0]['text'] ?? "";
-
-        // Ekstrak JSON saja
+        // Ambil JSON di dalam teks
         preg_match('/\{.*\}/s', $raw, $match);
 
         if (!isset($match[0])) {
@@ -394,11 +441,7 @@ class AIController extends Controller
 
         $parsed = json_decode($match[0], true);
 
-        if (!is_array($parsed)) {
-            return ["query_type" => "general"];
-        }
-
-        return $parsed;
+        return $parsed ?: ["query_type" => "general"];
     }
 
 
@@ -421,38 +464,69 @@ class AIController extends Controller
         return null;
     }
 
-    private function callGemini($prompt)
+    private function callAi($prompt)
     {
-        $apiKey = 'AIzaSyBuo87ikW2WRnmjo3g0dallifNtMuvRe5Q';
+        $apiKey = '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';
 
         if (!$apiKey) {
-            return "(GEMINI ERROR: API key tidak ditemukan)";
+            return "(GROQ ERROR: API key tidak ditemukan)";
         }
 
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
-
-        $payload = [
-            "contents" => [
-                [
-                    "parts" => [
-                        ["text" => $prompt]
-                    ]
-                ]
-            ]
-        ];
+        $url = "https://api.groq.com/openai/v1/chat/completions";
 
         $response = Http::withHeaders([
-            "Content-Type" => "application/json"
-        ])->post($url, $payload);
+            "Authorization" => "Bearer " . $apiKey,
+            "Content-Type"  => "application/json"
+        ])->post($url, [
+            "model"    => "llama-3.3-70b-versatile", // MODEL BARU
+            "messages" => [
+                ["role" => "user", "content" => $prompt]
+            ],
+            "temperature" => 0.2
+        ]);
 
         if ($response->failed()) {
-            return "(GEMINI ERROR: " . $response->status() . " - " . $response->body() . ")";
+            return "(GROQ ERROR: ".$response->status()." - ".$response->body().")";
         }
 
-        $json = $response->json();
-
-        return $json['candidates'][0]['content']['parts'][0]['text']
-            ?? "(NO RESPONSE)";
+        return $response->json()['choices'][0]['message']['content'] ?? "(NO RESPONSE)";
     }
+
+//    private function callGemini($prompt)
+//    {
+//        $apiKey = 'AIzaSyBuo87ikW2WRnmjo3g0dallifNtMuvRe5Q';
+//
+//        if (!$apiKey) {
+//            return "(GEMINI ERROR: API key tidak ditemukan)";
+//        }
+//
+//        $url = "https://api.google.ai/v1beta/models/gemini-2.5-flash-lite:generateContent";
+//
+//        $payload = Http::withHeaders([
+//            "Content-Type" => "application/json",
+//            "x-goog-api-key" => $apiKey
+//        ])->post($url, [
+//            "contents" => [
+//                [
+//                    "parts" => [
+//                        ["text" => $prompt]
+//                    ]
+//                ]
+//            ]
+//        ]);
+//
+//        $response = Http::withHeaders([
+//            "Content-Type" => "application/json"
+//        ])->post($url, $payload);
+//
+//        if ($response->failed()) {
+//            return "(GEMINI ERROR: " . $response->status() . " - " . $response->body() . ")";
+//        }
+//
+//        $json = $response->json();
+//
+//        return $json['candidates'][0]['content']['parts'][0]['text']
+//            ?? "(NO RESPONSE)";
+//    }
 
 }
