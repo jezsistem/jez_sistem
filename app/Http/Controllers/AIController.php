@@ -301,33 +301,7 @@ class AIController extends Controller
             . "\n\nDATA QUERY SEKARANG:\n{$contextData}"
             . "\n\nPERTANYAAN USER:\n{$message}";
 
-        $client = new \GuzzleHttp\Client([
-            'timeout' => 0, // disable timeout
-            'stream'  => true
-        ]);
-
-        $res = $client->post('http://103.245.39.246:11434/api/generate', [
-            'json' => [
-                'model'  => 'llama3.1',
-                'prompt' => $prompt,
-            ]
-        ]);
-
-        $body = $res->getBody();
-
-        $finalAiResponse = "";
-
-        while (!$body->eof()) {
-            $chunk = $body->read(4096);
-            $rows  = explode("\n", $chunk);
-
-            foreach ($rows as $line) {
-                $row = json_decode($line, true);
-                if (isset($row['response'])) {
-                    $finalAiResponse .= $row['response'];
-                }
-            }
-        }
+        $finalAiResponse = $this->callGemini($prompt);
 
         /* ---------------------------------------------------------
          * 6. SAVE MEMORY
@@ -353,84 +327,74 @@ class AIController extends Controller
     private function detectIntent($message)
     {
         $prompt = "
-        Kamu adalah AI intent classifier.
-        Balas HANYA JSON valid!! Jangan memberikan kalimat lain.
-
-        Tugas:
-        - Identifikasi apakah user meminta rekomendasi sepatu.
-        - Ekstrak angka harga (contoh: '300 ribuan' → 300000).
-        - Jika ada range harga (contoh: '300-500') → min_price & max_price.
-        - Jika hanya 1 angka (contoh: '500 ribu') → min_price = 0, max_price = 500000.
-        - Jika user tidak menyebut angka → tetap query_type 'general'.
-
-        Format JSON contoh:
-        { \"query_type\": \"stok_sku\", \"sku\": \"ASAVO06BLA\" }
-        { \"query_type\": \"general\" }
-        { \"query_type\": \"rekom_sepatu\", \"min_price\": 300000, \"max_price\": 500000 }
-
-        Ingat:
-        - Balas hanya JSON.
-        - Tidak boleh ada kata lain di luar JSON.
-
-        Pesan user:
-        $message
-    ";
-
-//        $response = Http::withOptions(['stream' => true])
-//            ->post('http://103.245.39.246:11434/api/generate', [
-//                'model' => 'llama3.1',
-//                'prompt' => $prompt
-//            ]);
-//
-//        $raw = $response->body();
-//        $lines = explode("\n", $raw);
-//
-//        $jsonText = "";
-//        foreach ($lines as $line) {
-//            $row = json_decode($line, true);
-//            if (isset($row['response'])) {
-//                $jsonText .= $row['response'];
-//            }
-//        }
-
-        $client = new \GuzzleHttp\Client([
-            'timeout' => 0,
-            'stream'  => true
-        ]);
-
-        $res = $client->post('http://103.245.39.246:11434/api/generate', [
-            'json' => [
-                'model'  => 'llama3.1',
-                'prompt' => $prompt
-            ]
-        ]);
-
-        $body = $res->getBody();
-        $jsonText = "";
-
-        while (!$body->eof()) {
-            $chunk = $body->read(4096);
-            $rows  = explode("\n", $chunk);
-
-            foreach ($rows as $line) {
-                $row = json_decode($line, true);
-                if (isset($row['response'])) {
-                    $jsonText .= $row['response'];
-                }
+            Kamu adalah AI intent classifier.
+            Balas HANYA JSON VALID tanpa kalimat tambahan.
+            
+            Tugas:
+            - Tentukan jenis query user.
+            - Jika ngomong tentang rekomendasi sepatu → query_type = \"rekom_sepatu\".
+            - Ekstrak kategori sepatu (contoh: futsal, running, sepak bola).
+            - Ekstrak ukuran jika ada (contoh: size 42).
+            - Ekstrak kota/cabang jika ada (contoh: Malang, Surabaya).
+            - Ekstrak harga:
+              • \"300 ribu\" → 300000
+              • \"300-500\" → min_price = 300000, max_price = 500000
+              • \"300rb – 400rb\" → range
+              • Jika hanya satu angka → max_price = angka, min_price = 0
+            
+            Format JSON:
+            {
+              \"query_type\": \"rekom_sepatu\",
+              \"category\": \"futsal\",
+              \"size\": 42,
+              \"min_price\": 200000,
+              \"max_price\": 400000,
+              \"branch\": \"malang\"
             }
+            
+            Jika tidak tahu → query_type = \"general\".
+            
+            Balas hanya JSON tanpa penjelasan.
+            
+            Pesan user:
+            $message
+                ";
+
+        $apiKey = env('GEMINI_API_KEY');
+
+        $response = Http::post(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey",
+            [
+                "contents" => [
+                    [
+                        "parts" => [
+                            ["text" => $prompt]
+                        ]
+                    ]
+                ]
+            ]
+        );
+
+        if ($response->failed()) {
+            return ["query_type" => "general"];
         }
 
-        // Ambil JSON {...}
-        preg_match('/\{.*\}/s', $jsonText, $m);
+        $json = $response->json();
 
-        if (!isset($m[0])) {
-            return ['query_type' => 'general'];
+        $raw = $json['candidates'][0]['content']['parts'][0]['text']
+            ?? "";
+
+        // Bersihkan teks sehingga hanya menyisakan JSON
+        preg_match('/\{.*\}/s', $raw, $match);
+
+        if (!isset($match[0])) {
+            return ["query_type" => "general"];
         }
 
-        $parsed = json_decode($m[0], true);
+        $parsed = json_decode($match[0], true);
 
         if (!is_array($parsed)) {
-            return ['query_type' => 'general'];
+            return ["query_type" => "general"];
         }
 
         return $parsed;
@@ -454,6 +418,40 @@ class AIController extends Controller
         }
 
         return null;
+    }
+
+    private function callGemini($prompt)
+    {
+        $apiKey = 'AIzaSyBuo87ikW2WRnmjo3g0dallifNtMuvRe5Q';
+
+        if (!$apiKey) {
+            return "(GEMINI ERROR: API key tidak ditemukan)";
+        }
+
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
+
+        $payload = [
+            "contents" => [
+                [
+                    "parts" => [
+                        ["text" => $prompt]
+                    ]
+                ]
+            ]
+        ];
+
+        $response = Http::withHeaders([
+            "Content-Type" => "application/json"
+        ])->post($url, $payload);
+
+        if ($response->failed()) {
+            return "(GEMINI ERROR: " . $response->status() . " - " . $response->body() . ")";
+        }
+
+        $json = $response->json();
+
+        return $json['candidates'][0]['content']['parts'][0]['text']
+            ?? "(NO RESPONSE)";
     }
 
 }
