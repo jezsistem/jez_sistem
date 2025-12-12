@@ -466,7 +466,9 @@ class AIController extends Controller
 
     private function callAi($prompt)
     {
-        $apiKey = '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';
+        $apiKey = env('GROQ_API_KEY');
+
+        dd(env('GROQ_API_KEY'));
 
         if (!$apiKey) {
             return "(GROQ ERROR: API key tidak ditemukan)";
