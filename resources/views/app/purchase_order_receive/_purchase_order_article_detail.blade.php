@@ -82,37 +82,37 @@
                                 @endphp
                                 @foreach ($row->subitem as $srow)
                                     <span data-poa-{{ $row->poa_id }}>
-                                        <input type="text" style="width:60px;" value="{{ $srow->sz_name }}"
+                                        <input type="text" style="width:60px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}" value="{{ $srow->sz_name }}"
                                             readonly />
-                                        <input type="number" style="width:60px;" value="{{ $srow->poad_qty }}"
+                                        <input type="number" style="width:60px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}" value="{{ $srow->poad_qty }}"
                                             readonly />
                                         <input type="number"
                                             id="poads_qty_remain_{{ $row->poa_id }}_{{ $i }}"
-                                            style="width:60px;" value="{{ $srow->poad_qty - $srow->poads_qty }}"
+                                            style="width:60px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}" value="{{ $srow->poad_qty - $srow->poads_qty }}"
                                             readonly />
                                         @if ($srow->poad_qty - $srow->poads_qty == 0)
-                                            <input type="text" style="width:52px;" value="Full" disabled />
+                                            <input type="text" style="width:52px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}" value="Full" disabled />
                                         @elseif($srow->qty_import != null)
                                             <input type="text"
                                                 id="poads_qty_{{ $row->poa_id }}_{{ $i }}"
-                                                style="width:52px;" value="{{ $srow->qty_import }}"
+                                                style="width:52px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}" value="{{ $srow->qty_import }}"
                                                 onchange="return receiveQtyImport({{ $row->poa_id }}, {{ $i }}, {{ $srow->qty_import }} )"
                                                 required />
                                         @else
                                             <input type="text"
                                                 id="poads_qty_{{ $row->poa_id }}_{{ $i }}"
-                                                style="width:52px;" value=""
+                                                style="width:52px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}" value=""
                                                 onchange="return receiveQty({{ $row->poa_id }}, {{ $i }} )"
                                                 required />
                                         @endif
-                                        <input type="text" disabled style="width:80px;"
+                                        <input type="text" disabled style="width:80px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}"
                                             value="{{ $srow['total_pls_qty'] ?? '' }}" readonly />
                                         @if ($srow->ps_price_tag == null || $srow->ps_price_tag == 0)
-                                            <input type="text" style="width:80px;"
+                                            <input type="text" style="width:80px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}"
                                                 id="price_tag_{{ $row->poa_id }}_{{ $i }}"
                                                 value="{{ number_format($row->p_price_tag) }}" readonly />
                                         @else
-                                            <input type="text" style="width:80px;"
+                                            <input type="text" style="width:80px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}"
                                                 id="price_tag_{{ $row->poa_id }}_{{ $i }}"
                                                 value="{{ number_format($srow->ps_price_tag) }}" readonly />
                                         @endif
@@ -123,22 +123,22 @@
                                 <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value="{{ number_format($srow->qty_import * $srow->ps_price_tag) }}"/>
                             @endif
                         @else --}}
-                                        <input type="text" style="width:80px;"
+                                        <input type="text" style="width:80px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}"
                                             data-poad-id="{{ $srow->poad_id }}"
                                             id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
                                             onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )"
                                             value="{{ number_format($srow->poad_purchase_price) }}" readonly />
                                         {{-- @endif --}}
-                                        <input type="hidden" style="width:80px;"
+                                        <input type="hidden" style="width:80px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}"
                                             id="cogs_{{ $row->poa_id }}_{{ $i }}" value=""
                                             readonly />
-                                        <input type="text" style="width:80px;"
+                                        <input type="text" style="width:80px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}"
                                             id="total_purchase_price_{{ $row->poa_id }}_{{ $i }}"
                                             value="{{ number_format($srow->poad_total_price) }}" readonly />
                                         {{-- @if ($srow->qty_import != null)
                             <input type="text" style="width:90px;" id="total_purchase_price_receive{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->qty_import *  $srow->poad_total_price) }}" readonly/> <img data-img-poads id="savePoads{{ $a }}" onclick="return savePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}" ondblclick="return bulkSavePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}"/>
                         @else --}}
-                                        <input type="text" style="width:90px;"
+                                        <input type="text" style="width:90px; {{ (($srow->poad_qty - $srow->poads_qty != 0) && !$is_receive_0) ? 'background-color: #FF5656;' : '' }}"
                                             id="total_purchase_price_receive{{ $row->poa_id }}_{{ $i }}"
                                             value="" readonly /> <img data-img-poads
                                             id="savePoads{{ $a }}"
