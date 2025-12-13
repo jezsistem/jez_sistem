@@ -81,25 +81,26 @@ class AIController extends Controller
         $message = $request->input('message');
 
         if (preg_match('/\b(reset|ganti topik|clear|mulai baru|hapus context|mantap|oke jez|terima kasih)\b/i', $message)) {
-            session()->forget(['last_sku','last_stock_data','last_ai_answer']);
+            session()->forget(['last_sku', 'last_stock_data', 'last_ai_answer']);
+            session()->regenerate();
 
             return response()->json([
                 'reply' => "Baik. Jika ada yang ingin di tanyakan lagi silahkan jez, dengan senang hati JEZY akan membantu kamu semaksimal mungkin 😊."
             ]);
         }
 
-        $intent    = $this->detectIntent($message);
+        $intent = $this->detectIntent($message);
         $queryType = $intent['query_type'] ?? 'general';
-        $sku       = $intent['sku'] ?? null;
+        $sku = $intent['sku'] ?? null;
 
 //        dd($intent, $queryType, $sku);
 
-        $lastSku  = session('last_sku');
+        $lastSku = session('last_sku');
         $lastData = session('last_stock_data');
-        $lastAi   = session('last_ai_answer');
+        $lastAi = session('last_ai_answer');
 
         $contextData = "";
-        $data        = null;
+        $data = null;
 
         if ($queryType === 'stok_sku' && $sku) {
 
@@ -142,9 +143,9 @@ class AIController extends Controller
             $result = $service->rekomSepatu($message, $intent);
 
             session([
-                'last_sku'        => null,
+                'last_sku' => null,
                 'last_stock_data' => $result['data'],
-                'last_ai_answer'  => $result['reply']
+                'last_ai_answer' => $result['reply']
             ]);
 
             return response()->json([
@@ -208,22 +209,23 @@ class AIController extends Controller
         $finalAiResponse = $this->callAI($prompt);
 
         session([
-            'last_sku'        => $sku ?: $lastSku,
+            'last_sku' => $sku ?: $lastSku,
             'last_stock_data' => $data ?: $lastData,
-            'last_ai_answer'  => $finalAiResponse
+            'last_ai_answer' => $finalAiResponse
         ]);
 
         return response()->json([
             'reply' => $finalAiResponse ?: "(AI tidak merespon)"
         ]);
     }
+
     private function detectIntent($message)
     {
-        // 1️⃣ RULE-BASED FIRST (ANTI GAGAL TOTAL)
-        if (
-            preg_match('/\bstok\b/i', $message) &&
-            preg_match('/[A-Z0-9]{6,}/i', $message, $skuMatch)
-        ) {
+        $skuMatch = [];
+        $branchMatch = [];
+
+        if (preg_match('/\b(?=[A-Z0-9]{7,}\b)(?=[A-Z0-9]*\d)[A-Z0-9]+\b/i', $message, $skuMatch)) {
+
             preg_match('/malang|surabaya|sidoarjo|kediri|jember|semarang/i', $message, $branchMatch);
 
             return [
@@ -232,6 +234,8 @@ class AIController extends Controller
                 'branch'     => isset($branchMatch[0]) ? strtoupper($branchMatch[0]) : null,
             ];
         }
+
+//        dd($skuMatch[0]);
 
         if (
             preg_match('/rekomendasi|sarankan|cari|sepatu/i', $message) &&
@@ -242,18 +246,18 @@ class AIController extends Controller
 
             return [
                 'query_type' => 'rekom_sepatu',
-                'category'   => preg_match('/running|lari|jogging/i', $message) ? 'running' : null,
-                'min_price'  => isset($priceMatch[1]) ? (int) str_replace('.', '', $priceMatch[1]) : null,
-                'max_price'  => isset($priceMatch[2]) ? (int) str_replace('.', '', $priceMatch[2]) : null,
-                'size'       => $sizeMatch[1] ?? null,
+                'category' => preg_match('/running|lari|jogging/i', $message) ? 'running' : null,
+                'min_price' => isset($priceMatch[1]) ? (int)str_replace('.', '', $priceMatch[1]) : null,
+                'max_price' => isset($priceMatch[2]) ? (int)str_replace('.', '', $priceMatch[2]) : null,
+                'size' => $sizeMatch[1] ?? null,
             ];
         }
 
         $apiKey = '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'; // pindahkan ke env
 
         $response = Http::withHeaders([
-            "Authorization" => "Bearer ".$apiKey,
-            "Content-Type"  => "application/json",
+            "Authorization" => "Bearer " . $apiKey,
+            "Content-Type" => "application/json",
         ])->post("https://api.groq.com/openai/v1/chat/completions", [
             "model" => "llama-3.1-8b-instant",
             "temperature" => 0,
@@ -265,10 +269,10 @@ class AIController extends Controller
                     Balas HANYA dengan 1 JSON OBJECT VALID.
                     TIDAK BOLEH ADA TEKS LAIN.
                     "
-                                    ],
-                                    [
-                                        "role" => "user",
-                                        "content" => "
+                ],
+                [
+                    "role" => "user",
+                    "content" => "
                     FORMAT WAJIB:
                     {
                       \"query_type\": \"stok_sku | rekom_sepatu | general\",
@@ -306,14 +310,15 @@ class AIController extends Controller
 
         return ["query_type" => "general"];
     }
+
     private function detectIdntent($message)
     {
         $apiKey = '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';
         $response = Http::withHeaders([
-            "Authorization" => "Bearer ".$apiKey,
+            "Authorization" => "Bearer " . $apiKey,
         ])->post("https://api.groq.com/openai/v1/chat/completions", [
             "model" => "llama-3.1-8b-instant",
-            "response_format" => [ "type" => "json_object" ],
+            "response_format" => ["type" => "json_object"],
             "messages" => [
                 [
                     "role" => "user",
@@ -337,6 +342,7 @@ class AIController extends Controller
                 3. Jika disebut nama kota → isi branch (MALANG, SURABAYA, dll)
                 4. Jika tidak yakin → general
                 5. JANGAN mengarang data
+                6. Jika data kosong → jawab Tidak ada produk dan berikan layanan lainnya
                 
                 TUGASMU: mengembalikan 1 OBJECT JSON SAJA. 
 
@@ -356,7 +362,7 @@ class AIController extends Controller
 
         $json = $response->json()['choices'][0]['message']['content'] ?? "{}";
 
-        \Log::info("PARSED INTENT JSON = ".$json);
+        \Log::info("PARSED INTENT JSON = " . $json);
 
         return json_decode($json, true) ?: ["query_type" => "general"];
     }
@@ -394,9 +400,9 @@ class AIController extends Controller
 
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $apiKey,
-            "Content-Type"  => "application/json"
+            "Content-Type" => "application/json"
         ])->post($url, [
-            "model"    => "llama-3.3-70b-versatile", // MODEL BARU
+            "model" => "llama-3.3-70b-versatile", // MODEL BARU
             "messages" => [
                 ["role" => "user", "content" => $prompt]
             ],
@@ -404,7 +410,7 @@ class AIController extends Controller
         ]);
 
         if ($response->failed()) {
-            return "(GROQ ERROR: ".$response->status()." - ".$response->body().")";
+            return "(GROQ ERROR: " . $response->status() . " - " . $response->body() . ")";
         }
 
         return $response->json()['choices'][0]['message']['content'] ?? "(NO RESPONSE)";
