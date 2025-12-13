@@ -273,6 +273,8 @@
             product_discount_detail_table.draw();
         });
 
+
+
         $(document).delegate('#delete_discount_item', 'click', function(e) {
             e.preventDefault();
             var pst_id = $(this).attr('data-pst_id');
@@ -482,6 +484,51 @@
                         $("#ImportModal").modal('hide');
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
+                        product_discount_table.draw();
+                        product_discount_detail_table.draw();
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat',
+                            'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        swal('Gagal',
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'warning');
+                    }
+                },
+                error: function(data) {
+                    swal('Error', data, 'error');
+                }
+            });
+        });
+
+        $('#btnImport').on('click', function() {
+            jQuery.noConflict();
+            $('#ProductDiscountImportModal').modal('show');
+        });
+
+        $('#f_mass_import').on('submit', function(e) {
+            e.preventDefault();
+            $("#mass_import_data_btn").html('Proses ..');
+            $("#mass_import_data_btn").attr("disabled", true);
+            var formData = new FormData(this);
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('mass_import_product_discount') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#mass_import_data_btn").html('Import');
+                    $("#mass_import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+                        swal('Berhasil', 'Mass Import Success', 'success');
+                        $('#f_mass_import')[0].reset();
                         product_discount_table.draw();
                         product_discount_detail_table.draw();
                     } else if (data.status == '400') {
