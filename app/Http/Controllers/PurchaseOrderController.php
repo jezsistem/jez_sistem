@@ -167,14 +167,14 @@ class PurchaseOrderController extends Controller
                 })
                 ->when($request->get('filter_delivery_note') === "1", function ($query) {
                     $query->whereNotNull('purchase_order_file_delivery_note.id')
-                          ->where('purchase_order_file_delivery_note.id', '!=', '')
-                          ->whereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) > 0');
+                        ->where('purchase_order_file_delivery_note.id', '!=', '')
+                        ->whereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) > 0');
                 }, function ($query) use ($request) {
                     if ($request->get('filter_delivery_note') === "0") {
                         $query->where(function ($q) {
                             $q->whereNull('purchase_order_file_delivery_note.id')
-                              ->orWhere('purchase_order_file_delivery_note.id', '')
-                              ->orWhereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) = 0');
+                                ->orWhere('purchase_order_file_delivery_note.id', '')
+                                ->orWhereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) = 0');
                         });
                     }
                 })
@@ -280,13 +280,20 @@ class PurchaseOrderController extends Controller
                     }
                 })
                 ->editColumn('finance_status', function ($data) {
-                    if ($data->finance_status == 'LUNAS') {
-                        return '<span class="badge" style="background-color: #28a745; color: white;">LUNAS</span>';
-                    } else if ($data->finance_status == 'HUTANG') {
-                        return '<span class="badge" style="background-color: #ffc107; color: white;">HUTANG</span>';
-                    } else {
-                        return '<span class="badge" style="background-color: #6c757d; color: white;">UNKNOWN</span>';
-                    }
+                    $statusColors = [
+                        'lunas' => '#28a745',
+                        'hutang' => '#ffc107',
+                        'piutang' => '#17a2b8',
+                        'piutang (overpayment partial)' => '#6f42c1',
+                        'hutang (partial receive)' => '#fd7e14',
+                        'draft / pending' => '#6c757d',
+                        'consignment' => '#20c997'
+                    ];
+
+                    $status = strtolower($data->finance_status ?? 'draft / pending');
+                    $color = $statusColors[$status] ?? '#6c757d';
+
+                    return '<span class="badge" style="background-color: ' . $color . '; color: white;">' . strtoupper($status) . '</span>';
                 })
                 ->addColumn('is_no_item', function ($data) {
 
@@ -371,7 +378,6 @@ class PurchaseOrderController extends Controller
                         if ($filter === 'in_progress') {
                             //get qty receive
                             $instance->whereRaw('(SELECT COUNT(*) FROM ts_purchase_order_article_detail_statuses WHERE ts_purchase_order_article_detail_statuses.poad_id IN (SELECT id FROM ts_purchase_order_article_details WHERE poa_id IN (SELECT id FROM ts_purchase_order_articles WHERE po_id = ts_purchase_orders.id)) AND poads_type = "IN") = 0');
-                            
                         } elseif ($filter === 'partial') {
                             //count the approved row and not approved yet
                             $instance->whereExists(function ($query) {
@@ -385,7 +391,7 @@ class PurchaseOrderController extends Controller
                             });
                         } elseif ($filter === 'done') {
                             $instance->whereNotNull('u_id_approve')
-                                     ->whereRaw('(SELECT COALESCE(SUM(poads_qty), 0) FROM ts_purchase_order_article_detail_statuses WHERE ts_purchase_order_article_detail_statuses.poad_id IN (SELECT id FROM ts_purchase_order_article_details WHERE poa_id IN (SELECT id FROM ts_purchase_order_articles WHERE po_id = ts_purchase_orders.id)) AND poads_type = "IN") = ts_purchase_orders.po_total_qty');
+                                ->whereRaw('(SELECT COALESCE(SUM(poads_qty), 0) FROM ts_purchase_order_article_detail_statuses WHERE ts_purchase_order_article_detail_statuses.poad_id IN (SELECT id FROM ts_purchase_order_article_details WHERE poa_id IN (SELECT id FROM ts_purchase_order_articles WHERE po_id = ts_purchase_orders.id)) AND poads_type = "IN") = ts_purchase_orders.po_total_qty');
                         }
                     }
                 })
@@ -850,7 +856,7 @@ class PurchaseOrderController extends Controller
         $check = PurchaseOrder::where(['id' => $po_id])->exists();
         if ($check) {
             $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
-            $total_po=0;
+            $total_po = 0;
             //get total purchase order
             $total_po = PurchaseOrderArticle::query()
                 ->where('po_id', $draft->id)
@@ -1085,7 +1091,8 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
-    public function changeIsReceivable(Request $request) {
+    public function changeIsReceivable(Request $request)
+    {
         $request->validate([
             '_po_id' => 'required|exists:purchase_orders,id',
             '_is_receivable' => 'required|in:0,1',
@@ -1103,7 +1110,8 @@ class PurchaseOrderController extends Controller
         return response()->json(['message' => 'Status Receivable berhasil disimpan']);
     }
 
-    public function changeClaimAmount(Request $request){
+    public function changeClaimAmount(Request $request)
+    {
         $request->validate([
             '_po_id' => 'required|exists:purchase_orders,id',
             '_claim_amount' => 'required|numeric|min:0',
@@ -1121,48 +1129,167 @@ class PurchaseOrderController extends Controller
         return response()->json(['message' => 'Claim Amount berhasil disimpan']);
     }
 
-    public function changeFinanceStatus(Request $request) {
+    public function changeFinanceStatus(Request $request)
+    {
         $request->validate([
             '_po_id' => 'required|exists:purchase_orders,id',
         ]);
 
         $po = PurchaseOrder::where('id', $request->_po_id)->first();
 
-        if (!$po) {
-            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        //parameters
+        $has_payment_date = false;
+        $has_stock_in_date = false;
+
+        $payment_amount = 0;
+        $claim_amount = 0;
+        $po_total_amount = 0;
+        $po_qty = 0;
+
+        $po_receive_amount = 0;
+        $po_receive_qty = 0;
+
+        $po_receive_amount_approved = 0;
+        $po_receive_qty_approved = 0;
+
+        $is_consigment = false;
+
+        //query date and payment amount
+        $query1 = DB::table('purchase_orders as po')
+            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+            ->leftJoin('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
+            ->leftJoin('stock_types as stkt', 'stkt.id', '=', 'po.stkt_id')
+            ->select(
+                DB::raw('MAX(ts_po.pay_date) as pay_date'),
+                DB::raw('MAX(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.created_at END) as stock_in_date'),
+                'po.po_payment_amount as payment_amount',
+                DB::raw('COALESCE(ts_po.is_receivable, 0) as claim_amount'),
+                'stkt.stkt_name as stock_type',
+            )
+            ->where('po.id', $request->_po_id)
+            ->groupBy('po.id')
+            ->first();
+
+        //query qty and price pembelian
+        $query2 = DB::table('purchase_orders as po')
+            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+            ->select(
+                DB::raw('SUM(ts_poad.poad_qty) as total_qty'),
+                DB::raw('SUM(ts_poad.poad_total_price) as total_price')
+            )
+            ->where('po.id', $request->_po_id)
+            ->groupBy('po.id')
+            ->first();
+
+        //query qty and price terima
+        $query3 = DB::table('purchase_orders as po')
+            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+            ->join('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
+            ->select(
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_not_approve'),
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_not_approve'),
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_approve'),
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_approve')
+            )
+            ->where('po.id', $request->_po_id)
+            ->groupBy('po.id')
+            ->first();
+
+        //assign query result to variables
+        $has_payment_date = !is_null($query1->pay_date);
+        $has_stock_in_date = !is_null($query1->stock_in_date);
+        $payment_amount = $query1->payment_amount ?? 0;
+        $claim_amount = $query1->claim_amount ?? 0;
+
+        $is_consigment = strtolower($query1->stock_type) == strtolower('CONSIGNMENT') ? true : false;
+
+        $po_total_amount = $query2->total_price ?? 0;
+        $po_qty = $query2->total_qty ?? 0;
+
+        $po_receive_amount_not_approved = $query3->price_not_approve ?? 0;
+        $po_receive_qty_not_approved = $query3->qty_not_approve ?? 0;
+
+        $po_receive_amount_approved = $query3->price_approve ?? 0;
+        $po_receive_qty_approved = $query3->qty_approve ?? 0;
+
+        $po_receive_amount = $po_receive_amount_not_approved + $po_receive_amount_approved;
+        $po_receive_qty = $po_receive_qty_not_approved + $po_receive_qty_approved;
+
+        $tolerance = 1000;
+
+        //check and update is consigment
+        if ($is_consigment) {
+            $po->finance_status = 'CONSIGNMENT';
+            $po->save();
+
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
         }
 
-        // Get account name
-        $account = Account::find($po->acc_id);
-        $account_name = $account ? $account->a_name : null;
+        //draft / pending
+        if (!$has_payment_date && !$has_stock_in_date) {
+            $po->finance_status = 'DRAFT / PENDING';
+            $po->save();
 
-        // Check if has transfer image
-        $has_transfer_image = PurchaseOrderTransferImage::where('purchase_order_id', $po->id)->exists();
-
-        // Check if is_paid from purchase_order_article_detail_statuses
-        $is_paid = DB::table('purchase_order_article_detail_statuses')
-            ->join('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-            ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-            ->where('purchase_order_articles.po_id', $po->id)
-            ->where('purchase_order_article_detail_statuses.is_paid', 1)
-            ->exists();
-
-        // Determine finance status based on conditions
-        $finance_status = 'HUTANG'; // Default
-
-        if (($account_name === 'COD' && $is_paid) || $has_transfer_image) {
-            $finance_status = 'LUNAS';
-        } elseif (in_array($account_name, ['Bank BCA 004', 'Bank BCA 005', 'Bank BCA 002', 'SHOPEE PAY'])) {
-            $finance_status = 'LUNAS';
-        } elseif (in_array($account_name, ['DIREKTUR', 'CONSIGMENT', 'CONSIGNMENT', 'TEMPO 30 HARI', 'TEMPO 60 HARI'])) {
-            if ($is_paid || $has_transfer_image) {
-                $finance_status = 'LUNAS';
-            }
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
         }
 
-        $po->finance_status = $finance_status;
+        //hutang partial receive
+        if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty < $po_qty)) {
+            $po->finance_status = 'HUTANG (PARTIAL RECEIVE)';
+            $po->save();
+
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        }
+
+        //hutang full receive
+        if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty = $po_qty)) {
+            $po->finance_status = 'HUTANG';
+            $po->save();
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        }
+
+        //piutang overpayment partial receive
+        if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty < $po_qty)) {
+            $po->finance_status = 'PIUTANG (OVERPAYMENT PARTIAL)';
+            $po->save();
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        }
+
+        //piutang 0 receive
+        if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty == 0)) {
+            $po->finance_status = 'PIUTANG';
+            $po->save();
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        }
+
+        //lunas with tolerance condition
+        //has payment date and stock in date and payment + claim amount equals total purchase amount with tolerance
+        $difference = ($payment_amount + $claim_amount) - $po_receive_amount;
+
+        if ($has_payment_date && $has_stock_in_date && $difference <= $tolerance && $difference >= -$tolerance) {
+            $po->finance_status = 'LUNAS';
+            $po->save();
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        }
+
+        if ($has_payment_date && $has_stock_in_date && $difference <= -$tolerance) {
+            $po->finance_status = 'HUTANG';
+            $po->save();
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        }
+
+        if ($has_payment_date && $has_stock_in_date && $difference > $tolerance) {
+            $po->finance_status = 'PIUTANG';
+            $po->save();
+            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        }
+
+        $po->finance_status = 'UNKNOWN';
         $po->save();
 
-        return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+        return response()->json(['message' => 'Status Finance gagal disimpan', 'status' => 400]);
     }
 }
