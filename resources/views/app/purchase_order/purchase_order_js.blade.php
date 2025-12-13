@@ -1393,7 +1393,7 @@
                         $('#total_qty').val(r.po_total_qty);
                         jQuery('#is_receivable').val(r.is_receivable);
                         jQuery('#claim_amount').val(r.claim_amount);
-                        $('#remaining_payment').val(r.claim_amount + r.po_payment_amount - r.total_po);
+                        $('#remaining_payment').val(parseInt(r.claim_amount ?? 0) + parseInt(r.po_payment_amount ?? 0) - parseInt(r.total_po ?? 0));
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');

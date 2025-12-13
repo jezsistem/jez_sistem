@@ -156,6 +156,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pos_barcode_scan', [PointOfSaleController::class, 'scanBarcode']);
     Route::get('has_waiting_status', [PointOfSaleController::class, 'hasWaitingStatus']);
 
+    Route::get('/test-env', function() {
+        return env('GROQ_API_KEY');
+    });
+
     // Adjustment
     Route::get('adjustment', [AdjustmentController::class, 'index'])->name('adjustment');
     Route::get(
