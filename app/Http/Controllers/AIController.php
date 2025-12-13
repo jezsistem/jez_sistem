@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
+// ai service nih
+use App\Services\ai\JezyService;
+
 class AIController extends Controller
 {
     protected function validateAccess()
@@ -73,7 +76,7 @@ class AIController extends Controller
         return view('app.ai.ai', compact('data', 'divisions'));
     }
 
-    public function chat(Request $request)
+    public function chat(Request $request, JezyService $service)
     {
         $message = $request->input('message');
 
@@ -91,7 +94,6 @@ class AIController extends Controller
 
 //        dd($intent, $queryType, $sku);
 
-        // Load Memory (per-session per-user)
         $lastSku  = session('last_sku');
         $lastData = session('last_stock_data');
         $lastAi   = session('last_ai_answer');
@@ -99,168 +101,57 @@ class AIController extends Controller
         $contextData = "";
         $data        = null;
 
-        /* ---------------------------------------------------------
- * 2B. QUERY REKOMENDASI SEPATU
- * --------------------------------------------------------- */
-        if ($queryType === 'rekom_sepatu') {
+        if ($queryType === 'stok_sku' && $sku) {
 
-            // 1. Normalisasi kategori
-            $category = strtolower(trim($intent['category'] ?? 'running'));
-            $mapKategori = [
-                'running'   => 'running',
-                'lari'      => 'running',
-                'jogging'   => 'running',
-                'sneakers'  => 'sneakers',
-                'casual'    => 'casual',
-                'daily'     => 'casual',
-                'futsal'    => 'futsal',
-                'basket'    => 'basket',
-            ];
-            $category = $mapKategori[$category] ?? $category;
+            $result = $service->stokBySku($sku);
+            $stokData = $result['data'];
 
-            // 2. Branch
-            $branch = strtolower(trim($intent['branch'] ?? 'malang'));
+            $reply = $result['reply'];
 
-            // 3. Size
-            $size = null;
-            if (!empty($intent['size'])) {
-                $size = preg_replace('/[^0-9]/', '', $intent['size']);
-            }
-            if (!$size && preg_match('/\bsize\s*:? ?(\d{2})\b/i', $message, $m)) {
-                $size = $m[1];
+            $minus = $service->deteksiStokMinus($stokData);
+            if ($minus['status']) {
+                $reply .= "\n\n" . $minus['message'];
             }
 
-            // 4. Harga
-            $min = $intent['min_price'] ?? 0;
-            $max = $intent['max_price'] ?? null;
-
-            // parsing angka manual
-            if (!$max) {
-                preg_match_all('/(\d[\d\.]+)/', $message, $nums);
-                $nums = array_map(fn($v) => intval(str_replace('.', '', $v)), $nums[1] ?? []);
-
-                if (count($nums) >= 2) {
-                    $min = min($nums);
-                    $max = max($nums);
-                } elseif (count($nums) == 1) {
-                    $max = $nums[0];
-                }
+            $transfer = $service->rekomTransferCabang($stokData);
+            if ($transfer) {
+                $reply .= "\n\n" . $transfer;
             }
 
-            if (!$max) $max = 99999999;
+            $reply .= "\n\n" . $service->ringkasanStokSku($sku, $stokData);
 
-            // 5. Query
-            $params = [
-                "%{$category}%",
-                $min,
-                $max,
-                "%{$branch}%"
-            ];
+            $prompt = $service->buildAiPromptFromData($sku, $stokData);
+            $aiSummary = $this->callAI($prompt);
 
-            $sizeQuery = "";
-            if ($size) {
-                $sizeQuery = " AND T7.sz_name = ? ";
-                $params[] = $size;
+            if ($aiSummary) {
+                $reply .= "\n\nInsight AI:\n" . $aiSummary;
             }
-
-            $sql = "
-        SELECT
-            T5.p_name,
-            T5.p_color,
-            T7.sz_name,
-            T6.pssc_name,
-            T4.st_name,
-            T3.ps_barcode AS sku,
-            T2.pl_description,
-            SUM(T1.pls_qty) AS total_qty,
-            MIN(T3.ps_sell_price) AS harga
-        FROM ts_product_location_setups T1
-        LEFT JOIN ts_product_locations T2 ON T1.pl_id = T2.id
-        LEFT JOIN ts_product_stocks T3 ON T3.id = T1.pst_id
-        LEFT JOIN ts_stores T4 ON T4.id = T2.st_id
-        LEFT JOIN ts_products T5 ON T5.id = T3.p_id
-        LEFT JOIN ts_product_sub_sub_categories T6 ON T6.id = T5.pssc_id
-        LEFT JOIN ts_sizes T7 ON T7.id = T3.sz_id
-        WHERE
-            LOWER(T6.pssc_name) LIKE ?
-            AND T1.pls_qty > 0
-            AND T3.ps_sell_price BETWEEN ? AND ?
-            AND LOWER(T2.pl_description) LIKE ?
-            $sizeQuery
-        GROUP BY
-            T5.p_name, T5.p_color, T7.sz_name,
-            T6.pssc_name, T4.st_name,
-            T3.ps_barcode, T2.pl_description
-        ORDER BY harga ASC
-        LIMIT 20
-    ";
-
-            try {
-                $data = DB::select($sql, $params);
-            } catch (\Exception $e) {
-                \Log::error("REKOM QUERY ERROR: ".$e->getMessage());
-                $data = [];
-            }
-
-            /* ---------------------------------------------------------
-             * ⛔ STOP — TIDAK MENGIRIM KE AI
-             * Jika data ada → balikan langsung
-             * Jika tidak ada → balas tanpa AI
-             * --------------------------------------------------------- */
-
-            if (!empty($data)) {
-                $list = [];
-                $i = 1;
-                foreach ($data as $d) {
-                    $harga = number_format($d->harga, 0, ',', '.');
-                    $list[] = "{$i}. {$d->p_name} - Harga: Rp {$harga}, Size: {$d->sz_name}, Stok: {$d->total_qty}";
-                    $i++;
-                }
-
-                $reply = implode("\n", $list);
-
-                // Save memory
-                session([
-                    'last_sku'        => null,
-                    'last_stock_data' => $data,
-                    'last_ai_answer'  => $reply
-                ]);
-
-                return response()->json([
-                    'reply' => $reply
-                ]);
-            }
-
-            // Jika kosong → jangan panggil AI (supaya tidak mengarang)
-            $reply = "Tidak ada produk yang sesuai.";
-
-            // Debug SQL
-//            dd([
-//                'raw_query' => vsprintf(
-//                    str_replace(['?'], ["'%s'"], $sql),
-//                    array_map(fn($v) => is_null($v) ? 'NULL' : $v, $params)
-//                ),
-//                'sql'    => $sql,
-//                'params' => $params
-//            ]);
-
 
             session([
-                'last_sku'        => null,
-                'last_stock_data' => [],
-                'last_ai_answer'  => $reply
+                'last_sku' => $sku,
+                'last_stock_data' => $stokData,
+                'last_ai_answer' => $reply
             ]);
-
-
 
             return response()->json([
                 'reply' => $reply
             ]);
         }
 
-        /* ---------------------------------------------------------
-         * 3. MEMORY CONTEXT
-         * --------------------------------------------------------- */
+        if ($queryType === 'rekom_sepatu') {
+            $result = $service->rekomSepatu($message, $intent);
+
+            session([
+                'last_sku'        => null,
+                'last_stock_data' => $result['data'],
+                'last_ai_answer'  => $result['reply']
+            ]);
+
+            return response()->json([
+                'reply' => $result['reply']
+            ]);
+        }
+
         $followupContext = "";
 
         if ($lastSku && !$sku) {
@@ -278,43 +169,37 @@ class AIController extends Controller
             $followupContext .= "Jawaban AI sebelumnya: $lastAi\n";
         }
 
-        /* ---------------------------------------------------------
-         * 4. SYSTEM PROMPT
-         * --------------------------------------------------------- */
         $systemPrompt = "
-    Kamu adalah AI ERP retail Bernama Jezy Assistant kamu dibuat oleh Muhammad Royyan Zamzami (pembuat jangan disebutkan di perkenalan kecuali di tanyakan).
-     jangan ada kata query jika membalas dan usahaakan berdasarkan data saja, dan boleh menanyakan apa saja selain yang ada di dalam perusahaan
+            Kamu adalah AI ERP retail Bernama Jezy Assistant kamu dibuat oleh Muhammad Royyan Zamzami (pembuat jangan disebutkan di perkenalan kecuali di tanyakan).
+             jangan ada kata query jika membalas dan usahaakan berdasarkan data saja, dan boleh menanyakan apa saja selain yang ada di dalam perusahaan
+        
+            Aturan:
+            1. Jika stok minus → berikan solusi retail.
+            2. Follow-up harus menggunakan context sebelumnya.
+            3. Jangan bahas hal non-retail.
+            4. Semua jawaban harus 100% berdasarkan DATA QUERY SEKARANG.
+            5. Jika data kosong → jawab 'Tidak ada produk yang sesuai.'
+            6. Jangan mengarang produk/SKU.
+            7. Jika Stok sudah hampir habis berikan rekomendasi untuk pengguna.
+            8. Jika membalas tolong berikan penjelasan yang menarik
+        
+        
+            Nama Perusahaan yaitu PT Zona Karya Nusantara mencangkup Sneakerzone dan JerseyZone, Direktur Perusahaan yaitu Triastana Anang Wibawa
+        
+            Sejarah :
+            1. 17 Agustus 2013 di jalan Soekarno Hatta no 23 kav 2 dengan nama jerzeyzone (Produk Jersey)
+            2. 1 Februari 2017 Pembukaan Sneakerzone Jember
+            3. 17 Agustus 2018 Berdiri Sneakerzone yang focus ke produk sepatu Di kota malang
+            4. 26 April 2019 Berdiri Cabang Sneakerzone Surabaya
+            5. 30 April 2022 berdiri Cabang Sneakerzone Kediri
+            6. 4 April 2025 Berdiri cabang Sneakerzone Sidoarjo 
+            7. Semarang Berdiri pada tanggal 15 November 2025 
+        
+            dari sejarah itu bahwa Jerseyzone di cabang lain masih ada dan di lebur menjadi 1 dengan sneakerzone
+        
+            untuk jerzeyzone di cabang di jadikan 1 dengan store sneakerzone
+            ";
 
-    Aturan:
-    1. Jika stok minus → berikan solusi retail.
-    2. Follow-up harus menggunakan context sebelumnya.
-    3. Jangan bahas hal non-retail.
-    4. Semua jawaban harus 100% berdasarkan DATA QUERY SEKARANG.
-    5. Jika data kosong → jawab 'Tidak ada produk yang sesuai.'
-    6. Jangan mengarang produk/SKU.
-    7. Jika Stok sudah hampir habis berikan rekomendasi untuk pengguna.
-    8. Jika membalas tolong berikan penjelasan yang menarik
-
-
-    Nama Perusahaan yaitu PT Zona Karya Nusantara mencangkup Sneakerzone dan JerseyZone, Direktur Perusahaan yaitu Triastana Anang Wibawa
-
-    Sejarah :
-    1. 17 Agustus 2013 di jalan Soekarno Hatta no 23 kav 2 dengan nama jerzeyzone (Produk Jersey)
-    2. 1 Februari 2017 Pembukaan Sneakerzone Jember
-    3. 17 Agustus 2018 Berdiri Sneakerzone yang focus ke produk sepatu Di kota malang
-    4. 26 April 2019 Berdiri Cabang Sneakerzone Surabaya
-    5. 30 April 2022 berdiri Cabang Sneakerzone Kediri
-    6. 4 April 2025 Berdiri cabang Sneakerzone Sidoarjo 
-    7. Semarang Berdiri pada tanggal 15 November 2025 
-
-    dari sejarah itu bahwa Jerseyzone di cabang lain masih ada dan di lebur menjadi 1 dengan sneakerzone
-
-    untuk jerzeyzone di cabang di jadikan 1 dengan store sneakerzone
-    ";
-
-        /* ---------------------------------------------------------
-         * 5. Kirim ke AI (callAI = wrapper kamu untuk Groq/OpenRouter/Ollama)
-         * --------------------------------------------------------- */
         $prompt = $systemPrompt
             . "\n\nCONTEXT SEBELUMNYA:\n{$followupContext}"
             . "\n\nDATA QUERY SEKARANG:\n{$contextData}"
@@ -322,24 +207,106 @@ class AIController extends Controller
 
         $finalAiResponse = $this->callAI($prompt);
 
-        /* ---------------------------------------------------------
-         * 6. SAVE MEMORY
-         * --------------------------------------------------------- */
         session([
             'last_sku'        => $sku ?: $lastSku,
             'last_stock_data' => $data ?: $lastData,
             'last_ai_answer'  => $finalAiResponse
         ]);
 
-        /* ---------------------------------------------------------
-         * 7. RETURN
-         * --------------------------------------------------------- */
         return response()->json([
             'reply' => $finalAiResponse ?: "(AI tidak merespon)"
         ]);
     }
-
     private function detectIntent($message)
+    {
+        // 1️⃣ RULE-BASED FIRST (ANTI GAGAL TOTAL)
+        if (
+            preg_match('/\bstok\b/i', $message) &&
+            preg_match('/[A-Z0-9]{6,}/i', $message, $skuMatch)
+        ) {
+            preg_match('/malang|surabaya|sidoarjo|kediri|jember|semarang/i', $message, $branchMatch);
+
+            return [
+                'query_type' => 'stok_sku',
+                'sku'        => strtoupper($skuMatch[0]),
+                'branch'     => isset($branchMatch[0]) ? strtoupper($branchMatch[0]) : null,
+            ];
+        }
+
+        if (
+            preg_match('/rekomendasi|sarankan|cari|sepatu/i', $message) &&
+            preg_match('/running|lari|jogging|futsal|basket|casual|sneakers/i', $message)
+        ) {
+            preg_match('/(\d[\d\.]{2,})\s*-\s*(\d[\d\.]{2,})/', $message, $priceMatch);
+            preg_match('/size\s*(\d{2})/', $message, $sizeMatch);
+
+            return [
+                'query_type' => 'rekom_sepatu',
+                'category'   => preg_match('/running|lari|jogging/i', $message) ? 'running' : null,
+                'min_price'  => isset($priceMatch[1]) ? (int) str_replace('.', '', $priceMatch[1]) : null,
+                'max_price'  => isset($priceMatch[2]) ? (int) str_replace('.', '', $priceMatch[2]) : null,
+                'size'       => $sizeMatch[1] ?? null,
+            ];
+        }
+
+        $apiKey = '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'; // pindahkan ke env
+
+        $response = Http::withHeaders([
+            "Authorization" => "Bearer ".$apiKey,
+            "Content-Type"  => "application/json",
+        ])->post("https://api.groq.com/openai/v1/chat/completions", [
+            "model" => "llama-3.1-8b-instant",
+            "temperature" => 0,
+            "messages" => [
+                [
+                    "role" => "system",
+                    "content" => "
+                    Kamu adalah intent classifier ERP retail.
+                    Balas HANYA dengan 1 JSON OBJECT VALID.
+                    TIDAK BOLEH ADA TEKS LAIN.
+                    "
+                                    ],
+                                    [
+                                        "role" => "user",
+                                        "content" => "
+                    FORMAT WAJIB:
+                    {
+                      \"query_type\": \"stok_sku | rekom_sepatu | general\",
+                      \"sku\": null | string,
+                      \"branch\": null | string
+                    }
+                    
+                    ATURAN:
+                    - Jika ada kata 'stok' dan ada SKU → stok_sku
+                    - rekomendasi sepatu → rekom_sepatu
+                    - Jika ragu → general
+                    
+                    PESAN USER:
+                    {$message}
+                    "
+                ]
+            ]
+        ]);
+
+        if ($response->failed()) {
+            return ["query_type" => "general"];
+        }
+
+        $raw = $response->json()['choices'][0]['message']['content'] ?? '';
+
+        \Log::info("RAW INTENT STRING = " . $raw);
+
+        // 3️⃣ HARD JSON EXTRACTION (ANTI NACAL)
+        if (preg_match('/\{.*\}/s', $raw, $m)) {
+            $decoded = json_decode($m[0], true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return ["query_type" => "general"];
+    }
+    private function detectIdntent($message)
     {
         $apiKey = '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';
         $response = Http::withHeaders([
@@ -353,21 +320,23 @@ class AIController extends Controller
                     "content" => "
                 Buatkan intent JSON.
 
-                Format Wajib:
+                FORMAT WAJIB:
                 {
-                   \"query_type\": \"stok_sku | rekom_sepatu | general\",
-                   \"sku\": \"optional\",
-                   \"category\": \"optional\",
-                   \"size\": \"optional\",
-                   \"min_price\": \"optional\",
-                   \"max_price\": \"optional\",
-                   \"branch\": \"optional\"
+                  \"query_type\": \"stok_sku | rekom_sepatu | general\",
+                  \"sku\": null | string,
+                  \"branch\": null | string,
+                  \"category\": null | string,
+                  \"size\": null | string,
+                  \"min_price\": null | number,
+                  \"max_price\": null | number
                 }
 
-                Aturan:
-                1. Jika mencari stok barcode → query_type = \"stok_sku\"
-                2. Jika minta rekomendasi sepatu → query_type = \"rekom_sepatu\"
-                3. Selain itu → general
+                ATURAN KETAT:
+                1. Jika user menanyakan JUMLAH STOK atau KATA 'stok' dan ADA SKU → query_type = stok_sku
+                2. Jika query_type = stok_sku → SKU WAJIB ADA
+                3. Jika disebut nama kota → isi branch (MALANG, SURABAYA, dll)
+                4. Jika tidak yakin → general
+                5. JANGAN mengarang data
                 
                 TUGASMU: mengembalikan 1 OBJECT JSON SAJA. 
 
@@ -377,8 +346,6 @@ class AIController extends Controller
                 ]
             ]
         ]);
-
-//        dd(json_encode($response->json()));
 
         // 🔥 DEBUG RAW RESPONSE
         \Log::info("RAW GROQ RESPONSE = " . json_encode($response->json()));
@@ -442,42 +409,5 @@ class AIController extends Controller
 
         return $response->json()['choices'][0]['message']['content'] ?? "(NO RESPONSE)";
     }
-
-//    private function callGemini($prompt)
-//    {
-//        $apiKey = 'AIzaSyBuo87ikW2WRnmjo3g0dallifNtMuvRe5Q';
-//
-//        if (!$apiKey) {
-//            return "(GEMINI ERROR: API key tidak ditemukan)";
-//        }
-//
-//        $url = "https://api.google.ai/v1beta/models/gemini-2.5-flash-lite:generateContent";
-//
-//        $payload = Http::withHeaders([
-//            "Content-Type" => "application/json",
-//            "x-goog-api-key" => $apiKey
-//        ])->post($url, [
-//            "contents" => [
-//                [
-//                    "parts" => [
-//                        ["text" => $prompt]
-//                    ]
-//                ]
-//            ]
-//        ]);
-//
-//        $response = Http::withHeaders([
-//            "Content-Type" => "application/json"
-//        ])->post($url, $payload);
-//
-//        if ($response->failed()) {
-//            return "(GEMINI ERROR: " . $response->status() . " - " . $response->body() . ")";
-//        }
-//
-//        $json = $response->json();
-//
-//        return $json['candidates'][0]['content']['parts'][0]['text']
-//            ?? "(NO RESPONSE)";
-//    }
 
 }
