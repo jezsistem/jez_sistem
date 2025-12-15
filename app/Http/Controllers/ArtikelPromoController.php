@@ -101,12 +101,13 @@ class ArtikelPromoController extends Controller
                 ->join('products', 'products.id', '=', 'articles_promo.p_id'))
                 ->filter(function ($instance) use ($request) {
                     $search = $request->get('search');
+                    $search_article = $request->get('search_article');
                     $dateRange = $request->get('date_start');
                     if (!empty($search)) {
                         $instance->where(function ($query) use ($search) {
                             $query->orWhere('p_id', 'LIKE', "%$search%")
-                                ->orWhere('article_id', 'LIKE', "%$search%")
-                                ->orWhere('p_name', 'LIKE', "%$search%")
+                                // ->orWhere('article_id', 'LIKE', "%$search%")
+                                // ->orWhere('p_name', 'LIKE', "%$search%")
                                 ->orWhere('st_code', 'LIKE', "%$search%")
                                 ->orWhere('promo_name', 'LIKE', "%$search%")
                                 ->orWhere('date_start', 'LIKE', "%$search%")
@@ -115,6 +116,14 @@ class ArtikelPromoController extends Controller
                                 ->orWhere('promo_note', 'LIKE', "%$search%");
                         });
                     }
+
+                    if (!empty($search_article)) {
+                        $instance->where(function ($query) use ($search_article) {
+                            $query->orWhere('article_id', 'LIKE', "%$search_article%")
+                                ->orWhere('p_name', 'LIKE', "%$search_article%");
+                        });
+                    }
+
                     if (!empty($dateRange)) {
                         $dates = explode('|', $dateRange);
                         if (count($dates) === 2) {
