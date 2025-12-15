@@ -55,6 +55,19 @@
                                         </svg>
                                         <!--end::Svg Icon-->
                                     </span>Export</button>
+                                    <button type="button" class="btn btn-light-success font-weight-bolder" id="btnImport">
+                                        <span class="svg-icon svg-icon-md">
+                                            <!--begin::Svg Icon-->
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                    <rect x="0" y="0" width="24" height="24"/>
+                                                    <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z" fill="#000000" opacity="0.3"/>
+                                                    <path d="M12,8 L12,16 M12,16 L9,13 M12,16 L15,13" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </g>
+                                            </svg>
+                                            <!--end::Svg Icon-->
+                                        </span>Import
+                                    </button>
                                     <!--begin::Dropdown Menu-->
                                     <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
                                         <!--begin::Navigation-->

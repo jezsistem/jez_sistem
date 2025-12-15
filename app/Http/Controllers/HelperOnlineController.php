@@ -104,29 +104,29 @@ class HelperOnlineController extends Controller
             'expeditions' => DB::table('couriers')->orderBy('cr_name', 'ASC')->get()
         ];
 
-//        $dataResi = [
-//            [
-//                'no_resi' => 'JX123456789',
-//                'nama_barang' => 'Sepatu Sneakers Hitam',
-//                'jumlah' => 2,
-//                'jumlah_barang' => 12,
-//                'gambar' => 'https://via.placeholder.com/150',
-//            ],
-//            [
-//                'no_resi' => 'SPX998877665',
-//                'nama_barang' => 'Kaos Oversize Putih, Sepatu Sneakers Hitam',
-//                'jumlah' => 1,
-//                'jumlah_barang' => 1,
-//                'gambar' => 'https://via.placeholder.com/150',
-//            ],
-//            [
-//                'no_resi' => 'SPX9988776625',
-//                'nama_barang' => 'Kaos Oversize Putih',
-//                'jumlah' => 1,
-//                'jumlah_barang' => 3,
-//                'gambar' => 'https://via.placeholder.com/150',
-//            ],
-//        ];
+        //        $dataResi = [
+        //            [
+        //                'no_resi' => 'JX123456789',
+        //                'nama_barang' => 'Sepatu Sneakers Hitam',
+        //                'jumlah' => 2,
+        //                'jumlah_barang' => 12,
+        //                'gambar' => 'https://via.placeholder.com/150',
+        //            ],
+        //            [
+        //                'no_resi' => 'SPX998877665',
+        //                'nama_barang' => 'Kaos Oversize Putih, Sepatu Sneakers Hitam',
+        //                'jumlah' => 1,
+        //                'jumlah_barang' => 1,
+        //                'gambar' => 'https://via.placeholder.com/150',
+        //            ],
+        //            [
+        //                'no_resi' => 'SPX9988776625',
+        //                'nama_barang' => 'Kaos Oversize Putih',
+        //                'jumlah' => 1,
+        //                'jumlah_barang' => 3,
+        //                'gambar' => 'https://via.placeholder.com/150',
+        //            ],
+        //        ];
 
         $dataResi = DB::table('online_transactions')
             ->join('online_transaction_details', 'online_transaction_details.to_id', '=', 'online_transactions.id')
@@ -213,6 +213,22 @@ class HelperOnlineController extends Controller
         $order_number = $request->get('order_number');
         $status_pick = $request->get('status_pick');
         $platform = $request->get('platform');
+        $filter_date = $request->get('filter_date');
+        $filter_date_type = $request->get('filter_date_type');
+
+        $start = null;
+        $end = null;
+        $exp = explode('|', $filter_date);
+        if (count($exp) > 1) {
+            if ($exp[0] != $exp[1]) {
+                $start = $exp[0];
+                $end = $exp[1];
+            } else {
+                $start = $exp[0];
+            }
+        } else {
+            $start = $filter_date;
+        }
 
         $stores_code = Store::where('id', $st_id)->value('st_code');
 
@@ -254,6 +270,21 @@ class HelperOnlineController extends Controller
             ->whereNotIn('product_location_setup_transactions.plst_status', ['REFUND'])
             ->where('online_transaction_details.deleted_at', null)
             ->where('warehouse', $stores_code)
+            ->when($filter_date_type && $start, function ($query) use ($filter_date_type, $start, $end) {
+                if ($filter_date_type === 'pick_date') {
+                    if ($end) {
+                        $query->whereBetween('product_location_setup_transactions.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
+                    } else {
+                        $query->whereDate('product_location_setup_transactions.created_at', $start);
+                    }
+                } elseif ($filter_date_type === 'transaction_date') {
+                    if ($end) {
+                        $query->whereBetween('online_transactions.order_date_created', [$start . ' 00:00:00', $end . ' 23:59:59']);
+                    } else {
+                        $query->whereDate('online_transactions.order_date_created', $start);
+                    }
+                }
+            })
             ->groupBy('online_transactions.id', 'online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created', 'no_resi', 'online_print', 'shipping_method', 'online_transactions.internal_order_status')
             ->orderByRaw('CASE WHEN is_instant = 1 THEN 0 ELSE 1 END')
             ->orderByDesc('last_chat_time')
@@ -413,20 +444,168 @@ class HelperOnlineController extends Controller
 
     public function getPickHistory($transactionId)
     {
-        $data = DB::table('product_location_setup_transactions')
-            ->leftJoin('users', 'product_location_setup_transactions.u_id', '=', 'users.id')
-            ->leftJoin('users as helper', 'product_location_setup_transactions.u_id_helper', '=', 'helper.id')
-            ->leftJoin('users as packer', 'product_location_setup_transactions.u_id_packer', '=', 'packer.id')
+        $data = array();
+        //get online transaction table log
+        $online_transactions = DB::table('online_transactions')
+            ->leftJoin('users as import', 'import.id', '=', 'online_transactions.imported_by')
+            ->leftJoin('users as print_nota', 'print_nota.id', '=', 'online_transactions.u_print')
+            ->leftJoin('users as print_resi', 'print_resi.id', '=', 'online_transactions.u_print_resi')
             ->select(
-                'users.u_name as request_by',
-                'helper.u_name as pick_by',
-                'packer.u_name as packing_by',
-                DB::raw('COALESCE(ts_product_location_setup_transactions.pick_time, ts_product_location_setup_transactions.updated_at) as pick_time'),
-                DB::raw('COALESCE(ts_product_location_setup_transactions.pack_time, ts_product_location_setup_transactions.updated_at) as pack_time'),
-                'product_location_setup_transactions.created_at as request_time'
+                'import.u_name as imported_by',
+                'online_transactions.created_at as imported_at',
+                'print_nota.u_name as print_nota',
+                'online_transactions.time_print as nota_print_time',
+                'print_resi.u_name as print_resi',
+                'online_transactions.time_print_resi as resi_print_time'
             )
-            ->where('product_location_setup_transactions.id', $transactionId)
+            ->where('online_transactions.id', $transactionId)
             ->first();
+
+        $data[] = [
+            'activity' => 'Import Pesanan',
+            'by' => $online_transactions->imported_by,
+            'at' => $online_transactions->imported_at,
+        ];
+
+        if ($online_transactions->print_nota) {
+            $data[] = [
+                'activity' => 'Print Nota',
+                'by' => $online_transactions->print_nota,
+                'at' => $online_transactions->nota_print_time,
+            ];
+        }
+
+        if ($online_transactions->print_resi) {
+            $data[] = [
+                'activity' => 'Print Resi',
+                'by' => $online_transactions->print_resi,
+                'at' => $online_transactions->resi_print_time,
+            ];
+        }
+
+        //get product location setup transaction log
+        $plst = DB::table('online_transactions')
+            ->leftJoin('online_transaction_details', 'online_transaction_details.to_id', '=', 'online_transactions.id')
+            ->leftJoin('product_location_setup_transactions as plst', 'plst.otd_id', '=', 'online_transaction_details.id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'plst.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
+            ->leftJoin('users as amp_pick', 'amp_pick.id', '=', 'plst.u_id')
+            ->leftJoin('users as helper_pick', 'helper_pick.id', '=', 'plst.u_id_helper')
+            ->leftJoin('users as helper_qc', 'helper_qc.id', '=', 'plst.u_id_helper_qc')
+            ->leftJoin('users as instock', 'instock.id', '=', 'plst.u_id_instock')
+            ->leftJoin('users as helper_pack', 'helper_pack.id', '=', 'plst.u_id_packer')
+            ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'plst.pls_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->select(
+                'products.p_name',
+                'sizes.sz_name',
+                'main_colors.mc_name',
+                'products.p_color',
+                'product_stocks.ps_barcode',
+                'amp_pick.u_name as pick_amp_by',
+                'plst.created_at as pick_amp_at',
+                'helper_pick.u_name as pick_helper_by',
+                'plst.move_store_time as pick_helper_at',
+                'product_locations.pl_code as pick_location',
+                'helper_qc.u_name as qc_by',
+                'plst.done_qc_time as qc_at',
+                'plst.qc_status as qc_status',
+                'instock.u_name as instock_by',
+                'plst.in_stock_time as instock_at',
+                'helper_pack.u_name as packed_by',
+                'plst.packed_time as packed_at'
+            )
+            ->where('online_transactions.id', $transactionId)
+            ->orderBy('plst.created_at')
+            ->get();
+
+        foreach ($plst as $item) {
+            $item_details = [
+                'ps_barcode' => $item->ps_barcode,
+                'p_name' => $item->p_name,
+                'p_color' => $item->p_color,
+                'sz_name' => $item->sz_name,
+            ];
+
+            $data[] = [
+                'activity' => 'Pick AMP',
+                'by' => $item->pick_amp_by,
+                'at' => $item->pick_amp_at,
+                'item_details' => $item_details,
+            ];
+            if ($item->pick_helper_by) {
+                $data[] = [
+                    'activity' => 'Pick Helper',
+                    'by' => $item->pick_helper_by,
+                    'at' => $item->pick_helper_at,
+                    'location' => $item->pick_location,
+                    'item_details' => $item_details,
+                ];
+            }
+            if ($item->qc_by) {
+                $data[] = [
+                    'activity' => 'Quality Check',
+                    'by' => $item->qc_by,
+                    'at' => $item->qc_at,
+                    'status' => $item->qc_status,
+                    'item_details' => $item_details,
+                ];
+            }
+            if ($item->instock_by) {
+                $data[] = [
+                    'activity' => 'In Stock',
+                    'by' => $item->instock_by,
+                    'at' => $item->instock_at,
+                    'item_details' => $item_details,
+                ];
+            }
+            if ($item->packed_by) {
+                $data[] = [
+                    'activity' => 'Packed',
+                    'by' => $item->packed_by,
+                    'at' => $item->packed_at,
+                    'item_details' => $item_details,
+                ];
+            }
+        }
+
+        //get manifest log
+        $manifest =
+            DB::table('online_transactions')
+            ->leftJoin('delivery_receipts', 'online_transactions.no_resi', '=', 'delivery_receipts.resi')
+            ->leftJoin('delivery_recaps', 'delivery_receipts.dr_id', '=', 'delivery_recaps.id')
+            ->leftJoin('users as manifest_user', 'delivery_recaps.created_by', '=', 'manifest_user.id')
+            ->select(
+                'manifest_user.u_name as manifest_by',
+                'delivery_recaps.created_at as manifest_at',
+                'delivery_recaps.manifest_number as manifest_number'
+            )
+            ->where('online_transactions.id', $transactionId)
+            ->first();
+
+        if ($manifest && $manifest->manifest_by) {
+            $data[] = [
+                'activity' => 'Manifest',
+                'by' => $manifest->manifest_by,
+                'at' => $manifest->manifest_at,
+                'manifest_number' => $manifest->manifest_number
+            ];
+        }
+
+        usort($data, function ($a, $b) {
+            if (!isset($a['at']) || $a['at'] === null) {
+                if (!isset($b['at']) || $b['at'] === null) {
+                    return 0;
+                }
+                return 1;
+            }
+            if (!isset($b['at']) || $b['at'] === null) {
+                return -1;
+            }
+            return strtotime($a['at']) - strtotime($b['at']);
+        });
 
         if (!$data) {
             return response()->json(['message' => 'Data tidak ditemukan.'], 404);
@@ -460,7 +639,7 @@ class HelperOnlineController extends Controller
         $bin_id = $request->_bin_id; // New variable to hold bin_id
         $u_id = Auth::user()->id;
         $plst_qty = $request->_plst_qty;
-        
+
         // check is plst_id already picked
         $isAlreadyPicked = DB::table('product_location_setup_transactions')
             ->where('id', $plst_id)
@@ -534,8 +713,10 @@ class HelperOnlineController extends Controller
                 $update = DB::table('product_location_setup_transactions')
                     ->where('id', $plst_id)
                     ->update([
+                        'u_id_helper_qc' => Auth::user()->id,
                         'qc_status' => ProductLocationSetupTransaction::QC_STATUS_PASSED,
                         'plst_status' => 'WAITING RECEIPT',
+                        'done_qc_time' => date('Y-m-d H:i:s'),
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);
 
@@ -559,8 +740,8 @@ class HelperOnlineController extends Controller
                     ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                     ->whereIn('product_location_setup_transactions.otd_id', $active_transaction_items->pluck('id')->toArray())
                     ->where('product_location_setup_transactions.plst_status', 'WAITING RECEIPT')->where('product_location_setup_transactions.qc_status', ProductLocationSetupTransaction::QC_STATUS_PASSED)
-                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'),'otd_id')
-                    ->groupBy('product_stocks.ps_barcode','otd_id')
+                    ->select('product_stocks.ps_barcode', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as total_picked'), 'otd_id')
+                    ->groupBy('product_stocks.ps_barcode', 'otd_id')
                     ->get()
                     ->keyBy('otd_id');
 
@@ -610,10 +791,14 @@ class HelperOnlineController extends Controller
                 $update_plst = DB::table('product_location_setup_transactions')
                     ->where('id', $plst_id)
                     ->update([
+                        'u_id_helper_qc' => Auth::user()->id,
+                        'u_id_instock' => Auth::user()->id,
                         'qc_status' => ProductLocationSetupTransaction::QC_STATUS_FAILED,
                         'plst_type' => 'IN',
                         'plst_status' => 'INSTOCK',
                         'updated_at' => date('Y-m-d H:i:s'),
+                        'done_qc_time' => date('Y-m-d H:i:s'),
+                        'in_stock_time' => date('Y-m-d H:i:s'),
                     ]);
 
                 if (!$update_plst) {
@@ -818,6 +1003,7 @@ class HelperOnlineController extends Controller
         $update_print_resi = OnlineTransactions::where('id', $to_id)
             ->update([
                 'print_resi' => 1,
+                'u_print_resi' => Auth::user()->id,
                 'time_print_resi' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
@@ -1064,7 +1250,6 @@ class HelperOnlineController extends Controller
                         $paramsPlst = [
                             'plst_status' => 'DONE',
                             'updated_at' => now(),
-                            'u_id_packer' => Auth::user()->id,
                             'pt_id' => $trx_id_new,
                         ];
 
@@ -1277,7 +1462,12 @@ class HelperOnlineController extends Controller
             $update_plst = DB::table('product_location_setup_transactions')
                 ->whereIn('otd_id', $item_ids)
                 ->where('plst_status', 'WAITING PACKING')
-                ->update(['plst_status' => 'DONE ONLINE', 'updated_at' => date('Y-m-d H:i:s')]);
+                ->update([
+                    'u_id_packer' => Auth::user()->id,
+                    'plst_status' => 'DONE ONLINE',
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'packed_time' => date('Y-m-d H:i:s'),
+                ]);
 
             if ($update_plst === 0) {
                 DB::rollBack();
