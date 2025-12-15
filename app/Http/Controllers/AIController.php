@@ -174,8 +174,25 @@ class AIController extends Controller
 
             $result = $service->getAbsensi($intent);
 
+            $prompt = "
+                Kamu adalah HR Assistant.
+                JANGAN mengubah data.
+                JANGAN menambah angka.
+                Gunakan bahasa profesional dan ramah.
+                
+                DATA ABSENSI:
+                Nama: {$result['user']}
+                Status: {$result['status']}
+                Shift: {$result['shift']}
+                Jam Shift: {$result['shift_start']}
+                Jam Masuk: {$result['check_in']}
+                Telat: {$result['late_minutes']} menit
+            ";
+
+            $reply = $this->callAi($prompt);
+
             return response()->json([
-                'reply' => $result['reply']
+                'reply' => $reply
             ]);
         }
 
