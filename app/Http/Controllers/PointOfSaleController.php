@@ -38,8 +38,13 @@ class PointOfSaleController extends Controller
     {
         $segment = request()->segment(1);
         
-        // Allow point_of_sale_v2 if user has access to point_of_sale
-        $slugToCheck = $segment === 'point_of_sale_v2' ? 'point_of_sale' : $segment;
+        // Allow V2 POS routes if user has access to point_of_sale
+        $v2Variants = ['point_of_sale_v2', 'offline-pos_v2', 'offline_pos_v2'];
+        if (in_array($segment, $v2Variants)) {
+            $slugToCheck = 'point_of_sale';
+        } else {
+            $slugToCheck = $segment;
+        }
         
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')
@@ -139,9 +144,9 @@ class PointOfSaleController extends Controller
         }
         // dd($data['kasir']);
         if (strtolower($user_data->stt_name) == 'online') {
-            return view('app.pos.pos', compact('data'));
+            return view('app.pos_v2.pos_v2', compact('data'));
         } else {
-            return view('app.offline_pos.offline_pos', compact('data'));
+            return view('app.offline_pos_v2.offline_pos_v2', compact('data'));
         }
     }
 
@@ -191,6 +196,56 @@ class PointOfSaleController extends Controller
         ];
 
         return view('app.pos_v2.pos_v2', compact('data'));
+    }
+
+    /**
+     * Display Point of Sale Offline V2
+     */
+    public function indexOfflineV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $store = Store::where('id', Auth::user()->st_id)->get()->first();
+        $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->where('st_id', Auth::user()->st_id)->orderByDesc('pm_name')->pluck('pm_name', 'id');
+
+
+
+        $data = [
+            'app_title' => 'JEZ SYSTEM',
+            'title' => 'POINT OF SALE V2 (OFFLINE)',
+            'user' => $user_data,
+            'store' => $store,
+            'pt_id' => null,
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+            'cust_id' => Customer::selectRaw('id, CONCAT(cust_name, " (", REPLACE(cust_phone, "+62", "0"), ")") as name')
+                ->where('cust_delete', '!=', '1')
+                ->orderBy('cust_name')->pluck('name', 'id'),
+            'ct_id' => CustomerType::where('ct_delete', '!=', '1')->orderByDesc('id')->pluck('ct_name', 'id'),
+            'cp_id' => CardProvider::orderBy('cp_name')->pluck('cp_name', 'id'),
+            'segment' => request()->segment(1),
+            'p_id' => ProductStock::selectRaw('ts_product_stocks.id as pst_id, CONCAT(p_name," (",ps_barcode,")") as product')
+                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->where('p_delete', '!=', '1')
+                ->orderByDesc('p_name')->pluck('product', 'pst_id'),
+            'payment_method' => $payment_method,
+            'courier' => Courier::where('cr_delete', '!=', '1')->orderByDesc('cr_name')->pluck('cr_name', 'id'),
+            'cust_province' => DB::table('wilayah')->select('kode', 'nama')->whereRaw('length(kode) = 2')->orderBy('nama')->pluck('nama', 'kode'),
+            'b1g1_bin' => DB::table('buy_one_get_ones')->select('product_locations.id as id', 'pl_code')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->orderBy('pl_code')->pluck('pl_code', 'id'),
+            'pst_custom' => ProductStock::where('ps_barcode', '=', 'CUSTOM')->first(),
+            'psc_custom' => Product::where('p_name', 'LIKE', '%CUSTOM%')->first(),
+            'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first(),
+            'shift_status' => UserShift::where('user_id', '=', Auth::user()->id)->whereNotNull('start_time')->whereNull('end_time')->where('created_at', 'LIKE', date('Y-m-d') . '%')->orderBy('id', 'DESC')->count(),
+            'kasir' => User::where('st_id', Auth::user()->st_id)->pluck('id', 'u_name')
+        ];
+
+        return view('app.offline_pos_v2.offline_pos_v2', compact('data'));
     }
 
     /**
@@ -1872,6 +1927,182 @@ class PointOfSaleController extends Controller
         }
     }
 
+    /**
+     * Compatibility shim: searchProductOfflineV2
+     * For now forward to searchProductV2 to keep offline routes working.
+     */
+    public function searchProductOfflineV2(Request $request)
+    {
+        $query = $request->get('query', '');
+        if (empty($query) || strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $exception = ExceptionLocation::select('pl_code')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
+            ->get()
+            ->toArray();
+
+        $query = $request->get('query');
+        $type = $request->get('type', '');
+        $std_id = $request->get('_std_id', '');
+        $st_id = $request->get('_st_id');
+
+        if (!empty($st_id)) {
+            $st_id = $st_id;
+        } else {
+            $st_id = Auth::user()->st_id;
+        }
+
+        $cross = $st_id != Auth::user()->st_id ? 'true' : 'false';
+
+        $data = ProductStock::select('p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'products.psc_id', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'pls_qty', 'ps_qty', 'br_name', 'product_stocks.id as pst_id', 'products.p_image', 'products.article_id')
+            ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->join('brands', 'brands.id', '=', 'products.br_id')
+            ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->where('product_locations.st_id', '=', $st_id)
+            ->whereNotIn('pl_code', $exception)
+            ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
+            ->orWhere('ps_barcode', 'LIKE', "%$query%")
+            ->groupBy('product_stocks.id')
+            ->limit(20)
+            ->get();
+
+        $results = [];
+
+        if (!empty($data)) {
+            foreach ($data as $row) {
+                $check_setup = ProductLocationSetup::select('product_locations.id as pl_id', 'product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty')
+                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->where('product_locations.st_id', '=', $st_id)
+                    ->where('pst_id', $row->pst_id)
+                    ->whereNotIn('pl_code', $exception)
+                    ->get();
+
+                $bin = '';
+                $sell_price = 0;
+                $sell_price_discount = 0;
+                $bandrol = 0;
+                $b1g1_id = null;
+                $b1g1_price = null;
+
+                if (!empty($row->ps_price_tag)) {
+                    $bandrol = $row->ps_price_tag;
+                } else {
+                    $bandrol = $row->p_price_tag;
+                }
+
+                if ($type == 'RESELLER') {
+                    if (!empty($row->ps_price_tag)) {
+                        $sell_price = $row->ps_price_tag;
+                    } else {
+                        $sell_price = $row->p_price_tag;
+                    }
+                } else {
+                    if (!empty($row->ps_sell_price)) {
+                        $sell_price = $row->ps_sell_price;
+                    } else {
+                        $sell_price = $row->p_sell_price;
+                    }
+                }
+
+                $set_discount = ProductDiscountDetail::select(
+                    'pd_type',
+                    'pd_value',
+                    'st_id',
+                    'std_id',
+                    'pd_date',
+                    'pd_date_start'
+                )
+                    ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
+                    ->where('pst_id', $row->pst_id)
+                    ->where('std_id', $std_id)
+                    ->where('product_discounts.pd_date_start', '<=', date('Y-m-d'))
+                    ->where('product_discounts.pd_date', '>=', date('Y-m-d'))
+                    ->orderByDesc('product_discounts.created_at')
+                    ->first();
+
+                $disc_percent = 0;
+                $disc_rp = 0;
+                if (!empty($set_discount)) {
+                    $price_tag = !empty($row->ps_price_tag) ? $row->ps_price_tag : $row->p_price_tag;
+                    if (empty($set_discount->st_id) || Auth::user()->st_id == $set_discount->st_id) {
+                        if ($set_discount->pd_type == 'percent') {
+                            $disc_percent = $set_discount->pd_value;
+                            $disc_rp = $price_tag / 100 * $set_discount->pd_value;
+                            $sell_price = $price_tag - $disc_rp;
+                        } elseif ($set_discount->pd_type == 'amount') {
+                            $disc_rp = $set_discount->pd_value;
+                            $sell_price = $price_tag - $set_discount->pd_value;
+                        } else {
+                            $sell_price = $price_tag;
+                            $b1g1_id = $row->pst_id;
+                            $b1g1_price = $sell_price;
+                        }
+                    }
+                }
+
+                if (!empty($check_setup)) {
+                    foreach ($check_setup as $brow) {
+                        $bin .= '[' . strtoupper($brow->pl_code) . '] [' . $brow->pls_qty . '] ';
+                    }
+                    $bin = trim($bin);
+                    $first_location = $check_setup->first();
+                    $pl_id = $first_location ? $first_location->pl_id : null;
+                    $pls_qty = $first_location ? $first_location->pls_qty : ($row->ps_qty ?? 0);
+                } else {
+                    $pl_id = null;
+                    $pls_qty = $row->ps_qty ?? 0;
+                }
+
+                if ($bin != '') {
+                    $brandName = $row->br_name ?? 'BRAND';
+                    $productName = $row->p_name . ' ' . $row->p_color . ' ' . $row->sz_name;
+
+                    $productImage = '';
+                    if (!empty($row->p_image)) {
+                        $imagePaths = [
+                            'upload/' . $row->p_image,
+                            'upload/product/' . $row->p_image,
+                            'upload/products/' . $row->p_image,
+                            $row->p_image
+                        ];
+                        foreach ($imagePaths as $imagePath) {
+                            if (file_exists(public_path($imagePath))) {
+                                $productImage = asset($imagePath);
+                                break;
+                            }
+                        }
+                    }
+                    if (empty($productImage)) {
+                        $productImage = 'https://ui-avatars.com/api/?name=' . urlencode($brandName) . '&background=F74040&color=fff&size=60';
+                    }
+
+                    $results[] = [
+                        'id' => $row->pst_id,
+                        'name' => $productName,
+                        'brand' => $brandName,
+                        'price' => round($sell_price, 0),
+                        'image' => $productImage,
+                        'bin' => $bin,
+                        'pl_id' => $pl_id,
+                        'pls_qty' => $pls_qty,
+                        'disc_percent' => round($disc_percent, 2),
+                        'disc_rp' => round($disc_rp, 0),
+                        'bandrol' => round($bandrol, 0),
+                        'b1g1_id' => $b1g1_id,
+                        'b1g1_price' => $b1g1_price,
+                        'barcode' => $row->ps_barcode ?? ''
+                    ];
+                }
+            }
+        }
+
+        return response()->json($results, 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     public function deleteRating()
     {
         UserRating::where([
@@ -2467,6 +2698,192 @@ class PointOfSaleController extends Controller
             }
         }
         //        return $r;
+        return json_encode($r);
+    }
+
+    /**
+     * verifyVouchersV2
+     * A tolerant replacement for voucher verification that accepts multiple
+     * payload shapes (serializeArray-style FormData, direct voucher-list[] fields,
+     * and item as JSON string or array). This method is additive and does not
+     * change the existing `verifyVouchers` used by legacy POS flows.
+     */
+    public function verifyVouchersV2(Request $request)
+    {
+        // Debug: log incoming payload to help diagnose client/server mismatch
+        \Log::debug('verifyVouchersV2 called', [
+            'all' => $request->all(),
+            'formData_post' => $request->post('formData'),
+            'item_post' => $request->post('item')
+        ]);
+
+        $codes = $request->post('formData');
+        $item = $request->post('item');
+
+        // Normalize item into an array. Some clients post item as JSON string '[]'.
+        if (is_string($item)) {
+            $maybe = json_decode($item, true);
+            if (is_array($maybe)) {
+                $item = $maybe;
+            } else {
+                // Not valid JSON array - treat as empty array
+                $item = [];
+            }
+        } elseif (is_null($item)) {
+            $item = [];
+        }
+
+        \Log::debug('verifyVouchersV2 normalized item', ['item_type' => gettype($item), 'item_count' => is_array($item) ? count($item) : 0]);
+
+        // Normalize incoming codes into a simple array of code strings.
+        $normalized_codes = [];
+        if (!empty($codes) && is_array($codes)) {
+            foreach ($codes as $c) {
+                if (is_array($c) && isset($c['value'])) {
+                    $normalized_codes[] = trim($c['value']);
+                } elseif (is_object($c) && isset($c->value)) {
+                    $normalized_codes[] = trim($c->value);
+                } elseif (is_string($c)) {
+                    $normalized_codes[] = trim($c);
+                }
+            }
+        }
+
+        // Accept direct voucher-list[] fields (some clients post this directly)
+        if (empty($normalized_codes)) {
+            if ($request->has('voucher-list')) {
+                $vl = $request->post('voucher-list');
+                if (is_array($vl)) {
+                    foreach ($vl as $v) $normalized_codes[] = trim($v);
+                } elseif (!empty($vl)) {
+                    $normalized_codes[] = trim($vl);
+                }
+            } elseif ($request->has('voucher_list')) {
+                $vl = $request->post('voucher_list');
+                if (is_array($vl)) {
+                    foreach ($vl as $v) $normalized_codes[] = trim($v);
+                } elseif (!empty($vl)) {
+                    $normalized_codes[] = trim($vl);
+                }
+            }
+        }
+
+        \Log::debug('verifyVouchersV2 normalized codes', ['codes' => $normalized_codes, 'item' => $item]);
+
+        $total_discount_voucher_nomimal = 0;
+        $total_discount_voucher_percent = 0;
+
+        if (empty($normalized_codes)) {
+            $r['status'] = '400';
+            return json_encode($r);
+        }
+
+        foreach ($normalized_codes as $codeValue) {
+            // lookup by plain code string
+            $check = DB::table('vouchers')->where('vc_code', '=', $codeValue)
+                ->where('vc_due_date', '>=', date('Y-m-d'))
+                ->where('vc_status', '=', '1')->get()->first();
+
+            // Detailed debug: log voucher lookup result to help diagnose why it's rejected
+            \Log::debug('verifyVouchersV2 lookup', [
+                'code' => $codeValue,
+                'found' => !empty($check),
+                'voucher' => !empty($check) ? [
+                    'id' => $check->id ?? null,
+                    'vc_reuse' => $check->vc_reuse ?? null,
+                    'vc_platform' => $check->vc_platform ?? null,
+                    'vc_status' => $check->vc_status ?? null,
+                    'vc_due_date' => $check->vc_due_date ?? null
+                ] : null
+            ]);
+
+            if (!empty($check)) {
+                $check_vtrx = DB::table('voucher_transactions')->where('vc_id', '=', $check->id)->get()->first();
+                if ($check->vc_reuse == '0') {
+                    if (!empty($check_vtrx)) {
+                        $r['status'] = '202';
+                        return json_encode($r);
+                    }
+                } else if ($check->vc_reuse == '2') {
+                    if (!empty($check_vtrx)) {
+                        $start_new = date("Y-m-d H:i:s", strtotime("+1 month", strtotime($check_vtrx->created_at)));
+                        if (date('Y-m-d H:i:s') < $start_new) {
+                            $r['status'] = '203';
+                            return json_encode($r);
+                        }
+                    }
+                }
+                if ($check->vc_platform == 'all') {
+                    if (count($item) > 0) {
+                        $sell_price = array();
+                        $price = array();
+                        $item_id = array();
+                        for ($i = 0; $i < count($item); $i++) {
+                            $exp = explode('-', $item[$i]);
+                            $sell_price[] = [$exp[2]];
+                            $price[] = [$exp[1]];
+                            $item_id[] = [$exp[0]];
+                        }
+                        rsort($price);
+                        $disc_item = '';
+                        for ($i = 0; $i < count($item_id); $i++) {
+                            $key1 = $item_id[$i][0];
+                            for ($x = 0; $x < count($sell_price); $x++) {
+                                $key2 = $price[0][0];
+                                $key3 = $sell_price[$x][0];
+                                $key = $key1 . '-' . $key2 . '-' . $key3;
+                                $search = array_search($key, $item);
+                                if ($search != false || $search >= 0) {
+                                    $disc_item = $search;
+                                }
+                            }
+                        }
+                        $result = explode('-', $item[$disc_item]);
+                        $id = $result[0];
+                        $bandrol = $result[1];
+                        $sell = $result[2];
+                        $disc = null;
+                        $disc_type = null;
+                        $disc_value = null;
+                        $value = null;
+                        $article = DB::table('products')->selectRaw("CONCAT(br_name, ' ', p_name, ' ', p_color, ' ', sz_name) as article")
+                            ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                            ->where('product_stocks.id', '=', $id)->get()->first()->article;
+                        if ($check->vc_type == 'percent') {
+                            $total_discount_voucher_percent += $check->vc_discount;
+                            $disc_type = "%";
+                            $disc = $check->vc_discount;
+                            $disc_value = ($bandrol / 100) * $total_discount_voucher_percent;
+                            $value = $bandrol - $disc_value;
+                        } else if ($check->vc_type == 'amount') {
+                            $total_discount_voucher_nomimal += $check->vc_discount;
+                            $disc_type = "Rp";
+                            $disc = ($total_discount_voucher_nomimal / 1000) . 'K';
+                            $disc_value = $total_discount_voucher_nomimal;
+                            $value = $bandrol - $disc_value;
+                        }
+                        $r['voc_id'] = $check->id;
+                        $r['pst_id'] = $id;
+                        $r['article'] = $article;
+                        $r['bandrol'] = $bandrol;
+                        $r['sell'] = $sell;
+                        $r['disc_type'] = $disc_type;
+                        $r['disc_value'] = $disc_value;
+                        $r['disc'] = $disc;
+                        $r['value'] = $value;
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '204';
+                    }
+                } else {
+                    $r['status'] = '201';
+                }
+            } else {
+                $r['status'] = '400';
+            }
+        }
         return json_encode($r);
     }
 

@@ -172,9 +172,17 @@ Route::get('break-times-backup/export/excel', [BreakTimeBackupController::class,
 Route::get('attendance/summary-report/export/excel', [AttendanceController::class, 'exportSummaryToExcel'])->name('attendance.summary-report-export-excel');
 Route::get('attendance/summary-report/export/pdf', [AttendanceController::class, 'exportSummaryToPDF'])->name('attendance.summary-report-export-pdf');
 
+// TEST ROUTE - No Auth Required
+Route::get('test-offline-pos', function() {
+    return '<h1>✅ Route Works!</h1><p>Route offline_pos_v2 is registered correctly.</p><p>Problem: You must LOGIN first at <a href="/login">http://127.0.0.1:8000/login</a></p>';
+});
+
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
     Route::get('redirect', [RedirectController::class, 'index'])->name('redirect');
+    
+    // Dashboard New Layout (Flowbite)
+    Route::get('dashboard_new', [DashboardV2Controller::class, 'indexNew'])->name('dashboard.new');
 
     // Upcloud Balance
     Route::get('get_upcloud_balance', [UpcloudBalanceController::class, 'getBalance']);
@@ -238,7 +246,9 @@ Route::group(['middleware' => 'auth'], function () {
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
     Route::get('point_of_sale_v2', [PointOfSaleController::class, 'indexV2'])->name('point_of_sale_v2');
+    Route::get('offline-pos_v2', [PointOfSaleController::class, 'indexOfflineV2'])->name('offline_pos_v2');
     Route::post('search_product_v2', [PointOfSaleController::class, 'searchProductV2']);
+    Route::post('search_product_offline_v2', [PointOfSaleController::class, 'searchProductOfflineV2']);
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
     Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
@@ -575,6 +585,8 @@ Route::group(['middleware' => 'auth'], function () {
     // Verify Voucher
     Route::post('verify_voucher', [PointOfSaleController::class, 'verifyVoucher']);
     Route::post('verify-vouchers', [PointOfSaleController::class, 'verifyVouchers']);
+        // New tolerant endpoint for POS v2 / offline_pos_v2 to avoid changing legacy behavior
+        Route::post('verify-vouchers-v2', [PointOfSaleController::class, 'verifyVouchersV2']);
 
     // total discount point of sale
     Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);

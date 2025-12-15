@@ -123,7 +123,7 @@
                     <button type="submit" 
                             class="w-full text-white bg-gray-900 hover:bg-gray-900 focus:ring-4 focus:ring-gray-300 font-semibold rounded-lg text-base px-5 py-3.5 text-center transition-colors">
                         Login
-                    </button> 
+                    </button>
                     
                     <!-- Separator -->
                     <!-- <div class="relative my-6">
@@ -169,8 +169,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.3.0/dist/flowbite.min.js"></script>
     
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>    
     <script>
         $(document).ready(function() {
             // ==================== CUSTOM TOAST (POS V2 STYLE) ====================

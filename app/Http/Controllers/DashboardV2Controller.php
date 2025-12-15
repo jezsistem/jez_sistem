@@ -82,6 +82,38 @@ class DashboardV2Controller extends Controller
         ];
         return view('app.dashboard_v2.dashboard_v2', compact('data'));
     }
+    
+    // New Layout (Flowbite) - without access validation for easy testing
+    public function indexNew()
+    {
+        $user = new User;
+        $user_activity = new UserActivity;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $select_activity = ['user_activities.id as uaid', 'u_name', 'ua_description', 'user_activities.created_at as ua_created_at'];
+        $activity = $user_activity->getAllJoinData($select_activity);
+        
+        $title = WebConfig::select('config_value')
+            ->where('config_name', 'app_title')
+            ->first()
+            ->config_value ?? 'JEZ PRO';
+
+        $data = [
+            'title' => $title . ' - Dashboard',
+            'subtitle' => 'Dashboard',
+            'user' => $user_data,
+            'sidebar' => $this->sidebar(), // Load dynamic menu from database
+            'activity' => $activity,
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'pc_id' => DB::table('product_categories')->where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+            'segment' => 'dashboard_new'
+        ];
+        
+        return view('app.updated_dashboard.dashboard_new', compact('data'));
+    }
 
     private function deleteCurrentStore()
     {   
