@@ -304,26 +304,25 @@ class JezyService
             $date = now()->addDay()->toDateString();
         }
 
-        $schedule = DB::table('daily_schedules as T1')
-            ->join('users as T2', 'T1.user_id', '=', 'T2.id')
-            ->join('shift_codes as T3', 'T1.sc_id', '=', 'T3.id')
+        $schedule = DB::table('daily_schedules')
+            ->join('users', 'daily_schedules.user_id', '=', 'users.id')
+            ->join('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
             ->select(
-                'T3.sc_shift_name',
-                'T3.sc_start_time',
-                'T3.sc_late_tolerance'
+                'shift_codes.sc_shift_name',
+                'shift_codes.sc_start_time',
             )
-            ->whereDate('T1.ds_date', $date)
-            ->whereRaw('UPPER(T2.u_name) LIKE ?', ["%{$user}%"])
+            ->whereDate('daily_schedules.ds_date', $date)
+            ->whereRaw('UPPER(ts_users.u_name) LIKE ?', ["%{$user}%"])
             ->first();
 
         if (!$schedule) {
             return ['reply' => "📅 {$user} LIBUR Atau BELUM DI SET"];
         }
 
-        $attendance = DB::table('attendances as A')
-            ->join('users as U', 'A.user_id', '=', 'U.id')
-            ->whereDate('A.at_date', $date)
-            ->whereRaw('UPPER(U.u_name) LIKE ?', ["%{$user}%"])
+        $attendance = DB::table('attendances')
+            ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->whereDate('attendances.at_date', $date)
+            ->whereRaw('UPPER(ts_users.u_name) LIKE ?', ["%{$user}%"])
             ->first();
 
         if (!$attendance) {
