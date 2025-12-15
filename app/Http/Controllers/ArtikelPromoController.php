@@ -96,7 +96,7 @@ class ArtikelPromoController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id', 'article_id', 'p_name','st_id','stores.st_code as st_code', 'promo_name', 'date_start', 'date_end', 'promo_disc', 'p_price_tag', 'promo_note')
+            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id', 'article_id', 'p_name', 'st_id', 'stores.st_code as st_code', 'promo_name', 'date_start', 'date_end', 'promo_disc', 'p_price_tag', 'promo_note', 'discounted_price')
                 ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
                 ->join('products', 'products.id', '=', 'articles_promo.p_id'))
                 ->filter(function ($instance) use ($request) {
@@ -143,12 +143,16 @@ class ArtikelPromoController extends Controller
                     return number_format($row->p_price_tag);
                 })
                 ->addColumn('price_discount', function ($row) {
-                    $originalPrice = $row->p_price_tag;
-                    $discount = $row->promo_disc;
+                    if ($row->discounted_price) {
+                        return number_format($row->discounted_price);
+                    } else {
+                        $originalPrice = $row->p_price_tag;
+                        $discount = $row->promo_disc;
 
-                    $discountedPrice = $originalPrice - ($originalPrice * ($discount / 100));
+                        $discountedPrice = $originalPrice - ($originalPrice * ($discount / 100));
 
-                    return number_format($discountedPrice);
+                        return number_format($discountedPrice);
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -191,18 +195,30 @@ class ArtikelPromoController extends Controller
         $mode = $request->input('_mode'); // 'add' or 'edit'
         $id = $request->input('_id');
 
+        $article_id = $request->input('article_id');
+        $product = DB::table('products')->where('article_id', $article_id)->first();
+
+        $discountedPrice = is_numeric($request->input('discounted_price')) ? (int) $request->input('discounted_price') : 0;
+
+        $price_tag = $product->p_price_tag;
+
+        $diffPrice = $price_tag - $discountedPrice;
+
+        $discountPercentage = ($diffPrice / $price_tag) * 100;
+        $promoDisc = round($discountPercentage);
+
         $data = [
-            'p_id' => $request->input('p_id'),
+            'p_id' => $product->id,
             'st_id' => $request->input('st_id'),
             'promo_name' => $request->input('promo_name'),
             'date_start' => $request->input('date_start'),
             'date_end' => $request->input('date_end'),
-            'promo_disc' => $request->input('promo_disc'),
+            'promo_disc' => $promoDisc,
             'promo_note' => $request->input('promo_note'),
+            'discounted_price' => $discountedPrice,
+            'price_diff' => $diffPrice,
+            'created_at' => now(),
         ];
-
-        $article_id = $request->input('article_id');
-        $product = DB::table('products')->where('article_id', $article_id)->first();
 
         if (!$product) {
             return response()->json([
@@ -218,7 +234,7 @@ class ArtikelPromoController extends Controller
             $artikelPromo->timestamps = false; // Disable timestamps
             $artikelPromo->fill($data);
             if ($artikelPromo->save()) {
-                $this->UserActivity('menambah artikel promo ' . strtoupper($request->input('promo_name')) . ' ' . $request->input('promo_disc'));
+                $this->UserActivity('menambah artikel promo ' . strtoupper($request->input('promo_name')) . ' ' . $discountedPrice);
                 return response()->json(['status' => '200', 'message' => 'Data Successfully Added JEZ']);
             } else {
                 return response()->json(['status' => '400', 'message' => 'Failed to add data JEZ']);
@@ -229,7 +245,7 @@ class ArtikelPromoController extends Controller
                 $artikelPromo->timestamps = false; // Disable timestamps
                 $artikelPromo->fill($data);
                 if ($artikelPromo->save()) {
-                    $this->UserActivity('mengubah data diskon ' . strtoupper($request->input('promo_name')) . ' ' . $request->input('promo_disc'));
+                    $this->UserActivity('mengubah data diskon ' . strtoupper($request->input('promo_name')) . ' ' . $discountedPrice);
                     return response()->json(['status' => '200', 'message' => 'Data successfully updated JEZ']);
                 } else {
                     return response()->json(['status' => '400', 'message' => 'Failed to update data JEZ']);
