@@ -21,6 +21,8 @@
                 order_number: $('#order_number').val(),
                 status_pick: $('#status_pick').val(),
                 platform: $('#platform').val(),
+                filter_date: $('#filter_date').val(),
+                filter_date_type: $('#filter_date_type').val()
             },
             success: function(r) {
                 $("#picked_online_trx").html(renderTransactions(r.transactions)); // Removed animation
@@ -200,7 +202,7 @@
                        <button class="btn btn-outline-secondary btn-sm mt-2 w-100 pick-history"
                                 id="pick-history"
                                 data-order_number="${transaction.order_number}"
-                                data-plst_id="${transaction.plst_id}">
+                                data-transaction_id="${transaction.transaction_id}">
                             <i class="fas fa-history"></i> History Pick
                         </button>
                     </div>
@@ -236,7 +238,7 @@
         e.stopPropagation();
         jQuery.noConflict();
 
-        const transactionId = $(this).data('plst_id');
+        const transactionId = $(this).data('transaction_id');
 
         $.ajax({
             url: `/transactions/${transactionId}/pick-history`,
@@ -244,42 +246,112 @@
             success: function(data) {
                 $('#pickHistoryModal').modal('show');
 
-                // Hapus isi lama timeline
+                // Clear previous timeline content
                 const timeline = $('#pickHistoryTimeline');
                 timeline.empty();
 
-                // Siapkan data dengan urutan kronologis
-                const history = [{
-                        title: 'Request By',
-                        name: data.request_by,
-                        time: data.request_time
-                    },
-                    {
-                        title: 'Pick By',
-                        name: data.pick_by,
-                        time: data.pick_time
-                    },
-                    {
-                        title: 'Packing By',
-                        name: data.packing_by,
-                        time: data.pack_time
-                    },
-                ];
+                // Check if data is an array
+                if (Array.isArray(data) && data.length > 0) {
+                    // Loop through each activity log
+                    data.forEach(item => {
+                        // Determine icon type based on activity
+                        let iconClass = 'default';
+                        let iconSymbol = 'fa-circle';
 
-                // Loop buat tiap step timeline
-                history.forEach(item => {
-                    if (item.name || item.time) {
-                        const timeFormatted = item.time ? new Date(item.time)
-                            .toLocaleString() : '-';
+                        if (item.activity.includes('Import')) {
+                            iconClass = 'import';
+                            iconSymbol = 'fa-download';
+                        } else if (item.activity.includes('Pick')) {
+                            iconClass = 'pick';
+                            iconSymbol = 'fa-hand-pointer';
+                        } else if (item.activity.includes('Quality Check')) {
+                            iconClass = 'quality';
+                            iconSymbol = 'fa-check-circle';
+                        } else if (item.activity.includes('Print')) {
+                            iconClass = 'print';
+                            iconSymbol = 'fa-print';
+                        } else if (item.activity.includes('Packed')) {
+                            iconClass = 'packed';
+                            iconSymbol = 'fa-box';
+                        } else if (item.activity.includes('Manifest')) {
+                            iconClass = 'manifest';
+                            iconSymbol = 'fa-file-alt';
+                        }
+
+                        // Format time
+                        const timeFormatted = item.at ? new Date(item.at).toLocaleString() :
+                            '-';
+
+                        // Build item details HTML if available
+                        let detailsHtml = '';
+                        if (item.item_details) {
+                            detailsHtml = `
+                                <div class="log-details">
+                                    <div class="log-details-item">
+                                        <strong>Barcode:</strong> ${item.item_details.ps_barcode || '-'}
+                                    </div>
+                                    <div class="log-details-item">
+                                        <strong>Product:</strong> ${item.item_details.p_name || '-'}
+                                    </div>
+                                    <div class="log-details-item">
+                                        <strong>Color:</strong> ${item.item_details.p_color || '-'}
+                                    </div>
+                                    <div class="log-details-item">
+                                        <strong>Size:</strong> ${item.item_details.sz_name || '-'}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        // Build location HTML if available
+                        let locationHtml = '';
+                        if (item.location) {
+                            locationHtml =
+                                `<span class="log-location"><i class="fas fa-map-marker-alt"></i> ${item.location}</span>`;
+                        }
+
+                        // Build status HTML if available
+                        let statusHtml = '';
+                        if (item.status) {
+                            statusHtml =
+                                `<span class="log-status ${item.status}">${item.status.toUpperCase()}</span>`;
+                        }
+
+                        // Build manifest number HTML if available
+                        let manifestHtml = '';
+                        if (item.manifest_number) {
+                            manifestHtml =
+                                `<span class="log-manifest-number"><i class="fas fa-barcode"></i> ${item.manifest_number}</span>`;
+                        }
+
+                        // Append log item to timeline
                         timeline.append(`
-                        <div class="timeline-item">
-                            <div class="title">${item.title}</div>
-                            <div class="name">${item.name || '-'}</div>
-                            <div class="time">${timeFormatted}</div>
-                        </div>
-                    `);
-                    }
-                });
+                            <div class="log-item">
+                                <div class="log-icon ${iconClass}">
+                                    <i class="fas ${iconSymbol}" style="color: white;"></i>
+                                </div>
+                                <div class="log-content">
+                                    <div class="log-activity">${item.activity}</div>
+                                    ${detailsHtml}
+                                    ${locationHtml}
+                                    ${statusHtml}
+                                    ${manifestHtml}
+                                    <div class="log-meta">
+                                        <span class="log-user">
+                                            <i class="fas fa-user"></i> ${item.by || '-'}
+                                        </span>
+                                        <span class="log-time">
+                                            <i class="fas fa-clock"></i> ${timeFormatted}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                } else {
+                    timeline.append(
+                        '<p class="text-center text-muted">No activity history available.</p>');
+                }
             },
             error: function() {
                 alert('Gagal mengambil data history pick.');
@@ -1638,5 +1710,58 @@
                 }
             });
         });
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment().subtract(2, 'days');
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+
+            if ((end - start) < 100 || label == 'Today') {
+                title = 'Today:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Yesterday') {
+                title = 'Yesterday:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
+            } else {
+                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+            console.log(hidden_range);
+            $('#filter_date').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+                'All Days': [null, null],
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end, '');
     });
 </script>

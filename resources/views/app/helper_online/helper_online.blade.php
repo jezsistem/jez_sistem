@@ -76,11 +76,32 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row mt-12">
-                                <div class="col-md-12">
-                                    <button type="button" class="btn btn-primary mr-2" id="open_modal_scan_manifest_btn">
-                                        Data Manifest
+                            <div class="row mt-6 align-items-end">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <button type="button" class="btn btn-primary" id="open_modal_scan_manifest_btn">
+                                        <i class="fas fa-file-alt"></i> Data Manifest
                                     </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row align-items-end">
+                                        <div class="col-md-6">
+                                            <label for="filter_date_type" class="form-label">Date Type</label>
+                                            <select name="filter_date_type" id="filter_date_type" class="form-control">
+                                                <option value="pick_date">Pick Date</option>
+                                                <option value="transaction_date">Transaction Date</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="kt_dashboard_daterangepicker" class="form-label">Date Range</label>
+                                            <a href="#" class="btn btn-light-primary btn-block font-weight-bold"
+                                                id="kt_dashboard_daterangepicker" data-toggle="tooltip"
+                                                title="Tanggal Filter" data-placement="left">
+                                                <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
+                                                <span class="font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
+                                                <input type="hidden" id="filter_date" />
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <!--end: Datatable-->
