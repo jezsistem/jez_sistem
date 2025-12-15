@@ -319,9 +319,9 @@ class JezyService
             return ['reply' => "📅 {$user} LIBUR Atau BELUM DI SET"];
         }
 
-        $attendance = DB::table('attendances')
-            ->join('users', 'attendances.user_id', '=', 'users.id')
-            ->whereDate('attendances.at_date', $date)
+        $attendance = DB::table('attendance')
+            ->join('users', 'attendance.user_id', '=', 'users.id')
+            ->whereDate('attendance.at_date', $date)
             ->whereRaw('UPPER(ts_users.u_name) LIKE ?', ["%{$user}%"])
             ->first();
 
