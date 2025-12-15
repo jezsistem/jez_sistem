@@ -153,6 +153,32 @@ class AIController extends Controller
             ]);
         }
 
+        if ($queryType === 'jadwal') {
+
+            if (empty($intent['user'])) {
+                $intent['user'] = Auth::user()->u_name;
+            }
+
+            $result = $service->getJadwal($intent);
+
+            return response()->json([
+                'reply' => $result['reply']
+            ]);
+        }
+
+        if ($queryType === 'absensi') {
+
+            if (empty($intent['user'])) {
+                $intent['user'] = Auth::user()->u_name;
+            }
+
+            $result = $service->getAbsensi($intent);
+
+            return response()->json([
+                'reply' => $result['reply']
+            ]);
+        }
+
         $followupContext = "";
 
         if ($lastSku && !$sku) {
@@ -253,7 +279,44 @@ class AIController extends Controller
             ];
         }
 
-        $apiKey = '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'; // pindahkan ke env
+        if (preg_match('/absen|absensi|kehadiran|telat|masuk tepat waktu/i', $message)) {
+
+            $range = 'today';
+
+            if (preg_match('/besok/i', $message)) {
+                $range = 'tomorrow';
+            } elseif (preg_match('/kemarin/i', $message)) {
+                $range = 'yesterday';
+            }
+
+            return [
+                'query_type' => 'absensi',
+                'user'       => null, // ← SAYA
+                'range'      => $range,
+            ];
+        }
+
+        if (preg_match('/jadwal|shift|masuk apa|masuk jam|kerja apa/i', $message)) {
+
+            $range = 'today';
+
+            if (preg_match('/besok/i', $message)) {
+                $range = 'tomorrow';
+            } elseif (preg_match('/kemarin/i', $message)) {
+                $range = 'yesterday';
+            } elseif (preg_match('/lusa/i', $message)) {
+                $range = 'day_after_tomorrow';
+            }
+
+            return [
+                'query_type' => 'jadwal',
+                'user'       => null, // ← "saya"
+                'range'      => $range,
+            ];
+        }
+
+
+        $apiKey = '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';
 
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $apiKey,

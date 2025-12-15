@@ -66,7 +66,7 @@
                                                 </g>
                                             </svg>
                                             <!--end::Svg Icon-->
-                                        </span>Import
+                                        </span>Mass     Import
                                     </button>
                                     <!--begin::Dropdown Menu-->
                                     <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">

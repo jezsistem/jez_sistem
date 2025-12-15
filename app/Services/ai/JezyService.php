@@ -292,4 +292,65 @@ class JezyService
             'data'  => $data
         ];
     }
+
+    public function getAbsensi(array $intent): array
+    {
+        $user = strtoupper($intent['user']);
+        $date = now()->toDateString();
+
+        if ($intent['range'] === 'yesterday') {
+            $date = now()->subDay()->toDateString();
+        } elseif ($intent['range'] === 'tomorrow') {
+            $date = now()->addDay()->toDateString();
+        }
+
+        $schedule = DB::table('ts_daily_schedules as T1')
+            ->join('ts_users as T2', 'T1.user_id', '=', 'T2.id')
+            ->join('ts_shift_codes as T3', 'T1.sc_id', '=', 'T3.id')
+            ->select(
+                'T3.sc_shift_name',
+                'T3.sc_start_time',
+                'T3.sc_late_tolerance'
+            )
+            ->whereDate('T1.ds_date', $date)
+            ->whereRaw('UPPER(T2.u_name) LIKE ?', ["%{$user}%"])
+            ->first();
+
+        if (!$schedule) {
+            return ['reply' => "📅 {$user} LIBUR Atau BELUM DI SET"];
+        }
+
+        $attendance = DB::table('ts_attendances as A')
+            ->join('ts_users as U', 'A.user_id', '=', 'U.id')
+            ->whereDate('A.at_date', $date)
+            ->whereRaw('UPPER(U.u_name) LIKE ?', ["%{$user}%"])
+            ->first();
+
+        if (!$attendance) {
+            return ['reply' => "❌ {$user} ALPHA (tidak ada absensi)"];
+        }
+
+        // 3️⃣ Status manual
+        if ($attendance->at_status === 'leave_SICK') {
+            return ['reply' => "🤒 {$user} SAKIT"];
+        }
+
+        if ($attendance->at_status === 'leave_ANNUAL') {
+            return ['reply' => "🏖️ {$user} CUTI"];
+        }
+
+        $shiftStart = strtotime($schedule->sc_start_time);
+        $checkIn = strtotime($attendance->at_time_in);
+//        $tolerance = $schedule->sc_late_tolerance * 60;
+
+        if ($checkIn <= $shiftStart) {
+            return ['reply' => "✅ {$user} ONTIME"];
+        }
+
+        $lateMinutes = round(($checkIn - $shiftStart) / 60);
+
+        return [
+            'reply' => "⏰ {$user} TELAT {$lateMinutes} menit"
+        ];
+    }
 }
