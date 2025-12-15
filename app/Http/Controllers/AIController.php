@@ -333,7 +333,7 @@ class AIController extends Controller
         }
 
 
-        $apiKey = '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';
+        $apiKey = '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';
 
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $apiKey,
@@ -393,7 +393,7 @@ class AIController extends Controller
 
     private function detectIdntent($message)
     {
-        $apiKey = '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';
+        $apiKey = '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';
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $apiKey,
         ])->post("https://api.groq.com/openai/v1/chat/completions", [
@@ -468,7 +468,7 @@ class AIController extends Controller
 
     private function callAi($prompt)
     {
-        $apiKey = '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';
+        $apiKey = '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';
 
 //        dd(env('GROQ_API_KEY'));
 
