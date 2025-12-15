@@ -343,13 +343,27 @@ class JezyService
 //        $tolerance = $schedule->sc_late_tolerance * 60;
 
         if ($checkIn <= $shiftStart) {
-            return ['reply' => "✅ {$user} ONTIME"];
+//            return ['reply' => "✅ {$user} ONTIME"];
+
+            return [
+                'status' => 'ONTIME',
+                'user'   => $user,
+                'shift'  => $schedule->sc_shift_name,
+                'shift_start' => $schedule->sc_start_time,
+                'check_in' => $attendance->at_time_in,
+                'late_minutes' => 0,
+            ];
         }
 
         $lateMinutes = round(($checkIn - $shiftStart) / 60);
 
         return [
-            'reply' => "⏰ {$user} TELAT {$lateMinutes} menit"
+            'status' => 'TELAT',
+            'user'   => $user,
+            'shift'  => $schedule->sc_shift_name,
+            'shift_start' => $schedule->sc_start_time,
+            'check_in' => $attendance->at_time_in,
+            'late_minutes' => $lateMinutes,
         ];
     }
 }
