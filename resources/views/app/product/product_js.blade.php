@@ -1335,6 +1335,8 @@
                 }
             }
 
+            var tableHistory;
+
             function initHistory(articleId) {
                 tableHistory = jQuery("#tableHistory").DataTable({
                     processing: true,

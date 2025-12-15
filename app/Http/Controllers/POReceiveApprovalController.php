@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\PurchaseOrder;
+use App\Models\UserActivity;
 use Maatwebsite\Excel\Facades\Excel;
 
 class POReceiveApprovalController extends Controller
@@ -60,6 +61,19 @@ class POReceiveApprovalController extends Controller
             }
         }
         return $sidebar;
+    }
+
+    protected function UserActivity($u_id, $activity, $identifier, $key_identifier)
+    {
+        if (!empty($u_id)) {
+            UserActivity::create([
+                'user_id' => $u_id,
+                'ua_description' => $activity,
+                'identifier' => $identifier,
+                'key_identifier' => $key_identifier,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
     }
 
     public function index()
@@ -412,11 +426,29 @@ class POReceiveApprovalController extends Controller
                                 'ps_purchase_price' => $new_cogs,
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
+
+                            $this->UserActivity(
+                                Auth::user()->id,
+                                $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
+                                    ' ke ' . $new_cogs .
+                                    ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
+                                    'data-products',
+                                $check_product_stock->p_id
+                            );
                         } else {
                             DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
                                 'ps_purchase_price' => ceil($new_price),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
+
+                            $this->UserActivity(
+                                Auth::user()->id,
+                                $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
+                                    ' ke ' . ceil($new_price) .
+                                    ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
+                                    'data-products',
+                                $check_product_stock->p_id
+                            );
                         }
                     }
                 } else {
@@ -438,11 +470,29 @@ class POReceiveApprovalController extends Controller
                                 'ps_purchase_price' => $new_cogs,
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
+
+                            $this->UserActivity(
+                                Auth::user()->id,
+                                $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
+                                    ' ke ' . $new_cogs .
+                                    ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
+                                    'data-products',
+                                $check_product_stock->p_id
+                            );
                         } else {
                             DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
                                 'ps_purchase_price' => ceil($new_price),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
+
+                            $this->UserActivity(
+                                Auth::user()->id,
+                                $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
+                                    ' ke ' . ceil($new_price) .
+                                    ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
+                                    'data-products',
+                                $check_product_stock->p_id
+                            );
                         }
                     }
                 }
@@ -462,6 +512,8 @@ class POReceiveApprovalController extends Controller
 
                 $product_stocks = DB::table('product_stocks')->where('p_id', $p_id)->get();
 
+                $product = DB::table('products')->where('id', $p_id)->get()->first();
+
                 foreach ($product_stocks as $ps) {
                     $pls_qty = DB::table('product_location_setups')->where('pst_id', $ps->id)->sum('pls_qty');
                     $hpp_avg_new += $ps->ps_purchase_price * $pls_qty;
@@ -475,6 +527,14 @@ class POReceiveApprovalController extends Controller
                         'p_purchase_price' => $avg_cogs,
                         'updated_at' => now()
                     ]);
+
+                $this->UserActivity(
+                    Auth::user()->id,
+                    'Produk ID ' . $product->article_id . ' - Mengubah Harga Beli Rata-rata dari'. $product->p_purchase_price  .' menjadi ' . $avg_cogs .
+                    ', berdasarkan penerimaan dengan invoice ' . $invoice,
+                    'data-products',
+                    $p_id
+                );
             }
         }
         $r['status'] = '200';
