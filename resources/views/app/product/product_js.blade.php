@@ -1263,6 +1263,7 @@
         $(document).ready(function () {
             let tableMarketplace;
             let tableSocial;
+            let tableHistory;
 
             $('#showLinkModalBtn').on('click', function () {
                 $('#ProductLinkModal').modal('show');
@@ -1335,9 +1336,8 @@
                 }
             }
 
-            var tableHistory;
-
             function initHistory(articleId) {
+                if (!tableHistory) {
                 tableHistory = jQuery("#tableHistory").DataTable({
                     processing: true,
                     serverSide: true,
@@ -1353,6 +1353,9 @@
                         }
                     ]
                 });
+                } else {
+                    tableHistory.ajax.url(`/product-history/${articleId}`).load();
+                }
 
             }
 
