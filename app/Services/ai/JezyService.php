@@ -304,9 +304,9 @@ class JezyService
             $date = now()->addDay()->toDateString();
         }
 
-        $schedule = DB::table('ts_daily_schedules as T1')
-            ->join('ts_users as T2', 'T1.user_id', '=', 'T2.id')
-            ->join('ts_shift_codes as T3', 'T1.sc_id', '=', 'T3.id')
+        $schedule = DB::table('daily_schedules as T1')
+            ->join('users as T2', 'T1.user_id', '=', 'T2.id')
+            ->join('shift_codes as T3', 'T1.sc_id', '=', 'T3.id')
             ->select(
                 'T3.sc_shift_name',
                 'T3.sc_start_time',
@@ -320,8 +320,8 @@ class JezyService
             return ['reply' => "📅 {$user} LIBUR Atau BELUM DI SET"];
         }
 
-        $attendance = DB::table('ts_attendances as A')
-            ->join('ts_users as U', 'A.user_id', '=', 'U.id')
+        $attendance = DB::table('attendances as A')
+            ->join('users as U', 'A.user_id', '=', 'U.id')
             ->whereDate('A.at_date', $date)
             ->whereRaw('UPPER(U.u_name) LIKE ?', ["%{$user}%"])
             ->first();
