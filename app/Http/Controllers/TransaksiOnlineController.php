@@ -1168,7 +1168,6 @@ class TransaksiOnlineController extends Controller
                     ->where('id', $plst_item->id)
                     ->update([
                         'updated_at' => now(),
-                        'u_id_packer' => Auth::user()->id,
                         'pt_id' => $pos_transaction_id,
                     ]);
 
@@ -1593,6 +1592,7 @@ class TransaksiOnlineController extends Controller
                 $total_payment = str_replace(['IDR ', '.'], '', $item[16]);
                 $city = $item[17];
                 $province = $item[18];
+                $imported_by = Auth::user()->id;
 
                 //get courier from ekspedisi column
                 $courier = OnlineTransactions::getCourierAttribute($item[20]);
@@ -1614,6 +1614,7 @@ class TransaksiOnlineController extends Controller
                     'province' => $province,
                     'internal_order_status' => 'NEW TRX',
                     'courier' => $courier,
+                    'imported_by' => $imported_by,
                 ];
 
                 try {
@@ -1639,6 +1640,7 @@ class TransaksiOnlineController extends Controller
                             'city' => $city,
                             'province' => $province,
                             'courier' => $courier,
+                            'imported_by' => $imported_by,
                         ];
 
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
@@ -1753,6 +1755,7 @@ class TransaksiOnlineController extends Controller
                 $total_payment = str_replace(['IDR ', '.'], '', $item[16]);
                 $city = $item[17];
                 $province = $item[18];
+                $imported_by = Auth::user()->id;
 
                 //get courier from ekspedisi column
                 $courier = OnlineTransactions::getCourierAttribute($item[20]);
@@ -1774,6 +1777,7 @@ class TransaksiOnlineController extends Controller
                     'province' => $province,
                     'internal_order_status' => 'NEW TRX',
                     'courier' => $courier,
+                    'imported_by' => $imported_by,
                 ];
 
                 try {
@@ -1799,6 +1803,7 @@ class TransaksiOnlineController extends Controller
                             'city' => $city,
                             'province' => $province,
                             'courier' => $courier,
+                            'imported_by' => $imported_by,
                         ];
 
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')

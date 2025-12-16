@@ -484,11 +484,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('update_barcode', [ProductController::class, 'updateBarcode']);
     Route::post('/product/mass-import-img', [ProductController::class, 'massImportImg'])->name('product.massImportImg');
     Route::get('/product-images/{articleId}', [ProductController::class, 'getImages']);
+    Route::get('/history-product-images/{articleId}', [ProductController::class, 'getImages']);
     Route::delete('/product-images/{id}', [ProductController::class, 'destroyImages']);
     Route::get('/product-images/download/{articleId}', [ProductController::class, 'downloadAll']);
     Route::post('/product/update-link-content/{id}', [ProductController::class, 'updateLinkContent']);
     Route::post('/product-links/store', [ProductController::class, 'LinkStore']);
     Route::get('/product-links/marketplace/{articleId}', [ProductController::class, 'marketplaceDataTables']);
+    Route::get('/product-history/{articleId}', [ProductController::class, 'historyDataTables']);
     Route::get('/product-links/social/{articleId}', [ProductController::class, 'socialDataTables']);
     Route::get('/product-links/related/{articleName}', [ProductController::class, 'relatedDataTables']);
     Route::post('/product-links/related/toggle', [ProductController::class, 'toggleRelatedProduct']);
@@ -730,6 +732,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('uma_save', [UserMenuAccessController::class, 'storeData']);
     Route::post('uma_delete', [UserMenuAccessController::class, 'deleteData']);
     Route::post('uma_default', [UserMenuAccessController::class, 'setDefault']);
+    Route::post('uma_save_use_template', [UserMenuAccessController::class, 'storeDataUseTemplate']);
 
     // MainMenuController
     Route::get('main_menu', [MainMenuController::class, 'index']);

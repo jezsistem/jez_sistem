@@ -72,7 +72,10 @@ class OnlineReportExport implements FromCollection, WithHeadings
             ->leftJoin('products', 'product_stocks.p_id', '=', 'products.id')
             ->leftJoin('brands', 'products.br_id', '=', 'brands.id')
             ->leftJoin('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
-            ->leftJoin('delivery_receipts', 'online_transactions.no_resi', '=', 'delivery_receipts.resi')
+            ->leftJoin('delivery_receipts', function($join) {
+                $join->on('online_transactions.no_resi', '=', 'delivery_receipts.resi')
+                     ->orOn('online_transactions.order_number', '=', 'delivery_receipts.resi');
+            })
             ->leftJoin('delivery_recaps', 'delivery_receipts.dr_id', '=', 'delivery_recaps.id')
             ->select(
                 'online_transactions.order_number',

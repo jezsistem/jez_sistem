@@ -21,12 +21,12 @@ class ArtikelPromoImport implements ToCollection, WithStartRow
             }
 
             // Mendapatkan ID produk berdasarkan article_id
-            $p_id = DB::table('products')->where('article_id', $row[0])->value('id');
+            $product = DB::table('products')->where('article_id', $row[0])->first();
             
             // Mendapatkan ID store berdasarkan store code
             $st_id = DB::table('stores')->where('st_name', $row[2])->value('id');
             
-            if (!$p_id || !$st_id) {
+            if (!$product->id || !$st_id) {
                 continue; // Lewati jika tidak ditemukan
             }
 
@@ -36,15 +36,24 @@ class ArtikelPromoImport implements ToCollection, WithStartRow
             $dateEnd = is_numeric($row[4]) ? Date::excelToDateTimeObject($row[4])->format('Y-m-d') : date('Y-m-d', strtotime($row[4]));
 
             // Pastikan promo_disc adalah angka
-            $promoDisc = is_numeric($row[5]) ? (int) $row[5] : 0;
+            $discountedPrice = is_numeric($row[5]) ? (int) $row[5] : 0;
+
+            $price_tag = $product->p_price_tag;
+
+            $diffPrice = $price_tag - $discountedPrice;
+
+            $discountPercentage = ($diffPrice / $price_tag) * 100;
+            $promoDisc = round($discountPercentage);
 
             $insert[] = [
-                'p_id' => $p_id,
+                'p_id' => $product->id,
                 'st_id' => $st_id,
                 'promo_name' => $row[1],
                 'date_start' => $dateStart,
                 'date_end' => $dateEnd,
                 'promo_disc' => $promoDisc,
+                'discounted_price' => $discountedPrice,
+                'price_diff' => $diffPrice,
                 'promo_note' => $row[6],
                 'created_at' => now(),
             ];

@@ -56,6 +56,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('add_item_to_discount', [ProductDiscountController::class, 'addItemToDiscount']);
     Route::post('delete_item_discount', [ProductDiscountController::class, 'deleteItemDiscount']);
     Route::post('discount_import', [ProductDiscountController::class, 'importData']);
+    Route::post('mass_import_product_discount', [ProductDiscountController::class, 'massImportData']);
 
     // Voucher
     Route::get('voucher', [VoucherController::class, 'index']);

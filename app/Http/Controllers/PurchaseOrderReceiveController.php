@@ -511,8 +511,24 @@ class PurchaseOrderReceiveController extends Controller
             'product' => $get_product,
         ];
 
+        //query qty and price terima
+        $result = DB::table('purchase_orders as po')
+            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+            ->join('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
+            ->select(
+                DB::raw('COALESCE(SUM(ts_poads.poads_qty), 0) as qty_receive'),
+            )
+            ->where('po.id', $po_id)
+            ->groupBy('po.id')
+            ->first();
+
+        $qty_receive = $result ? $result->qty_receive : 0;
+
+        $is_receive_0 = $qty_receive == 0 ? true : false;             
+        
         //        return $data['product']['0']['subitem'][0]['total_pls_qty'];
-        return view('app.purchase_order_receive._purchase_order_article_detail', compact('data'));
+        return view('app.purchase_order_receive._purchase_order_article_detail', compact('data', 'is_receive_0'));
     }
 
     public function checkBarcodeImport(Request $request)

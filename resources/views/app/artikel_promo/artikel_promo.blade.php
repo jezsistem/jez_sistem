@@ -107,8 +107,10 @@
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
                                 <div class="d-flex align-items-center">
-                                    <input type="search" class="form-control col-6" id="artikel_promo_search"
-                                           placeholder="Cari Artikel Promo"/>
+                                    <input type="search" class="form-control col-4" id="artikel_promo_search_article"
+                                           placeholder="Cari Nama / ID Artikel"/>
+                                    <input type="search" class="form-control col-4 ml-2" id="artikel_promo_search"
+                                           placeholder="Cari Nama Promo"/>
                                     <select class="form-control col-2 ml-2" id="artikel_promo_store">
                                         <option value="">All Stores</option>
                                         @foreach($data['stores'] as $store)

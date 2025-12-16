@@ -675,11 +675,8 @@ var stock_data_table = $('#StockDatatb').DataTable({
                                 let promoData = [];
 
                                 response.data.forEach(function (promo) {
-                                    let originalPrice = promo.p_price_tag; // Harga asli
+                                    let discountedPrice = promo.discounted_price; // Harga asli
                                     let discount = promo.promo_disc; // Persentase diskon
-
-                                    // Hitung harga setelah diskon
-                                    let discountedPrice = originalPrice - (originalPrice * (discount / 100));
 
                                     promoData.push({
                                         promo_name: promo.promo_name,

@@ -35,7 +35,9 @@ class OnlineTransactions extends Model
         'online_print',
         'print_resi',
         'time_print_resi',
-        'is_pinned'
+        'is_pinned',
+        'imported_by',
+        'u_print_resi'
     ];
 
     public static function getCourierAttribute($courier)

@@ -22,6 +22,7 @@
                 url: "{{ url('artikel_promo_datatables') }}",
                 data: function(d) {
                     d.search = $('#artikel_promo_search').val();
+                    d.search_article = $('#artikel_promo_search_article').val();
                     d.date_start = $('#artikelpromo_date').val();
                     d.artikel_promo_store = $('#artikel_promo_store').val();
                 }
@@ -92,6 +93,10 @@
         });
 
         $('#artikel_promo_store').on('change', function() {
+            data_article_promo_tb.draw();
+        });
+
+        $('#artikel_promo_search_article').on('keyup', function() {
             data_article_promo_tb.draw();
         });
 

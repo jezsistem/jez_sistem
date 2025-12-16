@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\AIController;
+use App\Http\Controllers\MenuAccessTemplateController;
+use App\Http\Controllers\MenuAccessTemplateDetailController;
 use App\Http\Controllers\ModalLockConfigController;
 use App\Http\Controllers\ModalLockAllowedModelController;
 use Illuminate\Support\Facades\Route;
@@ -37,4 +40,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [UserActivityController::class, 'index']);
     });
     
+    Route::prefix('menu-access-templates')->group(function () {
+        Route::get('/', [MenuAccessTemplateController::class, 'index'])->name('menu.access.templates.index');
+        Route::get('/create', [MenuAccessTemplateController::class, 'create'])->name('menu.access.templates.create');
+        Route::post('/store', [MenuAccessTemplateController::class, 'store'])->name('menu.access.templates.store');
+        Route::get('/edit/{id}', [MenuAccessTemplateController::class, 'edit'])->name('menu.access.templates.edit');
+        Route::put('/update/{id}', [MenuAccessTemplateController::class, 'update'])->name('menu.access.templates.update');
+        Route::delete('/delete/{id}', [MenuAccessTemplateController::class, 'destroy'])->name('menu.access.templates.destroy');
+        Route::get('/datatable', [MenuAccessTemplateController::class, 'datatable'])->name('menu.access.templates.datatable');
+        Route::get('/get-menu-accesses', [MenuAccessTemplateController::class, 'getMenuAccesses'])->name('menu.access.templates.get_menu_accesses');
+    });
+
+    Route::get('/ai-chat', [AIController::class, 'index']);
+    Route::post('/ai-process', [AIController::class, 'chat']);
 });
