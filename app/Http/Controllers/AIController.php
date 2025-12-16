@@ -177,7 +177,7 @@ class AIController extends Controller
             $prompt = "
                 Kamu adalah HR Assistant.
                 JANGAN mengubah data.
-                JANGAN menambah angka.
+                JANGAN menambah angka.  
                 Gunakan bahasa profesional dan ramah.
                 
                 DATA ABSENSI:
@@ -368,9 +368,13 @@ class AIController extends Controller
             }
         }
 
-        if (preg_match('/rekap|laporan|summary|ringkasan/i', $message)
-            && preg_match('/absen|absensi|kehadiran|telat/i', $message)
-        ) {
+        if (preg_match('/rekap|laporan|summary|ringkasan/i', $message) && preg_match('/absen|absensi|kehadiran|telat/i', $message))
+        {
+
+            $user = null;
+            if (preg_match('/rekap\s+absensi\s+([a-zA-Z\s]+)/i', $message, $m)) {
+                $user = trim($m[1]);
+            }
 
             $period = 'today';
 
@@ -388,14 +392,12 @@ class AIController extends Controller
 
             return [
                 'query_type' => 'rekap_absensi',
-                'user'   => null,
+                'user'   => $user,
                 'period' => $period,
-                'month'  => 12, // kalau disebut
+                'month'  => 12,
                 'year'   => now()->year,
             ];
         }
-
-
 
         if (preg_match('/jadwal|shift|masuk apa|masuk jam|kerja/i', $message)) {
 
