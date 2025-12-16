@@ -52,10 +52,12 @@ class MassDiscountImport implements ToCollection
                 if (!$price) continue;
 
                 if ($pdType === 'percent') {
-                    $pdValue = $price->ps_price_tag - ($price->ps_price_tag * $value / 100);
+                    $pdValue = $value;
                 } else {
                     $pdValue = $price->ps_price_tag - $value;
                 }
+
+//                dd($pdValue);
 
                 $discount = DB::table('product_discounts')
                     ->where([
