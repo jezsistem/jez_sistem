@@ -198,7 +198,7 @@ class AIController extends Controller
 
         if ($queryType === 'rekap_absensi') {
 
-            if (empty($intent['user'])) {
+            if (!array_key_exists('user', $intent) || empty($intent['user'])) {
                 $intent['user'] = Auth::user()->u_name;
             }
 
