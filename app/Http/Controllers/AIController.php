@@ -196,6 +196,46 @@ class AIController extends Controller
             ]);
         }
 
+        if ($queryType === 'rekap_absensi') {
+
+            if (empty($intent['user'])) {
+                $intent['user'] = Auth::user()->u_name;
+            }
+
+            $result = $service->getRekapAbsensi($intent);
+
+            $prompt = "
+                Kamu adalah HR Assistant profesional.
+                
+                ATURAN KETAT:
+                - Jangan mengubah angka
+                - Jangan menambah data
+                - Jangan membuat asumsi
+                - Gunakan bahasa formal namun ramah
+                - Fokus pada ringkasan kinerja
+                
+                DATA REKAP ABSENSI:
+                Nama: {$result['user']}
+                Periode: {$result['start']} s/d {$result['end']}
+                Total Hari Kerja: {$result['total_days']}
+                Tepat Waktu: {$result['ontime']}
+                Terlambat: {$result['late']}
+                Alpha: {$result['alpha']}
+                
+                OUTPUT WAJIB:
+                - Paragraf pembuka singkat
+                - Ringkasan poin (bullet)
+                - Catatan singkat (jika ada keterlambatan)
+                - Catatan Jika sering pulang molor
+             ";
+
+            $reply = $this->callAi($prompt);
+
+            return response()->json([
+                'reply' => $reply
+            ]);
+        }
+
         $followupContext = "";
 
         if ($lastSku && !$sku) {
@@ -273,8 +313,8 @@ class AIController extends Controller
 
             return [
                 'query_type' => 'stok_sku',
-                'sku'        => strtoupper($skuMatch[0]),
-                'branch'     => isset($branchMatch[0]) ? strtoupper($branchMatch[0]) : null,
+                'sku' => strtoupper($skuMatch[0]),
+                'branch' => isset($branchMatch[0]) ? strtoupper($branchMatch[0]) : null,
             ];
         }
 
@@ -296,10 +336,9 @@ class AIController extends Controller
             ];
         }
 
-        if (preg_match('/absen|absensi|kehadiran|telat|masuk tepat waktu/i', $message)) {
+        if (preg_match('/absen|absensi|kehadiran|telat|terlambat|ontime/i', $message)) {
 
             $range = 'today';
-
             if (preg_match('/besok/i', $message)) {
                 $range = 'tomorrow';
             } elseif (preg_match('/kemarin/i', $message)) {
@@ -308,15 +347,59 @@ class AIController extends Controller
 
             return [
                 'query_type' => 'absensi',
-                'user'       => null, // ← SAYA
-                'range'      => $range,
+                'user' => $this->extractHrisUser($message),
+                'range' => $range,
             ];
         }
 
-        if (preg_match('/jadwal|shift|masuk apa|masuk jam|kerja apa/i', $message)) {
+        $monthMap = [
+            'januari' => 1, 'februari' => 2, 'maret' => 3,
+            'april' => 4, 'mei' => 5, 'juni' => 6,
+            'juli' => 7, 'agustus' => 8, 'september' => 9,
+            'oktober' => 10, 'november' => 11, 'desember' => 12,
+        ];
+
+        $month = null;
+
+        foreach ($monthMap as $name => $num) {
+            if (preg_match("/{$name}/i", $message)) {
+                $month = $num;
+                break;
+            }
+        }
+
+        if (preg_match('/rekap|laporan|summary|ringkasan/i', $message)
+            && preg_match('/absen|absensi|kehadiran|telat/i', $message)
+        ) {
+
+            $period = 'today';
+
+            if (preg_match('/minggu kemarin/i', $message)) {
+                $period = 'last_week';
+            } elseif (preg_match('/minggu ini/i', $message)) {
+                $period = 'this_week';
+            } elseif (preg_match('/bulan ini/i', $message)) {
+                $period = 'this_month';
+            } elseif (preg_match('/bulan kemarin/i', $message)) {
+                $period = 'last_month';
+            } elseif (preg_match('/desember/i', $message)) {
+                $period = 'month_named';
+            }
+
+            return [
+                'query_type' => 'rekap_absensi',
+                'user'   => null,
+                'period' => $period,
+                'month'  => 12, // kalau disebut
+                'year'   => now()->year,
+            ];
+        }
+
+
+
+        if (preg_match('/jadwal|shift|masuk apa|masuk jam|kerja/i', $message)) {
 
             $range = 'today';
-
             if (preg_match('/besok/i', $message)) {
                 $range = 'tomorrow';
             } elseif (preg_match('/kemarin/i', $message)) {
@@ -327,8 +410,8 @@ class AIController extends Controller
 
             return [
                 'query_type' => 'jadwal',
-                'user'       => null, // ← "saya"
-                'range'      => $range,
+                'user' => $this->extractHrisUser($message),
+                'range' => $range,
             ];
         }
 
@@ -495,5 +578,39 @@ class AIController extends Controller
 
         return $response->json()['choices'][0]['message']['content'] ?? "(NO RESPONSE)";
     }
+
+    private function extractHrisUser(string $message): ?string
+    {
+        $message = strtolower($message);
+        $message = preg_replace('/[^\w\s]/', ' ', $message);
+
+        $stopWords = [
+            'apakah', 'cek', 'lihat', 'tolong', 'info',
+            'absen', 'absensi', 'kehadiran',
+            'telat', 'terlambat', 'ontime',
+            'jadwal', 'shift', 'masuk', 'kerja',
+            'hari', 'ini', 'besok', 'kemarin', 'lusa',
+            'yang', 'di', 'ke', 'dari', 'apa',
+            'saya', 'aku', 'gue'
+        ];
+
+        $tokens = array_filter(explode(' ', $message));
+
+        $candidates = [];
+
+        foreach ($tokens as $token) {
+            if (strlen($token) >= 3 && !in_array($token, $stopWords)) {
+                $candidates[] = $token;
+            }
+        }
+
+        if (empty($candidates)) {
+            return null;
+        }
+
+        return strtoupper(implode(' ', $candidates));
+    }
+
+
 
 }

@@ -2,11 +2,84 @@
 
 namespace App\Services\ai;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class JezyService
 {
+
+    private function resolvePeriod($intent)
+    {
+        switch ($intent['period']) {
+
+            case 'last_week':
+                return [
+                    now()->subWeek()->startOfWeek(),
+                    now()->subWeek()->endOfWeek()
+                ];
+
+            case 'this_week':
+                return [
+                    now()->startOfWeek(),
+                    now()->endOfWeek()
+                ];
+
+            case 'this_month':
+                return [
+                    now()->startOfMonth(),
+                    now()->endOfMonth()
+                ];
+
+            case 'last_month':
+                return [
+                    now()->subMonth()->startOfMonth(),
+                    now()->subMonth()->endOfMonth()
+                ];
+
+            case 'month_named':
+                return [
+                    Carbon::create($intent['year'], $intent['month'], 1)->startOfMonth(),
+                    Carbon::create($intent['year'], $intent['month'], 1)->endOfMonth()
+                ];
+
+            default:
+                return [
+                    now()->startOfDay(),
+                    now()->endOfDay()
+                ];
+        }
+    }
+
+    public function getRekapAbsensi(array $intent)
+    {
+        [$start, $end] = $this->resolvePeriod($intent);
+
+        $data = DB::table('attendance')
+            ->join('users','attendance.user_id','=','users.id')
+            ->whereBetween('attendance.at_date', [$start, $end])
+            ->whereRaw('UPPER(ts_users.u_name) LIKE ?', ["%{$intent['user']}%"])
+            ->get();
+
+        if ($data->isEmpty()) {
+            return ['reply' => "📭 Tidak ada data absensi pada periode tersebut."];
+        }
+
+        $totalHari = $data->count();
+        $ontime = $data->where('at_late_minutes', 0)->count();
+        $telat  = $data->where('at_late_minutes', '>', 0)->count();
+        $alpha  = $data->whereNull('at_time_in')->count();
+
+        return [
+            'user'        => $intent['user'],
+            'start'       => $start,
+            'end'         => $end,
+            'total_days'  => $totalHari,
+            'ontime'      => $ontime,
+            'late'        => $telat,
+            'alpha'       => $alpha,
+        ];
+    }
 
     public function stokBySku(string $sku): array
     {
