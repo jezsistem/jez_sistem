@@ -414,7 +414,7 @@
             }
 
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id, 'approval_penerimaan');
+            const lockResult = await openEditModal('purchase_order', po_id, 'pembelian');
             if (lockResult === false) {
                 return;
             }
@@ -422,7 +422,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id, 'approval_penerimaan');
+                extendLock('purchase_order', po_id, 'pembelian');
             }, 60000);
 
             console.log('STORES : ', tgl_terima);
@@ -674,7 +674,7 @@
                             .val();
                                 if (po_id) {
                                     closeEditModal('purchase_order', po_id,
-                                        'approval_penerimaan'); // ✅ panggil fungsi
+                                        'pembelian'); // ✅ panggil fungsi
                                 }
                                 $('#ApproveModal').modal('hide');
                                 po_approval_table.draw(false);
@@ -701,7 +701,7 @@
             $('#ApproveModal').modal('hide');
             var po_id = $('#_po_id').val();
             if (po_id) {
-                closeEditModal('purchase_order', po_id, 'approval_penerimaan');
+                closeEditModal('purchase_order', po_id, 'pembelian');
             }
             po_approval_table.draw(false);
         });

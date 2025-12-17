@@ -2003,7 +2003,7 @@
             $('#_po_id').val(po_id);
 
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id, 'penerimaan');
+            const lockResult = await openEditModal('purchase_order', po_id, 'pembelian');
             if (lockResult === false) {
                 return;
             }
@@ -2011,7 +2011,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id, 'penerimaan');
+                extendLock('purchase_order', po_id, 'pembelian');
             }, 60000);
 
             // Update DataTables AJAX configuration with the new po_id
@@ -2320,7 +2320,7 @@
             $('#PurchaseOrderModal').modal('hide');
             var po_id = $('#_po_id').val();
             if (po_id) {
-                closeEditModal('purchase_order', po_id, 'penerimaan');
+                closeEditModal('purchase_order', po_id, 'pembelian');
             }
             purchase_order_table.draw(false);
         });
