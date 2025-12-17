@@ -1292,4 +1292,17 @@ class PurchaseOrderController extends Controller
 
         return response()->json(['message' => 'Status Finance gagal disimpan', 'status' => 400]);
     }
+
+    public function updateAllFinanceStatus()
+    {
+        $purchaseOrders = PurchaseOrder::all();
+
+        foreach ($purchaseOrders as $po) {
+            $request = new Request();
+            $request->merge(['_po_id' => $po->id]);
+            $this->changeFinanceStatus($request);
+        }
+
+        return response()->json(['message' => 'Update semua status finance berhasil']);
+    }
 }
