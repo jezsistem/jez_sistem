@@ -1278,6 +1278,13 @@
                 initHistory($('#article_id').val());
             });
 
+            $('#skuGenerate').on('click', function () {
+                $('#genaratorSKUModal').modal('show');
+                console.log($('#article_id').val());
+                // initHistory($('#article_id').val());
+            });
+
+
             $('#ProductLinkModal').on('shown.bs.modal', function () {
                 initMarketplace($('#article_id').val());
                 initSocial($('#article_id').val());
