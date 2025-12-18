@@ -1164,7 +1164,7 @@ class PurchaseOrderController extends Controller
                 DB::raw('MAX(ts_po.pay_date) as pay_date'),
                 DB::raw('MAX(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.created_at END) as stock_in_date'),
                 'po.po_payment_amount as payment_amount',
-                DB::raw('COALESCE(ts_po.is_receivable, 0) as claim_amount'),
+                DB::raw('COALESCE(ts_po.claim_amount, 0) as claim_amount'),
                 'stkt.stkt_name as stock_type',
             )
             ->where('po.id', $request->_po_id)
