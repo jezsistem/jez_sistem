@@ -105,7 +105,7 @@
             ],
             rowCallback: function(row, data, index) {
                 if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute ==
-                    1)) {
+                        1)) {
                     $(row).css('background-color', '#f8d7da');
                 }
             },
@@ -411,7 +411,6 @@
 
             let dispute_text = '';
             let putaway_text = '';
-            let status_dispute_text = '';
 
             if (dispute === 1) {
                 dispute_text = 'Yes';
@@ -427,14 +426,6 @@
                 putaway_text = 'No';
             } else {
                 putaway_text = 'Empty';
-            }
-
-            if (status_dispute === 1) {
-                status_dispute_text = 'Progress';
-            } else if (status_dispute === 0) {
-                status_dispute_text = 'Closed';
-            } else {
-                status_dispute_text = '';
             }
 
             // Coba dapatkan lock sebelum buka modal
@@ -504,7 +495,7 @@
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
                     $('#putaway').val(putaway_text);
-                    $('#status_dispute').val(status_dispute_text);
+                    $('#status_dispute').val(status_dispute).trigger('change');
                     $('#payment_amount').val(payment_amount);
                     // Format arrived_at to 'YYYY-MM-DDTHH:mm'
                     let formattedArrivedAt = '';
@@ -732,6 +723,33 @@
                 closeEditModal('purchase_order', po_id, 'pembelian');
             }
             po_approval_table.draw(false);
+        });
+
+        $('#status_dispute').on('change', function() {
+            var status_disputeValue = $(this).val();
+            var no_order = $('#no_po').text();
+
+            if (status_disputeValue === "" || status_disputeValue === null) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('status_dispute_save') }}",
+                type: 'POST',
+                data: {
+                    status_dispute: status_disputeValue,
+                    po_invoice: no_order,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Status Dispute berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Status Dispute", "Gagal");
+                }
+            });
         });
 
         jQuery.noConflict();

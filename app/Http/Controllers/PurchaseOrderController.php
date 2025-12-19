@@ -1773,6 +1773,44 @@ class PurchaseOrderController extends Controller
                 ->addColumn('item_detail' , function ($data) {
                     return trim(implode(' - ', array_filter([$data->article_id, $data->p_name, $data->p_color, $data->sz_name])));
                 })
+                ->editColumn('before', function ($data) {
+                    if ($data->target_column == 'status_dispute') {
+                        return $data->before == '1' ? 'Progress' : 'Closed';
+                    }
+
+                    if ($data->target_column == 'is_dispute') {
+                        return $data->before == '1' ? 'Yes' : 'No';
+                    }
+
+                    if ($data->target_column == 'putaway') {
+                        return $data->before == '1' ? 'Yes' : 'No';
+                    }
+
+                    if ($data->target_column == 'is_receivable') {
+                        return $data->before == '1' ? 'Yes' : 'No';
+                    }
+
+                    return $data->before;
+                })
+                ->editColumn('after', function ($data) {
+                    if ($data->target_column == 'status_dispute') {
+                        return $data->after == '1' ? 'Progress' : 'Closed';
+                    }
+
+                    if ($data->target_column == 'is_dispute') {
+                        return $data->after == '1' ? 'Yes' : 'No';
+                    }
+
+                    if ($data->target_column == 'putaway') {
+                        return $data->after == '1' ? 'Yes' : 'No';
+                    }
+
+                    if ($data->target_column == 'is_receivable') {
+                        return $data->after == '1' ? 'Yes' : 'No';
+                    }
+
+                    return $data->after;
+                })
                 ->addIndexColumn()
                 ->make(true);
         }

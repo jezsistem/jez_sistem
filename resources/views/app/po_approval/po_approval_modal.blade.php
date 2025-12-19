@@ -229,19 +229,23 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="col-4 mt-3">
-                            <label>Status Dispute</label>
-                            <input type="text" id="status_dispute" class="form-control" name="status_dispute"
-                                disabled />
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Status Dispute</label>
+                            <select class="form-control" name="status_dispute" id="status_dispute" required>
+                                <option value="">- Pilih Status -</option>
+                                <option value="1">Progress</option>
+                                <option value="0">Closed</option>
+                            </select>
                         </div>
                         <div class="col-4 mt-3">
                             <label>Putaway</label>
                             <input type="text" id="putaway" class="form-control" name="putaway" disabled />
                         </div>
                         <div class="col-4 mt-5">
-                        <label>Nominal Payment</label>
-                        <input type="number" class="form-control " placeholder="Nominal Payment" name="payment_amount" id="payment_amount" min="0" disabled />
-                    </div>
+                            <label>Nominal Payment</label>
+                            <input type="number" class="form-control " placeholder="Nominal Payment"
+                                name="payment_amount" id="payment_amount" min="0" disabled />
+                        </div>
                     </div>
                     <br>
                     <!--end::Row-->
