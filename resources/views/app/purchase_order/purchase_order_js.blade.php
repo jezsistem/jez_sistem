@@ -827,6 +827,7 @@
                     d.st_id = $('#st_id_filter').val();
                     d.date = $('#po_date').val();
                     d.status_purchase = $('#status_purchase').val();
+                    d.status_finance = $('#status_finance').val();
                 }
             },
             columns: [{
@@ -1377,6 +1378,20 @@
 
         $('#status_purchase').on('change', function() {
             purchase_order_table.draw();
+        });
+
+        $('#status_finance').on('change', function() {
+            purchase_order_table.draw();
+        });
+        $('#status_finance').select2({
+            width: "200px",
+            dropdownParent: $('#status_finance_parent')
+        });
+
+        $('#status_finance').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
         });
 
         $('#br_id_filter_item').select2({

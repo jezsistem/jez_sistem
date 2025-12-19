@@ -123,6 +123,7 @@ class PurchaseOrderController extends Controller
     public function getDatatables(Request $request)
     {
         $st_id = $request->st_id;
+        $status_finance = $request->status_finance;
 
         $user = new User;
         $select = ['u_name', 'u_email', 'u_phone', 'g_name'];
@@ -177,6 +178,9 @@ class PurchaseOrderController extends Controller
                                 ->orWhereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) = 0');
                         });
                     }
+                })
+                ->when($status_finance, function ($query) use ($request) {
+                    $query->where('purchase_orders.finance_status', '=', $request->get('status_finance'));
                 })
                 ->groupBy('po_id'))
                 ->editColumn('po_created_at_show', function ($data) {

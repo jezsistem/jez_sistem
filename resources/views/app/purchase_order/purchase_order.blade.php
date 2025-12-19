@@ -62,6 +62,20 @@
                                         </select>
                                         <div id="status_purchase_parent"></div>
                                     </div>
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select name="status_finance" id="status_finance" class="form-control bg-primary text-white">
+                                            <option value="">- Status Finance -</option>
+                                            <option value="CONSIGNMENT">CONSIGNMENT</option>
+                                            <option value="DRAFT / PENDING">DRAFT / PENDING</option>
+                                            <option value="HUTANG (PARTIAL RECEIVE)">HUTANG (PARTIAL RECEIVE)</option>
+                                            <option value="HUTANG">HUTANG</option>
+                                            <option value="PIUTANG (OVERPAYMENT PARTIAL)">PIUTANG (OVERPAYMENT PARTIAL)</option>
+                                            <option value="PIUTANG">PIUTANG</option>
+                                            <option value="LUNAS">LUNAS</option>
+                                            <option value="UNKNOWN">UNKNOWN</option>
+                                        </select>
+                                        <div id="status_finance_parent"></div>
+                                    </div>
                                 </div>
 
                                 <!--end: Datatable-->
