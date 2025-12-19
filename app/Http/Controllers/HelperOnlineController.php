@@ -270,21 +270,6 @@ class HelperOnlineController extends Controller
             ->whereNotIn('product_location_setup_transactions.plst_status', ['REFUND'])
             ->where('online_transaction_details.deleted_at', null)
             ->where('warehouse', $stores_code)
-            ->when($filter_date_type && $start, function ($query) use ($filter_date_type, $start, $end) {
-                if ($filter_date_type === 'pick_date') {
-                    if ($end) {
-                        $query->whereBetween('product_location_setup_transactions.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
-                    } else {
-                        $query->whereDate('product_location_setup_transactions.created_at', $start);
-                    }
-                } elseif ($filter_date_type === 'transaction_date') {
-                    if ($end) {
-                        $query->whereBetween('online_transactions.order_date_created', [$start . ' 00:00:00', $end . ' 23:59:59']);
-                    } else {
-                        $query->whereDate('online_transactions.order_date_created', $start);
-                    }
-                }
-            })
             ->groupBy('online_transactions.id', 'online_transactions.order_number', 'platform_name', 'st_name', 'online_transactions.order_date_created', 'no_resi', 'online_print', 'shipping_method', 'online_transactions.internal_order_status')
             ->orderByRaw('CASE WHEN is_instant = 1 THEN 0 ELSE 1 END')
             ->orderByDesc('last_chat_time')
@@ -337,6 +322,26 @@ class HelperOnlineController extends Controller
                     return $collection;
                 }
                 return $collection->where('platform', $platform);
+            })
+            ->when($filter_date_type && $start, function ($collection) use ($filter_date_type, $start, $end) {
+                return $collection->filter(function ($item) use ($filter_date_type, $start, $end) {
+                    if ($filter_date_type === 'pick_date') {
+                        $pickDate = $item->picked_time;
+                        if ($end) {
+                            return $pickDate >= $start . ' 00:00:00' && $pickDate <= $end . ' 23:59:59';
+                        } else {
+                            return date('Y-m-d', strtotime($pickDate)) === $start;
+                        }
+                    } elseif ($filter_date_type === 'transaction_date') {
+                        $transactionDate = $item->created_at;
+                        if ($end) {
+                            return $transactionDate >= $start . ' 00:00:00' && $transactionDate <= $end . ' 23:59:59';
+                        } else {
+                            return date('Y-m-d', strtotime($transactionDate)) === $start;
+                        }
+                    }
+                    return true;
+                });
             });
 
         $data = [

@@ -91,14 +91,14 @@
                                                 <option value="transaction_date">Transaction Date</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label for="kt_dashboard_daterangepicker" class="form-label">Date Range</label>
-                                            <a href="#" class="btn btn-light-primary btn-block font-weight-bold"
-                                                id="kt_dashboard_daterangepicker" data-toggle="tooltip"
-                                                title="Tanggal Filter" data-placement="left">
-                                                <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
-                                                <span class="font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
-                                                <input type="hidden" id="filter_date" />
+                                        <div class="col-md-6 daterange-container">
+                                            <label class="form-label">Date Range</label>
+                                            <input type="hidden" class="filter-hidden-input" id="filter_date" />
+                                            <a href="#"
+                                                class="btn btn-light-primary btn-block font-weight-bold daterange-picker-toggle"
+                                                data-toggle="tooltip" title="Tanggal Filter">
+                                                <span class="range-title">Today</span>
+                                                <span class="range-label font-weight-bolder"></span>
                                             </a>
                                         </div>
                                     </div>
@@ -149,13 +149,13 @@
                                 </select>
                                 <div id="platform_parent"></div>
 
-{{--                                <label for="status_pick" class="mt-3">Status Pick</label>--}}
-{{--                                <select class="form-control" id="status_pick" name="status_pick" required>--}}
-{{--                                    <option value="">SEMUA STATUS PICK</option>--}}
-{{--                                    <option value="PICKED">PICKED</option>--}}
-{{--                                    <option value="NOT PICKED">NOT PICKED</option>--}}
-{{--                                </select>--}}
-{{--                                <div id="status_pick_parent"></div>--}}
+                                {{--                                <label for="status_pick" class="mt-3">Status Pick</label> --}}
+                                {{--                                <select class="form-control" id="status_pick" name="status_pick" required> --}}
+                                {{--                                    <option value="">SEMUA STATUS PICK</option> --}}
+                                {{--                                    <option value="PICKED">PICKED</option> --}}
+                                {{--                                    <option value="NOT PICKED">NOT PICKED</option> --}}
+                                {{--                                </select> --}}
+                                {{--                                <div id="status_pick_parent"></div> --}}
                             </div>
 
                             <!--end: Datatable-->
