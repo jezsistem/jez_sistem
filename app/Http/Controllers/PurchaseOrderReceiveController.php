@@ -525,8 +525,8 @@ class PurchaseOrderReceiveController extends Controller
 
         $qty_receive = $result ? $result->qty_receive : 0;
 
-        $is_receive_0 = $qty_receive == 0 ? true : false;             
-        
+        $is_receive_0 = $qty_receive == 0 ? true : false;
+
         //        return $data['product']['0']['subitem'][0]['total_pls_qty'];
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data', 'is_receive_0'));
     }
@@ -969,10 +969,12 @@ class PurchaseOrderReceiveController extends Controller
             $before = $before ? $before->pay_date : null;
 
             $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
-            
+
             if ($check) {
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'pay_date', $before, $pay_date, date('Y-m-d H:i:s'));
+                if ($before != $pay_date) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'pay_date', $before, $pay_date, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 $r['status'] = '200';
@@ -985,7 +987,7 @@ class PurchaseOrderReceiveController extends Controller
             $r['status'] = '400';
             $r['message'] = $e->getMessage();
         }
-        
+
         return json_encode($r);
     }
 
@@ -1000,10 +1002,12 @@ class PurchaseOrderReceiveController extends Controller
             $before = $before ? $before->due_date : null;
 
             $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
-            
+
             if ($check) {
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'due_date', $before, $due_date, date('Y-m-d H:i:s'));
+                if ($before != $due_date) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'due_date', $before, $due_date, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 $r['status'] = '200';
@@ -1016,7 +1020,7 @@ class PurchaseOrderReceiveController extends Controller
             $r['status'] = '400';
             $r['message'] = $e->getMessage();
         }
-        
+
         return json_encode($r);
     }
 
