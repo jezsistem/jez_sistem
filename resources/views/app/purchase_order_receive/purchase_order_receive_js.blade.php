@@ -203,6 +203,29 @@
         XLSX.writeFile(workbook, "Barcode_NotFound.xlsx");
     }
 
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
     //is Dispute Save
     {{-- $(document).ready(function () { --}}
     {{--    $('#dispute').change(function () { --}}
@@ -761,6 +784,7 @@
                         toastr.error("Terjadi kesalahan saat mengirim notifikasi", "Error");
                     }
                 });
+                changeFinanceStatus(po_id);
 
                 reloadArticleDetail(po_id);
             }

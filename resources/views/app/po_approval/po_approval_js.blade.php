@@ -3,6 +3,29 @@
 <script>
     var approval = '';
 
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -81,7 +104,8 @@
                 // },
             ],
             rowCallback: function(row, data, index) {
-                if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute == 1)) {
+                if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute ==
+                    1)) {
                     $(row).css('background-color', '#f8d7da');
                 }
             },
@@ -233,7 +257,7 @@
             ],
         });
 
-        
+
         var apd_table = $('#APDtb').DataTable({
             destroy: true,
             processing: true,
@@ -488,11 +512,14 @@
                         const dateObj = new Date(arrived_at);
                         if (!isNaN(dateObj.getTime())) {
                             const year = dateObj.getFullYear();
-                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const month = String(dateObj.getMonth() + 1).padStart(2,
+                                '0');
                             const day = String(dateObj.getDate()).padStart(2, '0');
                             const hours = String(dateObj.getHours()).padStart(2, '0');
-                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-                            formattedArrivedAt = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            const minutes = String(dateObj.getMinutes()).padStart(2,
+                                '0');
+                            formattedArrivedAt =
+                                `${year}-${month}-${day}T${hours}:${minutes}`;
                         }
                     }
                     $('#arrived_at').val(formattedArrivedAt).prop('readonly', true);
@@ -671,7 +698,7 @@
                         success: function(r) {
                             if (r.status == '200') {
                                 const po_id = $('#_po_id')
-                            .val();
+                                    .val();
                                 if (po_id) {
                                     closeEditModal('purchase_order', po_id,
                                         'pembelian'); // ✅ panggil fungsi
@@ -680,6 +707,7 @@
                                 po_approval_table.draw(false);
                                 swal("Berhasil", "Data berhasil diapprove",
                                     "success");
+                                changeFinanceStatus(po_id);
                             } else {
                                 swal('Gagal', r.message, 'error');
                             }

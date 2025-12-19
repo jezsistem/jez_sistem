@@ -1432,7 +1432,6 @@ class PurchaseOrderController extends Controller
 
             $payment_amount = 0;
             $claim_amount = 0;
-            $po_total_amount = 0;
             $po_qty = 0;
 
             $po_receive_amount = 0;
@@ -1495,7 +1494,6 @@ class PurchaseOrderController extends Controller
 
             $is_consigment = strtolower($query1->stock_type) == strtolower('CONSIGNMENT') ? true : false;
 
-            $po_total_amount = $query2->total_price ?? 0;
             $po_qty = $query2->total_qty ?? 0;
 
             $po_receive_amount_not_approved = $query3->price_not_approve ?? 0;
@@ -1518,8 +1516,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1531,8 +1531,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1544,8 +1546,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1557,8 +1561,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1570,8 +1576,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1583,8 +1591,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1599,8 +1609,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1611,8 +1623,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1623,8 +1637,10 @@ class PurchaseOrderController extends Controller
                 $po->finance_status = $after;
                 $po->save();
 
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                if ($before != $after) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+                }
 
                 DB::commit();
                 return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
@@ -1633,11 +1649,6 @@ class PurchaseOrderController extends Controller
             $after = 'UNKNOWN';
             $po->finance_status = $after;
             $po->save();
-
-            if ($before != $after) {
-                $purchaseOrderLog = new PurchaseOrderLog();
-                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
-            }
 
             DB::commit();
             return response()->json(['message' => 'Status Finance gagal disimpan', 'status' => 400]);
