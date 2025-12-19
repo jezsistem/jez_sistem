@@ -18,7 +18,7 @@
                          style="background-image:url('{{ asset('app') }}/assets/media/users/default.jpg')"></div>
                 @else
                     <div class="symbol-label"
-                         style="background-image:url('{{ asset($data['user']->u_photo) }}');"></div>
+                         style="background-image:url('{{ $data['user']->u_photo ? Storage::disk('s3')->url($data['user']->u_photo) : asset('photos/no_image.png') }}');"></div>
                 @endif
                 <i class="symbol-badge bg-success"></i>
 
