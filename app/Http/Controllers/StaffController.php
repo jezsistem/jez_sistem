@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\StaffExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserPosition;
 use App\Models\UserType;
 use App\Models\LeaveBalance;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class StaffController extends Controller
@@ -23,7 +25,7 @@ class StaffController extends Controller
             ->where('user_groups.user_id', auth()->user()->id)
             ->where('g_name', 'administrator')
             ->exists();
-        
+
         $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
             ->where('users.id', auth()->user()->id)
             ->where('user_divisions.ud_code', 'HUMANRESOU')
@@ -33,7 +35,7 @@ class StaffController extends Controller
             $validate = DB::table('position_access')
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
                     'position_access.position_id' => $user_position,
-//                    'position_access.route' => request()->path()
+                    //                    'position_access.route' => request()->path()
                 ])->exists();
 
             if (!$validate) {
@@ -45,7 +47,7 @@ class StaffController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', auth()->user()->id)->get();
+            ->where('u_id', auth()->user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -58,9 +60,9 @@ class StaffController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -73,11 +75,11 @@ class StaffController extends Controller
     public function index()
     {
         $this->validateAccess();
-        
+
         $title = 'Staff Management';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
-        
+
         // Get all users with NIP (tanpa join ke position dan division)
         $staff = DB::table('users')
             ->select([
@@ -89,15 +91,15 @@ class StaffController extends Controller
                 DB::raw('NULL as division_code'),
                 'leave_balances.lb_remaining_balance'
             ])
-            ->leftJoin('leave_balances', function($join) {
+            ->leftJoin('leave_balances', function ($join) {
                 $join->on('leave_balances.user_id', '=', 'users.id')
-                     ->where('leave_balances.lb_year', '=', date('Y'))
-                     ->where('leave_balances.leave_type_id', '=', function($query) {
-                         $query->select('id')
-                               ->from('leave_types')
-                               ->where('lt_code', 'ANNUAL')
-                               ->limit(1);
-                     });
+                    ->where('leave_balances.lb_year', '=', date('Y'))
+                    ->where('leave_balances.leave_type_id', '=', function ($query) {
+                        $query->select('id')
+                            ->from('leave_types')
+                            ->where('lt_code', 'ANNUAL')
+                            ->limit(1);
+                    });
             })
             ->where('users.u_delete', '0')
             ->whereNotNull('users.u_nip')
@@ -306,59 +308,13 @@ class StaffController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             \Log::info('Staff datatables request received', [
                 'request_data' => $request->all(),
                 'user_id' => auth()->user()->id ?? 'not logged in'
             ]);
 
-            $query = DB::table('users')
-                ->select([
-                    'users.id',
-                    'users.u_name',
-                    'users.u_nip',
-                    'users.up_id',
-                    'users.ud_id',
-                    'users.ut_id',
-                    'user_positions.up_name',
-                    'user_divisions.ud_name',
-                    'user_types.ut_name',
-                    'leave_balances.lb_remaining_balance'
-                ])
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
-                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->leftJoin('leave_balances', function($join) {
-                    $join->on('leave_balances.user_id', '=', 'users.id')
-                         ->where('leave_balances.lb_year', '=', date('Y'))
-                         ->where('leave_balances.leave_type_id', '=', function($query) {
-                             $query->select('id')
-                                   ->from('leave_types')
-                                   ->where('lt_code', 'ANNUAL')
-                                   ->limit(1);
-                         });
-                })
-                ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip');
-
-            // Apply search filter
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('users.u_name', 'like', '%' . $search . '%')
-                      ->orWhere('users.u_nip', 'like', '%' . $search . '%');
-                });
-            }
-
-            // Apply position filter
-            if ($request->filled('position_filter')) {
-                $query->where('users.up_id', $request->position_filter);
-            }
-
-            // Apply division filter
-            if ($request->filled('division_filter')) {
-                $query->where('users.ud_id', $request->division_filter);
-            }
+            $query = $this->getStaffQuery($request);
 
             \Log::info('Staff query built with filters', [
                 'search' => $request->search ?? 'none',
@@ -368,19 +324,19 @@ class StaffController extends Controller
 
             $result = datatables()->of($query)
                 ->addIndexColumn()
-                ->editColumn('up_name', function($row) {
+                ->editColumn('up_name', function ($row) {
                     return $row->up_name ?: '-';
                 })
-                ->editColumn('ud_name', function($row) {
+                ->editColumn('ud_name', function ($row) {
                     return $row->ud_name ?: '-';
                 })
-                ->editColumn('ut_name', function($row) {
+                ->editColumn('ut_name', function ($row) {
                     return $row->ut_name ?: '-';
                 })
-                ->editColumn('lb_remaining_balance', function($row) {
+                ->editColumn('lb_remaining_balance', function ($row) {
                     return $row->lb_remaining_balance ?: '0';
                 })
-                ->addColumn('action', function($row){
+                ->addColumn('action', function ($row) {
                     $btn = '<div class="dropdown">';
                     $btn .= '    <!--begin::Toggle-->';
                     $btn .= '    <button type="button" class="btn btn-sm text-dark btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
@@ -393,36 +349,36 @@ class StaffController extends Controller
                     $btn .= '        </span>';
                     $btn .= '    </button>';
                     $btn .= '    <!--end::Toggle-->';
-                    
+
                     $btn .= '    <!--begin::Menu-->';
                     $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="editPosition('.$row->id.')" class="menu-link px-3">Edit Position</a>';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editPosition(' . $row->id . ')" class="menu-link px-3">Edit Position</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
-                    
+
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="editDivision('.$row->id.')" class="menu-link px-3">Edit Division</a>';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editDivision(' . $row->id . ')" class="menu-link px-3">Edit Division</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
-                    
+
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="editUserType('.$row->id.')" class="menu-link px-3">Edit User Type</a>';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editUserType(' . $row->id . ')" class="menu-link px-3">Edit User Type</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
-                    
+
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="editLeaveBalance('.$row->id.')" class="menu-link px-3">Edit Leave Balance</a>';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editLeaveBalance(' . $row->id . ')" class="menu-link px-3">Edit Leave Balance</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
                     $btn .= '    </div>';
                     $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
-                    
+
                     return $btn;
                 })
                 ->rawColumns(['action'])
@@ -435,5 +391,65 @@ class StaffController extends Controller
 
             return $result;
         }
+    }
+
+    public function export(Request $request) {
+        $query = $this->getStaffQuery($request);
+        $data = $query->get();
+        return Excel::download(new StaffExport($data), 'staff_export_' . date('Ymd_His') . '.xlsx');
+    }
+
+
+    protected function getStaffQuery(Request $request)
+    {
+        $query = DB::table('users')
+            ->select([
+                'users.id',
+                'users.u_name',
+                'users.u_nip',
+                'users.up_id',
+                'users.ud_id',
+                'users.ut_id',
+                'user_positions.up_name',
+                'user_divisions.ud_name',
+                'user_types.ut_name',
+                'leave_balances.lb_remaining_balance'
+            ])
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+            ->leftJoin('leave_balances', function ($join) {
+                $join->on('leave_balances.user_id', '=', 'users.id')
+                    ->where('leave_balances.lb_year', '=', date('Y'))
+                    ->where('leave_balances.leave_type_id', '=', function ($query) {
+                        $query->select('id')
+                            ->from('leave_types')
+                            ->where('lt_code', 'ANNUAL')
+                            ->limit(1);
+                    });
+            })
+            ->where('users.u_delete', '!=', '1')
+            ->whereNotNull('users.u_nip');
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('users.u_name', 'like', '%' . $search . '%')
+                    ->orWhere('users.u_nip', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Apply position filter
+        if ($request->filled('position_filter')) {
+            $query->where('users.up_id', $request->position_filter);
+        }
+
+        // Apply division filter
+        if ($request->filled('division_filter')) {
+            $query->where('users.ud_id', $request->division_filter);
+        }
+
+        return $query;
     }
 }
