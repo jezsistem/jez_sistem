@@ -35,7 +35,7 @@ use App\Models\PurchaseOrderTransferImage;
 use App\Models\UserActivity;
 use App\Models\PurchaseOrderDisputeFile;
 use App\Models\PurchaseOrderFileDeliveryNote;
-
+use App\Models\PurchaseOrderLog;
 
 class PurchaseOrderReceiveController extends Controller
 {
@@ -954,34 +954,69 @@ class PurchaseOrderReceiveController extends Controller
 
     public function changePayDate(Request $request)
     {
-        $po_id = $request->po_id;
-        $pay_date = $request->pay_date;
+        DB::beginTransaction();
+        try {
+            $po_id = $request->po_id;
+            $pay_date = $request->pay_date;
 
-        if ($pay_date > today()) {
-            $r['status'] = '500';
-            $r['message'] = 'Tanggal tidak boleh lebih dari hari ini';
-            return json_encode($r);
-        }
+            if ($pay_date > today()) {
+                $r['status'] = '500';
+                $r['message'] = 'Tanggal tidak boleh lebih dari hari ini';
+                return json_encode($r);
+            }
 
-        $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
-        if ($check) {
-            $r['status'] = '200';
-        } else {
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('pay_date')->first();
+            $before = $before ? $before->pay_date : null;
+
+            $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
+            
+            if ($check) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'pay_date', $before, $pay_date, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+        
         return json_encode($r);
     }
 
     public function changeDueDate(Request $request)
     {
-        $po_id = $request->po_id;
-        $due_date = $request->due_date;
-        $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
-        if ($check) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $po_id = $request->po_id;
+            $due_date = $request->due_date;
+
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('due_date')->first();
+            $before = $before ? $before->due_date : null;
+
+            $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
+            
+            if ($check) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'due_date', $before, $due_date, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+        
         return json_encode($r);
     }
 
