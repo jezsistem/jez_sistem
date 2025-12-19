@@ -89,6 +89,8 @@
                                                 <option value="MALANG">Malang</option>
                                                 <option value="KEDIRI">Kediri</option>
                                                 <option value="JEMBER">Jember</option>
+                                                <option value="SIDOARJO">Sidoarjo</option>
+                                                <option value="SEMARANG">Semarang</option>
                                             </select>
                                             <div id="st_id_filter_parent"></div>
                                         </div>

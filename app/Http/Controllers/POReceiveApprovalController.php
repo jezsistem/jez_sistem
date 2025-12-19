@@ -214,21 +214,7 @@ class POReceiveApprovalController extends Controller
                         }
                     }
                     if (!empty($request->get('filter_cabang'))) {
-                        if ($request->get('filter_cabang') == 'SURABAYA') {
-                            $instance->where('st_name', 'LIKE', '%SURABAYA%');
-                        }
-
-                        if ($request->get('filter_cabang') == 'MALANG') {
-                            $instance->where('st_name', 'LIKE', '%MALANG%');
-                        }
-
-                        if ($request->get('filter_cabang') == 'KEDIRI') {
-                            $instance->where('st_name', 'LIKE', '%KEDIRI%');
-                        }
-
-                        if ($request->get('filter_cabang') == 'JEMBER') {
-                            $instance->where('st_name', 'LIKE', '%JEMBER%');
-                        }
+                        $instance->where('st_name', 'LIKE', '%' . $request->get('filter_cabang') . '%');
                     }
                     if ($request->has('filter_dispute')) {
                         $filter = $request->get('filter_dispute');
@@ -432,7 +418,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . $new_cogs .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         } else {
@@ -446,7 +432,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . ceil($new_price) .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         }
@@ -476,7 +462,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . $new_cogs .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         } else {
@@ -490,7 +476,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . ceil($new_price) .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         }
@@ -530,8 +516,8 @@ class POReceiveApprovalController extends Controller
 
                 $this->UserActivity(
                     Auth::user()->id,
-                    'Produk ID ' . $product->article_id . ' - Mengubah Harga Beli Rata-rata dari'. $product->p_purchase_price  .' menjadi ' . $avg_cogs .
-                    ', berdasarkan penerimaan dengan invoice ' . $invoice,
+                    'Produk ID ' . $product->article_id . ' - Mengubah Harga Beli Rata-rata dari' . $product->p_purchase_price  . ' menjadi ' . $avg_cogs .
+                        ', berdasarkan penerimaan dengan invoice ' . $invoice,
                     'data-products',
                     $p_id
                 );
