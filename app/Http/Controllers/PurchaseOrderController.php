@@ -35,7 +35,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 use App\Models\DataPerusahaan;
-
+use App\Models\PurchaseOrderLog;
 
 class PurchaseOrderController extends Controller
 {
@@ -588,90 +588,257 @@ class PurchaseOrderController extends Controller
 
     public function chooseStorePo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['st_id' => $request->_st_id]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $data_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('st_id')->first()->st_id;
+
+            $store_before = DB::table('stores')->where('id', $data_before)->select('st_name')->first();
+            $store_before = $store_before ? $store_before->st_name : null;
+
+            $store_after = DB::table('stores')->where('id', $request->_st_id)->select('st_name')->first();
+            $store_after = $store_after ? $store_after->st_name : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['st_id' => $request->_st_id]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'store', $store_before, $store_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function chooseTaxPo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['tax_id' => $request->_tax_id]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $data_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('tax_id')->first()->tax_id;
+
+            $tax_before = DB::table('taxes')->where('id', $data_before)->select('tx_code')->first();
+            $tax_before = $tax_before ? $tax_before->tx_code : null;
+
+            $tax_after = DB::table('taxes')->where('id', $request->_tax_id)->select('tx_code')->first();
+            $tax_after = $tax_after ? $tax_after->tx_code : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['tax_id' => $request->_tax_id]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'tax', $tax_before, $tax_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function chooseDataPerusahaan(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['dp_id' => $request->_dp_id]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $data_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('dp_id')->first()->dp_id;
+
+            $dp_before = DB::table('data_perusahaan')->where('id', $data_before)->select('dp_name')->first();
+            $dp_before = $dp_before ? $dp_before->dp_name : null;
+
+            $dp_after = DB::table('data_perusahaan')->where('id', $request->_dp_id)->select('dp_name')->first();
+            $dp_after = $dp_after ? $dp_after->dp_name : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['dp_id' => $request->_dp_id]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'data_perusahaan', $dp_before, $dp_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function choosePaymentPo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['acc_id' => $request->_acc_id]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $data_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('acc_id')->first()->acc_id;
+
+            $acc_before = DB::table('accounts')->where('id', $data_before)->select('a_name')->first();
+            $acc_before = $acc_before ? $acc_before->a_name : null;
+
+            $acc_after = DB::table('accounts')->where('id', $request->_acc_id)->select('a_name')->first();
+            $acc_after = $acc_after ? $acc_after->a_name : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['acc_id' => $request->_acc_id]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'payment_account', $acc_before, $acc_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function chooseSupplierPo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['ps_id' => $request->_ps_id]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $data_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('ps_id')->first()->ps_id;
+
+            $supplier_before = DB::table('product_suppliers')->where('id', $data_before)->select('ps_name')->first();
+            $supplier_before = $supplier_before ? $supplier_before->ps_name : null;
+            $supplier_after = DB::table('product_suppliers')->where('id', $request->_ps_id)->select('ps_name')->first();
+            $supplier_after = $supplier_after ? $supplier_after->ps_name : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['ps_id' => $request->_ps_id]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'supplier', $supplier_before, $supplier_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function chooseStockType(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])
-            ->update(['stkt_id' => $request->_stkt_id]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $data_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('stkt_id')->first()->stkt_id;
+
+            $stock_type_before = DB::table('stock_types')->where('id', $data_before)->select('stkt_name')->first();
+            $stock_type_before = $stock_type_before ? $stock_type_before->stkt_name : null;
+
+            $stock_type_after = DB::table('stock_types')->where('id', $request->_stkt_id)->select('stkt_name')->first();
+            $stock_type_after = $stock_type_after ? $stock_type_after->stkt_name : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])
+                ->update(['stkt_id' => $request->_stkt_id]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'stock_type', $stock_type_before, $stock_type_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function descriptionPo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_description' => $request->_po_description]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $description_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('po_description')->first()->po_description;
+            $description_before = !empty($description_before) ? $description_before : null;
+
+            $description_after = !empty($request->_po_description) ? $request->_po_description : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_description' => $request->_po_description]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'description', $description_before, $description_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function shippingCostPo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_shipping_cost' => $request->_po_shipping_cost]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-            $r['po_shipping_cost'] = $request->_po_shipping_cost;
-        } else {
+        DB::beginTransaction();
+        try {
+            $shipping_cost_before = DB::table('purchase_orders')->where(['id' => $request->_po_id])->select('po_shipping_cost')->first()->po_shipping_cost;
+            $shipping_cost_before = !empty($shipping_cost_before) ? $shipping_cost_before : null;
+
+            $shipping_cost_after = !empty($request->_po_shipping_cost) ? $request->_po_shipping_cost : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_shipping_cost' => $request->_po_shipping_cost]);
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($request->_po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'shipping_cost', $shipping_cost_before, $shipping_cost_after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+                $r['po_shipping_cost'] = $request->_po_shipping_cost;
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
         return json_encode($r);
     }
@@ -1023,54 +1190,128 @@ class PurchaseOrderController extends Controller
 
     public function totalPurchasePo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_total_purchase' => $request->_total_purchase]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $po_id = $request->_po_id;
+            $total_purchase = $request->_total_purchase;
+
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('po_total_purchase')->first();
+            $before = $before ? $before->po_total_purchase : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['po_total_purchase' => $total_purchase]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'total_purchase', $before, $total_purchase, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function totalQtyPo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_total_qty' => $request->_total_qty]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $po_id = $request->_po_id;
+            $total_qty = $request->_total_qty;
+
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('po_total_qty')->first();
+            $before = $before ? $before->po_total_qty : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['po_total_qty' => $total_qty]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'total_qty', $before, $total_qty, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function paymentAmountPo(Request $request)
     {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_payment_amount' => $request->_payment_amount]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $po_id = $request->_po_id;
+            $payment_amount = $request->_payment_amount;
+
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('po_payment_amount')->first();
+            $before = $before ? $before->po_payment_amount : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['po_payment_amount' => $payment_amount]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'payment_amount', $before, $payment_amount, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function statusdisputeSave(Request $request)
     {
-        $request->validate([
-            'po_invoice' => 'required|string',
-            'status_dispute' => 'required|in:0,1',
-        ]);
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'po_invoice' => 'required|string',
+                'status_dispute' => 'required|in:0,1',
+            ]);
 
-        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+            $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
 
-        if (!$po) {
-            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            if (!$po) {
+                DB::rollBack();
+                return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            }
+
+            $before = $po->status_dispute;
+            $after = $request->status_dispute;
+
+            $po->status_dispute = $after;
+            $po->save();
+
+            $purchaseOrderLog = new PurchaseOrderLog();
+            $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'status_dispute', $before, $after, date('Y-m-d H:i:s'));
+
+            DB::commit();
+            return response()->json(['message' => 'Status Dispute berhasil disimpan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menyimpan Status Dispute: ' . $e->getMessage()], 500);
         }
-
-        $po->status_dispute = $request->status_dispute;
-        $po->save();
-
-        return response()->json(['message' => 'Status Dispute berhasil disimpan']);
     }
 
     public function exportpurchaseorderexport(Request $request)
@@ -1080,217 +1321,330 @@ class PurchaseOrderController extends Controller
 
     public function changeBankGeneral(Request $request)
     {
-        $po_id = $request->po_id;
-        $bank_general = $request->bg_id;
-        $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['bank_general' => $bank_general]);
-        if ($check) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $po_id = $request->po_id;
+            $bank_general = $request->bg_id;
+
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('bank_general')->first();
+            $before = $before ? $before->bank_general : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['bank_general' => $bank_general]);
+
+            if ($check) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'bank_general', $before, $bank_general, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function changeIsReceivable(Request $request)
     {
-        $request->validate([
-            '_po_id' => 'required|exists:purchase_orders,id',
-            '_is_receivable' => 'required|in:0,1',
-        ]);
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                '_po_id' => 'required|exists:purchase_orders,id',
+                '_is_receivable' => 'required|in:0,1',
+            ]);
 
-        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+            $po = PurchaseOrder::where('id', $request->_po_id)->first();
 
-        if (!$po) {
-            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            if (!$po) {
+                DB::rollBack();
+                return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            }
+
+            $before = $po->is_receivable;
+            $after = $request->_is_receivable;
+
+            $po->is_receivable = $after;
+            $po->save();
+
+            $purchaseOrderLog = new PurchaseOrderLog();
+            $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'is_receivable', $before, $after, date('Y-m-d H:i:s'));
+
+            DB::commit();
+            return response()->json(['message' => 'Status Receivable berhasil disimpan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menyimpan Status Receivable: ' . $e->getMessage()], 500);
         }
-
-        $po->is_receivable = $request->_is_receivable;
-        $po->save();
-
-        return response()->json(['message' => 'Status Receivable berhasil disimpan']);
     }
 
     public function changeClaimAmount(Request $request)
     {
-        $request->validate([
-            '_po_id' => 'required|exists:purchase_orders,id',
-            '_claim_amount' => 'required|numeric|min:0',
-        ]);
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                '_po_id' => 'required|exists:purchase_orders,id',
+                '_claim_amount' => 'required|numeric|min:0',
+            ]);
 
-        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+            $po = PurchaseOrder::where('id', $request->_po_id)->first();
 
-        if (!$po) {
-            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            if (!$po) {
+                DB::rollBack();
+                return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            }
+
+            $before = $po->claim_amount;
+            $after = $request->_claim_amount;
+
+            $po->claim_amount = $after;
+            $po->save();
+
+            $purchaseOrderLog = new PurchaseOrderLog();
+            $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'claim_amount', $before, $after, date('Y-m-d H:i:s'));
+
+            DB::commit();
+            return response()->json(['message' => 'Claim Amount berhasil disimpan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menyimpan Claim Amount: ' . $e->getMessage()], 500);
         }
-
-        $po->claim_amount = $request->_claim_amount;;
-        $po->save();
-
-        return response()->json(['message' => 'Claim Amount berhasil disimpan']);
     }
 
     public function changeFinanceStatus(Request $request)
     {
-        $request->validate([
-            '_po_id' => 'required|exists:purchase_orders,id',
-        ]);
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                '_po_id' => 'required|exists:purchase_orders,id',
+            ]);
 
-        $po = PurchaseOrder::where('id', $request->_po_id)->first();
+            $po = PurchaseOrder::where('id', $request->_po_id)->first();
 
-        //parameters
-        $has_payment_date = false;
-        $has_stock_in_date = false;
+            //parameters
+            $has_payment_date = false;
+            $has_stock_in_date = false;
 
-        $payment_amount = 0;
-        $claim_amount = 0;
-        $po_total_amount = 0;
-        $po_qty = 0;
+            $payment_amount = 0;
+            $claim_amount = 0;
+            $po_total_amount = 0;
+            $po_qty = 0;
 
-        $po_receive_amount = 0;
-        $po_receive_qty = 0;
+            $po_receive_amount = 0;
+            $po_receive_qty = 0;
 
-        $po_receive_amount_approved = 0;
-        $po_receive_qty_approved = 0;
+            $po_receive_amount_approved = 0;
+            $po_receive_qty_approved = 0;
 
-        $is_consigment = false;
+            $is_consigment = false;
 
-        //query date and payment amount
-        $query1 = DB::table('purchase_orders as po')
-            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
-            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
-            ->leftJoin('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
-            ->leftJoin('stock_types as stkt', 'stkt.id', '=', 'po.stkt_id')
-            ->select(
-                DB::raw('MAX(ts_po.pay_date) as pay_date'),
-                DB::raw('MAX(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.created_at END) as stock_in_date'),
-                'po.po_payment_amount as payment_amount',
-                DB::raw('COALESCE(ts_po.claim_amount, 0) as claim_amount'),
-                'stkt.stkt_name as stock_type',
-            )
-            ->where('po.id', $request->_po_id)
-            ->groupBy('po.id')
-            ->first();
+            //query date and payment amount
+            $query1 = DB::table('purchase_orders as po')
+                ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+                ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+                ->leftJoin('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
+                ->leftJoin('stock_types as stkt', 'stkt.id', '=', 'po.stkt_id')
+                ->select(
+                    DB::raw('MAX(ts_po.pay_date) as pay_date'),
+                    DB::raw('MAX(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.created_at END) as stock_in_date'),
+                    'po.po_payment_amount as payment_amount',
+                    DB::raw('COALESCE(ts_po.claim_amount, 0) as claim_amount'),
+                    'stkt.stkt_name as stock_type',
+                )
+                ->where('po.id', $request->_po_id)
+                ->groupBy('po.id')
+                ->first();
 
-        //query qty and price pembelian
-        $query2 = DB::table('purchase_orders as po')
-            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
-            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
-            ->select(
-                DB::raw('SUM(ts_poad.poad_qty) as total_qty'),
-                DB::raw('SUM(ts_poad.poad_total_price) as total_price')
-            )
-            ->where('po.id', $request->_po_id)
-            ->groupBy('po.id')
-            ->first();
+            //query qty and price pembelian
+            $query2 = DB::table('purchase_orders as po')
+                ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+                ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+                ->select(
+                    DB::raw('SUM(ts_poad.poad_qty) as total_qty'),
+                    DB::raw('SUM(ts_poad.poad_total_price) as total_price')
+                )
+                ->where('po.id', $request->_po_id)
+                ->groupBy('po.id')
+                ->first();
 
-        //query qty and price terima
-        $query3 = DB::table('purchase_orders as po')
-            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
-            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
-            ->join('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
-            ->select(
-                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_not_approve'),
-                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_not_approve'),
-                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_approve'),
-                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_approve')
-            )
-            ->where('po.id', $request->_po_id)
-            ->groupBy('po.id')
-            ->first();
+            //query qty and price terima
+            $query3 = DB::table('purchase_orders as po')
+                ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+                ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+                ->join('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
+                ->select(
+                    DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_not_approve'),
+                    DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_not_approve'),
+                    DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_approve'),
+                    DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_approve')
+                )
+                ->where('po.id', $request->_po_id)
+                ->groupBy('po.id')
+                ->first();
 
-        //assign query result to variables
-        $has_payment_date = !is_null($query1->pay_date);
-        $has_stock_in_date = !is_null($query1->stock_in_date);
-        $payment_amount = $query1->payment_amount ?? 0;
-        $claim_amount = $query1->claim_amount ?? 0;
+            //assign query result to variables
+            $has_payment_date = !is_null($query1->pay_date);
+            $has_stock_in_date = !is_null($query1->stock_in_date);
+            $payment_amount = $query1->payment_amount ?? 0;
+            $claim_amount = $query1->claim_amount ?? 0;
 
-        $is_consigment = strtolower($query1->stock_type) == strtolower('CONSIGNMENT') ? true : false;
+            $is_consigment = strtolower($query1->stock_type) == strtolower('CONSIGNMENT') ? true : false;
 
-        $po_total_amount = $query2->total_price ?? 0;
-        $po_qty = $query2->total_qty ?? 0;
+            $po_total_amount = $query2->total_price ?? 0;
+            $po_qty = $query2->total_qty ?? 0;
 
-        $po_receive_amount_not_approved = $query3->price_not_approve ?? 0;
-        $po_receive_qty_not_approved = $query3->qty_not_approve ?? 0;
+            $po_receive_amount_not_approved = $query3->price_not_approve ?? 0;
+            $po_receive_qty_not_approved = $query3->qty_not_approve ?? 0;
 
-        $po_receive_amount_approved = $query3->price_approve ?? 0;
-        $po_receive_qty_approved = $query3->qty_approve ?? 0;
+            $po_receive_amount_approved = $query3->price_approve ?? 0;
+            $po_receive_qty_approved = $query3->qty_approve ?? 0;
 
-        $po_receive_amount = $po_receive_amount_not_approved + $po_receive_amount_approved;
-        $po_receive_qty = $po_receive_qty_not_approved + $po_receive_qty_approved;
+            $po_receive_amount = $po_receive_amount_not_approved + $po_receive_amount_approved;
+            $po_receive_qty = $po_receive_qty_not_approved + $po_receive_qty_approved;
 
-        $tolerance = 1000;
+            $tolerance = 1000;
 
-        //check and update is consigment
-        if ($is_consigment) {
-            $po->finance_status = 'CONSIGNMENT';
+            $before = $po->finance_status;
+            $after = null;
+
+            //check and update is consigment
+            if ($is_consigment) {
+                $after = 'CONSIGNMENT';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            //draft / pending
+            if (!$has_payment_date && !$has_stock_in_date) {
+                $after = 'DRAFT / PENDING';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            //hutang partial receive
+            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty < $po_qty)) {
+                $after = 'HUTANG (PARTIAL RECEIVE)';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            //hutang full receive
+            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty = $po_qty)) {
+                $after = 'HUTANG';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            //piutang overpayment partial receive
+            if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty < $po_qty)) {
+                $after = 'PIUTANG (OVERPAYMENT PARTIAL)';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            //piutang 0 receive
+            if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty == 0)) {
+                $after = 'PIUTANG';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            //lunas with tolerance condition
+            //has payment date and stock in date and payment + claim amount equals total purchase amount with tolerance
+            $difference = ($payment_amount + $claim_amount) - $po_receive_amount;
+
+            if ($has_payment_date && $has_stock_in_date && $difference <= $tolerance && $difference >= -$tolerance) {
+                $after = 'LUNAS';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            if ($has_payment_date && $has_stock_in_date && $difference <= -$tolerance) {
+                $after = 'HUTANG';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            if ($has_payment_date && $has_stock_in_date && $difference > $tolerance) {
+                $after = 'PIUTANG';
+                $po->finance_status = $after;
+                $po->save();
+
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            }
+
+            $after = 'UNKNOWN';
+            $po->finance_status = $after;
             $po->save();
 
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
+            if ($before != $after) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po->id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'finance_status', $before, $after, date('Y-m-d H:i:s'));
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Status Finance gagal disimpan', 'status' => 400]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menyimpan Status Finance: ' . $e->getMessage()], 500);
         }
-
-        //draft / pending
-        if (!$has_payment_date && !$has_stock_in_date) {
-            $po->finance_status = 'DRAFT / PENDING';
-            $po->save();
-
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        //hutang partial receive
-        if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty < $po_qty)) {
-            $po->finance_status = 'HUTANG (PARTIAL RECEIVE)';
-            $po->save();
-
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        //hutang full receive
-        if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty = $po_qty)) {
-            $po->finance_status = 'HUTANG';
-            $po->save();
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        //piutang overpayment partial receive
-        if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty < $po_qty)) {
-            $po->finance_status = 'PIUTANG (OVERPAYMENT PARTIAL)';
-            $po->save();
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        //piutang 0 receive
-        if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty == 0)) {
-            $po->finance_status = 'PIUTANG';
-            $po->save();
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        //lunas with tolerance condition
-        //has payment date and stock in date and payment + claim amount equals total purchase amount with tolerance
-        $difference = ($payment_amount + $claim_amount) - $po_receive_amount;
-
-        if ($has_payment_date && $has_stock_in_date && $difference <= $tolerance && $difference >= -$tolerance) {
-            $po->finance_status = 'LUNAS';
-            $po->save();
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        if ($has_payment_date && $has_stock_in_date && $difference <= -$tolerance) {
-            $po->finance_status = 'HUTANG';
-            $po->save();
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        if ($has_payment_date && $has_stock_in_date && $difference > $tolerance) {
-            $po->finance_status = 'PIUTANG';
-            $po->save();
-            return response()->json(['message' => 'Status Finance berhasil disimpan', 'status' => 200]);
-        }
-
-        $po->finance_status = 'UNKNOWN';
-        $po->save();
-
-        return response()->json(['message' => 'Status Finance gagal disimpan', 'status' => 400]);
     }
 
     public function updateAllFinanceStatus()
@@ -1304,5 +1658,108 @@ class PurchaseOrderController extends Controller
         }
 
         return response()->json(['message' => 'Update semua status finance berhasil']);
+    }
+
+    public function getLogDatatables(Request $request) {
+        if (request()->ajax()) {
+            $po_id = $request->po_id;
+
+            // Query for purchase_order type
+            $purchaseOrderLogs = DB::table('purchase_order_logs')
+                ->leftJoin('users', 'purchase_order_logs.user_id', '=', 'users.id')
+                ->select(
+                    'users.u_name',
+                    DB::raw('NULL as article_id'),
+                    DB::raw('NULL as p_name'),
+                    DB::raw('NULL as p_color'),
+                    DB::raw('NULL as sz_name'),
+                    'purchase_order_logs.target_column',
+                    'purchase_order_logs.before',
+                    'purchase_order_logs.after',
+                    'purchase_order_logs.created_at',
+                    DB::raw('NULL as br_name'),
+                    DB::raw('"purchase_order" as type')
+                )
+                ->where('purchase_order_logs.type', 'purchase_order')
+                ->where('purchase_order_logs.po_id', $po_id);
+
+            // Query for article type
+            $articleLogs = DB::table('purchase_order_logs')
+                ->leftJoin('users', 'purchase_order_logs.user_id', '=', 'users.id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_logs.target_item')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->select(
+                    'users.u_name',
+                    'products.article_id',
+                    'products.p_name',
+                    'products.p_color',
+                    DB::raw('NULL as sz_name'),
+                    'purchase_order_logs.target_column',
+                    'purchase_order_logs.before',
+                    'purchase_order_logs.after',
+                    'purchase_order_logs.created_at',
+                    'brands.br_name',
+                    DB::raw('"article" as type')
+                )
+                ->where('purchase_order_logs.type', 'article')
+                ->where('purchase_order_logs.po_id', $po_id);
+
+            // Query for items type
+            $itemsLogs = DB::table('purchase_order_logs')
+                ->leftJoin('users', 'purchase_order_logs.user_id', '=', 'users.id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_logs.target_item')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->select(
+                    'users.u_name',
+                    'products.article_id',
+                    'products.p_name',
+                    'products.p_color',
+                    'sizes.sz_name',
+                    'purchase_order_logs.target_column',
+                    'purchase_order_logs.before',
+                    'purchase_order_logs.after',
+                    'purchase_order_logs.created_at',
+                    'brands.br_name',
+                    DB::raw('"items" as type')
+                )
+                ->where('purchase_order_logs.type', 'items')
+                ->where('purchase_order_logs.po_id', $po_id);
+
+            // Union all queries and sort by created_at desc
+            $allLogs = $purchaseOrderLogs
+                ->union($articleLogs)
+                ->union($itemsLogs)
+                ->orderBy('created_at', 'desc');
+
+            return datatables()->of($allLogs)
+                ->editColumn('created_at', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                })
+                ->editColumn('type', function ($data) {
+                    if ($data->type == 'purchase_order') {
+                        return 'Purchase Order';
+                    } elseif ($data->type == 'article') {
+                        return 'Article';
+                    } elseif ($data->type == 'items') {
+                        return 'SKU';
+                    }
+                    return $data->type;
+                })
+                ->editColumn('target_column', function ($data) {
+                    $column = str_replace('poad', '', $data->target_column);
+                    $column = str_replace('_', ' ', $column);
+                    return ucwords($column);
+                })
+                ->addColumn('item_detail' , function ($data) {
+                    return trim(implode(' - ', array_filter([$data->article_id, $data->p_name, $data->p_color, $data->sz_name])));
+                })
+                ->addIndexColumn()
+                ->make(true);
+        }
     }
 }

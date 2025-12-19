@@ -1005,6 +1005,78 @@
             ],
         });
 
+        var purchaseOrderLogTable = $('#PurchaseOrderLogTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            deferLoading: 0,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+            url: "{{ url('po_log_datatables') }}",
+            data: function(d) {
+                d.po_id = $('#_po_id').val();
+            },
+            },
+            columns: [
+            {
+                data: 'DT_RowIndex',
+                name: 'DT_RowIndex',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'created_at',
+                name: 'created_at'
+            },
+            {
+                data: 'u_name',
+                name: 'u_name'
+            },
+            {
+                data: 'type',
+                name: 'type'
+            },
+            {
+                data: 'item_detail',
+                name: 'item_detail',
+                render: function(data, type, row) {
+                return data ? data : '-';
+                }
+            },
+            {
+                data: 'target_column',
+                name: 'target_column'
+            },
+            {
+                data: 'before',
+                name: 'before',
+                render: function(data, type, row) {
+                return data ? data : '-';
+                }
+            },
+            {
+                data: 'after',
+                name: 'after',
+                render: function(data, type, row) {
+                return data ? data : '-';
+                }
+            }
+            ],
+            columnDefs: [{
+            "targets": '_all',
+            "className": "text-center"
+            }],
+            order: [[1, 'desc']],
+            pageLength: 25
+        });
+
+        $('#ChangeLogBtn').on('click', function() {
+            purchaseOrderLogTable.draw();
+            jQuery.noConflict();
+            $('#ChangeLogModal').modal('show');
+        });
+
         $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
             var id = $(this).data('id');
 

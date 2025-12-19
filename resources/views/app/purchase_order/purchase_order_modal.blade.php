@@ -22,7 +22,7 @@
                                     <!--end::Svg Icon-->
                                 </span>Export</a>
                     </div>
-                    <div class="dropdown dropdown-inline mr-10">
+                    <div class="dropdown dropdown-inline mr-2">
                         <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
                                 <span class="svg-icon svg-icon-md">
                                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -35,6 +35,20 @@
                                     </svg>
                                     <!--end::Svg Icon-->
                                 </span>Import</a>
+                    </div>
+                    <div class="dropdown dropdown-inline mr-10">
+                        <a type="button" class="btn btn-light-info font-weight-bolder" id="ChangeLogBtn">
+                                <span class="svg-icon svg-icon-md">
+                                    <!--begin::Svg Icon | path:assets/media/svg/icons/General/Notifications2.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24"/>
+                                            <path d="M13.2070325,4 C13.0721672,4.47683179 13,4.97998812 13,5.5 C13,8.53756612 15.4624339,11 18.5,11 C19.0200119,11 19.5231682,10.9278328 20,10.7929675 L20,17 C20,18.6568542 18.6568542,20 17,20 L7,20 C5.34314575,20 4,18.6568542 4,17 L4,7 C4,5.34314575 5.34314575,4 7,4 L13.2070325,4 Z" fill="#000000"/>
+                                            <circle fill="#000000" opacity="0.3" cx="18.5" cy="5.5" r="2.5"/>
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>Change Log</a>
                     </div>
                     <button type="button" class="close close_modal_po" data-dismiss="modal" aria-label="Close">
                         <i aria-hidden="true" class="ki ki-close"></i>
@@ -602,3 +616,42 @@
     </div>
 </div>
 <!-- /Modal Bukti TF-->
+
+<!-- Modal Change Log-->
+<div class="modal fade" id="ChangeLogModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document" style="max-width: 90%;">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Purchase Order Change Log</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered" id="PurchaseOrderLogTb">
+                        <thead class="bg-light text-dark">
+                            <tr>
+                                <th class="text-dark">No</th>
+                                <th class="text-dark">Tanggal</th>
+                                <th class="text-dark">User</th>
+                                <th class="text-dark">Tipe</th>
+                                <th class="text-dark">Item</th>
+                                <th class="text-dark">Kolom</th>
+                                <th class="text-dark">Sebelum</th>
+                                <th class="text-dark">Sesudah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal Change Log-->
