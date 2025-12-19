@@ -621,6 +621,21 @@
         });
     }
 
+    function calcRemainingPayment(total_po_with_item) {
+
+        var total_po_without_item = $('#total_purchase').val();
+        var total_payment = $('#payment_amount').val();
+        var claim_amount = $('#claim_amount').val() || 0;
+
+        console.log(total_po_without_item, total_po_with_item, total_payment, claim_amount);
+
+        var total_po = (parseFloat(total_po_with_item) || 0) > 0 ? parseFloat(total_po_with_item) : parseFloat(
+            total_po_without_item) || 0;
+        var sisa_payment = (parseFloat(total_payment) + parseFloat(claim_amount) - parseFloat(total_po));
+
+        $('#remaining_payment').val(sisa_payment);
+    }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -1013,61 +1028,62 @@
             deferLoading: 0,
             dom: 'rt<"text-right"ip>',
             ajax: {
-            url: "{{ url('po_log_datatables') }}",
-            data: function(d) {
-                d.po_id = $('#_po_id').val();
+                url: "{{ url('po_log_datatables') }}",
+                data: function(d) {
+                    d.po_id = $('#_po_id').val();
+                },
             },
-            },
-            columns: [
-            {
-                data: 'DT_RowIndex',
-                name: 'DT_RowIndex',
-                orderable: false,
-                searchable: false
-            },
-            {
-                data: 'created_at',
-                name: 'created_at'
-            },
-            {
-                data: 'u_name',
-                name: 'u_name'
-            },
-            {
-                data: 'type',
-                name: 'type'
-            },
-            {
-                data: 'item_detail',
-                name: 'item_detail',
-                render: function(data, type, row) {
-                return data ? data : '-';
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'type',
+                    name: 'type'
+                },
+                {
+                    data: 'item_detail',
+                    name: 'item_detail',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'target_column',
+                    name: 'target_column'
+                },
+                {
+                    data: 'before',
+                    name: 'before',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'after',
+                    name: 'after',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
                 }
-            },
-            {
-                data: 'target_column',
-                name: 'target_column'
-            },
-            {
-                data: 'before',
-                name: 'before',
-                render: function(data, type, row) {
-                return data ? data : '-';
-                }
-            },
-            {
-                data: 'after',
-                name: 'after',
-                render: function(data, type, row) {
-                return data ? data : '-';
-                }
-            }
             ],
             columnDefs: [{
-            "targets": '_all',
-            "className": "text-center"
+                "targets": '_all',
+                "className": "text-center"
             }],
-            order: [[1, 'desc']],
+            order: [
+                [1, 'desc']
+            ],
             pageLength: 25
         });
 
@@ -1465,8 +1481,8 @@
                         $('#total_qty').val(r.po_total_qty);
                         jQuery('#is_receivable').val(r.is_receivable);
                         jQuery('#claim_amount').val(r.claim_amount);
-                        $('#remaining_payment').val(parseInt(r.claim_amount ?? 0) + parseInt(r.po_payment_amount ?? 0) - parseInt(r.total_po ?? 0));
                         reloadArticleDetail(po_id);
+                        calcRemainingPayment(r.total_po);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
                     }
@@ -1827,6 +1843,9 @@
                 url: "{{ url('po_total_purchase') }}",
                 success: function(r) {
                     if (r.status == '200') {
+                        var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
+                            .replace(/\./g, '').replace(/,/g, '');
+                        calcRemainingPayment(total_po);
 
                     } else {
                         //swal('Gagal', 'Gagal mengubah data store', 'warning');
@@ -1853,6 +1872,9 @@
                 success: function(r) {
                     if (r.status == '200') {
                         toastr.success("Jumlah pembayaran berhasil di Update", "Success");
+                        var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
+                            .replace(/\./g, '').replace(/,/g, '');
+                        calcRemainingPayment(total_po);
                     } else {}
                 }
             });
@@ -2322,6 +2344,9 @@
                 success: function(response) {
                     console.log(response);
                     toastr.success("Claim Amount berhasil disimpan", "Berhasil");
+                    var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
+                        .replace(/\./g, '').replace(/,/g, '');
+                    calcRemainingPayment(total_po);
                 },
                 error: function(xhr) {
                     console.error(xhr);
