@@ -104,23 +104,43 @@
         justify-content: center;
         color: white;
         font-size: 14px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .log-icon.import { background-color: #3498db; }
-    .log-icon.pick { background-color: #f39c12; }
-    .log-icon.quality { background-color: #27ae60; }
-    .log-icon.print { background-color: #9b59b6; }
-    .log-icon.packed { background-color: #2ecc71; }
-    .log-icon.manifest { background-color: #e74c3c; }
-    .log-icon.default { background-color: #95a5a6; }
+    .log-icon.import {
+        background-color: #3498db;
+    }
+
+    .log-icon.pick {
+        background-color: #f39c12;
+    }
+
+    .log-icon.quality {
+        background-color: #27ae60;
+    }
+
+    .log-icon.print {
+        background-color: #9b59b6;
+    }
+
+    .log-icon.packed {
+        background-color: #2ecc71;
+    }
+
+    .log-icon.manifest {
+        background-color: #e74c3c;
+    }
+
+    .log-icon.default {
+        background-color: #95a5a6;
+    }
 
     .log-content {
         background: #f8f9fa;
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 5px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .log-activity {
@@ -545,7 +565,8 @@
                                     placeholder="Document number, Order, courier, PIC...">
                             </div>
                             <div class="col-md-3">
-                                <label for="filter_expeditions" class="form-label font-weight-bold">Expeditions</label>
+                                <label for="filter_expeditions"
+                                    class="form-label font-weight-bold">Expeditions</label>
                                 <select class="form-control form-control-lg" id="filter_expeditions">
                                     <option value="">All Expeditions</option>
                                     @foreach ($data['expeditions'] as $expedition)
@@ -553,18 +574,21 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label for="manifest_date" class="form-label font-weight-bold">Manifest Date</label>
-                                <input type="hidden" id="manifest_date" value="" />
-                                <a href="#" class="btn btn-light-primary btn-lg btn-block d-flex align-items-center justify-content-center"
-                                    id="kt_dashboard_daterangepicker" style="height: calc(1.5em + 1.5rem + 2px);">
+                            <div class="col-md-3 daterange-container">
+                                <label class="form-label font-weight-bold">Manifest Date</label>
+                                <input type="hidden" class="filter-hidden-input" id="manifest_date"
+                                    value="" />
+                                <a href="#"
+                                    class="btn btn-light-primary btn-lg btn-block d-flex align-items-center justify-content-center daterange-picker-toggle"
+                                    style="height: calc(1.5em + 1.5rem + 2px);">
                                     <i class="la la-calendar mr-2"></i>
-                                    <span id="kt_dashboard_daterangepicker_date">Select Date Range</span>
+                                    <span class="range-label">Select Date Range</span>
                                 </a>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label font-weight-bold">&nbsp;</label>
-                                <button type="button" class="btn btn-primary btn-lg btn-block" id="searchManifestBtn">
+                                <button type="button" class="btn btn-primary btn-lg btn-block"
+                                    id="searchManifestBtn">
                                     <i class="fas fa-search"></i> Search
                                 </button>
                             </div>

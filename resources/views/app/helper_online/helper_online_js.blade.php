@@ -1,4 +1,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 <script>
     var detail_table = '';
@@ -1710,58 +1713,69 @@
                 }
             });
         });
-        jQuery.noConflict();
-        var picker = $('#kt_dashboard_daterangepicker');
-        if ($('#kt_dashboard_daterangepicker').length == 0) {
-            return;
-        }
-        var start = moment().subtract(2, 'days');
-        var end = moment();
+        $('.daterange-picker-toggle').each(function() {
+            var $element = $(this);
+            var $container = $element.closest('.daterange-container');
+            var $hiddenInput = $container.find('.filter-hidden-input');
+            var $label = $container.find('.range-label');
+            var $title = $container.find('.range-title');
 
-        function cb(start, end, label) {
-            var title = '';
-            var range = '';
-            var hidden_range = '';
+            var start = moment().subtract(2, 'days');
+            var end = moment();
 
-            if ((end - start) < 100 || label == 'Today') {
-                title = 'Today:';
-                range = start.format('DD MMM YYYY');
-                hidden_range = start.format('YYYY-MM-DD');
-            } else if (label == 'Yesterday') {
-                title = 'Yesterday:';
-                range = start.format('DD MMM YYYY');
-                hidden_range = start.format('YYYY-MM-DD');
-            } else if (label == 'All Days') {
-                title = 'All Days';
-                hidden_range = '';
-            } else {
-                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
-                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            function cb(start, end, label) {
+                var titleText = '';
+                var rangeText = '';
+                var hiddenValue = '';
+
+                // Logic for "All Days" or null dates
+                if (label === 'All Days' || (!start.isValid() && !end.isValid())) {
+                    titleText = 'All Days';
+                    rangeText = 'All Time';
+                    hiddenValue = '';
+                } else if ((end - start) < 100 || label == 'Today') {
+                    titleText = 'Today:';
+                    rangeText = start.format('DD MMM YYYY');
+                    hiddenValue = start.format('YYYY-MM-DD');
+                } else if (label == 'Yesterday') {
+                    titleText = 'Yesterday:';
+                    rangeText = start.format('DD MMM YYYY');
+                    hiddenValue = start.format('YYYY-MM-DD');
+                } else {
+                    rangeText = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                    hiddenValue = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+                }
+
+                // Update specific elements for THIS picker only
+                $hiddenInput.val(hiddenValue);
+                $label.html(rangeText);
+                if ($title.length) $title.html(titleText);
+
+                console.log("Picker " + $hiddenInput.attr('id') + " changed to: " + hiddenValue);
             }
-            console.log(hidden_range);
-            $('#filter_date').val(hidden_range);
-            $('#kt_dashboard_daterangepicker_date').html(range);
-            $('#kt_dashboard_daterangepicker_title').html(title);
-        }
 
-        picker.daterangepicker({
-            direction: KTUtil.isRTL(),
-            startDate: start,
-            endDate: end,
-            opens: 'left',
-            applyClass: 'btn-primary',
-            cancelClass: 'btn-light-primary',
-            ranges: {
-                'All Days': [null, null],
-                'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
-                    'month').endOf('month')]
-            }
-        }, cb);
-        cb(start, end, '');
+            $element.daterangepicker({
+                direction: KTUtil.isRTL(),
+                startDate: start,
+                endDate: end,
+                opens: 'left',
+                applyClass: 'btn-primary',
+                cancelClass: 'btn-light-primary',
+                ranges: {
+                    'All Days': [null, null],
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment()
+                        .subtract(1, 'month').endOf('month')
+                    ]
+                }
+            }, cb);
+
+            // Initial call to set default values
+            cb(start, end, '');
+        });
     });
 </script>
