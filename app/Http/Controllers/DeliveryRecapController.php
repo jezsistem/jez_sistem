@@ -400,6 +400,14 @@ class DeliveryRecapController extends Controller
 
                 $save_data = DeliveryReceipt::insert($receipts);
 
+                if (!$save_data) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal menyimpan data resi instan.',
+                    ], 500);
+                }
+
                 //update status transaksi menjadi "DONE"
 
                 $all_trx = OnlineTransactions::where(function ($query) use ($resiList) {
