@@ -770,6 +770,37 @@
         });
     });
 
+    $('#dispute_description').on('blur', function() {
+
+        var no_order = $('#po_invoice_label').text();
+
+        const description = $(this).val();
+        const po_invoice = no_order;
+
+        if (!po_invoice) {
+            alert("No PO Invoice provided!");
+            return;
+        }
+
+        $.ajax({
+            url: "{{ url('dispute_description_save') }}",
+            type: 'POST',
+            data: {
+                dispute_description: description,
+                po_invoice: po_invoice,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                console.log(response);
+                toastr.success("Dispute deskripsi berhasil disimpan", "Berhasil");
+            },
+            error: function(xhr) {
+                console.error(xhr);
+                toastr.error("Gagal menyimpan data", "Gagal");
+            }
+        });
+    });
+
     $(document).delegate('#bank_general', 'change', function() {
         var bg_id = $(this).val();
         $.ajaxSetup({
