@@ -104,12 +104,13 @@ class User extends Authenticatable
 
     public function checkJoinData($select, $where)
     {
-        $select = array_merge($select, ['stt_name', 'st_name']);
+        $select = array_merge($select, ['stt_name', 'st_name','leave_balances.lb_remaining_balance as leave_balance']);
         $affected = DB::table($this->table)
             ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
             ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
             ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
             ->leftJoin('store_types', 'store_types.id', '=', 'users.stt_id')
+            ->leftJoin('leave_balances', 'leave_balances.user_id', '=', 'users.id')
             ->select($select)
             ->where($where)
             ->get();
