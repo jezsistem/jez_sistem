@@ -119,7 +119,7 @@
                         </div>
                         <div class="col-4 mt-3">
                             <label>Keterangan Dispute</label>
-                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3" ></textarea>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3"></textarea>
                         </div>
                         <div class="col-4 mt-5">
                             <div class="row">
@@ -250,6 +250,11 @@
                             <label>Nominal Payment</label>
                             <input type="number" class="form-control " placeholder="Nominal Payment"
                                 name="payment_amount" id="payment_amount" min="0" disabled />
+                        </div>
+                        <div class="col-4 mt-5 " title="(Nominal Klaim + Nominal Payment - Total PO)">
+                            <label>Sisa Payment</label>
+                            <input type="number" class="form-control " placeholder="Sisa Payment"
+                                id="remaining_payment" disabled />
                         </div>
                     </div>
                     <br>

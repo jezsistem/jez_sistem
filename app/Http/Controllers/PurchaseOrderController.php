@@ -1675,7 +1675,8 @@ class PurchaseOrderController extends Controller
         return response()->json(['message' => 'Update semua status finance berhasil']);
     }
 
-    public function getLogDatatables(Request $request) {
+    public function getLogDatatables(Request $request)
+    {
         if (request()->ajax()) {
             $po_id = $request->po_id;
 
@@ -1770,7 +1771,7 @@ class PurchaseOrderController extends Controller
                     $column = str_replace('_', ' ', $column);
                     return ucwords($column);
                 })
-                ->addColumn('item_detail' , function ($data) {
+                ->addColumn('item_detail', function ($data) {
                     return trim(implode(' - ', array_filter([$data->article_id, $data->p_name, $data->p_color, $data->sz_name])));
                 })
                 ->editColumn('before', function ($data) {
@@ -1814,5 +1815,47 @@ class PurchaseOrderController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
+    }
+
+    public function getRemainingPayment(Request $request)
+    {
+        $no_po = $request->po_invoice;
+        $po = PurchaseOrder::join('purchase_order_articles', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+            ->join('purchase_order_article_details', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+            ->where('purchase_orders.po_invoice', $no_po)
+            ->select(
+                DB::raw('COALESCE(ts_purchase_orders.claim_amount, 0) as claim_amount'),
+                DB::raw('COALESCE(ts_purchase_orders.po_payment_amount, 0) as payment_amount_with_item'),
+                DB::raw('COALESCE(ts_purchase_orders.po_total_purchase, 0) as purchase_amount_no_item'),
+                DB::raw('SUM(ts_purchase_order_article_details.poad_total_price) as total_po')
+            )
+            ->groupBy('purchase_orders.id')
+            ->first();
+
+        if ($po) {
+            $claim_amount = $po->claim_amount;
+            $payment_amount = $po->payment_amount_with_item;
+            $purchase_amount = $po->purchase_amount_no_item;
+            $total_po = $po->total_po;
+
+            // Calculate total_po based on whether total_po (with item) > 0
+            $calculated_total_po = ($total_po > 0) ? $total_po : $purchase_amount;
+
+            // Calculate remaining payment
+            $remaining_payment = ($payment_amount + $claim_amount) - $calculated_total_po;
+
+            return response()->json([
+                'status' => '200',
+                'claim_amount' => $claim_amount,
+                'payment_amount' => $payment_amount,
+                'total_po' => $calculated_total_po,
+                'remaining_payment' => $remaining_payment
+            ]);
+        }
+
+        return response()->json([
+            'status' => '400',
+            'message' => 'PO not found'
+        ]);
     }
 }

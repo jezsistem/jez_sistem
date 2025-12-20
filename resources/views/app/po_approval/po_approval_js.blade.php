@@ -26,6 +26,21 @@
         });
     }
 
+    function calcRemainingPayment(po_number) {
+        $.ajax({
+            type: "GET",
+            data: {
+                po_invoice: po_number,
+            },
+            dataType: 'json',
+            url: "{{ url('po_remaining_payment') }}",
+            success: function(r) {
+                console.log(r);
+                $('#remaining_payment').val(r.remaining_payment);
+            }
+        });
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -489,6 +504,7 @@
                     $('#putaway').val(putaway_text);
                     $('#status_dispute').val(status_dispute).trigger('change');
                     $('#payment_amount').val(payment_amount);
+                    calcRemainingPayment(po_invoice);
                     // Format arrived_at to 'YYYY-MM-DDTHH:mm'
                     let formattedArrivedAt = '';
                     if (arrived_at) {
