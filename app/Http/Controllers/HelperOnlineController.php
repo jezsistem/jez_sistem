@@ -577,9 +577,14 @@ class HelperOnlineController extends Controller
         }
 
         //get manifest log
+        $online_transactions = DB::table('online_transactions')->where('id', $transactionId)->first();
+
         $manifest =
             DB::table('online_transactions')
-            ->leftJoin('delivery_receipts', 'online_transactions.no_resi', '=', 'delivery_receipts.resi')
+            ->leftJoin('delivery_receipts', function ($join) {
+                $join->on('online_transactions.no_resi', '=', 'delivery_receipts.resi')
+                    ->orOn('online_transactions.order_number', '=', 'delivery_receipts.resi');
+            })
             ->leftJoin('delivery_recaps', 'delivery_receipts.dr_id', '=', 'delivery_recaps.id')
             ->leftJoin('users as manifest_user', 'delivery_recaps.created_by', '=', 'manifest_user.id')
             ->select(
