@@ -1331,6 +1331,7 @@
                     d.st_id = $('#st_id_filter').val();
                     d.po_status_filter = $('#po_status_filter').val();
                     d.filter_dispute = $('#filter_dispute').val();
+                    d.filter_status_dispute = $('#filter_status_dispute').val();
                     d.date = $('#po_date').val();
                     d.filter_delivery_note = $('#filter_delivery_note').val();
                 }
@@ -1887,7 +1888,9 @@
             purchase_order_table.draw();
         });
 
-
+        $('#filter_status_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
 
         $('#br_id_filter_item').select2({
             width: "150px",

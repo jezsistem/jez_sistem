@@ -58,6 +58,14 @@
                                     </select>
                                 </div>
                                 <div class="form-group ml-4" style="padding-top:22px;">
+                                        <select class="form-control" name="filter_status_dispute" id="filter_status_dispute"
+                                            style="border: 1px solid #ced4da;">
+                                            <option value="">- Pilih Status Dispute -</option>
+                                            <option value="1">Progress</option>
+                                            <option value="0">Closed</option>
+                                        </select>
+                                    </div>
+                                <div class="form-group ml-4" style="padding-top:22px;">
                                     <select class="form-control" id="filter_delivery_note" name="filter_delivery_note"
                                         style="border: 1px solid #ced4da;">
                                         <option value="">- Upload Surat Jalan? -</option>

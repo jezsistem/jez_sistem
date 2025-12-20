@@ -859,6 +859,8 @@
                     d.date = $('#po_date').val();
                     d.status_purchase = $('#status_purchase').val();
                     d.status_finance = $('#status_finance').val();
+                    d.filter_dispute = $('#filter_dispute').val();
+                    d.filter_status_dispute = $('#filter_status_dispute').val();
                 }
             },
             columns: [{
@@ -1310,6 +1312,14 @@
 
         $('#psc_id_filter_item').on('change', function() {
             product_table.draw();
+        });
+
+        $('#filter_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+        $('#filter_status_dispute').on('change', function() {
+            purchase_order_table.draw();
         });
 
         $('#ps_id').select2({

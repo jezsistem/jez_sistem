@@ -124,6 +124,8 @@ class PurchaseOrderController extends Controller
     {
         $st_id = $request->st_id;
         $status_finance = $request->status_finance;
+        $filter_dispute = $request->filter_dispute;
+        $filter_status_dispute = $request->filter_status_dispute;
 
         $user = new User;
         $select = ['u_name', 'u_email', 'u_phone', 'g_name'];
@@ -181,6 +183,12 @@ class PurchaseOrderController extends Controller
                 })
                 ->when($status_finance, function ($query) use ($request) {
                     $query->where('purchase_orders.finance_status', '=', $request->get('status_finance'));
+                })
+                ->when(isset($filter_dispute), function ($query) use ($filter_dispute) {
+                    $query->where('purchase_orders.dispute', '=', $filter_dispute);
+                })
+                ->when(isset($filter_status_dispute), function ($query) use ($filter_status_dispute) {
+                    $query->where('purchase_orders.status_dispute', '=', $filter_status_dispute);
                 })
                 ->groupBy('po_id'))
                 ->editColumn('po_created_at_show', function ($data) {
