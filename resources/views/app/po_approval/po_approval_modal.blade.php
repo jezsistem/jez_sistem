@@ -97,7 +97,12 @@
                         </div> --}}
                         <div class="col-4 mt-3">
                             <label>Dispute</label>
-                            <input type="text" id="dispute" class="form-control" name="dispute" disabled />
+                            <select class="form-control" id="dispute" name="dispute" required>
+                                <option value="">- Pilih Salah Satu -</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                            <div id="dispute_parent"></div>
                         </div>
                         <div class="col-4 mt-3">
                             <label>Tanggal Terima (mm/dd/yy) </label>
@@ -114,7 +119,7 @@
                         </div>
                         <div class="col-4 mt-3">
                             <label>Keterangan Dispute</label>
-                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3" disabled></textarea>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3" ></textarea>
                         </div>
                         <div class="col-4 mt-5">
                             <div class="row">

@@ -412,14 +412,6 @@
             let dispute_text = '';
             let putaway_text = '';
 
-            if (dispute === 1) {
-                dispute_text = 'Yes';
-            } else if (dispute === 0) {
-                dispute_text = 'No';
-            } else {
-                dispute_text = 'Empty';
-            }
-
             if (putaway === 1) {
                 putaway_text = 'Yes';
             } else if (putaway === 0) {
@@ -490,7 +482,7 @@
                     $('#stkt_id').val(stkt_name);
                     $('#tax_id').val(tax_id);
                     $('#a_name').val(a_name);
-                    $('#dispute').val(dispute_text);
+                    $('#dispute').val(dispute).trigger('change');
                     $('#dispute_description').val(dispute_description);
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
@@ -527,6 +519,85 @@
             apd_table.draw();
 
 
+        });
+
+        $('#dispute_description').on('blur', function() {
+
+            var no_order = $('#no_po').text();
+
+            const description = $(this).val();
+            const po_invoice = no_order;
+
+            if (!po_invoice) {
+                alert("No PO Invoice provided!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('dispute_description_save') }}",
+                type: 'POST',
+                data: {
+                    dispute_description: description,
+                    po_invoice: po_invoice,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Dispute deskripsi berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan data", "Gagal");
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            var previousDisputeValue = $('#dispute').val();
+            var isInitialized = false;
+
+            $('#dispute').change(function() {
+
+                if (!isInitialized) {
+                    isInitialized = true;
+                    previousDisputeValue = $(this).val();
+                    return;
+                }
+
+                var currentDisputeValue = $(this).val();
+
+
+                if (currentDisputeValue === previousDisputeValue) {
+                    return;
+                }
+                previousDisputeValue = currentDisputeValue;
+
+                var no_order = $('#no_po').text();
+
+                if (!no_order) {
+                    alert("No PO Invoice provided!");
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ url('dispute_save') }}",
+                    type: 'POST',
+                    data: {
+                        dispute: currentDisputeValue,
+                        po_invoice: no_order,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        toastr.success("Dispute selection berhasil disimpan",
+                            "Berhasil");
+                    },
+                    error: function(xhr) {
+                        console.error(xhr);
+                        toastr.error("Gagal menyimpan data", "Gagal");
+                    }
+                });
+            });
         });
 
         $(document).delegate('#ExportApprovalBtn', 'click', function() {
