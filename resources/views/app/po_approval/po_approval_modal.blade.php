@@ -256,6 +256,10 @@
                             <input type="number" class="form-control " placeholder="Sisa Payment"
                                 id="remaining_payment" disabled />
                         </div>
+                        <div class="col-4 mt-5" id="reject_reason_detail">
+                            <label for="reject_reason" class="text-danger">Alasan Reject</label>
+                            <textarea class="form-control border-danger" name="reject_reason" id="reject_reason" rows="3" disabled></textarea>
+                        </div>
                     </div>
                     <br>
                     <!--end::Row-->

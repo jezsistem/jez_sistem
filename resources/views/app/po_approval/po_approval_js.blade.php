@@ -435,6 +435,15 @@
                 $('#approve_btn').show();
                 $('#reject_btn').css('visibility', 'visible');
             }
+
+            if (!is_rejected) {
+                $('#reject_reason_detail').hide();
+            } else {
+                $('#reject_reason_detail').show();
+            }
+
+            var reject_reason = po_approval_table.row(this).data().reject_reason;
+            $('#reject_reason').val(reject_reason);
             jQuery.noConflict();
 
             let dispute_text = '';
