@@ -211,6 +211,31 @@
                                     <a class="btn btn-success" id="export_by_date">Export By Date</a>
                                 </div>
                             </div>
+                            <div class="card-body table-responsive">
+                                <table class="table table-hover table-checkable" id="MassAdjustmenttb">
+                                    <thead class="bg-light text-dark">
+                                        <tr>
+                                            <th class="text-dark">No</th>
+                                            <th class="text-dark">Kode</th>
+                                            <th class="text-dark">Store</th>
+                                            <th class="text-dark">Dibuat Oleh</th>
+                                            <th class="text-dark">Approval / Cancel</th>
+                                            <th class="text-dark">Eksekutor</th>
+                                            <th class="text-dark">Editor</th>
+                                            <th class="text-dark">Note</th>
+                                            <th class="text-dark">Proof Files</th>
+                                            <th class="text-dark">Tipe</th>
+                                            <th class="text-dark">Dibuat</th>
+                                            <th class="text-dark">Diupdate</th>
+                                            <th class="text-dark">Status</th>
+                                            <th class="text-dark">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
@@ -290,31 +315,6 @@
                         </div>
                     </div>
 
-                    <div class="card-body table-responsive">
-                        <table class="table table-hover table-checkable" id="MassAdjustmenttb">
-                            <thead class="bg-light text-dark">
-                                <tr>
-                                    <th class="text-dark">No</th>
-                                    <th class="text-dark">Kode</th>
-                                    <th class="text-dark">Store</th>
-                                    <th class="text-dark">Dibuat Oleh</th>
-                                    <th class="text-dark">Approval</th>
-                                    <th class="text-dark">Eksekutor</th>
-                                    <th class="text-dark">Editor</th>
-                                    <th class="text-dark">Note</th>
-                                    <th class="text-dark">Proof Files</th>
-                                    <th class="text-dark">Tipe</th>
-                                    <th class="text-dark">Dibuat</th>
-                                    <th class="text-dark">Diupdate</th>
-                                    <th class="text-dark">Status</th>
-                                    <th class="text-dark">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
                 <!--end::Card-->
                 <!--begin::Card-->
@@ -326,12 +326,19 @@
                             <input type="search" class="form-control form-control-sm col-12 mt-2" id="mad_search"
                                 placeholder="Cari artikel / Sku" />
                         </div>
-                        <div class="col-4">
+                        <div class="col-4" id="approval_input">
                             Approval
                             <div class="row">
                                 <input class="form-control col-8" placeholder="Approval" data-id="" type="text"
                                     id="approval_label" readonly /> <a class="btn btn-sm btn-success col-2"
                                     style="background:#007bff;" id="approval_btn">Approve</a>
+                            </div>
+                        </div>
+                        <div class="col-4" id="cancel_input">
+                            Alasan Pembatalan
+                            <div class="row">
+                                <textarea class="form-control col-8" placeholder="Alasan Pembatalan" type="text"
+                                    id="cancel_reason" disabled></textarea>
                             </div>
                         </div>
                         <div class="col-4">

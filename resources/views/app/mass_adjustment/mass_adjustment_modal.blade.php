@@ -276,3 +276,33 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal Reject Confirmation -->
+<div class="modal fade" id="CancelConfirmationModal" tabindex="-1" role="dialog"
+    aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h5 class="modal-title text-white" id="rejectModalLabel">Konfirmasi Cancel</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="cancel_reason">Alasan Cancel <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="4" 
+                        placeholder="Masukkan alasan Cancel..." required></textarea>
+                    <div id="cancel_reason_error" class="invalid-feedback"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" 
+                    data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger font-weight-bold" 
+                    id="confirm_reject_btn">Cancel Adjustment</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal Reject Confirmation -->

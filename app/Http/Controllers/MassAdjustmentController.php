@@ -598,6 +598,8 @@ class MassAdjustmentController extends Controller
             }
             $r['approval'] = $approval;
             $r['approval_label'] = $approval_label;
+            $r['status_adjustment'] = $get->ma_status;
+            $r['cancel_reason'] = $get->cancel_reason;
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -645,11 +647,24 @@ class MassAdjustmentController extends Controller
         // Validate the incoming request
         $request->validate([
             'ma_id' => 'required|integer|exists:mass_adjustments,id',
+            'cancel_reason' => 'required|string',
         ]);
 
         try {
             // Find the record by ID
-             DB::table('mass_adjustments')->where('id', '=', $request->ma_id)->update(['ma_status' => 2]);
+            $update = DB::table('mass_adjustments')->where('id', '=', $request->ma_id)->update(['ma_status' => '2',
+                'cancel_reason' => $request->cancel_reason,
+                'ma_approve' => Auth::user()->id,
+                'ma_approve_time' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+            if (empty($update)) {
+                return response()->json([
+                    'status' => '400',
+                    'message' => 'Gagal membatalkan data.'
+                ]);
+            }
 
             // Return success response
             return response()->json([
