@@ -2,6 +2,8 @@
 
 <script>
     var approval = '';
+    var is_rejected = false;
+    var is_approved = false;
 
     function changeFinanceStatus(po_id) {
         $.ajaxSetup({
@@ -109,8 +111,8 @@
                     name: 'u_name'
                 },
                 {
-                    data: 'u_receive',
-                    name: 'u_receive',
+                    data: 'status_approval',
+                    name: 'status_approval',
                     orderable: false
                 },
                 // {
@@ -420,8 +422,19 @@
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
             var arrived_at = po_approval_table.row(this).data().arrived_at;
-            approval = po_approval_table.row(this).data().u_receive;
+            approval = po_approval_table.row(this).data().status_approval;
+            is_approved = u_id_approve ? true : false;
+
+            u_id_reject = po_approval_table.row(this).data().u_id_reject;
+            is_rejected = u_id_reject ? true : false;
             var payment_amount = po_approval_table.row(this).data().payment_amount;
+            if(is_approved || is_rejected){
+                $('#approve_btn').hide();
+                $('#reject_btn').css('visibility', 'hidden');
+            } else {
+                $('#approve_btn').show();
+                $('#reject_btn').css('visibility', 'visible');
+            }
             jQuery.noConflict();
 
             let dispute_text = '';
@@ -743,8 +756,12 @@
 
         $('#approve_btn').on('click', function() {
             console.log(approval);
-            if (approval != '<span class="badge badge-warning">Menunggu Approval</span>') {
-                swal('Sudah Approve', 'Invoice ini sudah diapprove', 'warning');
+            if (is_approved) {
+                swal('Sudah Approve', 'Invoice ini sudah diapprove', 'error');
+                return false;
+            } else if (is_rejected) {
+                swal('Sudah Ditolak', 'Invoice ini sudah direject, tidak bisa diapprove',
+                    'error');
                 return false;
             }
             swal({
@@ -800,6 +817,71 @@
                     return false;
                 }
             })
+        });
+
+        $('#reject_btn').on('click', function() {
+            if (is_approved) {
+                swal('Sudah Approve', 'Invoice ini sudah diapprove', 'error');
+                return false;
+            } else if (is_rejected) {
+                swal('Sudah Ditolak', 'Invoice ini sudah direject, tidak bisa diapprove',
+                    'error');
+                return false;
+            }
+
+            jQuery.noConflict();
+            $('#reject_reason').val('');
+            $('#reject_reason').removeClass('is-invalid');
+            $('#reject_reason_error').text('');
+            $('#RejectConfirmationModal').modal('show');
+        });
+
+        $('#confirm_reject_btn').on('click', function() {
+            var reason = $('#reject_reason').val().trim();
+            
+            if (!reason) {
+            $('#reject_reason').addClass('is-invalid');
+            $('#reject_reason_error').text('Alasan penolakan tidak boleh kosong');
+            return false;
+            }
+
+            $('#reject_reason').removeClass('is-invalid');
+            $('#loader').show();
+
+            $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+            });
+            $.ajax({
+            type: "POST",
+            data: {
+                invoice: $('#invoice_label').text(),
+                rejection_reason: reason
+            },
+            dataType: 'json',
+            url: "{{ url('apd_reject') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                $('#RejectConfirmationModal').modal('hide');
+                $('#ApproveModal').modal('hide');
+                var po_id = $('#_po_id').val();
+                if (po_id) {
+                    closeEditModal('purchase_order', po_id, 'pembelian');
+                }
+                po_approval_table.draw(false);
+                swal("Berhasil", "Data berhasil direject", "success");
+                } else {
+                swal('Gagal', r.message || 'Gagal reject data', 'error');
+                }
+            },
+            error: function() {
+                swal('Gagal', 'Terjadi kesalahan pada server', 'error');
+            },
+            complete: function() {
+                $('#loader').hide();
+            }
+            });
         });
 
         $('.close_approval_modal').on('click', function(e) {

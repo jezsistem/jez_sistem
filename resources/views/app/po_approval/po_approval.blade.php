@@ -151,7 +151,7 @@
                                             <th class="text-dark">Tgl Barang Datang</th>
                                             <th class="text-dark">Tgl Terima</th>
                                             <th class="text-dark">Penerima</th>
-                                            <th class="text-dark">Approval</th>
+                                            <th class="text-dark">Approval / Rejection</th>
                                             {{--                                            <th class="text-dark">Qty</th> --}}
                                         </tr>
                                     </thead>

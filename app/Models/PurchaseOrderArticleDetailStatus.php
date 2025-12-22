@@ -11,17 +11,32 @@ class PurchaseOrderArticleDetailStatus extends Model
     use HasFactory;
     protected $table = 'purchase_order_article_detail_statuses';
     protected $fillable = [
+        'poad_id',
         'stkt_id',
         'tax_id',
-        'dp_id',
-        'poad_id',
+        'u_id_receive',
+        'u_id_approve',
+        'u_id_reject',
+        'is_paid',
+        'por_id',
+        'poads_invoice',
+        'invoice_date',
+        'arrived_at',
         'poads_qty',
         'poads_discount',
-        'poads_extra_discount', 
-        'poads_purchase_price', 
-        'poads_total_price', 
-        'poads_type', 
-        'created_at'
+        'poads_extra_discount',
+        'poads_sub_discount',
+        'poads_purchase_price',
+        'shipping_cost',
+        'COGS',
+        'poads_total_price',
+        'poads_type',
+        'notes',
+        'invoice_image',
+        'packet_image',
+        'received_date',
+        'created_at',
+        'updated_at'
     ];
 
     public function checkData($select, $where)

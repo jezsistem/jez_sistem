@@ -154,7 +154,10 @@ class PurchaseOrderController extends Controller
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
-                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('purchase_order_article_detail_statuses', function ($join) {
+                    $join->on('purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                        ->whereNull('purchase_order_article_detail_statuses.u_id_reject');
+                })
                 ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
                 ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->leftJoin('purchase_order_file_delivery_note', 'purchase_order_file_delivery_note.purchase_order_id', '=', 'purchase_orders.id')
@@ -255,7 +258,9 @@ class PurchaseOrderController extends Controller
                             if (!empty($poad)) {
                                 foreach ($poad as $poad_row) {
                                     $total_qty += $poad_row->poad_qty;
-                                    $poads = PurchaseOrderArticleDetailStatus::where(['poad_id' => $poad_row->id, 'poads_type' => 'IN'])->get();
+                                    $poads = PurchaseOrderArticleDetailStatus::where(['poad_id' => $poad_row->id, 'poads_type' => 'IN'])
+                                        ->whereNull('u_id_reject')
+                                        ->get();
                                     if (!empty($poads)) {
                                         foreach ($poads as $poads_row) {
                                             $total_qty_receive += $poads_row->poads_qty;

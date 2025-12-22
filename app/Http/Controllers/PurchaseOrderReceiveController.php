@@ -436,7 +436,10 @@ class PurchaseOrderReceiveController extends Controller
                     )
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                        ->leftJoin('purchase_order_article_detail_statuses', function ($join) {
+                            $join->on('purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                                ->whereNull('purchase_order_article_detail_statuses.u_id_reject');
+                        })
                         ->groupBy('purchase_order_article_details.id')
                         ->where(['poa_id' => $poa->poa_id])
                         ->orderByDesc('purchase_order_article_detail_statuses.created_at')
@@ -520,6 +523,7 @@ class PurchaseOrderReceiveController extends Controller
                 DB::raw('COALESCE(SUM(ts_poads.poads_qty), 0) as qty_receive'),
             )
             ->where('po.id', $po_id)
+            ->where('poads.u_id_reject', null)
             ->groupBy('po.id')
             ->first();
 

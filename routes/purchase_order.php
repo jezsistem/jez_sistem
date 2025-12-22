@@ -135,6 +135,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
     Route::post('po_receive_detail', [POReceiveApprovalController::class, 'poReceiveDetail']);
     Route::get('apd_export', [POReceiveApprovalController::class, 'exportData']);
+    Route::post('apd_reject', [POReceiveApprovalController::class, 'rejectData']);
 
     // Pre Order
     Route::get('pre_order', [PreOrderController::class, 'index']);

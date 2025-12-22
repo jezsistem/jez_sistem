@@ -286,11 +286,14 @@
                     <!--end::Row-->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold close_approval_modal"
-                    id="close_modal_approve_btn">Tutup
-                </button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-danger font-weight-bold" id="reject_btn">Reject</button>
+                <div>
+                    <button type="button" class="btn btn-light-primary font-weight-bold close_approval_modal"
+                        id="close_modal_approve_btn">Tutup
+                    </button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
+                </div>
             </div>
         </div>
     </div>
@@ -445,3 +448,33 @@
     </div>
 </div>
 <!-- /Modal-->
+
+<!-- Modal Reject Confirmation -->
+<div class="modal fade" id="RejectConfirmationModal" tabindex="-1" role="dialog"
+    aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h5 class="modal-title text-white" id="rejectModalLabel">Konfirmasi Reject</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="reject_reason">Alasan Reject <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="reject_reason" name="reject_reason" rows="4" 
+                        placeholder="Masukkan alasan reject..." required></textarea>
+                    <div id="reject_reason_error" class="invalid-feedback"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" 
+                    data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger font-weight-bold" 
+                    id="confirm_reject_btn">Reject PO</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal Reject Confirmation -->
