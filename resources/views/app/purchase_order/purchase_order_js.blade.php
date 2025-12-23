@@ -1521,7 +1521,7 @@
                         $('#po_description').val(r.po_description);
                         $('#shipping_cost').val(r.shipping_cost);
                         $('#dispute').val(dispute_text);
-                        $('#dispute_description').val(r.po_dispute_description);
+                        $('#dispute_description').val(r.dispute_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
