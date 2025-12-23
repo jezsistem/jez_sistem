@@ -242,9 +242,9 @@
         for (let i = 0; i < total_row; ++i) {
             var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
             var qty = $('#poad_qty_' + id + '_' + i).val() || 1; // Default qty to 1 if not entered
-            var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-            var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-            var final_total = total - (total / 100 * parseFloat(sub_discount));
+            var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+            var total = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+            var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
 
             // Update purchase price for this row
             $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
@@ -311,9 +311,9 @@
             for (let i = 0; i < total_row; ++i) {
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-                var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-                var final_total = total - (total / 100 * parseFloat(sub_discount));
+                var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+                var total = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+                var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
                 $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(final_total * qty));
                 poad_total_price += final_total * qty;
@@ -366,9 +366,9 @@
             for (let i = 0; i < total_row; ++i) {
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-                var subtotal_after_extra = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-                var total = subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount));
+                var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+                var subtotal_after_extra = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+                var total = Math.ceil(subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount)));
                 $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(total * qty));
                 poad_total_price += total * qty;
