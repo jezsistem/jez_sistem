@@ -199,15 +199,20 @@
                         <button type="button" class="btn btn-sm btn-success float-right" id="save_all_ro_btn"
                             onclick="return saveAllPoads()" {{ $zero_purchase_price_exist ? 'disabled' : '' }}>Terima</button>
                     </td>
+                    @php
+                        $totalDifference = $final_price_poads - $final_price;
+                        $outOfTolerance = $totalDifference > 1000 || $totalDifference < -1000;
+                        $totalStyle = $outOfTolerance ? 'background-color:#ff5656;color:#ffffff;' : '';
+                    @endphp
                     <td>
                         <span class="float-right">
-                            <input type="text" style="width:90px;" id="poads_total_price_receive"
+                            <input type="text" style="width:90px; {{ $totalStyle }}" id="poads_total_price_receive"
                                 value="{{ number_format($final_price) }}" readonly />
                         </span>
                     </td>
                     <td>
                         <span class="float-right">
-                            <input type="text" style="width:90px;" id="poads_total_price_receive"
+                            <input type="text" style="width:90px; {{ $totalStyle }}" id="poads_total_price_receive"
                                 value="{{ number_format($final_price_poads) }}" readonly />
                         </span>
                     </td>
