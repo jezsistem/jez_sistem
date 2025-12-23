@@ -336,7 +336,7 @@ class POReceiveApprovalController extends Controller
     public function approveData(Request $request)
     {
         $invoice = $request->post('invoice');
-        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice', 'purchase_order_article_details.poad_purchase_price', 'poad_id', 'ps_barcode')
+        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice', 'purchase_order_article_details.poad_purchase_price', 'poad_id', 'ps_barcode','poads_purchase_price', 'poads_total_price')
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
             ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
             ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
