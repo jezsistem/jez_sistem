@@ -22,6 +22,7 @@
                     $final_price_poads = 0;
                     $final_last_price_poads = 0;
                     $a = 0;
+                    $zero_purchase_price_exist = false;
                 @endphp
                 @foreach ($data['product'] as $row)
                     <tr>
@@ -162,6 +163,10 @@
                                             } else {
                                                 $total_last_poads_price += 0;
                                             }
+
+                                            if ($srow->poad_purchase_price == 0 || $srow->poad_purchase_price == null) {
+                                                $zero_purchase_price_exist = true;
+                                            }
                                         @endphp
                                 @endforeach
                             @endif
@@ -191,8 +196,8 @@
                     <td>
                     </td>
                     <td>
-                        <a class="btn btn-sm btn-success float-right" id="save_all_ro_btn"
-                            onclick="return saveAllPoads()">Terima</a>
+                        <button type="button" class="btn btn-sm btn-success float-right" id="save_all_ro_btn"
+                            onclick="return saveAllPoads()" {{ $zero_purchase_price_exist ? 'disabled' : '' }}>Terima</button>
                     </td>
                     <td>
                         <span class="float-right">
