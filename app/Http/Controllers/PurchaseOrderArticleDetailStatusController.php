@@ -202,56 +202,92 @@ class PurchaseOrderArticleDetailStatusController extends Controller
 
     public function disputeSave(Request $request)
     {
-        $request->validate([
-            'po_invoice' => 'required|string',
-        ]);
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'po_invoice' => 'required|string',
+            ]);
 
-        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+            $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
 
-        if (!$po) {
-            return response()->json(['message' => 'Purchase order not found'], 404);
+            if (!$po) {
+                DB::rollBack();
+                return response()->json(['message' => 'Purchase order not found'], 404);
+            }
+
+            $before = $po->dispute;
+            $po->dispute = $request->dispute;
+            $po->save();
+
+            $purchaseOrderLog = new \App\Models\PurchaseOrderLog();
+            $purchaseOrderLog->storePOLog($po->id, auth()->id(), \App\Models\PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'is_dispute', $before, $request->dispute, date('Y-m-d H:i:s'));
+
+            DB::commit();
+            return response()->json(['message' => 'Dispute status updated successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 400);
         }
-
-        $po->dispute = $request->dispute;
-        $po->save();
-
-        return response()->json(['message' => 'Dispute status updated successfully']);
     }
 
     public function disputeDescSave(Request $request)
     {
-        $request->validate([
-            'po_invoice' => 'required|string',
-        ]);
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'po_invoice' => 'required|string',
+            ]);
 
-        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+            $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
 
-        if (!$po) {
-            return response()->json(['message' => 'Purchase order not found'], 404);
+            if (!$po) {
+                DB::rollBack();
+                return response()->json(['message' => 'Purchase order not found'], 404);
+            }
+
+            $before = $po->dispute_description;
+            $po->dispute_description = $request->dispute_description;
+            $po->save();
+
+            $purchaseOrderLog = new \App\Models\PurchaseOrderLog();
+            $purchaseOrderLog->storePOLog($po->id, auth()->id(), \App\Models\PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'dispute_description', $before, $request->dispute_description, date('Y-m-d H:i:s'));
+
+            DB::commit();
+            return response()->json(['message' => 'Dispute description updated successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 400);
         }
-
-        $po->dispute_description = $request->dispute_description;
-        $po->save();
-
-        return response()->json(['message' => 'Dispute status updated successfully']);
     }
 
     public function savePutaway(Request $request)
     {
-        $request->validate([
-            'po_invoice' => 'required|string',
-            'putaway' => 'required|in:0,1',
-        ]);
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'po_invoice' => 'required|string',
+                'putaway' => 'required|in:0,1',
+            ]);
 
-        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+            $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
 
-        if (!$po) {
-            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            if (!$po) {
+                DB::rollBack();
+                return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            }
+
+            $before = $po->putaway;
+            $po->putaway = $request->putaway;
+            $po->save();
+
+            $purchaseOrderLog = new \App\Models\PurchaseOrderLog();
+            $purchaseOrderLog->storePOLog($po->id, auth()->id(), \App\Models\PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'putaway', $before, $request->putaway, date('Y-m-d H:i:s'));
+
+            DB::commit();
+            return response()->json(['message' => 'Putaway berhasil disimpan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 400);
         }
-
-        $po->putaway = $request->putaway;
-        $po->save();
-
-        return response()->json(['message' => 'Putaway berhasil disimpan']);
     }
 }

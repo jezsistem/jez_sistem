@@ -203,6 +203,29 @@
         XLSX.writeFile(workbook, "Barcode_NotFound.xlsx");
     }
 
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
     //is Dispute Save
     {{-- $(document).ready(function () { --}}
     {{--    $('#dispute').change(function () { --}}
@@ -761,6 +784,7 @@
                         toastr.error("Terjadi kesalahan saat mengirim notifikasi", "Error");
                     }
                 });
+                changeFinanceStatus(po_id);
 
                 reloadArticleDetail(po_id);
             }
@@ -1307,6 +1331,7 @@
                     d.st_id = $('#st_id_filter').val();
                     d.po_status_filter = $('#po_status_filter').val();
                     d.filter_dispute = $('#filter_dispute').val();
+                    d.filter_status_dispute = $('#filter_status_dispute').val();
                     d.date = $('#po_date').val();
                     d.filter_delivery_note = $('#filter_delivery_note').val();
                 }
@@ -1863,7 +1888,9 @@
             purchase_order_table.draw();
         });
 
-
+        $('#filter_status_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
 
         $('#br_id_filter_item').select2({
             width: "150px",
@@ -2003,7 +2030,7 @@
             $('#_po_id').val(po_id);
 
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id, 'penerimaan');
+            const lockResult = await openEditModal('purchase_order', po_id, 'pembelian');
             if (lockResult === false) {
                 return;
             }
@@ -2011,7 +2038,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id, 'penerimaan');
+                extendLock('purchase_order', po_id, 'pembelian');
             }, 60000);
 
             // Update DataTables AJAX configuration with the new po_id
@@ -2320,7 +2347,7 @@
             $('#PurchaseOrderModal').modal('hide');
             var po_id = $('#_po_id').val();
             if (po_id) {
-                closeEditModal('purchase_order', po_id, 'penerimaan');
+                closeEditModal('purchase_order', po_id, 'pembelian');
             }
             purchase_order_table.draw(false);
         });

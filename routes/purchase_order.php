@@ -68,6 +68,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_change_is_receivable', [PurchaseOrderController::class, 'changeIsReceivable']);
     Route::post('po_change_claim_amount', [PurchaseOrderController::class, 'changeClaimAmount']);
     Route::post('po_change_finance_status', [PurchaseOrderController::class, 'changeFinanceStatus']);
+    Route::get('po_log_datatables', [PurchaseOrderController::class, 'getLogDatatables']);
+    Route::get('po_remaining_payment', [PurchaseOrderController::class, 'getRemainingPayment']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
@@ -133,6 +135,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
     Route::post('po_receive_detail', [POReceiveApprovalController::class, 'poReceiveDetail']);
     Route::get('apd_export', [POReceiveApprovalController::class, 'exportData']);
+    Route::post('apd_reject', [POReceiveApprovalController::class, 'rejectData']);
 
     // Pre Order
     Route::get('pre_order', [PreOrderController::class, 'index']);

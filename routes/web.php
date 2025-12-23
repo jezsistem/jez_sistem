@@ -992,6 +992,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('staff/{id}/division', [StaffController::class, 'updateDivision'])->name('staff.update-division');
     Route::post('staff/{id}/user-type', [StaffController::class, 'updateUserType'])->name('staff.update-user-type');
     Route::post('staff/{id}/leave-balance', [StaffController::class, 'updateLeaveBalance'])->name('staff.update-leave-balance');
+    Route::get('staff/export', [StaffController::class, 'export'])->name('staff.export');
 
     // StaffInformationController
     Route::get('staff-information', [StaffInformationController::class, 'index'])->name('staff-information.index');

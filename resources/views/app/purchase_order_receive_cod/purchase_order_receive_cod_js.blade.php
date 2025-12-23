@@ -1,6 +1,29 @@
 <script>
     var approval = '';
 
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -663,6 +686,8 @@
                                 po_approval_table.draw(false);
                                 swal("Berhasil", "Data berhasil dibayar",
                                     "success");
+                                changeFinanceStatus($('#_po_id').val());
+                                
                             } else {
                                 swal('Gagal', 'Gagal approve data', 'error');
                             }

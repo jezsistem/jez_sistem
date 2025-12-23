@@ -13,37 +13,38 @@ class PhotoController extends Controller
     public function upload(Request $request)
     {
         // Validate the uploaded file
-        $validated = $request->validate([
+        $request->validate([
             'img_logo' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         // Check if the request has a file
         if ($request->hasFile('img_logo')) {
-            // Get the file
-            $file = $request->file('img_logo');
+            $user = Auth::user();
+            $userId = $user->id;
+            $bucketName = config('filesystems.disks.s3.bucket');
 
-            // Define the path to store the file in public/photos
-            $destinationPath = public_path('photos');
-
-            // Ensure the directory exists
-            if (!File::exists($destinationPath)) {
-                File::makeDirectory($destinationPath, 0755, true);
+            // Delete old file if exists
+            if ($user->u_photo) {
+                $oldPath = str_replace($bucketName . '/', '', $user->u_photo);
+                Storage::disk('s3')->delete($oldPath);
             }
 
-            // Generate a unique file name (to prevent overwriting)
-            $fileName = uniqid() . '.' . $file->getClientOriginalExtension();
+            // Get the file
+            $photoFile = $request->file('img_logo');
+            
+            // Generate a unique file name
+            $photoFileName = $userId . '_' . uniqid() . '.' . $photoFile->getClientOriginalExtension();
+            
+            // Store the file to S3
+            $photoPath = $photoFile->storeAs('personal_data/foto', $photoFileName, 's3');
+            
+            // Update user photo path
+            $user->u_photo = $bucketName . '/' . $photoPath;
+            $change = $user->save();
 
-            // Move the file to the 'public/photos' directory
-            $file->move($destinationPath, $fileName);
-
-            // Store the file path in the database
-            $user = Auth::user();
-            $user->u_photo = 'photos/' . $fileName; // Save the relative path
-            $change = $user->save(); // Save to the database
-
-            // If user is active, display success notification, else error
+            // If user is saved, display success notification, else error
             if ($change) {
-                return back()->with('success', 'Photo has been changed :)')->with('path', 'photos/' . $fileName);
+                return back()->with('success', 'Photo has been changed :)')->with('path', $bucketName . '/' . $photoPath);
             } else {
                 return back()->with('error', 'Ups photo is not save, Please try again!');
             }

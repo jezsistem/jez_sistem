@@ -52,10 +52,13 @@
                                         </button>
                                     </div>
                                 </div> 
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center gap-2">
                                     <input type="search" class="form-control" style="width: 300px;" id="staff_search" placeholder="Search"/>
+                                    <button type="button" class="btn btn-success ml-2" id="exportBtn">
+                                        <i class="ki-outline ki-file-down"></i> Export
+                                    </button>
                                 </div>
-                            </div>                          
+                            </div>
                         </div>
                         <div class="card-body table-responsive">
                              <table class="table table-hover table-checkable" id="staffTable">

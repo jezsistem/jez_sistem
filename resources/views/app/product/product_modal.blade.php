@@ -417,7 +417,10 @@
 
                                     <!-- Grid 2 -->
                                     <div class="col-md-4 d-flex align-items-center">
-                                        <button type="button" class="btn btn-info btn-sm" id="btnLogHistory">
+                                        <button type="button" class="btn btn-success btn-sm" id="skuGenerate">
+                                            Generate SKU
+                                        </button>
+                                        <button type="button" class="btn btn-info btn-sm ml-2" id="btnLogHistory">
                                             Log History updated
                                         </button>
                                     </div>
@@ -534,6 +537,48 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal untuk menampilkan semua link -->
+<div class="modal fade" id="genaratorSKUModal" tabindex="-1" role="dialog" aria-labelledby="genaratorSKUModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-l" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header d-flex justify-content-between align-items-center">
+                <h5 class="modal-title" id="HistoryModalLabel">Select SKU</h5>
+
+                <div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="tab-content mt-3">
+                    <!-- Marketplace -->
+                    <div class="tab-pane fade show active">
+                        {{--                        <button class="btn btn-primary mb-3" id="tableHistory">+ Add Marketplace</button>--}}
+{{--                        <input type="text" class="form-control" id="selectedSKU">--}}
+
+                        <label>Satuan Artikel <span class="text-danger">*</span></label>
+                        <select class="form-control" id="sku_selected" name="sku_selected" required>
+                            <option value="">- Pilih Satuan -</option>
+{{--                            @foreach ($data['pu_id'] as $key => $value)--}}
+{{--                                <option value="{{ $key }}">{{ $value }}</option>--}}
+{{--                            @endforeach--}}
+                        </select>
+                        <div id="pu_id_parent"></div>
                     </div>
                 </div>
 

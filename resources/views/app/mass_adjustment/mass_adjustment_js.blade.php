@@ -104,6 +104,17 @@
             dataType: 'json',
             success: function(r) {
                 if (r.status == '200') {
+                    if (r.status_adjustment == '2') {
+                        $('#approval_input').addClass('d-none');
+                        $('#execution_btn').addClass('d-none');
+                        $('#cancel_input').removeClass('d-none');
+                        $('#cancel_reason').val(r.cancel_reason);
+                    } else {
+                        $('#approval_input').removeClass('d-none');
+                        $('#execution_btn').removeClass('d-none');
+                        $('#cancel_input').addClass('d-none');
+                    }
+
                     $('#mad_panel').removeClass('d-none');
                     $('#approval_label').attr('data-id', r.approval);
                     $('#approval_label').val(r.approval_label);
@@ -648,43 +659,65 @@
             e.preventDefault();
             var id = $(this).attr('data-id');
 
-            swal({
-                title: "Cancel..?",
-                text: "Yakin cancel?",
-                icon: "warning",
-                buttons: [
-                    'Batalkan',
-                    'Yakin'
-                ],
-                dangerMode: true,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
+            // Store ma_id in modal for later use
+            $('#CancelConfirmationModal').data('ma-id', id);
+            $('#cancel_reason_input').val('');
+            $('#cancel_reason_input').removeClass('is-invalid');
+            $('#reject_reason_error').text('');
 
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        data: {
-                            ma_id: id
-                        },
-                        dataType: 'json',
-                        url: "{{ url('mass_adjustment_cancel') }}",
-                        success: function(r) {
-                            if (r.status == '200') {
-                                swal("Berhasil", "Berhasil dibatalkan", "success");
-                                loadApproval();
-                                mass_adjustment_table.draw(false);
-                            } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
-                            }
-                        }
-                    });
-                    return false;
+            // Show the modal
+            $('#CancelConfirmationModal').modal('show');
+        });
+
+        $(document).delegate('#confirm_reject_btn', 'click', function(e) {
+            e.preventDefault();
+
+            var ma_id = $('#CancelConfirmationModal').data('ma-id');
+            var cancel_reason = $('#cancel_reason_input').val().trim();
+
+            // Validation
+            if (cancel_reason === '') {
+                $('#cancel_reason_input').addClass('is-invalid');
+                $('#cancel_reason_input_error').text('Alasan cancel harus diisi');
+                return false;
+            }
+
+            $('#cancel_reason_input').removeClass('is-invalid');
+            $('#confirm_reject_btn').html('Proses...');
+            $('#confirm_reject_btn').attr('disabled', true);
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
-            })
+            });
+            $.ajax({
+                type: "POST",
+                data: {
+                    ma_id: ma_id,
+                    cancel_reason: cancel_reason
+                },
+                dataType: 'json',
+                url: "{{ url('mass_adjustment_cancel') }}",
+                success: function(r) {
+                    $('#confirm_reject_btn').html('Cancel PO');
+                    $('#confirm_reject_btn').attr('disabled', false);
+
+                    if (r.status == '200') {
+                        $('#CancelConfirmationModal').modal('hide');
+                        swal("Berhasil", "Berhasil dibatalkan", "success");
+                        loadApproval();
+                        mass_adjustment_table.draw(false);
+                    } else {
+                        swal('Gagal', 'Gagal cancel data', 'error');
+                    }
+                },
+                error: function() {
+                    $('#confirm_reject_btn').html('Cancel PO');
+                    $('#confirm_reject_btn').attr('disabled', false);
+                    swal('Error', 'Terjadi kesalahan', 'error');
+                }
+            });
         });
 
         $(document).delegate('#export_mad_btn', 'click', function(e) {
@@ -898,16 +931,16 @@
                                                             .utils
                                                             .aoa_to_sheet(
                                                                 ws_data
-                                                                );
+                                                            );
                                                         XLSX.utils
                                                             .book_append_sheet(
                                                                 wb, ws,
                                                                 "Invalid SKUs Sistem Quantity"
-                                                                );
+                                                            );
                                                         XLSX.writeFile(
                                                             wb,
                                                             "Invalid_SKUs_Sistem_Quantity.xlsx"
-                                                            );
+                                                        );
                                                     });
 
                                             // Tombol Tutup
@@ -931,7 +964,7 @@
             })
         });
 
-        $('#note_adjustment').on('change', function () {
+        $('#note_adjustment').on('change', function() {
             let val = $(this).val();
 
             if (val === 'KESALAHAN SYSTEM') {
@@ -1184,8 +1217,10 @@
                             "</td><td>" + row.p_color +
                             "</td><td>" + row.sz_name +
                             "</td><td>" + row.psc_name +
-                            "</td><td>" + (addCommas(Math.round(row.purchase)) || '-') +
-                            "</td><td>" + (addCommas(Math.round(row.sell)) || '-') +
+                            "</td><td>" + (addCommas(Math.round(row
+                                .purchase)) || '-') +
+                            "</td><td>" + (addCommas(Math.round(row.sell)) ||
+                                '-') +
                             "</td><td>" + row.qty_export +
                             "</td><td>" + row.qty_so +
                             "</td><td>" + row.mad_type +

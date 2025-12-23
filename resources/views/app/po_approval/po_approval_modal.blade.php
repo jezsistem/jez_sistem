@@ -97,7 +97,12 @@
                         </div> --}}
                         <div class="col-4 mt-3">
                             <label>Dispute</label>
-                            <input type="text" id="dispute" class="form-control" name="dispute" disabled />
+                            <select class="form-control" id="dispute" name="dispute" required>
+                                <option value="">- Pilih Salah Satu -</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                            <div id="dispute_parent"></div>
                         </div>
                         <div class="col-4 mt-3">
                             <label>Tanggal Terima (mm/dd/yy) </label>
@@ -114,7 +119,7 @@
                         </div>
                         <div class="col-4 mt-3">
                             <label>Keterangan Dispute</label>
-                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3" disabled></textarea>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3"></textarea>
                         </div>
                         <div class="col-4 mt-5">
                             <div class="row">
@@ -229,19 +234,32 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="col-4 mt-3">
-                            <label>Status Dispute</label>
-                            <input type="text" id="status_dispute" class="form-control" name="status_dispute"
-                                disabled />
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Status Dispute</label>
+                            <select class="form-control" name="status_dispute" id="status_dispute" required>
+                                <option value="">- Pilih Status -</option>
+                                <option value="1">Progress</option>
+                                <option value="0">Closed</option>
+                            </select>
                         </div>
                         <div class="col-4 mt-3">
                             <label>Putaway</label>
                             <input type="text" id="putaway" class="form-control" name="putaway" disabled />
                         </div>
                         <div class="col-4 mt-5">
-                        <label>Nominal Payment</label>
-                        <input type="number" class="form-control " placeholder="Nominal Payment" name="payment_amount" id="payment_amount" min="0" disabled />
-                    </div>
+                            <label>Nominal Payment</label>
+                            <input type="number" class="form-control " placeholder="Nominal Payment"
+                                name="payment_amount" id="payment_amount" min="0" disabled />
+                        </div>
+                        <div class="col-4 mt-5 " title="(Nominal Klaim + Nominal Payment - Total PO)">
+                            <label>Sisa Payment</label>
+                            <input type="number" class="form-control " placeholder="Sisa Payment"
+                                id="remaining_payment" disabled />
+                        </div>
+                        <div class="col-4 mt-5" id="reject_reason_detail">
+                            <label for="reject_reason" class="text-danger">Alasan Reject</label>
+                            <textarea class="form-control border-danger" name="reject_reason" id="reject_reason" rows="3" disabled></textarea>
+                        </div>
                     </div>
                     <br>
                     <!--end::Row-->
@@ -272,11 +290,14 @@
                     <!--end::Row-->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold close_approval_modal"
-                    id="close_modal_approve_btn">Tutup
-                </button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-danger font-weight-bold" id="reject_btn">Reject</button>
+                <div>
+                    <button type="button" class="btn btn-light-primary font-weight-bold close_approval_modal"
+                        id="close_modal_approve_btn">Tutup
+                    </button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
+                </div>
             </div>
         </div>
     </div>
@@ -431,3 +452,33 @@
     </div>
 </div>
 <!-- /Modal-->
+
+<!-- Modal Reject Confirmation -->
+<div class="modal fade" id="RejectConfirmationModal" tabindex="-1" role="dialog"
+    aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h5 class="modal-title text-white" id="rejectModalLabel">Konfirmasi Reject</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="reject_reason">Alasan Reject <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="reject_reason" name="reject_reason" rows="4" 
+                        placeholder="Masukkan alasan reject..." required></textarea>
+                    <div id="reject_reason_error" class="invalid-feedback"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" 
+                    data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger font-weight-bold" 
+                    id="confirm_reject_btn">Reject PO</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal Reject Confirmation -->

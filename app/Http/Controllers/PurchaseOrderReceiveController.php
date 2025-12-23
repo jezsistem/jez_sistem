@@ -35,7 +35,7 @@ use App\Models\PurchaseOrderTransferImage;
 use App\Models\UserActivity;
 use App\Models\PurchaseOrderDisputeFile;
 use App\Models\PurchaseOrderFileDeliveryNote;
-
+use App\Models\PurchaseOrderLog;
 
 class PurchaseOrderReceiveController extends Controller
 {
@@ -436,7 +436,10 @@ class PurchaseOrderReceiveController extends Controller
                     )
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                        ->leftJoin('purchase_order_article_detail_statuses', function ($join) {
+                            $join->on('purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                                ->whereNull('purchase_order_article_detail_statuses.u_id_reject');
+                        })
                         ->groupBy('purchase_order_article_details.id')
                         ->where(['poa_id' => $poa->poa_id])
                         ->orderByDesc('purchase_order_article_detail_statuses.created_at')
@@ -520,13 +523,14 @@ class PurchaseOrderReceiveController extends Controller
                 DB::raw('COALESCE(SUM(ts_poads.poads_qty), 0) as qty_receive'),
             )
             ->where('po.id', $po_id)
+            ->where('poads.u_id_reject', null)
             ->groupBy('po.id')
             ->first();
 
         $qty_receive = $result ? $result->qty_receive : 0;
 
-        $is_receive_0 = $qty_receive == 0 ? true : false;             
-        
+        $is_receive_0 = $qty_receive == 0 ? true : false;
+
         //        return $data['product']['0']['subitem'][0]['total_pls_qty'];
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data', 'is_receive_0'));
     }
@@ -954,34 +958,73 @@ class PurchaseOrderReceiveController extends Controller
 
     public function changePayDate(Request $request)
     {
-        $po_id = $request->po_id;
-        $pay_date = $request->pay_date;
+        DB::beginTransaction();
+        try {
+            $po_id = $request->po_id;
+            $pay_date = $request->pay_date;
 
-        if ($pay_date > today()) {
-            $r['status'] = '500';
-            $r['message'] = 'Tanggal tidak boleh lebih dari hari ini';
-            return json_encode($r);
-        }
+            if ($pay_date > today()) {
+                $r['status'] = '500';
+                $r['message'] = 'Tanggal tidak boleh lebih dari hari ini';
+                return json_encode($r);
+            }
 
-        $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
-        if ($check) {
-            $r['status'] = '200';
-        } else {
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('pay_date')->first();
+            $before = $before ? $before->pay_date : null;
+
+            $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
+
+            if ($check) {
+                if ($before != $pay_date) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'pay_date', $before, $pay_date, date('Y-m-d H:i:s'));
+                }
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 
     public function changeDueDate(Request $request)
     {
-        $po_id = $request->po_id;
-        $due_date = $request->due_date;
-        $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
-        if ($check) {
-            $r['status'] = '200';
-        } else {
+        DB::beginTransaction();
+        try {
+            $po_id = $request->po_id;
+            $due_date = $request->due_date;
+
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('due_date')->first();
+            $before = $before ? $before->due_date : null;
+
+            $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
+
+            if ($check) {
+                if ($before != $due_date) {
+                    $purchaseOrderLog = new PurchaseOrderLog();
+                    $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'due_date', $before, $due_date, date('Y-m-d H:i:s'));
+                }
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['message'] = $e->getMessage();
         }
+
         return json_encode($r);
     }
 

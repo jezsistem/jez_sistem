@@ -156,8 +156,18 @@
                 window.staffTable.draw(false);
             }
         });
-    });
 
+        // Export button functionality
+        $('#exportBtn').on('click', function() {
+            var params = $.param({
+                search: $('#staff_search').val(),
+                position_filter: $('#position_filter').val(),
+                division_filter: $('#division_filter').val()
+            });
+            var url = "{{ url('staff/export') }}" + '?' + params;
+            window.location.href = url;
+        });
+    });
     // Apply filters function
     function applyFilters() {
         if (window.staffTable && typeof window.staffTable.ajax !== 'undefined') {

@@ -19,6 +19,8 @@ class ProductSupplier extends Model
         'ps_delete',
         'ps_rekening',
         'ps_npwp',
+        'ps_pkp',
+        'ps_due_day'
     ];
 
     public function checkData($select, $where)

@@ -54,13 +54,47 @@
                                         </a>
                                     </div>
                                     <div class="form-group ml-5" style="padding-top:22px;">
-                                        <select name="status_purchase" id="status_purchase" class="form-control bg-primary text-white">
+                                        <select name="status_purchase" id="status_purchase"
+                                            class="form-control bg-primary text-white">
                                             <option value="">- Status Pembelian -</option>
-                                            <option value="in_progress">In Progress</option>    
+                                            <option value="in_progress">In Progress</option>
                                             <option value="partial">Partial</option>
                                             <option value="done">Done</option>
                                         </select>
                                         <div id="status_purchase_parent"></div>
+                                    </div>
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select name="status_finance" id="status_finance"
+                                            class="form-control bg-primary text-white">
+                                            <option value="">- Status Finance -</option>
+                                            <option value="CONSIGNMENT">CONSIGNMENT</option>
+                                            <option value="DRAFT / PENDING">DRAFT / PENDING</option>
+                                            <option value="HUTANG (PARTIAL RECEIVE)">HUTANG (PARTIAL RECEIVE)</option>
+                                            <option value="HUTANG">HUTANG</option>
+                                            <option value="PIUTANG (OVERPAYMENT PARTIAL)">PIUTANG (OVERPAYMENT PARTIAL)
+                                            </option>
+                                            <option value="PIUTANG">PIUTANG</option>
+                                            <option value="LUNAS">LUNAS</option>
+                                            <option value="UNKNOWN">UNKNOWN</option>
+                                        </select>
+                                        <div id="status_finance_parent"></div>
+                                    </div>
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select class="form-control" id="filter_dispute" name="filter_dispute"
+                                            style="border: 1px solid #ced4da;">
+                                            <option value="">- It Is Dispute? -</option>
+                                            <option value="1">Yes</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select class="form-control" name="filter_status_dispute" id="filter_status_dispute"
+                                            style="border: 1px solid #ced4da;">
+                                            <option value="">- Pilih Status Dispute -</option>
+                                            <option value="1">Progress</option>
+                                            <option value="0">Closed</option>
+                                        </select>
                                     </div>
                                 </div>
 

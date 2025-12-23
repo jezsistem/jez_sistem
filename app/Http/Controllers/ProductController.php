@@ -126,6 +126,8 @@ class ProductController extends Controller
 
         $stt = DB::table('store_types')->where('id', Auth::user()->stt_id)->first()->stt_name;
 
+
+
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
@@ -149,10 +151,15 @@ class ProductController extends Controller
             'stt'   => $stt,
             'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
-            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id')
+            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
+
         ];
         return view('app.product.product', compact('data'));
     }
+
+//    public function getSkuAvailable(Request $request){
+//
+//    }
 
     public function updateFlag(Request $request, $id)
     {

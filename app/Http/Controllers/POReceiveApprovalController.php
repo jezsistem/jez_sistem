@@ -143,7 +143,9 @@ class POReceiveApprovalController extends Controller
                     ts_purchase_orders.putaway,
                     ts_purchase_orders.status_dispute,
                     received_date,
-                    ts_purchase_orders.po_payment_amount as payment_amount
+                    ts_purchase_orders.po_payment_amount as payment_amount,
+                    ts_purchase_order_article_detail_statuses.u_id_reject as u_id_reject,
+                    reject_reason
                 ")
                     ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                     ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
@@ -176,18 +178,21 @@ class POReceiveApprovalController extends Controller
                     }
                     return date('d/m/Y', strtotime($data->received_date));
                 })
-                ->editColumn('u_receive', function ($data) {
-                    if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
+                ->editColumn('status_approval', function ($data) {
+                    if (!empty($data->u_id_reject)) {
+                        $name = DB::table('users')->where('id', '=', $data->u_id_reject)->first()->u_name;
+                        return '<span class="badge badge-danger">' . $name . '<br/>'. date('d/m/Y H:i:s', strtotime($data->updated_at)) . '</span>';
+                    } else if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0 && empty($data->u_id_reject)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
                         return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
-                    } else if (!empty($data->u_id_approve)) {
+                    } else if (!empty($data->u_id_approve) && empty($data->u_id_reject)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
                         return '<span class="badge text-white" style="background-color: #16C47F;">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->updated_at)) . '</span>';
                     } else {
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
                 })
-                ->rawColumns(['poads_invoice_show', 'u_receive'])
+                ->rawColumns(['poads_invoice_show', 'status_approval'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -214,21 +219,7 @@ class POReceiveApprovalController extends Controller
                         }
                     }
                     if (!empty($request->get('filter_cabang'))) {
-                        if ($request->get('filter_cabang') == 'SURABAYA') {
-                            $instance->where('st_name', 'LIKE', '%SURABAYA%');
-                        }
-
-                        if ($request->get('filter_cabang') == 'MALANG') {
-                            $instance->where('st_name', 'LIKE', '%MALANG%');
-                        }
-
-                        if ($request->get('filter_cabang') == 'KEDIRI') {
-                            $instance->where('st_name', 'LIKE', '%KEDIRI%');
-                        }
-
-                        if ($request->get('filter_cabang') == 'JEMBER') {
-                            $instance->where('st_name', 'LIKE', '%JEMBER%');
-                        }
+                        $instance->where('st_name', 'LIKE', '%' . $request->get('filter_cabang') . '%');
                     }
                     if ($request->has('filter_dispute')) {
                         $filter = $request->get('filter_dispute');
@@ -302,7 +293,7 @@ class POReceiveApprovalController extends Controller
                      ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty, ts_purchase_order_article_detail_statuses.poads_purchase_price,
                     ts_purchase_order_article_detail_statuses.poads_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.pay_date,
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, ts_accounts.a_name, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute, ts_purchase_orders.putaway, ts_purchase_orders.status_dispute, ts_purchase_order_article_detail_statuses.arrived_at") // Added stkt_id and tax_id
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute, ts_purchase_orders.putaway, ts_purchase_orders.status_dispute, ts_purchase_order_article_detail_statuses.arrived_at, u_id_reject") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
@@ -315,7 +306,7 @@ class POReceiveApprovalController extends Controller
                 ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_order_article_detail_statuses.stkt_id')
                 ->where('poads_invoice', '=', $request->get('poads_invoice')))
                 ->editColumn('delete', function ($d) {
-                    if (empty($d->u_id_approve)) {
+                    if (empty($d->u_id_approve) && empty($d->u_id_reject)) {
                         return "<a class='btn btn-danger' data-id='" . $d->id . "' id='delete_poads'>X</a>";
                     } else {
                         return '';
@@ -345,7 +336,7 @@ class POReceiveApprovalController extends Controller
     public function approveData(Request $request)
     {
         $invoice = $request->post('invoice');
-        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice', 'purchase_order_article_details.poad_purchase_price', 'poad_id', 'ps_barcode')
+        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice', 'purchase_order_article_details.poad_purchase_price', 'poad_id', 'ps_barcode','poads_purchase_price', 'poads_total_price')
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
             ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
             ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
@@ -357,6 +348,18 @@ class POReceiveApprovalController extends Controller
         if ($poads->where('poads_qty', '=', 0)->count() > 0) {
             $r['status'] = '400';
             $r['message'] = 'Ada Data yang memiliki Qty 0, silahkan periksa kembali.';
+            return json_encode($r);
+        }
+
+        if($poads->where('poads_purchase_price', '=', 0)->count() > 0) {
+            $r['status'] = '400';
+            $r['message'] = 'Ada Data yang memiliki Harga Beli 0, silahkan periksa kembali.';
+            return json_encode($r);
+        }
+
+        if($poads->where('poads_total_price', '=', 0)->count() > 0) {
+            $r['status'] = '400';
+            $r['message'] = 'Ada Data yang memiliki Total Harga 0, silahkan periksa kembali.';
             return json_encode($r);
         }
 
@@ -432,7 +435,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . $new_cogs .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         } else {
@@ -446,7 +449,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . ceil($new_price) .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         }
@@ -476,7 +479,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . $new_cogs .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         } else {
@@ -490,7 +493,7 @@ class POReceiveApprovalController extends Controller
                                 $check_product_stock->ps_barcode . ' - Mengubah Harga Beli dari ' . $check_product_stock->ps_purchase_price .
                                     ' ke ' . ceil($new_price) .
                                     ', beradasarkan penerimaan dengan invoice ' . $row->poads_invoice,
-                                    'data-products',
+                                'data-products',
                                 $check_product_stock->p_id
                             );
                         }
@@ -530,8 +533,8 @@ class POReceiveApprovalController extends Controller
 
                 $this->UserActivity(
                     Auth::user()->id,
-                    'Produk ID ' . $product->article_id . ' - Mengubah Harga Beli Rata-rata dari'. $product->p_purchase_price  .' menjadi ' . $avg_cogs .
-                    ', berdasarkan penerimaan dengan invoice ' . $invoice,
+                    'Produk ID ' . $product->article_id . ' - Mengubah Harga Beli Rata-rata dari' . $product->p_purchase_price  . ' menjadi ' . $avg_cogs .
+                        ', berdasarkan penerimaan dengan invoice ' . $invoice,
                     'data-products',
                     $p_id
                 );
@@ -611,5 +614,42 @@ class POReceiveApprovalController extends Controller
 
         $filename = "export_approval_{$no_po}_{$ps_name}.xlsx";
         return Excel::download(new ApprovalPOExport($result), $filename);
+    }
+
+    public function rejectData(Request $request) {
+        $poads_invoice = $request->post('invoice');
+        $reject_reason = $request->post('rejection_reason');
+
+        DB::beginTransaction();
+        try {
+            //count total data with the invoice
+            $total_data = DB::table('purchase_order_article_detail_statuses')
+                ->where('poads_invoice', '=', $poads_invoice)
+                ->count();
+
+            $update = DB::table('purchase_order_article_detail_statuses')
+                ->where('poads_invoice', '=', $poads_invoice)
+                ->whereNull('u_id_approve')
+                ->update([
+                    'u_id_reject' => Auth::user()->id,
+                    'reject_reason' => $reject_reason,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+
+            if ($update == $total_data) {
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+                $r['message'] = 'Gagal menolak data';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $r['status'] = '400';
+            $r['message'] = 'Error: ' . $e->getMessage();
+        }
+
+        return json_encode($r);
     }
 }

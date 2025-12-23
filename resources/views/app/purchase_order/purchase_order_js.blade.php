@@ -242,9 +242,9 @@
         for (let i = 0; i < total_row; ++i) {
             var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
             var qty = $('#poad_qty_' + id + '_' + i).val() || 1; // Default qty to 1 if not entered
-            var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-            var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-            var final_total = total - (total / 100 * parseFloat(sub_discount));
+            var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+            var total = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+            var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
 
             // Update purchase price for this row
             $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
@@ -311,9 +311,9 @@
             for (let i = 0; i < total_row; ++i) {
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-                var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-                var final_total = total - (total / 100 * parseFloat(sub_discount));
+                var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+                var total = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+                var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
                 $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(final_total * qty));
                 poad_total_price += final_total * qty;
@@ -366,9 +366,9 @@
             for (let i = 0; i < total_row; ++i) {
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-                var subtotal_after_extra = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-                var total = subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount));
+                var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+                var subtotal_after_extra = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+                var total = Math.ceil(subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount)));
                 $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(total * qty));
                 poad_total_price += total * qty;
@@ -621,6 +621,21 @@
         });
     }
 
+    function calcRemainingPayment(total_po_with_item) {
+
+        var total_po_without_item = $('#total_purchase').val();
+        var total_payment = $('#payment_amount').val();
+        var claim_amount = $('#claim_amount').val() || 0;
+
+        console.log(total_po_without_item, total_po_with_item, total_payment, claim_amount);
+
+        var total_po = (parseFloat(total_po_with_item) || 0) > 0 ? parseFloat(total_po_with_item) : parseFloat(
+            total_po_without_item) || 0;
+        var sisa_payment = (parseFloat(total_payment) + parseFloat(claim_amount) - parseFloat(total_po));
+
+        $('#remaining_payment').val(sisa_payment);
+    }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -755,6 +770,37 @@
         });
     });
 
+    $('#dispute_description').on('blur', function() {
+
+        var no_order = $('#po_invoice_label').text();
+
+        const description = $(this).val();
+        const po_invoice = no_order;
+
+        if (!po_invoice) {
+            alert("No PO Invoice provided!");
+            return;
+        }
+
+        $.ajax({
+            url: "{{ url('dispute_description_save') }}",
+            type: 'POST',
+            data: {
+                dispute_description: description,
+                po_invoice: po_invoice,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                console.log(response);
+                toastr.success("Dispute deskripsi berhasil disimpan", "Berhasil");
+            },
+            error: function(xhr) {
+                console.error(xhr);
+                toastr.error("Gagal menyimpan data", "Gagal");
+            }
+        });
+    });
+
     $(document).delegate('#bank_general', 'change', function() {
         var bg_id = $(this).val();
         $.ajaxSetup({
@@ -812,6 +858,9 @@
                     d.st_id = $('#st_id_filter').val();
                     d.date = $('#po_date').val();
                     d.status_purchase = $('#status_purchase').val();
+                    d.status_finance = $('#status_finance').val();
+                    d.filter_dispute = $('#filter_dispute').val();
+                    d.filter_status_dispute = $('#filter_status_dispute').val();
                 }
             },
             columns: [{
@@ -1005,6 +1054,79 @@
             ],
         });
 
+        var purchaseOrderLogTable = $('#PurchaseOrderLogTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            deferLoading: 0,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_log_datatables') }}",
+                data: function(d) {
+                    d.po_id = $('#_po_id').val();
+                },
+            },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'type',
+                    name: 'type'
+                },
+                {
+                    data: 'item_detail',
+                    name: 'item_detail',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'target_column',
+                    name: 'target_column'
+                },
+                {
+                    data: 'before',
+                    name: 'before',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'after',
+                    name: 'after',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                }
+            ],
+            columnDefs: [{
+                "targets": '_all',
+                "className": "text-center"
+            }],
+            order: [
+                [1, 'desc']
+            ],
+            pageLength: 25
+        });
+
+        $('#ChangeLogBtn').on('click', function() {
+            purchaseOrderLogTable.draw();
+            jQuery.noConflict();
+            $('#ChangeLogModal').modal('show');
+        });
+
         $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
             var id = $(this).data('id');
 
@@ -1192,6 +1314,14 @@
             product_table.draw();
         });
 
+        $('#filter_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+        $('#filter_status_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
+
         $('#ps_id').select2({
             width: "100%",
             dropdownParent: $('#ps_id_parent')
@@ -1291,6 +1421,20 @@
             purchase_order_table.draw();
         });
 
+        $('#status_finance').on('change', function() {
+            purchase_order_table.draw();
+        });
+        $('#status_finance').select2({
+            width: "200px",
+            dropdownParent: $('#status_finance_parent')
+        });
+
+        $('#status_finance').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#br_id_filter_item').select2({
             width: "150px",
             dropdownParent: $('#br_id_filter_parent_item')
@@ -1377,7 +1521,7 @@
                         $('#po_description').val(r.po_description);
                         $('#shipping_cost').val(r.shipping_cost);
                         $('#dispute').val(dispute_text);
-                        $('#dispute_description').val(r.po_dispute_description);
+                        $('#dispute_description').val(r.dispute_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
@@ -1393,8 +1537,8 @@
                         $('#total_qty').val(r.po_total_qty);
                         jQuery('#is_receivable').val(r.is_receivable);
                         jQuery('#claim_amount').val(r.claim_amount);
-                        $('#remaining_payment').val(parseInt(r.claim_amount ?? 0) + parseInt(r.po_payment_amount ?? 0) - parseInt(r.total_po ?? 0));
                         reloadArticleDetail(po_id);
+                        calcRemainingPayment(r.total_po);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
                     }
@@ -1755,6 +1899,9 @@
                 url: "{{ url('po_total_purchase') }}",
                 success: function(r) {
                     if (r.status == '200') {
+                        var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
+                            .replace(/\./g, '').replace(/,/g, '');
+                        calcRemainingPayment(total_po);
 
                     } else {
                         //swal('Gagal', 'Gagal mengubah data store', 'warning');
@@ -1781,6 +1928,9 @@
                 success: function(r) {
                     if (r.status == '200') {
                         toastr.success("Jumlah pembayaran berhasil di Update", "Success");
+                        var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
+                            .replace(/\./g, '').replace(/,/g, '');
+                        calcRemainingPayment(total_po);
                     } else {}
                 }
             });
@@ -2250,6 +2400,9 @@
                 success: function(response) {
                     console.log(response);
                     toastr.success("Claim Amount berhasil disimpan", "Berhasil");
+                    var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
+                        .replace(/\./g, '').replace(/,/g, '');
+                    calcRemainingPayment(total_po);
                 },
                 error: function(xhr) {
                     console.error(xhr);
