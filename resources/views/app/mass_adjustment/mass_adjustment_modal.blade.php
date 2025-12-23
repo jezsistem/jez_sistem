@@ -290,10 +290,10 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="cancel_reason">Alasan Cancel <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="4" 
+                    <label for="cancel_reason_input">Alasan Cancel <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="cancel_reason_input" name="cancel_reason_input" rows="4" 
                         placeholder="Masukkan alasan Cancel..." required></textarea>
-                    <div id="cancel_reason_error" class="invalid-feedback"></div>
+                    <div id="cancel_reason_input_error" class="invalid-feedback"></div>
                 </div>
             </div>
             <div class="modal-footer">

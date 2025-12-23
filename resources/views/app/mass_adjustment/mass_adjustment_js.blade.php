@@ -661,8 +661,8 @@
 
             // Store ma_id in modal for later use
             $('#CancelConfirmationModal').data('ma-id', id);
-            $('#cancel_reason').val('');
-            $('#cancel_reason').removeClass('is-invalid');
+            $('#cancel_reason_input').val('');
+            $('#cancel_reason_input').removeClass('is-invalid');
             $('#reject_reason_error').text('');
 
             // Show the modal
@@ -673,16 +673,16 @@
             e.preventDefault();
 
             var ma_id = $('#CancelConfirmationModal').data('ma-id');
-            var cancel_reason = $('#cancel_reason').val().trim();
+            var cancel_reason = $('#cancel_reason_input').val().trim();
 
             // Validation
             if (cancel_reason === '') {
-                $('#cancel_reason').addClass('is-invalid');
-                $('#reject_reason_error').text('Alasan cancel harus diisi');
+                $('#cancel_reason_input').addClass('is-invalid');
+                $('#cancel_reason_input_error').text('Alasan cancel harus diisi');
                 return false;
             }
 
-            $('#cancel_reason').removeClass('is-invalid');
+            $('#cancel_reason_input').removeClass('is-invalid');
             $('#confirm_reject_btn').html('Proses...');
             $('#confirm_reject_btn').attr('disabled', true);
 
