@@ -170,8 +170,9 @@
 
         <!-- ========================= CARD INPUT REPORT ========================= -->
         <!-- ========================= CARD INPUT / VIEW REPORT ========================= -->
-        @if($statusBadge === 'Approved' || 'HR Check' || 'Done' && $detail->status != 'Rejected')
-            <div class="card shadow-sm border-warning mb-4">
+        @if(!in_array($detail->status, ['Rejected', 'Pending']))
+
+        <div class="card shadow-sm border-warning mb-4">
                 <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="bi bi-pencil-square"></i>
