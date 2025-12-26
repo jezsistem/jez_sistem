@@ -193,7 +193,13 @@
 
     // CALCULATION 
     function poadPurchasePrice(id, index, purchase_price) {
-        var poad_id = $('#poad_purchase_price_' + id + '_' + index).attr('data-poad-id');
+        var $input = $('#poad_purchase_price_' + id + '_' + index);
+        console.log($input.prop('disabled'));
+        
+        if ($input.prop('disabled')===true) {
+            return;
+        }
+        var poad_id = $input.attr('data-poad-id');
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -240,6 +246,12 @@
         if (sub_discount == '' || sub_discount == 0) sub_discount = 0;
 
         for (let i = 0; i < total_row; ++i) {
+            var $input = $('#poad_purchase_price_' + id + '_' + i);
+            if ($input.prop('disabled')) {
+                poad_total_price += parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val())) || 0;
+                continue;
+            }; // Skip if disabled
+
             var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
             var qty = $('#poad_qty_' + id + '_' + i).val() || 1; // Default qty to 1 if not entered
             var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
@@ -247,7 +259,7 @@
             var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
 
             // Update purchase price for this row
-            $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
+            $input.val(addCommas(final_total));
 
             // Calculate and update total purchase price
             var total_purchase_price = final_total * parseFloat(qty);
@@ -260,7 +272,7 @@
         }
 
         $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-        reloadPoTotalPrice(po_id)
+        
 
         // Send updated discount information via AJAX
         $.ajaxSetup({
@@ -285,6 +297,7 @@
                 }
             }
         });
+        reloadPoTotalPrice(po_id)
     }
 
     function extraDiscount(id) {
@@ -309,19 +322,24 @@
             }
 
             for (let i = 0; i < total_row; ++i) {
+                var $input = $('#poad_purchase_price_' + id + '_' + i);
+                if ($input.prop('disabled')) {
+                    poad_total_price += parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val())) || 0;
+                    continue;
+                }; // Skip if disabled
+
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
                 var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
                 var total = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
                 var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
-                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
+                $input.val(addCommas(final_total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(final_total * qty));
                 poad_total_price += final_total * qty;
                 poadPurchasePrice(id, i, final_total);
             }
 
             $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-            reloadPoTotalPrice(po_id)
         }
 
         $.ajaxSetup({
@@ -345,6 +363,7 @@
                 }
             }
         });
+        reloadPoTotalPrice(po_id)
     }
 
     function subDiscount(id) {
@@ -364,19 +383,25 @@
                 sub_discount = 0;
             }
             for (let i = 0; i < total_row; ++i) {
+                var $input = $('#poad_purchase_price_' + id + '_' + i);
+                if ($input.prop('disabled')) {
+                    poad_total_price += parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val())) || 0;
+                    continue;
+                }; // Skip if disabled
+
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
                 var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
                 var subtotal_after_extra = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
                 var total = Math.ceil(subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount)));
-                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
+                $input.val(addCommas(total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(total * qty));
                 poad_total_price += total * qty;
                 poadPurchasePrice(id, i, total);
             }
 
             $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-            reloadPoTotalPrice(po_id)
+            
         }
 
         $.ajaxSetup({
@@ -400,6 +425,7 @@
                 }
             }
         });
+        reloadPoTotalPrice(po_id)
     }
 
     // function subDiscount(id)
@@ -466,7 +492,18 @@
         return x1 + x2;
     }
 
+    // Helper to track pending AJAX requests to poad_save_purchase_price
+    let pendingPoadSavePurchasePrice = 0;
+
     function reloadPoTotalPrice(id) {
+        // Only reload if no pending poad_save_purchase_price requests
+        if (pendingPoadSavePurchasePrice > 0) {
+            // Wait and retry after a short delay
+            setTimeout(function() {
+                reloadPoTotalPrice(id);
+            }, 200);
+            return;
+        }
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -485,6 +522,40 @@
                 } else {
                     toast('Gagal', 'gagal menampilkan total terbaru', 'warning');
                 }
+            }
+        });
+    }
+
+    // Patch poadPurchasePrice to increment/decrement the counter
+    function poadPurchasePrice(id, index, purchase_price) {
+        var $input = $('#poad_purchase_price_' + id + '_' + index);
+        if ($input.prop('disabled') === true) {
+            return;
+        }
+        var poad_id = $input.attr('data-poad-id');
+        pendingPoadSavePurchasePrice++;
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _poad_id: poad_id,
+                _purchase_price: purchase_price
+            },
+            dataType: 'json',
+            url: "{{ url('poad_save_purchase_price') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            },
+            complete: function() {
+                pendingPoadSavePurchasePrice--;
             }
         });
     }

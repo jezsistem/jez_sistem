@@ -38,7 +38,7 @@
                                 $now = Carbon::now();
                             @endphp
 
-                            @if($createdAt->diffInDays($now) < 21)
+                            @if ($createdAt->diffInDays($now) < 21)
                                 <span style="color: red; margin-left: 5px; margin-top:10px;">NEW ARRIVAL</span>
                             @endif
                         </td>
@@ -54,9 +54,8 @@
                                 name="poa_extra_discount" id="poa_extra_discount{{ $row->poa_id }}"
                                 style="width:33px;" value="{{ $row->poa_extra_discount }}"
                                 onchange="return extraDiscount( {{ $row->poa_id }} )" /><br />
-                            <input type="text" style="width:65px;" value="Sub. Disc" readonly /><input
-                                type="text" name="poa_sub_discount"
-                                id="poa_sub_discount{{ $row->poa_id }}" style="width:33px;"
+                            <input type="text" style="width:65px;" value="Sub. Disc" readonly /><input type="text"
+                                name="poa_sub_discount" id="poa_sub_discount{{ $row->poa_id }}" style="width:33px;"
                                 value="{{ $row->poa_sub_discount }}"
                                 onchange="return subDiscount( {{ $row->poa_id }} )" />
                         </td>
@@ -96,13 +95,14 @@
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="" />
+                                                    value="" @if ($srow->is_approved == 1) disabled @endif />
                                             @else
                                                 <input type="text" style="width:100px;"
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="{{ $srow->poad_purchase_price }}" />
+                                                    value="{{ $srow->poad_purchase_price }}"
+                                                    @if ($srow->is_approved == 1) disabled @endif />
                                             @endif
                                         @else
                                             <input type="text" style="width:100px;"
@@ -113,13 +113,14 @@
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="" />
+                                                    value="" @if ($srow->is_approved == 1) disabled @endif />
                                             @else
                                                 <input type="text" style="width:100px;"
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="{{ $srow->poad_purchase_price }}" />
+                                                    value="{{ $srow->poad_purchase_price }}"
+                                                    @if ($srow->is_approved == 1) disabled @endif />
                                             @endif
                                         @endif
                                         <input type="text" style="width:100px;"

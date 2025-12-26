@@ -933,11 +933,14 @@ class PurchaseOrderController extends Controller
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
-                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id')
+                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id',DB::raw('CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NOT NULL THEN 1 ELSE 0 END AS is_approved'))
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         //                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                        ->where(['poa_id' => $poa->poa_id])->get();
+                        ->where(['poa_id' => $poa->poa_id])
+                        ->groupBy('purchase_order_article_details.id')
+                        ->get();
 
                     // Step 2: Retrieve pls_qty from product_location_setups
                     $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
@@ -991,6 +994,7 @@ class PurchaseOrderController extends Controller
         $data = [
             'product' => $get_product
         ];
+
         return view('app.purchase_order._purchase_order_article_detail', compact('data'));
     }
 
