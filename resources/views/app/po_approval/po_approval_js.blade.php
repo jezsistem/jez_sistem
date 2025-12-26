@@ -839,22 +839,22 @@
             }
 
             jQuery.noConflict();
-            $('#reject_reason').val('');
-            $('#reject_reason').removeClass('is-invalid');
+            $('#reject_reason_input').val('');
+            $('#reject_reason_input').removeClass('is-invalid');
             $('#reject_reason_error').text('');
             $('#RejectConfirmationModal').modal('show');
         });
 
         $('#confirm_reject_btn').on('click', function() {
-            var reason = $('#reject_reason').val().trim();
+            var reason = $('#reject_reason_input').val().trim();
             
             if (!reason) {
-            $('#reject_reason').addClass('is-invalid');
+            $('#reject_reason_input').addClass('is-invalid');
             $('#reject_reason_error').text('Alasan penolakan tidak boleh kosong');
             return false;
             }
 
-            $('#reject_reason').removeClass('is-invalid');
+            $('#reject_reason_input').removeClass('is-invalid');
             $('#loader').show();
 
             $.ajaxSetup({
