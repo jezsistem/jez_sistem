@@ -49,6 +49,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('transaksi_online_waiting_online_items', [TransaksiOnlineController::class, 'getWaitingOnlineItems']);
     Route::post('transaksi_online_cancel_waiting_online_item', [TransaksiOnlineController::class, 'cancelWaitingOnlineItem']);
 
+    Route::get('view_pick_list_online_transaction/{pst_id}/{warehouse_st_id}', [TransaksiOnlineController::class, 'viewPickList'])->name('view.pick.list.online.transaction');
+
     // Rekap Resi
     /**
      * TODO:
