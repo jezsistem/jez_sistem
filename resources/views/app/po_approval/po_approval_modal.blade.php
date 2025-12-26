@@ -466,8 +466,8 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="reject_reason">Alasan Reject <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="reject_reason" name="reject_reason" rows="4" 
+                    <label for="reject_reason_input">Alasan Reject <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="reject_reason_input" name="reject_reason_input" rows="4" 
                         placeholder="Masukkan alasan reject..." required></textarea>
                     <div id="reject_reason_error" class="invalid-feedback"></div>
                 </div>
