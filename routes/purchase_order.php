@@ -63,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_total_purchase', [PurchaseOrderController::class, 'totalPurchasePo']);
     Route::post('po_total_qty', [PurchaseOrderController::class, 'totalQtyPo']);
     Route::post('po_payment_amount', [PurchaseOrderController::class, 'paymentAmountPo']);
+    Route::post('po_adjustment_amount', [PurchaseOrderController::class, 'adjustmentAmountPo']);
     Route::post('status_dispute_save', [PurchaseOrderController::class, 'statusdisputeSave']);
     Route::post('po_change_bank_general', [PurchaseOrderController::class, 'changeBankGeneral']);
     Route::post('po_change_is_receivable', [PurchaseOrderController::class, 'changeIsReceivable']);
@@ -70,6 +71,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_change_finance_status', [PurchaseOrderController::class, 'changeFinanceStatus']);
     Route::get('po_log_datatables', [PurchaseOrderController::class, 'getLogDatatables']);
     Route::get('po_remaining_payment', [PurchaseOrderController::class, 'getRemainingPayment']);
+
+    Route::get('po_run_update_finance_status', [PurchaseOrderController::class, 'updateAllFinanceStatus']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');

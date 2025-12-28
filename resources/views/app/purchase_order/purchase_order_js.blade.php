@@ -3,6 +3,7 @@
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 <script>
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
@@ -195,8 +196,8 @@
     function poadPurchasePrice(id, index, purchase_price) {
         var $input = $('#poad_purchase_price_' + id + '_' + index);
         console.log($input.prop('disabled'));
-        
-        if ($input.prop('disabled')===true) {
+
+        if ($input.prop('disabled') === true) {
             return;
         }
         var poad_id = $input.attr('data-poad-id');
@@ -272,7 +273,7 @@
         }
 
         $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-        
+
 
         // Send updated discount information via AJAX
         $.ajaxSetup({
@@ -401,7 +402,7 @@
             }
 
             $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-            
+
         }
 
         $.ajaxSetup({
@@ -690,21 +691,6 @@
                 }
             }
         });
-    }
-
-    function calcRemainingPayment(total_po_with_item) {
-
-        var total_po_without_item = $('#total_purchase').val();
-        var total_payment = $('#payment_amount').val();
-        var claim_amount = $('#claim_amount').val() || 0;
-
-        console.log(total_po_without_item, total_po_with_item, total_payment, claim_amount);
-
-        var total_po = (parseFloat(total_po_with_item) || 0) > 0 ? parseFloat(total_po_with_item) : parseFloat(
-            total_po_without_item) || 0;
-        var sisa_payment = (parseFloat(total_payment) + parseFloat(claim_amount) - parseFloat(total_po));
-
-        $('#remaining_payment').val(sisa_payment);
     }
 
     // CALCULATION
@@ -1605,11 +1591,12 @@
                         $('#status_dispute').val(r.status_dispute);
                         $('#total_purchase').val(r.po_total_purchase);
                         $('#payment_amount').val(r.po_payment_amount);
+                        $('#adjustment_amount').val(r.adjustment_amount);
                         $('#total_qty').val(r.po_total_qty);
                         jQuery('#is_receivable').val(r.is_receivable);
                         jQuery('#claim_amount').val(r.claim_amount);
                         reloadArticleDetail(po_id);
-                        calcRemainingPayment(r.total_po);
+                        calcRemainingPayment(r.po_invoice);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
                     }
@@ -1672,6 +1659,7 @@
                         jQuery('#acc_id').val('').trigger('change');
                         jQuery('#total_purchase').val('');
                         jQuery('#payment_amount').val('');
+                        jQuery('#adjustment_amount').val('');
                         jQuery('#total_qty').val('');
                         $('.add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
@@ -1955,6 +1943,7 @@
 
         $('#total_purchase').on('change', function() {
             var total_purchase = $(this).val();
+            var po_invoice = $('#po_invoice_label').text();
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1970,10 +1959,7 @@
                 url: "{{ url('po_total_purchase') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
-                            .replace(/\./g, '').replace(/,/g, '');
-                        calcRemainingPayment(total_po);
-
+                        calcRemainingPayment(po_invoice);
                     } else {
                         //swal('Gagal', 'Gagal mengubah data store', 'warning');
                     }
@@ -1983,6 +1969,7 @@
 
         $('#payment_amount').on('change', function() {
             var payment_amount = $(this).val();
+            var po_invoice = $('#po_invoice_label').text();
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1999,10 +1986,34 @@
                 success: function(r) {
                     if (r.status == '200') {
                         toastr.success("Jumlah pembayaran berhasil di Update", "Success");
-                        var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
-                            .replace(/\./g, '').replace(/,/g, '');
-                        calcRemainingPayment(total_po);
+                        calcRemainingPayment(po_invoice);
                     } else {}
+                }
+            });
+        });
+
+        $('#adjustment_amount').on('change', function() {
+            var adjustment_amount = $(this).val();
+            var po_invoice = $('#po_invoice_label').text();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _adjustment_amount: adjustment_amount
+                },
+                url: "{{ url('po_adjustment_amount') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+                        calcRemainingPayment(po_invoice);
+                    } else {
+                        swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
                 }
             });
         });
@@ -2450,6 +2461,7 @@
         $('#claim_amount').on('change', function() {
             var claim_amount = $(this).val();
             var po_id = $('#_po_id').val();
+            var po_invoice = $('#po_invoice_label').text();
 
             if (claim_amount === '') {
                 return;
@@ -2473,7 +2485,7 @@
                     toastr.success("Claim Amount berhasil disimpan", "Berhasil");
                     var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
                         .replace(/\./g, '').replace(/,/g, '');
-                    calcRemainingPayment(total_po);
+                    calcRemainingPayment(po_invoice);
                 },
                 error: function(xhr) {
                     console.error(xhr);

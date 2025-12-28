@@ -1,4 +1,5 @@
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 
 <script>
     var approval = '';
@@ -24,21 +25,6 @@
                 } else {
                     toast('Gagal', 'Informasi gagal disimpan', 'warning');
                 }
-            }
-        });
-    }
-
-    function calcRemainingPayment(po_number) {
-        $.ajax({
-            type: "GET",
-            data: {
-                po_invoice: po_number,
-            },
-            dataType: 'json',
-            url: "{{ url('po_remaining_payment') }}",
-            success: function(r) {
-                console.log(r);
-                $('#remaining_payment').val(r.remaining_payment);
             }
         });
     }

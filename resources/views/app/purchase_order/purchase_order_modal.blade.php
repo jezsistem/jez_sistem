@@ -333,6 +333,10 @@
                         <label>Nominal Payment</label>
                         <input type="number" class="form-control " placeholder="Nominal Payment" name="payment_amount" id="payment_amount" min="0" />
                     </div>
+                    <div class="col-4 mt-5 without_item_input">
+                        <label>Nominal Adjustment</label>
+                        <input type="number" class="form-control " placeholder="Nominal Adjustment" name="adjustment_amount" id="adjustment_amount" />
+                    </div>
                 </div>
                     
                 <!--end::Row-->
