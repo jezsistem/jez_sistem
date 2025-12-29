@@ -1111,6 +1111,46 @@
             ],
         });
 
+        var financeAttachmentTable = $('#FinanceAttachmentTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            deferLoading: 0,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_finance_attachment_datatable') }}",
+                data: function(d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                    data: 'file_name',
+                    name: 'file_name',
+                    searchable: false
+                },
+                {
+                    data: 'description',
+                    name: 'description'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": [0, 1],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         var purchaseOrderLogTable = $('#PurchaseOrderLogTb').DataTable({
             destroy: true,
             processing: true,
@@ -1616,6 +1656,15 @@
             $("#BuktitfImagesBtn").click(function() {
                 $("#BuktitfImagesModal").modal("show");
                 purchaseOrderBuktitfTable.draw();
+                console.log($('#po_id').val());
+            });
+        });
+
+        $(document).ready(function() {
+            $("#FinanceAttachmentBtn").click(function() {
+                $("#FinanceAttachmentModal").modal("show");
+                financeAttachmentTable.draw();
+                $('#po_id_finance_attachment').val($('#_po_id').val());
                 console.log($('#po_id').val());
             });
         });
@@ -2407,6 +2456,46 @@
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_upload_transfer_image')[0].reset();
+                        reloadArticleDetail(po_id);
+                    } else if (data.status == '400') {
+                        toastr.warning(
+                            'File yang anda import kosong atau format tidak tepat',
+                            'File');
+                    } else {
+                        toastr.warning(
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'Gagal');
+                    }
+                },
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat mengupload data', 'Error');
+                }
+            });
+        });
+
+        $('#f_add_finance_attachment').on('submit', function(e) {
+            e.preventDefault();
+            $('#add_finance_attachment_btn').html('Proses...');
+            $('#add_finance_attachment_btn').attr('disabled', true);
+            var formData = new FormData(this);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_finance_attachment_upload') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#add_finance_attachment_btn").html('Upload');
+                    $("#add_finance_attachment_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    $("#AddFinanceAttachmentInputModal").modal('hide');
+
+                    if (data.status == '200') {
+                        toastr.success('Data berhasil diimport', 'Berhasil');
+                        $('#f_add_finance_attachment')[0].reset();
                         reloadArticleDetail(po_id);
                     } else if (data.status == '400') {
                         toastr.warning(

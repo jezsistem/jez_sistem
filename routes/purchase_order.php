@@ -14,6 +14,7 @@ use App\Http\Controllers\POReceiveApprovalController;
 use App\Http\Controllers\PreOrderArticleController;
 use App\Http\Controllers\PreOrderArticleDetailController;
 use App\Http\Controllers\PreOrderController;
+use App\Http\Controllers\PurchaseOrderFinanceAttachmentController;
 use App\Http\Controllers\PurchaseOrderReceiveCODController;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
@@ -59,6 +60,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('po_article_export', [PurchaseOrderController::class, 'exportPurchaseOrderArticleData']);
     Route::post('po_transfer_image', [PurchaseOrderController::class, 'uploadImageTransfer']);
     Route::get('po_invoice_image_datatable', [PurchaseOrderController::class, 'getImageInvoiceDatatables']);
+
+    Route::get('po_finance_attachment_datatable', [PurchaseOrderFinanceAttachmentController::class, 'getFinanceAttachmentDatatables']);
+    Route::post('po_finance_attachment_upload', [PurchaseOrderFinanceAttachmentController::class, 'uploadFinanceAttachment']);
+    Route::post('po_finance_attachment_update', [PurchaseOrderFinanceAttachmentController::class, 'updateFinanceAttachment']);
+    Route::post('po_finance_attachment_delete', [PurchaseOrderFinanceAttachmentController::class, 'deleteFinanceAttachment']);
+
     Route::post('po_transfer_image_delete', [PurchaseOrderController::class, 'deleteImageTransfer']);
     Route::post('po_total_purchase', [PurchaseOrderController::class, 'totalPurchasePo']);
     Route::post('po_total_qty', [PurchaseOrderController::class, 'totalQtyPo']);
