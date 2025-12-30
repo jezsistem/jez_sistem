@@ -456,18 +456,14 @@ class OvertimeRequestController extends Controller
 
             $filePath = $overtime->report_attachment;
             if ($request->hasFile('report_attachment')) {
-                $file = $request->file('report_attachment');
-
-                $directory = storage_path('app/public/overtime_reports');
-                if (!file_exists($directory)) {
-                    mkdir($directory, 0755, true);
+                // Delete old file if exists
+                if ($filePath && Storage::disk('public')->exists($filePath)) {
+                    Storage::disk('public')->delete($filePath);
                 }
 
+                $file = $request->file('report_attachment');
                 $fileName = 'report_' . time() . '.' . $file->getClientOriginalExtension();
                 $filePath = $file->storeAs('overtime_reports', $fileName, 'public');
-
-                // Simpan path ke database
-                $data['report_attachment'] = $filePath;
             }
 
             $overtime->update([
