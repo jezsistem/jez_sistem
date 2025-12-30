@@ -42,6 +42,7 @@ class PurchaseOrder extends Model
         'claim_amount',
         'po_status',
         'finance_status',
+        'adjustment_amount',
         'created_by',
         'updated_by',
         'created_at',
