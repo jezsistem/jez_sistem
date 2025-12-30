@@ -63,7 +63,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('po_finance_attachment_datatable', [PurchaseOrderFinanceAttachmentController::class, 'getFinanceAttachmentDatatables']);
     Route::post('po_finance_attachment_upload', [PurchaseOrderFinanceAttachmentController::class, 'uploadFinanceAttachment']);
-    Route::post('po_finance_attachment_update', [PurchaseOrderFinanceAttachmentController::class, 'updateFinanceAttachment']);
     Route::post('po_finance_attachment_delete', [PurchaseOrderFinanceAttachmentController::class, 'deleteFinanceAttachment']);
 
     Route::post('po_transfer_image_delete', [PurchaseOrderController::class, 'deleteImageTransfer']);

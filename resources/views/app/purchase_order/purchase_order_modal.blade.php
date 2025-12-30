@@ -791,8 +791,10 @@
                         <table id="FinanceAttachmentTb" class="table table-bordered">
                             <thead>
                                 <tr>
+                                    <th>No</th>
                                     <th>File</th>
                                     <th>Catatan</th>
+                                    <th>Tanggal Upload</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>

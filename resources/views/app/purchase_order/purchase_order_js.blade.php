@@ -5,6 +5,8 @@
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 <script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 <script>
+    var financeAttachmentTable=null;
+
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
             .pid + '">' +
@@ -693,6 +695,43 @@
         });
     }
 
+    function deleteFinanceAttachment(id) {
+        swal({
+            title: "Hapus Lampiran..?",
+            text: "Yakin hapus lampiran ini ?",
+            icon: "warning",
+            buttons: [
+                'Jangan Hapus',
+                'Hapus Lampiran'
+            ],
+            dangerMode: true,
+        }).then(function(isConfirm) {
+            if (isConfirm) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    data: {
+                        attachment_id: id
+                    },
+                    dataType: 'json',
+                    url: "{{ url('po_finance_attachment_delete') }}",
+                    success: function(r) {
+                        if (r.status == '200') {
+                            financeAttachmentTable.draw(false);
+                        } else {
+                            swal('Gagal', 'Gagal hapus lampiran', 'error');
+                        }
+                    }
+                });
+                return false;
+            }
+        })
+    }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -1111,7 +1150,7 @@
             ],
         });
 
-        var financeAttachmentTable = $('#FinanceAttachmentTb').DataTable({
+        financeAttachmentTable = $('#FinanceAttachmentTb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -1126,6 +1165,12 @@
             },
 
             columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
                     data: 'file_name',
                     name: 'file_name',
                     searchable: false
@@ -1133,6 +1178,10 @@
                 {
                     data: 'description',
                     name: 'description'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
                 },
                 {
                     data: 'action',
@@ -2492,7 +2541,7 @@
                     $("#add_finance_attachment_btn").attr("disabled", false);
                     jQuery.noConflict();
                     $("#AddFinanceAttachmentInputModal").modal('hide');
-
+                    financeAttachmentTable.draw(false);
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_add_finance_attachment')[0].reset();
