@@ -31,61 +31,64 @@
                     </button>
                 </div>
             </div>
+
+            {{-- show total harga beli and notes --}}
             <div class="modal-body">
-                {{-- show total harga beli and notes --}}
-                <div class="row">
-                    <div class="col-4">
-                        <label class="badge badge-primary">Total</label>
-                        <label class="badge badge-secondari" id="total_approval_price"></label>
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm bg-success border-0">
+                            <div class="card-body py-3 px-4 d-flex flex-column align-items-start">
+                                <span class="font-weight-bold text-white mb-1">Total Harga Beli</span>
+                                <h3 class="mb-0 text-white" id="total_approval_price">Rp 0</h3>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <input type="hidden" id="_mode" name="_mode" />
                 <input type="hidden" id="_po_id" name="_po_id" />
-
-                <div class="modal-body">
-                    <!--begin::Row-->
-                    <div class="row">
-                        <div class="col-4">
-                            <label>Store</label>
-                            <input type="text" class="form-control" id="st_id" name="st_id" disabled>
-                            <div id="st_id_parent"></div>
-                        </div>
-                        <div class="col-4">
-                            <label>Supplier</label>
-                            <input type="text" class="form-control" id="ps_name" name="ps_name" disabled>
-                            <div id="ps_id_parent"></div>
-                        </div>
-                        <div class="col-4">
-                            <label>Deskripsi</label>
-                            <textarea class="form-control" name="po_description" id="po_description" rows="3" disabled></textarea>
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
-                            {{-- <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
+                <!--begin::Row-->
+                <div class="row">
+                    <div class="col-4">
+                        <label>Store</label>
+                        <input type="text" class="form-control" id="st_id" name="st_id" disabled>
+                        <div id="st_id_parent"></div>
+                    </div>
+                    <div class="col-4">
+                        <label>Supplier</label>
+                        <input type="text" class="form-control" id="ps_name" name="ps_name" disabled>
+                        <div id="ps_id_parent"></div>
+                    </div>
+                    <div class="col-4">
+                        <label>Deskripsi</label>
+                        <textarea class="form-control" name="po_description" id="po_description" rows="3" disabled></textarea>
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
+                        {{-- <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
                                 <option value="">- Pilih Tipe Stok -</option>
                                 @foreach ($data['stkt_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
                                 @endforeach
                             </select> --}}
-                            {{-- <div id="stkt_id_parent"></div> --}}
-                            <input type="text" class="form-control" id="stkt_id" name="stkt_id" readonly>
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Pajak</label>
-                            <select class="form-control" id="tax_id" name="tax_id" required disabled>
-                                <option value="">- Pajak -</option>
-                                @foreach ($data['tax_id'] as $key => $value)
-                                    <option value="{{ $key }}">{{ $value }}</option>
-                                @endforeach
-                            </select>
-                            <div id="tax_id_parent"></div>
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Payment</label>
-                            <input type="text" class="form-control" id="a_name" name="a_name" disabled>
-                            <div id="acc_id_parent"></div>
-                        </div>
-                        {{-- <div class="col-4 mt-5">
+                        {{-- <div id="stkt_id_parent"></div> --}}
+                        <input type="text" class="form-control" id="stkt_id" name="stkt_id" readonly>
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Pajak</label>
+                        <select class="form-control" id="tax_id" name="tax_id" required disabled>
+                            <option value="">- Pajak -</option>
+                            @foreach ($data['tax_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="tax_id_parent"></div>
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Payment</label>
+                        <input type="text" class="form-control" id="a_name" name="a_name" disabled>
+                        <div id="acc_id_parent"></div>
+                    </div>
+                    {{-- <div class="col-4 mt-5">
                             <label>Payment</label>
                             <select class="form-control" id="acc_id" name="acc_id" required disabled>
                                 <option value="">- Payment -</option>
@@ -95,200 +98,195 @@
                             </select>
                             <div id="acc_id_parent"></div>
                         </div> --}}
-                        <div class="col-4 mt-3">
-                            <label>Dispute</label>
-                            <select class="form-control" id="dispute" name="dispute" required>
-                                <option value="">- Pilih Salah Satu -</option>
-                                <option value="1">Yes</option>
-                                <option value="0">No</option>
-                            </select>
-                            <div id="dispute_parent"></div>
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Tanggal Terima (mm/dd/yy) </label>
-                            <input type="date" id="receive_date" class="form-control" value="" />
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Tanggal Barang Datang </label>
-                            <input type="datetime-local" id="arrived_at" class="form-control" value="" />
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Ongkos Kirim</label>
-                            <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
-                                disabled />
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Keterangan Dispute</label>
-                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3"></textarea>
-                        </div>
-                        <div class="col-4 mt-5">
-                            <div class="row">
-                                <div class="col-6">
-                                    <label for="pay_date">Tanggal Bayar</label>
-                                    <input type="date" id="pay_date" class="form-control" disabled />
-                                </div>
-                                <div class="col-6">
-                                    <label for="due_date">Tanggal Jatuh Tempo</label>
-                                    <input type="date" id="due_date" class="form-control" disabled />
-                                </div>
+                    <div class="col-4 mt-3">
+                        <label>Dispute</label>
+                        <select class="form-control" id="dispute" name="dispute" required>
+                            <option value="">- Pilih Salah Satu -</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <div id="dispute_parent"></div>
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Tanggal Terima (mm/dd/yy) </label>
+                        <input type="date" id="receive_date" class="form-control" value="" />
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Tanggal Barang Datang </label>
+                        <input type="datetime-local" id="arrived_at" class="form-control" value="" />
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Ongkos Kirim</label>
+                        <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
+                            disabled />
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Keterangan Dispute</label>
+                        <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3"></textarea>
+                    </div>
+                    <div class="col-4 mt-5">
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="pay_date">Tanggal Bayar</label>
+                                <input type="date" id="pay_date" class="form-control" disabled />
                             </div>
-                        </div>
-                        <div class="col-4 mt-3 d-flex flex-column">
-                            <label class="badge badge-primary mt-3">Bukti Gambar Invoice dan Paket</label>
-                            <div class="row  justify-content-between">
-                                <a class="input-group col-5" type="button" id="InvoiceImagesBtn"
-                                    aria-haspopup="true" aria-expanded="false">
-                                    <label class="input-group-text" for="invoiceImage">
-                                        <span class="svg-icon svg-icon-md">
-                                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                                                height="24px" viewBox="0 0 24 24" version="1.1">
-                                                <g stroke="none" stroke-width="1" fill="none"
-                                                    fill-rule="evenodd">
-                                                    <rect x="0" y="0" width="24" height="24" />
-                                                    <path
-                                                        d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                        fill="#000000" opacity="0.3" />
-                                                    <path
-                                                        d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                        fill="#000000" />
-                                                </g>
-                                            </svg>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                        Invoice
-                                    </label>
-                                </a>
-                                <a class="input-group col-5" type="button" id="BuktitfImagesBtn"
-                                    aria-haspopup="true" aria-expanded="false">
-                                    <label class="input-group-text" for="buktitfImage">
-                                        <span class="svg-icon svg-icon-md">
-                                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                                                height="24px" viewBox="0 0 24 24" version="1.1">
-                                                <g stroke="none" stroke-width="1" fill="none"
-                                                    fill-rule="evenodd">
-                                                    <rect x="0" y="0" width="24" height="24" />
-                                                    <path
-                                                        d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                        fill="#000000" opacity="0.3" />
-                                                    <path
-                                                        d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                        fill="#000000" />
-                                                </g>
-                                            </svg>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                        Bukti Transfer
-                                    </label>
-                                </a>
-                                <a class="input-group col-5 mt-2" type="button" id="DisputeFileBtn"
-                                    aria-haspopup="true" aria-expanded="false">
-                                    <label class="input-group-text" for="disputefile">
-                                        <span class="svg-icon svg-icon-md">
-                                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                                                height="24px" viewBox="0 0 24 24" version="1.1">
-                                                <g stroke="none" stroke-width="1" fill="none"
-                                                    fill-rule="evenodd">
-                                                    <rect x="0" y="0" width="24" height="24" />
-                                                    <path
-                                                        d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                        fill="#000000" opacity="0.3" />
-                                                    <path
-                                                        d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                        fill="#000000" />
-                                                </g>
-                                            </svg>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                        File Dispute
-                                    </label>
-                                </a>
-                                <a class="input-group col-5 mt-2" type="button" id="SuratJalanBtn"
-                                    aria-haspopup="true" aria-expanded="false">
-                                    <label class="input-group-text" for="suratJalan">
-                                        <span class="svg-icon svg-icon-md">
-                                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                                                height="24px" viewBox="0 0 24 24" version="1.1">
-                                                <g stroke="none" stroke-width="1" fill="none"
-                                                    fill-rule="evenodd">
-                                                    <rect x="0" y="0" width="24" height="24" />
-                                                    <path
-                                                        d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                        fill="#000000" opacity="0.3" />
-                                                    <path
-                                                        d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                        fill="#000000" />
-                                                </g>
-                                            </svg>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                        Surat Jalan
-                                    </label>
-                                </a>
+                            <div class="col-6">
+                                <label for="due_date">Tanggal Jatuh Tempo</label>
+                                <input type="date" id="due_date" class="form-control" disabled />
                             </div>
-                        </div>
-                        <div class="col-4 mt-4">
-                            <label class="badge badge-primary">Status Dispute</label>
-                            <select class="form-control" name="status_dispute" id="status_dispute" required>
-                                <option value="">- Pilih Status -</option>
-                                <option value="1">Progress</option>
-                                <option value="0">Closed</option>
-                            </select>
-                        </div>
-                        <div class="col-4 mt-3">
-                            <label>Putaway</label>
-                            <input type="text" id="putaway" class="form-control" name="putaway" disabled />
-                        </div>
-                        <div class="col-4 mt-5">
-                            <label>Nominal Payment</label>
-                            <input type="number" class="form-control " placeholder="Nominal Payment"
-                                name="payment_amount" id="payment_amount" min="0" disabled />
-                        </div>
-                        <div class="col-4 mt-5 " title="(Nominal Klaim + Nominal Payment - Total PO)">
-                            <label>Sisa Payment</label>
-                            <input type="number" class="form-control " placeholder="Sisa Payment"
-                                id="remaining_payment" disabled />
-                        </div>
-                        <div class="col-4 mt-5" id="reject_reason_detail">
-                            <label for="reject_reason" class="text-danger">Alasan Reject</label>
-                            <textarea class="form-control border-danger" name="reject_reason" id="reject_reason" rows="3" disabled></textarea>
                         </div>
                     </div>
-                    <br>
-                    <!--end::Row-->
-                    <!--begin::Row-->
-                    <table class="table table-responsive table-hover" id="APDtb">
-                        <thead class="bg-primary">
-                            <tr>
-                                <th class="text-white">No</th>
-                                <th class="text-white">Tanggal Terima</th>
-                                <th class="text-white">Invoice</th>
-                                <th class="text-white">SKU</th>
-                                <th class="text-white">Brand</th>
-                                <th class="text-white">Artikel</th>
-                                <th class="text-white">Warna</th>
-                                <th class="text-white">Size</th>
-                                <th class="text-white">Tipe</th>
-                                <th class="text-white">Qty Terima</th>
-                                <th class="text-white">Current Stock</th>
-                                <th class="text-white">Harga Beli</th>
-                                <th class="text-white">Total</th>
-                                <th class="text-white"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                        </tbody>
-                    </table>
-                    <!--end::Row-->
+                    <div class="col-4 mt-3 d-flex flex-column">
+                        <label class="badge badge-primary mt-3">Bukti Gambar Invoice dan Paket</label>
+                        <div class="row  justify-content-between">
+                            <a class="input-group col-5" type="button" id="InvoiceImagesBtn" aria-haspopup="true"
+                                aria-expanded="false">
+                                <label class="input-group-text" for="invoiceImage">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                            viewBox="0 0 24 24" version="1.1">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <rect x="0" y="0" width="24" height="24" />
+                                                <path
+                                                    d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                    fill="#000000" opacity="0.3" />
+                                                <path
+                                                    d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                    fill="#000000" />
+                                            </g>
+                                        </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    Invoice
+                                </label>
+                            </a>
+                            <a class="input-group col-5" type="button" id="BuktitfImagesBtn" aria-haspopup="true"
+                                aria-expanded="false">
+                                <label class="input-group-text" for="buktitfImage">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                            viewBox="0 0 24 24" version="1.1">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <rect x="0" y="0" width="24" height="24" />
+                                                <path
+                                                    d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                    fill="#000000" opacity="0.3" />
+                                                <path
+                                                    d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                    fill="#000000" />
+                                            </g>
+                                        </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    Bukti Transfer
+                                </label>
+                            </a>
+                            <a class="input-group col-5 mt-2" type="button" id="DisputeFileBtn"
+                                aria-haspopup="true" aria-expanded="false">
+                                <label class="input-group-text" for="disputefile">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                            viewBox="0 0 24 24" version="1.1">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <rect x="0" y="0" width="24" height="24" />
+                                                <path
+                                                    d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                    fill="#000000" opacity="0.3" />
+                                                <path
+                                                    d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                    fill="#000000" />
+                                            </g>
+                                        </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    File Dispute
+                                </label>
+                            </a>
+                            <a class="input-group col-5 mt-2" type="button" id="SuratJalanBtn" aria-haspopup="true"
+                                aria-expanded="false">
+                                <label class="input-group-text" for="suratJalan">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                            viewBox="0 0 24 24" version="1.1">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <rect x="0" y="0" width="24" height="24" />
+                                                <path
+                                                    d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                    fill="#000000" opacity="0.3" />
+                                                <path
+                                                    d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                    fill="#000000" />
+                                            </g>
+                                        </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    Surat Jalan
+                                </label>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4 mt-4">
+                        <label class="badge badge-primary">Status Dispute</label>
+                        <select class="form-control" name="status_dispute" id="status_dispute" required>
+                            <option value="">- Pilih Status -</option>
+                            <option value="1">Progress</option>
+                            <option value="0">Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-4 mt-3">
+                        <label>Putaway</label>
+                        <input type="text" id="putaway" class="form-control" name="putaway" disabled />
+                    </div>
+                    <div class="col-4 mt-5">
+                        <label>Nominal Payment</label>
+                        <input type="number" class="form-control " placeholder="Nominal Payment"
+                            name="payment_amount" id="payment_amount" min="0" disabled />
+                    </div>
+                    <div class="col-4 mt-5 " title="(Nominal Klaim + Nominal Payment - Total PO)">
+                        <label>Sisa Payment</label>
+                        <input type="number" class="form-control " placeholder="Sisa Payment"
+                            id="remaining_payment" disabled />
+                    </div>
+                    <div class="col-4 mt-5" id="reject_reason_detail">
+                        <label for="reject_reason" class="text-danger">Alasan Reject</label>
+                        <textarea class="form-control border-danger" name="reject_reason" id="reject_reason" rows="3" disabled></textarea>
+                    </div>
                 </div>
+                <br>
+                <!--end::Row-->
+                <!--begin::Row-->
+                <table class="table table-responsive table-hover" id="APDtb">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th class="text-white">No</th>
+                            <th class="text-white">Tanggal Terima</th>
+                            <th class="text-white">Invoice</th>
+                            <th class="text-white">SKU</th>
+                            <th class="text-white">Brand</th>
+                            <th class="text-white">Artikel</th>
+                            <th class="text-white">Warna</th>
+                            <th class="text-white">Size</th>
+                            <th class="text-white">Tipe</th>
+                            <th class="text-white">Qty Terima</th>
+                            <th class="text-white">Current Stock</th>
+                            <th class="text-white">Harga Beli</th>
+                            <th class="text-white">Total</th>
+                            <th class="text-white"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+                <!--end::Row-->
             </div>
             <div class="modal-footer d-flex justify-content-between">
                 <button type="button" class="btn btn-danger font-weight-bold" id="reject_btn">Reject</button>
@@ -466,17 +464,17 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="reject_reason">Alasan Reject <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="reject_reason" name="reject_reason" rows="4" 
+                    <label for="reject_reason_input">Alasan Reject <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="reject_reason_input" name="reject_reason_input" rows="4"
                         placeholder="Masukkan alasan reject..." required></textarea>
                     <div id="reject_reason_error" class="invalid-feedback"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" 
+                <button type="button" class="btn btn-light-primary font-weight-bold"
                     data-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-danger font-weight-bold" 
-                    id="confirm_reject_btn">Reject PO</button>
+                <button type="button" class="btn btn-danger font-weight-bold" id="confirm_reject_btn">Reject
+                    PO</button>
             </div>
         </div>
     </div>

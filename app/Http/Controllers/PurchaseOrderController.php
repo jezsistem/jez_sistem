@@ -933,11 +933,30 @@ class PurchaseOrderController extends Controller
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
-                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id')
+                    $poad_data = PurchaseOrderArticleDetail::select(
+                        'purchase_order_article_details.id as poad_id',
+                        'sz_name',
+                        'ps_qty',
+                        'ps_running_code',
+                        'ps_sell_price',
+                        'ps_price_tag',
+                        'ps_purchase_price',
+                        'poad_qty',
+                        'poad_purchase_price',
+                        'poad_total_price',
+                        'pst_id',
+                        'ps_barcode',
+                        'p_id',
+                        DB::raw('CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NOT NULL THEN 1 ELSE 0 END AS is_approved'),
+                        DB::raw('SUM(CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NOT NULL THEN poads_total_price ELSE 0 END) AS total_approved_price'),
+                    )
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         //                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                        ->where(['poa_id' => $poa->poa_id])->get();
+                        ->where(['poa_id' => $poa->poa_id])
+                        ->groupBy('purchase_order_article_details.id')
+                        ->get();
 
                     // Step 2: Retrieve pls_qty from product_location_setups
                     $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
@@ -991,6 +1010,9 @@ class PurchaseOrderController extends Controller
         $data = [
             'product' => $get_product
         ];
+
+        // dd($data);
+
         return view('app.purchase_order._purchase_order_article_detail', compact('data'));
     }
 
@@ -1072,6 +1094,7 @@ class PurchaseOrderController extends Controller
             $r['is_receivable'] = $draft->is_receivable;
             $r['claim_amount'] = $draft->claim_amount;
             $r['total_po'] = $total_po;
+            $r['adjustment_amount'] = $draft->adjustment_amount;
         } else {
             $r['status'] = '400';
         }
@@ -1471,6 +1494,7 @@ class PurchaseOrderController extends Controller
                     'po.po_payment_amount as payment_amount',
                     DB::raw('COALESCE(ts_po.claim_amount, 0) as claim_amount'),
                     'stkt.stkt_name as stock_type',
+                    DB::raw('COALESCE(ts_po.adjustment_amount, 0) as adjustment_amount')
                 )
                 ->where('po.id', $request->_po_id)
                 ->groupBy('po.id')
@@ -1512,6 +1536,7 @@ class PurchaseOrderController extends Controller
             $is_consigment = strtolower($query1->stock_type) == strtolower('CONSIGNMENT') ? true : false;
 
             $po_qty = $query2->total_qty ?? 0;
+            $po_total_price = $query2->total_price ?? 0;
 
             $po_receive_amount_not_approved = $query3->price_not_approve ?? 0;
             $po_receive_qty_not_approved = $query3->qty_not_approve ?? 0;
@@ -1519,8 +1544,10 @@ class PurchaseOrderController extends Controller
             $po_receive_amount_approved = $query3->price_approve ?? 0;
             $po_receive_qty_approved = $query3->qty_approve ?? 0;
 
-            $po_receive_amount = $po_receive_amount_not_approved + $po_receive_amount_approved;
+            $po_receive_amount = $po_receive_amount_approved;
             $po_receive_qty = $po_receive_qty_not_approved + $po_receive_qty_approved;
+
+            $adjustment_amount = $query1->adjustment_amount ?? 0;
 
             $tolerance = 1000;
 
@@ -1573,7 +1600,7 @@ class PurchaseOrderController extends Controller
             }
 
             //hutang full receive
-            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty = $po_qty)) {
+            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty == $po_qty)) {
                 $after = 'HUTANG';
                 $po->finance_status = $after;
                 $po->save();
@@ -1588,7 +1615,7 @@ class PurchaseOrderController extends Controller
             }
 
             //piutang overpayment partial receive
-            if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty < $po_qty)) {
+            if ($has_payment_date && $has_stock_in_date && ($po_receive_qty < $po_qty)) {
                 $after = 'PIUTANG (OVERPAYMENT PARTIAL)';
                 $po->finance_status = $after;
                 $po->save();
@@ -1619,9 +1646,14 @@ class PurchaseOrderController extends Controller
 
             //lunas with tolerance condition
             //has payment date and stock in date and payment + claim amount equals total purchase amount with tolerance
-            $difference = ($payment_amount + $claim_amount) - $po_receive_amount;
 
-            if ($has_payment_date && $has_stock_in_date && $difference <= $tolerance && $difference >= -$tolerance) {
+            if ($po_receive_amount != 0 && $po_qty == $po_receive_qty_approved) {
+                $difference = ($payment_amount + $claim_amount) - ($po_receive_amount + $po->adjustment_amount);
+            } else {
+                $difference = ($payment_amount + $claim_amount) - ($po_total_price + $po->adjustment_amount);
+            }
+
+            if ($has_payment_date && $has_stock_in_date && $difference <= $tolerance && $difference >= -$tolerance && ($po_qty == $po_receive_qty)) {
                 $after = 'LUNAS';
                 $po->finance_status = $after;
                 $po->save();
@@ -1833,36 +1865,79 @@ class PurchaseOrderController extends Controller
     public function getRemainingPayment(Request $request)
     {
         $no_po = $request->po_invoice;
-        $po = PurchaseOrder::join('purchase_order_articles', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-            ->join('purchase_order_article_details', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-            ->where('purchase_orders.po_invoice', $no_po)
+        //query qty and price pembelian
+        //query date and payment amount
+        $query1 = DB::table('purchase_orders as po')
+            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+            ->leftJoin('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
+            ->leftJoin('stock_types as stkt', 'stkt.id', '=', 'po.stkt_id')
             ->select(
-                DB::raw('COALESCE(ts_purchase_orders.claim_amount, 0) as claim_amount'),
-                DB::raw('COALESCE(ts_purchase_orders.po_payment_amount, 0) as payment_amount_with_item'),
-                DB::raw('COALESCE(ts_purchase_orders.po_total_purchase, 0) as purchase_amount_no_item'),
-                DB::raw('SUM(ts_purchase_order_article_details.poad_total_price) as total_po')
+                DB::raw('MAX(ts_po.pay_date) as pay_date'),
+                DB::raw('MAX(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.created_at END) as stock_in_date'),
+                'po.po_payment_amount as payment_amount',
+                DB::raw('COALESCE(ts_po.claim_amount, 0) as claim_amount'),
+                'stkt.stkt_name as stock_type',
+                DB::raw('COALESCE(ts_po.adjustment_amount, 0) as adjustment_amount'),
+                DB::raw('COALESCE(ts_po.po_total_purchase, 0) as purchase_amount_no_item')
             )
-            ->groupBy('purchase_orders.id')
+            ->where('po.po_invoice', $no_po)
+            ->groupBy('po.id')
             ->first();
 
-        if ($po) {
-            $claim_amount = $po->claim_amount;
-            $payment_amount = $po->payment_amount_with_item;
-            $purchase_amount = $po->purchase_amount_no_item;
-            $total_po = $po->total_po;
+        $query2 = DB::table('purchase_orders as po')
+            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+            ->select(
+                DB::raw('SUM(ts_poad.poad_qty) as total_qty'),
+                DB::raw('SUM(ts_poad.poad_total_price) as total_price')
+            )
+            ->where('po.po_invoice', $no_po)
+            ->groupBy('po.id')
+            ->first();
 
+        //query qty and price terima
+        $query3 = DB::table('purchase_orders as po')
+            ->join('purchase_order_articles as poa', 'poa.po_id', '=', 'po.id')
+            ->join('purchase_order_article_details as poad', 'poad.poa_id', '=', 'poa.id')
+            ->join('purchase_order_article_detail_statuses as poads', 'poads.poad_id', '=', 'poad.id')
+            ->select(
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_not_approve'),
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_not_approve'),
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_qty ELSE 0 END) as qty_approve'),
+                DB::raw('SUM(CASE WHEN ts_poads.u_id_approve IS NOT NULL THEN ts_poads.poads_total_price ELSE 0 END) as price_approve')
+            )
+            ->where('po.po_invoice', $no_po)
+            ->groupBy('po.id')
+            ->first();
+
+        $poads_total_price = (int)$query3->price_approve ?? 0;
+
+        // //convert to integer
+        $poads_total_price_value = $poads_total_price;
+
+        if ($query1) {
+            $claim_amount = $query1->claim_amount;
+            $payment_amount = $query1->payment_amount;
+            $purchase_amount = $query1->purchase_amount_no_item;
+            $total_po = $query2->total_price;
             // Calculate total_po based on whether total_po (with item) > 0
             $calculated_total_po = ($total_po > 0) ? $total_po : $purchase_amount;
 
-            // Calculate remaining payment
-            $remaining_payment = ($payment_amount + $claim_amount) - $calculated_total_po;
+            // dd(($poads_total_price_value + $po->adjustment_amount) == $calculated_total_po);
+
+            if ($poads_total_price_value != 0 && $query2->total_qty == $query3->qty_approve) {
+                $difference = ($payment_amount + $claim_amount) - ($poads_total_price_value + $query1->adjustment_amount);
+            } else {
+                $difference = ($payment_amount + $claim_amount) - ($calculated_total_po + $query1->adjustment_amount);
+            }
 
             return response()->json([
                 'status' => '200',
                 'claim_amount' => $claim_amount,
                 'payment_amount' => $payment_amount,
                 'total_po' => $calculated_total_po,
-                'remaining_payment' => $remaining_payment
+                'remaining_payment' => $difference
             ]);
         }
 
@@ -1870,5 +1945,36 @@ class PurchaseOrderController extends Controller
             'status' => '400',
             'message' => 'PO not found'
         ]);
+    }
+
+    public function adjustmentAmountPo(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $po_id = $request->_po_id;
+            $adjustment_amount = $request->_adjustment_amount;
+
+            $before = DB::table('purchase_orders')->where(['id' => $po_id])->select('adjustment_amount')->first();
+            $before = $before ? $before->adjustment_amount : null;
+
+            $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['adjustment_amount' => $adjustment_amount]);
+
+            if (!empty($check)) {
+                $purchaseOrderLog = new PurchaseOrderLog();
+                $purchaseOrderLog->storePOLog($po_id, auth()->id(), PurchaseOrderLog::TYPE_PURCHASE_ORDER, 'adjustment_amount', $before, $adjustment_amount, date('Y-m-d H:i:s'));
+
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $r['status'] = '400';
+            $r['message'] = $e->getMessage();
+        }
+
+        return json_encode($r);
     }
 }
