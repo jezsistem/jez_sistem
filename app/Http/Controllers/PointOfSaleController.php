@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PosTransactionDetailLogs;
 use App\Models\Product;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
@@ -1330,12 +1331,14 @@ class PointOfSaleController extends Controller
 
             $current_price = DB::table('product_stocks')->where('id', '=', $pst_id)->first();
 
+            $current_products_information = DB::table('products')->where('id', '=', $current_price->p_id)->first();
+
             $create = PosTransactionDetail::create([
                 'pt_id' => $pt_id,
                 'pst_id' => $pst_id,
                 'pl_id' => $pl_id,
                 'pos_td_qty' => $item_qty,
-                //                'pos_td_sell_price' => $final_price,
+                // 'pos_td_sell_price' => $final_price,
                 // 'pos_td_sell_price' => ($pos_td_discount_price + $nameset_price) - $discount_number,
                 'pos_td_sell_price' => $subtotal_item * $item_qty,
                 'pos_td_discount' => $discount,
@@ -1349,6 +1352,18 @@ class PointOfSaleController extends Controller
                 'pos_td_item_price_tag' => $current_price->ps_price_tag,
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
+
+            //save information products
+            if ($create) {
+                PosTransactionDetailLogs::create([
+                    'ptd_id'            => $create->id,
+                    'ps_purchase_price' => $current_price->ps_purchase_price,
+                    'ps_price_tag'      => $current_price->ps_price_tag,
+                    'ps_sell_price'     => $pos_td_discount_price + $nameset_price,
+                    'p_turnoverclass'   => $current_products_information->p_turnoverclass ?? null,
+                    'created_at'        => now(),
+                ]);
+            }
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
