@@ -349,7 +349,7 @@ class TransaksiOnlineController extends Controller
             $fileName = 'item_online_details' . $timestamp . '.xlsx';
 
             $data = new OnlineReportExport($store_id, $start, $end, $status_print, $platform, $courier, $order_status, $internal_order_status);
-            
+
             return Excel::download($data, $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
@@ -379,6 +379,7 @@ class TransaksiOnlineController extends Controller
                 'online_transactions.internal_order_status as jezpro_status',
                 'warehouse',
                 'online_transactions.online_print as is_printed',
+                'product_stocks.id as pst_id',
                 DB::raw('CONCAT_WS(", ", 
                 IF(SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING ONLINE" THEN 1 ELSE 0 END) > 0, 
                     CONCAT("WAITING ONLINE => ", SUM(CASE WHEN ts_product_location_setup_transactions.plst_status = "WAITING ONLINE" THEN 1 ELSE 0 END)), 
@@ -504,6 +505,10 @@ class TransaksiOnlineController extends Controller
                         $can_pick = false;
                     }
 
+                    if ($total_stock - $total_waiting <= 0) {
+                        $can_pick = false;
+                    }
+                    
                     return '<div class="d-flex">
                                 <div class="d-flex flex-column align-items-center">
                                     <span class="badge badge-warning mb-1">Stock: ' . $total_stock - $total_waiting . '</span>
@@ -514,13 +519,16 @@ class TransaksiOnlineController extends Controller
                                         
                                     </div>
                                 </div>
-                                <button class="btn btn-sm btn-warning ml-4" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit Qty">
+                                <button class="btn btn-sm btn-info ml-4" title="Pick List" onclick="viewPickList(\'' . $data->pst_id . '\', \'' . $warehouse_st_id . '\')">
+                                    <i class="fas fa-box"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning ml-2" id="edit_item_btn" data-otd_id= \'' . $data->otd_id . '\' data-qty= \'' . $data->to_qty . '\' data-to_id= \'' . $data->to_id . '\' title="Edit Qty">
                                     <i class="fas fa-pen"></i>
                                 </button>
                                 <!--<button class="btn btn-sm btn-info ml-4" id="edit_item_warehouse_btn" data-otd_id= \'' . $data->otd_id . '\'' . '\' data-to_id= \'' . $data->to_id . '\' data-warehouse= \'' . $data->warehouse . '\' title="Edit Warehouse">
                                     <i class="fas fa-warehouse"></i>
                                 </button>-->
-                                <button class="btn btn-sm btn-danger ml-4" onclick="deleteItem(\'' . $data->otd_id . '\')" title="Delete">
+                                <button class="btn btn-sm btn-danger ml-2" onclick="deleteItem(\'' . $data->otd_id . '\')" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>';
@@ -2457,5 +2465,30 @@ class TransaksiOnlineController extends Controller
             \Log::error('Error canceling waiting online item: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => $e->getMessage()]);
         }
+    }
+
+    public function viewPickList($pst_id, $warehouse_st_id)
+    {
+        $pick_list = ProductLocationSetupTransaction::select(
+            'product_location_setup_transactions.created_at',
+            'users.u_name',
+            'stores.st_name',
+            'product_location_setup_transactions.plst_status',
+            'online_transaction_details.order_number'
+        )
+            ->leftJoin('users', 'product_location_setup_transactions.u_id', '=', 'users.id')
+            ->leftJoin('stores', 'product_location_setup_transactions.st_id', '=', 'stores.id')
+            ->leftJoin('online_transaction_details', 'product_location_setup_transactions.otd_id', '=', 'online_transaction_details.id')
+            ->where('product_location_setup_transactions.pst_id', $pst_id)
+            ->where(function ($query) use ($warehouse_st_id) {
+                $query->where('product_location_setup_transactions.warehouse_st_id', $warehouse_st_id)
+                    ->orWhere('product_location_setup_transactions.st_id', $warehouse_st_id);
+            })
+            ->whereIn('product_location_setup_transactions.plst_status', ['WAITING TO TAKE', 'WAITING ONLINE'])
+            ->whereNull('product_location_setup_transactions.u_id_helper')
+            ->orderBy('product_location_setup_transactions.created_at', 'asc')
+            ->get();
+
+        return response()->json(['status' => '200', 'data' => $pick_list]);
     }
 }

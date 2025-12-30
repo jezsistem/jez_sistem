@@ -530,6 +530,34 @@
     </div>
 </div>
 
+<div class="modal fade" id="waitingPickListModal" tabindex="-1" role="dialog" aria-labelledby="waitingPickListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="waitingPickListModalLabel">Waiting Pick List</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i class="ki ki-close" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="waitingPickListSearch" placeholder="Cari nomor pesanan..." />
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="waitingPickListTable">
+                        <thead class="bg-dark text-light">
+                        </thead>
+                        <tbody>
+                            <!-- data diisi melalui script -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @include('app.chat_modal.chat_modal')
 

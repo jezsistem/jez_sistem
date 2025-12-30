@@ -423,7 +423,7 @@
                         <strong><i>Cust Experience :</i></strong>
                         <br />
                         <img class="" data-pt_id="{{ $row->pt_id }}" src="{{ asset('logo/jezpro_qr.png') }}"
-                            style="width:43%; background-color:#000;" />
+                            style="width:43%; background-color:#000; margin-top:20px" />
                     </div>
                     <br>
                     <div class="title">

@@ -1,4 +1,5 @@
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 
 <script>
     var approval = '';
@@ -24,21 +25,6 @@
                 } else {
                     toast('Gagal', 'Informasi gagal disimpan', 'warning');
                 }
-            }
-        });
-    }
-
-    function calcRemainingPayment(po_number) {
-        $.ajax({
-            type: "GET",
-            data: {
-                po_invoice: po_number,
-            },
-            dataType: 'json',
-            url: "{{ url('po_remaining_payment') }}",
-            success: function(r) {
-                console.log(r);
-                $('#remaining_payment').val(r.remaining_payment);
             }
         });
     }
@@ -279,17 +265,15 @@
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: true,
+            responsive: false, // Disable responsive to allow horizontal scroll
+            scrollX: true, // Enable horizontal scrolling
+            autoWidth: false, // Allow columns to use their defined widths
             dom: 'Brtl<"text-right"ip>',
             buttons: [],
             ajax: {
                 url: "{{ url('apd_datatables') }}",
                 data: function(d) {
                     d.poads_invoice = $('#invoice_label').text();
-                    // jQuery('#st_id').val(r.st_id).trigger('change');
-                    // jQuery('#ps_id').val(r.ps_id).trigger('change');
-                    // jQuery('#stkt_id').val(r.stkt_id).trigger('change');
-                    // jQuery('#tax_id').val(r.tax_id).trigger('change');
                 }
             },
             columns: [{
@@ -341,15 +325,12 @@
                     data: 'poads_purchase_price',
                     name: 'poads_purchase_price',
                     render: function(data, type, row) {
-                        // Ensure the value is treated as a number
                         var price = parseFloat(data);
-                        // Format the price as Rupiah
                         var formattedPrice = new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
                             minimumFractionDigits: 0
                         }).format(price);
-                        // Return the formatted price
                         return formattedPrice;
                     }
                 },
@@ -357,15 +338,12 @@
                     data: 'poads_total_price',
                     name: 'poads_total_price',
                     render: function(data, type, row) {
-                        // Ensure the value is treated as a number
                         var price = parseFloat(data);
-                        // Format the price as Rupiah
                         var formattedPrice = new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
                             minimumFractionDigits: 0
                         }).format(price);
-                        // Return the formatted price
                         return formattedPrice;
                     }
                 },
@@ -428,7 +406,7 @@
             u_id_reject = po_approval_table.row(this).data().u_id_reject;
             is_rejected = u_id_reject ? true : false;
             var payment_amount = po_approval_table.row(this).data().payment_amount;
-            if(is_approved || is_rejected){
+            if (is_approved || is_rejected) {
                 $('#approve_btn').hide();
                 $('#reject_btn').css('visibility', 'hidden');
             } else {
@@ -847,49 +825,49 @@
 
         $('#confirm_reject_btn').on('click', function() {
             var reason = $('#reject_reason_input').val().trim();
-            
+
             if (!reason) {
-            $('#reject_reason_input').addClass('is-invalid');
-            $('#reject_reason_error').text('Alasan penolakan tidak boleh kosong');
-            return false;
+                $('#reject_reason_input').addClass('is-invalid');
+                $('#reject_reason_error').text('Alasan penolakan tidak boleh kosong');
+                return false;
             }
 
             $('#reject_reason_input').removeClass('is-invalid');
             $('#loader').show();
 
             $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
             });
             $.ajax({
-            type: "POST",
-            data: {
-                invoice: $('#invoice_label').text(),
-                rejection_reason: reason
-            },
-            dataType: 'json',
-            url: "{{ url('apd_reject') }}",
-            success: function(r) {
-                if (r.status == '200') {
-                $('#RejectConfirmationModal').modal('hide');
-                $('#ApproveModal').modal('hide');
-                var po_id = $('#_po_id').val();
-                if (po_id) {
-                    closeEditModal('purchase_order', po_id, 'pembelian');
+                type: "POST",
+                data: {
+                    invoice: $('#invoice_label').text(),
+                    rejection_reason: reason
+                },
+                dataType: 'json',
+                url: "{{ url('apd_reject') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+                        $('#RejectConfirmationModal').modal('hide');
+                        $('#ApproveModal').modal('hide');
+                        var po_id = $('#_po_id').val();
+                        if (po_id) {
+                            closeEditModal('purchase_order', po_id, 'pembelian');
+                        }
+                        po_approval_table.draw(false);
+                        swal("Berhasil", "Data berhasil direject", "success");
+                    } else {
+                        swal('Gagal', r.message || 'Gagal reject data', 'error');
+                    }
+                },
+                error: function() {
+                    swal('Gagal', 'Terjadi kesalahan pada server', 'error');
+                },
+                complete: function() {
+                    $('#loader').hide();
                 }
-                po_approval_table.draw(false);
-                swal("Berhasil", "Data berhasil direject", "success");
-                } else {
-                swal('Gagal', r.message || 'Gagal reject data', 'error');
-                }
-            },
-            error: function() {
-                swal('Gagal', 'Terjadi kesalahan pada server', 'error');
-            },
-            complete: function() {
-                $('#loader').hide();
-            }
             });
         });
 

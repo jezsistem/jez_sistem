@@ -13,10 +13,16 @@
             </div>
             <div class="modal-body">
                 {{-- show total harga beli and notes --}}
-                <div class="row">
-                    <div class="col-4">
-                        <label class="badge badge-primary">Total</label>
-                        <label class="badge badge-secondari" id="total_approval_price"></label>
+                <div class="">
+                    <div class="row mb-4 m-4">
+                        <div class="col-md-4">
+                            <div class="card shadow-sm bg-success border-0">
+                                <div class="card-body py-3 px-4 d-flex flex-column align-items-start">
+                                    <span class="font-weight-bold text-white mb-1">Total Harga Beli</span>
+                                    <h3 class="mb-0 text-white" id="total_approval_price">Rp 0</h3>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <input type="hidden" id="_mode" name="_mode" />
                     <input type="hidden" id="_po_id" name="_po_id" />
@@ -236,6 +242,11 @@
                                     name="payment_amount" id="payment_amount" min="0" />
                             </div>
 
+                            <div class="col-4 mt-5 " title="(Nominal Klaim + Nominal Payment - Total PO)">
+                                <label>Sisa Payment</label>
+                                <input type="number" class="form-control " placeholder="Sisa Payment"
+                                    id="remaining_payment" disabled />
+                            </div>
                         </div>
                         <br>
 

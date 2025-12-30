@@ -101,6 +101,78 @@
         });
     }
 
+    function viewPickList(pst_id, warehouse_st_id) {
+        // open modal view pick list
+        $('#waitingPickListModal').modal('show');
+
+        //get data and pass to table waitingPickListTable
+
+        const endpoint = "{{ url('view_pick_list_online_transaction') }}/" + pst_id + "/" + warehouse_st_id;
+        const container = $('#waitingPickListTable');
+
+        container.html(
+            '<div class="text-center p-4"><div class="spinner-border text-info"></div><p class="mt-2">Memuat data...</p></div>'
+        );
+
+        const formatDateTime = value => {
+            if (!value) return '-';
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return value;
+            const pad = n => n.toString().padStart(2, '0');
+            return `${pad(parsed.getDate())}/${pad(parsed.getMonth() + 1)}/${parsed.getFullYear()} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}:${pad(parsed.getSeconds())}`;
+        };
+
+        fetch(endpoint)
+            .then(response => {
+            if (!response.ok) {
+                throw new Error('Network error');
+            }
+            return response.json();
+            })
+            .then(({ status, data }) => {
+            if (status !== '200') {
+                container.html('<div class="text-danger p-4 text-center">Gagal memuat data</div>');
+                return;
+            }
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.html('<div class="p-4 text-center text-muted">Belum ada pick list</div>');
+                return;
+            }
+
+            const rows = data.map((item, index) => `
+                <tr>
+                <td class="text-center">${index + 1}</td>
+                <td>${formatDateTime(item.created_at)}</td>
+                <td>${item.u_name ?? '-'}</td>
+                <td>${item.st_name ?? '-'}</td>
+                <td>${item.plst_status ?? '-'}</td>
+                <td>${item.order_number ?? '-'}</td>
+                </tr>
+            `).join('');
+
+            container.html(`
+                <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                    <thead class="thead-light">
+                    <tr>
+                        <th class="text-center" style="width: 40px;">#</th>
+                        <th>Tanggal</th>
+                        <th>User</th>
+                        <th>Store</th>
+                        <th>Pick Status</th>
+                        <th>No Pesanan</th>
+                    </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                </div>
+            `);
+            })
+            .catch(() => {
+            container.html('<div class="text-danger p-4 text-center">Gagal memuat data</div>');
+            });
+        }
     document.getElementById('splitForm').addEventListener('submit', function(e) {
         e.preventDefault();
 

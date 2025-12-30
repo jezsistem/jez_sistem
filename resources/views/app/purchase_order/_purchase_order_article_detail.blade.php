@@ -11,13 +11,15 @@
                     <th class="text-dark">Stok In (all cabang)</th>
                     <th class="text-dark">Diskon</th>
                     <th class="text-dark">Detail</th>
-                    <th class="text-dark">Total</th>
+                    <th class="text-dark">Total PO</th>
+                    <th class="text-dark">Total Terima</th>
                 </tr>
             </thead>
             <tbody>
                 @php
                     $no = 1;
                     $final_price = 0;
+                    $final_approved_price = 0;
                     $a = 0;
                 @endphp
                 @foreach ($data['product'] as $row)
@@ -38,7 +40,7 @@
                                 $now = Carbon::now();
                             @endphp
 
-                            @if($createdAt->diffInDays($now) < 21)
+                            @if ($createdAt->diffInDays($now) < 21)
                                 <span style="color: red; margin-left: 5px; margin-top:10px;">NEW ARRIVAL</span>
                             @endif
                         </td>
@@ -54,9 +56,8 @@
                                 name="poa_extra_discount" id="poa_extra_discount{{ $row->poa_id }}"
                                 style="width:33px;" value="{{ $row->poa_extra_discount }}"
                                 onchange="return extraDiscount( {{ $row->poa_id }} )" /><br />
-                            <input type="text" style="width:65px;" value="Sub. Disc" readonly /><input
-                                type="text" name="poa_sub_discount"
-                                id="poa_sub_discount{{ $row->poa_id }}" style="width:33px;"
+                            <input type="text" style="width:65px;" value="Sub. Disc" readonly /><input type="text"
+                                name="poa_sub_discount" id="poa_sub_discount{{ $row->poa_id }}" style="width:33px;"
                                 value="{{ $row->poa_sub_discount }}"
                                 onchange="return subDiscount( {{ $row->poa_id }} )" />
                         </td>
@@ -73,6 +74,7 @@
                                 @php
                                     $i = 0;
                                     $total_poad_price = 0;
+                                    $total_poads_approved_price = 0;
                                 @endphp
                                 @foreach ($row->subitem as $srow)
                                     <span data-poa-{{ $row->poa_id }}>
@@ -96,13 +98,14 @@
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="" />
+                                                    value="" @if ($srow->is_approved == 1) disabled @endif />
                                             @else
                                                 <input type="text" style="width:100px;"
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="{{ $srow->poad_purchase_price }}" />
+                                                    value="{{ $srow->poad_purchase_price }}"
+                                                    @if ($srow->is_approved == 1) disabled @endif />
                                             @endif
                                         @else
                                             <input type="text" style="width:100px;"
@@ -113,13 +116,14 @@
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="" />
+                                                    value="" @if ($srow->is_approved == 1) disabled @endif />
                                             @else
                                                 <input type="text" style="width:100px;"
                                                     data-poad-id="{{ $srow->poad_id }}"
                                                     onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )"
                                                     id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                                    value="{{ $srow->poad_purchase_price }}" />
+                                                    value="{{ $srow->poad_purchase_price }}"
+                                                    @if ($srow->is_approved == 1) disabled @endif />
                                             @endif
                                         @endif
                                         <input type="text" style="width:100px;"
@@ -130,6 +134,7 @@
                                         @php
                                             $i++;
                                             $total_poad_price += $srow->poad_total_price;
+                                            $total_poads_approved_price += $srow->total_approved_price;
                                             $a++;
                                         @endphp
                                 @endforeach
@@ -138,22 +143,30 @@
                         <td><span
                                 id="poad_total_price_{{ $row->poa_id }}">{{ number_format($total_poad_price) }}</span>
                         </td>
+                        <td><span
+                                id="poads_total_price_{{ $row->poa_id }}">{{ number_format($total_poads_approved_price) }}</span>
+                        </td>
                     </tr>
                     @php
                         $no++;
                         $final_price += $total_poad_price;
+                        $final_approved_price += $total_poads_approved_price;
                     @endphp
                 @endforeach
                 <tr>
                     <!-- <td>
                 <a class="btn btn-sm btn-primary" id="save_all_po_btn" onclick="return saveAllPo()">Simpan</a>
             </td> -->
-                    <td colspan="11">
+                    <td colspan="9">
                         <span class="float-right">
-                            <a class="btn-sm btn-primary form-control">
-                                <center>Rp. <span id="poad_total_price">{{ number_format($final_price) }}</span>
-                                </center>
-                            </a>
+                            <div class="d-flex">
+                                <a class="btn-sm btn-primary form-control" style="width: fit-content; min-width: 120px;">
+                                    <center>Rp. <span id="poad_total_price">{{ number_format($final_price) }}</span></center>
+                                </a>
+                                <a class="btn-sm btn-success form-control ml-2" style="width: fit-content; min-width: 120px;">
+                                    <center>Rp. <span id="poads_total_approved_price">{{ number_format($final_approved_price) }}</span></center>
+                                </a>
+                            </div>
                         </span>
                     </td>
                 </tr>
