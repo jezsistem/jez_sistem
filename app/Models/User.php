@@ -254,4 +254,8 @@ class User extends Authenticatable
     {
         return $this->u_name ?: $this->name;
     }
+
+    public function remainingLeaveBalance() {
+        return $this->hasOne(LeaveBalance::class, 'user_id')->select('user_id', 'lb_remaining_balance')->latest('updated_at');
+    }
 }
