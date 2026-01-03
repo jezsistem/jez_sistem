@@ -9,9 +9,16 @@ class LeaveType extends Model
 {
     protected $table = 'leave_types';
     protected $fillable = [
-        'lt_code', 'lt_name', 'lt_description', 'lt_default_days',
-        'lt_default_hours', 'lt_unit', 'lt_requires_approval',
-        'lt_is_active', 'created_by', 'updated_by'
+        'lt_code',
+        'lt_name',
+        'lt_description',
+        'lt_default_days',
+        'lt_default_hours',
+        'lt_unit',
+        'lt_requires_approval',
+        'lt_is_active',
+        'created_by',
+        'updated_by'
     ];
 
     protected $casts = [
@@ -28,10 +35,23 @@ class LeaveType extends Model
     // Get active leave types
     public function getActiveLeaveTypes()
     {
-        return DB::table($this->table)
-            ->where('lt_is_active', true)
-            ->orderBy('lt_name')
-            ->get();
+        $user = auth()->user();
+
+        // Check remaining leave balance if user is authenticated
+        if ($user && $user->remainingLeaveBalance && $user->remainingLeaveBalance->lb_remaining_balance < 1) {
+            // If remaining balance is less than 1, return empty collection
+            $query = DB::table($this->table)
+                ->where('lt_is_active', true)
+                ->where('lt_code', '!=', 'ANNUAL')
+                ->orderBy('lt_name');
+        } else {
+            // Otherwise, return all active leave types
+            $query = DB::table($this->table)
+                ->where('lt_is_active', true)
+                ->orderBy('lt_name');
+        }
+
+        return $query->get();
     }
 
     // Check if leave type exists

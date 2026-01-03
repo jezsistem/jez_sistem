@@ -13,6 +13,7 @@ use App\Models\OnlineTransactions;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
+use App\Models\PosTransactionDetailLogs;
 use App\Models\Product;
 use App\Models\ProductLocation;
 use App\Models\ProductLocationSetup;
@@ -223,10 +224,10 @@ class TransaksiOnlineController extends Controller
 
                     return '<div class="d-flex">
                                 ' . ($data->internal_order_status == 'NEW TRX'
-                        ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="deleteTransaction(' . $data->to_id . ')" title="Delete">
+                            ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="deleteTransaction(' . $data->to_id . ')" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>'
-                        : '') .
+                            : '') .
                         ($data->internal_order_status == 'UNDER REVIEW'
                             ? '<button class="btn btn-sm btn-danger ms-1 mr-2" onclick="cancelTransaction(' . $data->to_id . ')" title="Cancel">
                                         <i class="fas fa-times"></i>
@@ -508,7 +509,7 @@ class TransaksiOnlineController extends Controller
                     if ($total_stock - $total_waiting <= 0) {
                         $can_pick = false;
                     }
-                    
+
                     return '<div class="d-flex">
                                 <div class="d-flex flex-column align-items-center">
                                     <span class="badge badge-warning mb-1">Stock: ' . $total_stock - $total_waiting . '</span>
@@ -1156,11 +1157,24 @@ class TransaksiOnlineController extends Controller
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
 
+                $current_price = DB::table('product_stocks')->where('id', '=', $product_stock->id)->first();
+
+                $current_products_information = DB::table('products')->where('id', '=', $current_price->p_id)->first();
+
                 if (!$insert_details) {
                     DB::rollBack();
                     return response()->json([
                         'status' => '500',
                         'message' => 'Gagal menambahkan detail transaksi untuk SKU: ' . $item->sku
+                    ]);
+                } else {
+                    PosTransactionDetailLogs::create([
+                        'ptd_id'            => $insert_details->id,
+                        'ps_purchase_price' => $current_price->ps_purchase_price,
+                        'ps_price_tag'      => $current_price->ps_price_tag,
+                        'ps_sell_price'     => $item->price_after_discount * $item->qty,
+                        'p_turnoverclass'   => $current_products_information->p_turnoverclass ?? null,
+                        'created_at'        => now(),
                     ]);
                 }
             }

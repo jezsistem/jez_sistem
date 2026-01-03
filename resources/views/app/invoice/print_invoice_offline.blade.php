@@ -141,7 +141,6 @@
                         <strong>{{ $row->st_name }}</strong><br />
                         {{ $row->st_address }}<br />
                         {{ $row->st_phone }}<br /><br />
-                        Jersey Zone<br />
                         www.zona-karya.id
                     </div>
                     <div class="separate"></div>
@@ -409,14 +408,27 @@
                                             sudah termasuk PPN</i></span>
                                 </td>
                             </tr>
+{{--                            <tr>--}}
+{{--                                <td colspan="4">--}}
+{{--                                    <center><span class="center" style="float:unset; margin-top:10px;"><i>Note : Harga--}}
+{{--                                            sudah termasuk PPN</i></span></center>--}}
+{{--                                </td>--}}
+{{--                            </tr>--}}
+
                         </table>
                     </div>
+                    @if($row->pos_note)
+                        <div style="margin-top: 20px; font-size: 10px;">
+                            <b>Note : {{ $row->pos_note }}</b>
+                        </div>
+                    @endif
+
                     <div class="thanks">
                         ~~~ Terimakasih ~~~
                     </div>
-                    <div class="azost">
-                        www.zona-karya.id
-                    </div>
+{{--                    <div class="azost">--}}
+{{--                        www.zona-karya.id--}}
+{{--                    </div>--}}
                     <br />
 
                     <div class="title">
