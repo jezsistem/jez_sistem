@@ -119,12 +119,13 @@
                                                         <span class="menu-text">Shift</span>
                                                     </a>
                                                 </li>
-                                                <!-- <li class="menu-item">
-                                        <a href="{{ url('/daily-schedules') }}" class="menu-link">
-                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                            <span class="menu-text">Schedule</span>
-                                        </a>
-                                    </li> -->
+                                                <li class="menu-item">
+                                                    <a href="{{ url('/public-holiday') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Hari Libur Nasional</span>
+                                                    </a>
+                                                </li>
                                                 @if(hasAccess(auth()->user()->up_id, 'read'))
                                                     <li class="menu-item">
                                                         <a href="{{ url('/daily-schedules/weekly') }}"

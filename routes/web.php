@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductSubSubCategoryTestController;
 use App\Http\Controllers\ProductSubSubCategoryController;
 use App\Http\Controllers\PhotoController;
 
+use App\Http\Controllers\PublicHolidayController;
 use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
 use App\Http\Controllers\OvertimeTypeController;
@@ -784,6 +785,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('shift-codes/{id}', [ShiftCodeController::class, 'destroy'])->name('shift-codes.destroy');
     Route::post('shift-codes/{id}/toggle-status', [ShiftCodeController::class, 'toggleStatus'])->name('shift-codes.toggle-status');
     Route::get('shift-codes/type/{type}', [ShiftCodeController::class, 'getShiftCodesByType'])->name('shift-codes.by-type');
+
+    //get PH
+    Route::get('public-holiday', [PublicHolidayController::class, 'index'])->name('public-holiday.index');
+    Route::post('public-holiday/sync', [PublicHolidayController::class, 'sync'])->name('public-holiday.sync');
+    Route::get('public-holiday/datatables', [PublicHolidayController::class, 'datatables'])->name('public-holiday.datatables');
+    Route::get('public-holidays/calendar', [PublicHolidayController::class, 'calendar']);
+    Route::delete('public-holidays/{id}', [PublicHolidayController::class, 'destroy']);
+    Route::post('public-holidays/sync-leave-balance',[PublicHolidayController::class, 'syncToLeaveBalances']);
 
     // DailyScheduleController
     Route::get('daily-schedules', [DailyScheduleController::class, 'index'])->name('daily-schedules.index');

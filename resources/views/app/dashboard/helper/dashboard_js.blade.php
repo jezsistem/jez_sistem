@@ -1580,10 +1580,12 @@
         let qty = $(this).data('qty');
         let sku = $(this).data('sku');
         let p_name = $(this).data('p_name');
+        let req_qty = $(this).data('qty')
 
         console.log("SKU:", sku);
 
         $('#sku_selected').text(sku);
+        $('#qty_selected').text(req_qty);
 
         // AJAX ambil data BIN
         $.ajax({
@@ -1671,90 +1673,113 @@
 
                 // var sku_send = $('#sku_send').val(validSku)
 
+                let selectedQty = 1;
+                let request_qty = document.getElementById('qty_selected').textContent;
+
                 $('#sku_search').focus().on('keyup', function (e) {
                     if (e.key === 'Enter') {
                         let enteredSku = $(this).val();
 
-                        if (enteredSku === validSku) {
-                            swal({
-                                title: "Keluar..?",
-                                text: "Yakin keluarin produk " + product_name + " dari BIN " + bin_name + " ?",
-                                icon: "warning",
-                                buttons: [
-                                    'Batal',
-                                    'Yakin'
-                                ],
-                                dangerMode: false,
-                            }).then(function(isConfirm) {
-                                if (isConfirm) {
-                                    $.ajaxSetup({
-                                        headers: {
-                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                        }
-                                    });
-
-                                    // Show loading
-                                    Swal.fire({
-                                        title: 'Loading...',
-                                        text: 'Sedang memproses',
-                                        allowOutsideClick: false,
-                                        didOpen: () => {
-                                            Swal.showLoading();
-                                        }
-                                    });
-
-                                    $.ajax({
-                                        type: "POST",
-                                        data: {
-                                            // cari ini
-                                            _sku: enteredSku,
-                                            _bin: bin,
-                                            _bin_id: bin_id,
-                                            _plst_qty: 1,
-                                            _plst_id: plst_id,
-                                            _status: status
-                                        },
-                                        dataType: 'json',
-                                        url: "{{ url('save_out_activity_bin_selected') }}",
-                                        success: function(r) {
-                                            Swal.close(); // Close loading
-                                            
-                                            if (r.status == '200') {
-                                                out_table.draw();
-                                                $('#binModal').modal('hide');
-
-                                                $('#sku_send').val('');
-                                                $('#bin_out_search').val('');
-                                                $('#binTable tbody').empty();
-                                                $('#sku_search').remove();
-                                                $('#bin_out_search').prop('disabled', false);
-
-                                                swal({
-                                                    title: 'Berhasil',
-                                                    text: ' berhasil dikeluarkan',
-                                                    icon: 'success',
-                                                    button: 'OK',
-                                                });
-                                            } else {
-                                                swal('Gagal', r.message || 'Gagal keluar produk', 'error');
-                                            }
-                                        },
-                                        error: function() {
-                                            Swal.close(); // Close loading on error
-                                            swal('Error', 'Terjadi kesalahan', 'error');
-                                        }
-                                    });
-                                }
-                            });
-                        } else {
+                        if (enteredSku !== validSku) {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'SKU tidak ditemukan',
                                 text: 'SKU tidak cocok dengan BIN yang dipilih!',
                             });
+                            return;
+                        }
+
+                        // JIKA REQUEST QTY > 1 → MODAL QTY
+                        if (request_qty > 1) {
+                            selectedQty = 1;
+                            $('#qtyValue').val(selectedQty);
+                            $('#qtyModal').modal('show');
+                        } else {
+                            confirmOutProduct(1);
                         }
                     }
                 });
+
+                $('#qtyPlus').on('click', function () {
+                    if (selectedQty < request_qty) {
+                        selectedQty++;
+                        $('#qtyValue').val(selectedQty);
+                    }
+                });
+
+                $('#qtyMinus').on('click', function () {
+                    if (selectedQty > 1) {
+                        selectedQty--;
+                        $('#qtyValue').val(selectedQty);
+                    }
+                });
+
+                $('#qtyConfirm').on('click', function () {
+                    $('#qtyModal').modal('hide');
+                    confirmOutProduct(selectedQty);
+                });
+
+                function confirmOutProduct(qty) {
+                    swal({
+                        title: "Keluar..?",
+                        text: "Yakin keluarin " + qty + " produk " + product_name + " dari BIN " + bin_name + " ?",
+                        icon: "warning",
+                        buttons: ['Batal', 'Yakin'],
+                        dangerMode: false,
+                    }).then(function(isConfirm) {
+
+                        if (!isConfirm) return;
+
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+
+                        Swal.fire({
+                            title: 'Loading...',
+                            text: 'Sedang memproses',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('save_out_activity_bin_selected') }}",
+                            dataType: 'json',
+                            data: {
+                                _sku: validSku,
+                                _bin: bin,
+                                _bin_id: bin_id,
+                                _plst_qty: qty,
+                                _plst_id: plst_id,
+                                _status: status
+                            },
+                            success: function(r) {
+                                Swal.close();
+
+                                if (r.status == '200') {
+                                    out_table.draw();
+                                    $('#binModal').modal('hide');
+
+                                    $('#sku_send').val('');
+                                    $('#bin_out_search').val('');
+                                    $('#binTable tbody').empty();
+                                    $('#sku_search').remove();
+                                    $('#bin_out_search').prop('disabled', false);
+
+                                    swal('Berhasil', 'Produk berhasil dikeluarkan', 'success');
+                                } else {
+                                    swal('Gagal', r.message || 'Gagal keluar produk', 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.close();
+                                swal('Error', 'Terjadi kesalahan', 'error');
+                            }
+                        });
+                    });
+                }
 
             } else if (matchingRows.length === 0) {
                 Swal.fire({
