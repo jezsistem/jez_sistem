@@ -179,7 +179,8 @@
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Kode</th>
                                         <th class="text-dark">User</th>
-                                        <th class="text-dark" style="white-space: nowrap;">Qty</th>
+                                        <th class="text-dark" style="white-space: nowrap;">Qty Kirim</th>
+                                        <th class="text-dark" style="white-space: nowrap;">Qty Terima</th>
                                         <th class="text-dark" style="white-space: nowrap;">Store Awal</th>
                                         <th class="text-dark" style="white-space: nowrap;">Store Tujuan</th>
                                         <th class="text-dark">Penerima</th>

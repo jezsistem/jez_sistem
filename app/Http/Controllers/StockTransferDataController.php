@@ -120,9 +120,16 @@ class StockTransferDataController extends Controller
                 ->editColumn('stf_code_show', function ($data) {
                     return '<span class="btn-sm btn-primary">' . $data->stf_code . '</span>';
                 })
-                ->editColumn('qty', function ($data) {
+                ->editColumn('qty_send', function ($data) {
                     $qty = StockTransferDetail::select('stfd_qty')->where('stf_id', '=', $data->stf_id)->sum('stfd_qty');
                     return '<span class="btn-sm btn-success">' . $qty . '</span>';
+                })
+                ->editColumn('qty_receive', function ($data) {
+                    $qty = StockTransferDetailStatus::select('stfds_qty')
+                        ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
+                        ->where('stock_transfer_details.stf_id', '=', $data->stf_id)
+                        ->sum('stfds_qty');
+                    return '<span class="btn-sm btn-info">' . $qty . '</span>';
                 })
                 ->editColumn('start_store', function ($data) {
                     $store = Store::select('st_name')->where('id', $data->st_id_start)->get()->first()->st_name;
@@ -150,7 +157,7 @@ class StockTransferDataController extends Controller
                         return '<span class="btn-sm btn-success">DONE</span>';
                     }
                 })
-                ->rawColumns(['stf_code_show', 'qty', 'stf_status'])
+                ->rawColumns(['stf_code_show', 'qty_send', 'qty_receive', 'stf_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
