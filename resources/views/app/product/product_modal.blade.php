@@ -531,8 +531,15 @@
                         <table id="tableHistory" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th>user</th>
-                                <th>Activity</th>
+                                <th>No</th>
+                                <th>Tanggal</th>
+                                <th>User</th>
+                                <th>Type</th>
+                                <th>SKU</th>
+                                <th>Kolom</th>
+                                <th>Source</th>
+                                <th>Sebelum</th>
+                                <th>Sesudah</th>
                             </tr>
                             </thead>
                             <tbody></tbody>

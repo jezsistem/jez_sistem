@@ -32,6 +32,7 @@ use App\Imports\MassUpdateProductImport;
 use App\Services\MassUpdateProductService;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Jobs\ProcessMassImageImport;
+use App\Models\ProductLogs;
 use Svg\Tag\Rect;
 use ZipArchive;
 
@@ -79,7 +80,7 @@ class ProductController extends Controller
         return $sidebar;
     }
 
-    protected function UserActivity($u_id, $activity,$key_identifier)
+    protected function UserActivity($u_id, $activity, $key_identifier)
     {
         if (!empty($u_id)) {
             UserActivity::create([
@@ -92,6 +93,22 @@ class ProductController extends Controller
         }
     }
 
+    protected function saveLogProduct($p_id, $user_id, $levels, $target_column, $source, $data_before, $data_after)
+    {
+        $productLog = new \App\Models\ProductLogs();
+        $timestamp = date('Y-m-d H:i:s');
+        $productLog->storeProductLog(
+            $p_id,
+            $user_id,
+            $levels,
+            $target_column,
+            $source,
+            $data_before,
+            $data_after,
+            $timestamp
+        );
+    }
+
     public function create()
     {
         // Daftar kolom yang ingin ditampilkan
@@ -101,17 +118,17 @@ class ProductController extends Controller
         return view('app.product.product_modal', compact('columns'));
     }
 
-//    protected function UserActivityLogin($u_id, $activity)
-//    {
-//        if (!empty($u_id)) {
-//            UserActivity::create([
-//                'user_id' => $u_id,
-//                'ua_description' => $activity,
-//                'identifier' => 'data-products',
-//                'created_at' => date('Y-m-d H:i:s')
-//            ]);
-//        }
-//    }
+    //    protected function UserActivityLogin($u_id, $activity)
+    //    {
+    //        if (!empty($u_id)) {
+    //            UserActivity::create([
+    //                'user_id' => $u_id,
+    //                'ua_description' => $activity,
+    //                'identifier' => 'data-products',
+    //                'created_at' => date('Y-m-d H:i:s')
+    //            ]);
+    //        }
+    //    }
 
     public function index()
     {
@@ -157,9 +174,9 @@ class ProductController extends Controller
         return view('app.product.product', compact('data'));
     }
 
-//    public function getSkuAvailable(Request $request){
-//
-//    }
+    //    public function getSkuAvailable(Request $request){
+    //
+    //    }
 
     public function updateFlag(Request $request, $id)
     {
@@ -396,18 +413,216 @@ class ProductController extends Controller
     public function historyDataTables($articleId)
     {
         $p_id = DB::table('products')->where('article_id', $articleId)->pluck('id');
-//        $product = DB::table('user_activities')->where('identifier', 'data-products')->where('key_identifier', $p_id)->get();
-//        $product_id = (int)$product->id;
+        //        $product = DB::table('user_activities')->where('identifier', 'data-products')->where('key_identifier', $p_id)->get();
+        //        $product_id = (int)$product->id;
 
-        $data = DB::table('user_activities')
+        $data = ProductLogs::query()
             ->select(
-                'users.u_name', 'user_activities.ua_description'
+                'u_name',
+                'levels',
+                'target_column',
+                'source',
+                'data_before',
+                'data_after',
+                'product_logs.created_at',
+                'ps_barcode',
+                'brand_before.br_name as brand_before_name',
+                'brand_after.br_name as brand_after_name',
+                'category_before.pc_name as category_before_name',
+                'category_after.pc_name as category_after_name',
+                'subcategory_before.psc_name as subcategory_before_name',
+                'subcategory_after.psc_name as subcategory_after_name',
+                'subsubcategory_before.pssc_name as subsubcategory_before_name',
+                'subsubcategory_after.pssc_name as subsubcategory_after_name',
+                'main_color_before.mc_name as main_color_before_name',
+                'main_color_after.mc_name as main_color_after_name',
+                'supplier_before.ps_name as supplier_before_name',
+                'supplier_after.ps_name as supplier_after_name',
+                'unit_before.pu_name as unit_before_name',
+                'unit_after.pu_name as unit_after_name',
+                'gender_before.gn_name as gender_before_name',
+                'gender_after.gn_name as gender_after_name',
+                'season_before.ss_name as season_before_name',
+                'season_after.ss_name as season_after_name'
             )
-            ->leftJoin('users', 'users.id', '=', 'user_activities.user_id')
-            ->leftJoin('products', 'products.id', '=', 'user_activities.key_identifier')
-            ->where('key_identifier', $p_id);
+            ->leftJoin('users', 'users.id', '=', 'product_logs.user_id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_logs.pst_id')
+            ->leftJoin('brands as brand_before', 'brand_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('brands as brand_after', 'brand_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('product_categories as category_before', 'category_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('product_categories as category_after', 'category_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('product_sub_categories as subcategory_before', 'subcategory_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('product_sub_categories as subcategory_after', 'subcategory_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('product_sub_sub_categories as subsubcategory_before', 'subsubcategory_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('product_sub_sub_categories as subsubcategory_after', 'subsubcategory_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('main_colors as main_color_before', 'main_color_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('main_colors as main_color_after', 'main_color_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('product_suppliers as supplier_before', 'supplier_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('product_suppliers as supplier_after', 'supplier_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('product_units as unit_before', 'unit_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('product_units as unit_after', 'unit_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('genders as gender_before', 'gender_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('genders as gender_after', 'gender_after.id', '=', 'product_logs.data_after')
+            ->leftJoin('seasons as season_before', 'season_before.id', '=', 'product_logs.data_before')
+            ->leftJoin('seasons as season_after', 'season_after.id', '=', 'product_logs.data_after')
+            ->where('product_logs.p_id', $p_id)
+            ->orderBy('product_logs.created_at', 'desc');
 
-        return datatables()->of($data)->make(true);
+        return datatables()->of($data)
+            ->addIndexColumn()
+            ->editColumn('created_at', function ($row) {
+                return date('d/m/Y H:i:s', strtotime($row->created_at));
+            })
+            ->addColumn('sku', function ($row) {
+                return $row->ps_barcode ?? '-';
+            })
+            ->editColumn('target_column', function ($row) {
+                $readableColumns = \App\Models\Product::readableColumns;
+                return $readableColumns[$row->target_column] ?? Str::title(str_replace('_', ' ', $row->target_column));
+            })
+            ->editColumn('data_before', function ($row) {
+                if ($row->target_column == 'br_id') {
+                    return $row->brand_before_name;
+                }
+
+                if ($row->target_column == 'pc_id') {
+                    return $row->category_before_name;
+                }
+
+                if ($row->target_column == 'psc_id') {
+                    return $row->subcategory_before_name;
+                }
+
+                if ($row->target_column == 'pssc_id') {
+                    return $row->subsubcategory_before_name;
+                }
+
+                if ($row->target_column == 'mc_id') {
+                    return $row->main_color_before_name;
+                }
+
+                if ($row->target_column == 'ps_id') {
+                    return $row->supplier_before_name;
+                }
+
+                if ($row->target_column == 'pu_id') {
+                    return $row->unit_before_name;
+                }
+
+                if ($row->target_column == 'gn_id') {
+                    return $row->gender_before_name;
+                }
+
+                if ($row->target_column == 'ss_id') {
+                    return $row->season_before_name;
+                }
+
+                if ($row->target_column == 'consignment') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'complement') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'mp_stock_masking') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'ms_best_seller') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'is_everlast') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'is_supersale') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'is_reguler') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'mark_down') {
+                    return $row->data_before == 1 ? 'Yes' : 'No';
+                }
+
+                return $row->data_before ?: '-';
+            })
+            ->editColumn('data_after', function ($row) {
+                if ($row->target_column == 'br_id') {
+                    return $row->brand_after_name;
+                }
+
+                if ($row->target_column == 'pc_id') {
+                    return $row->category_after_name;
+                }
+
+                if ($row->target_column == 'psc_id') {
+                    return $row->subcategory_after_name;
+                }
+
+                if ($row->target_column == 'pssc_id') {
+                    return $row->subsubcategory_after_name;
+                }
+
+                if ($row->target_column == 'mc_id') {
+                    return $row->main_color_after_name;
+                }
+
+                if ($row->target_column == 'ps_id') {
+                    return $row->supplier_after_name;
+                }
+
+                if ($row->target_column == 'pu_id') {
+                    return $row->unit_after_name;
+                }
+
+                if ($row->target_column == 'gn_id') {
+                    return $row->gender_after_name;
+                }
+
+                if ($row->target_column == 'ss_id') {
+                    return $row->season_after_name;
+                }
+
+                if ($row->target_column == 'consignment') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'complement') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'mp_stock_masking') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'ms_best_seller') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'is_everlast') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'is_supersale') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'is_reguler') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                if ($row->target_column == 'mark_down') {
+                    return $row->data_after == 1 ? 'Yes' : 'No';
+                }
+
+                return $row->data_after ?: '-';
+            })
+            ->make(true);
     }
 
     public function socialDataTables($articleId)
@@ -1387,6 +1602,8 @@ class ProductController extends Controller
             $id = $request->input('_id');
             $sz_barcode = $request->input('_sz_barcode');
             $sz_sell_price = $request->input('_sz_sell_price');
+
+            $product_data_before = Product::where('id', $id)->first();
             $data = [
                 'br_id' => $request->input('br_id'),
                 'pc_id' => $request->input('pc_id'),
@@ -1422,6 +1639,24 @@ class ProductController extends Controller
                 'p_turnoverclass' => $request->input('p_turnoverclass'),
             ];
             $save = $product->storeData($mode, $id, $data);
+
+            //save log update
+
+            $user_id = Auth::user()->id;
+
+            if (!empty($save) && $product_data_before) {
+                foreach ($data as $column => $newValue) {
+                    // Use original key for comparison, handle ltrim for p_color, p_code, p_name
+                    $oldValue = $product_data_before->$column ?? null;
+                    // For fields that are trimmed before saving, trim before comparing
+                    if (in_array($column, ['p_color', 'p_code', 'p_name'])) {
+                        $oldValue = ltrim($oldValue);
+                    }
+                    if ($oldValue != $newValue) {
+                        $this->saveLogProduct($id, $user_id, ProductLogs::LEVEL_ARTICLE, $column, '/data_produk', $oldValue, $newValue);
+                    }
+                }
+            }
 
             if (!empty($save)) {
                 if ($request->input('pc_id') !== $request->input('_current_pc_id')) {
@@ -1463,11 +1698,11 @@ class ProductController extends Controller
                         }
                     }
                 }
-//                if ($mode == 'add') {
-//                    $this->UserActivity('menambah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
-//                } else {
-//                    $this->UserActivity('mengubah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
-//                }
+                //                if ($mode == 'add') {
+                //                    $this->UserActivity('menambah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
+                //                } else {
+                //                    $this->UserActivity('mengubah data produk ' . strtoupper($request->input('p_name')) . ' ' . strtoupper($request->input('p_color')));
+                //                }
                 $r['status'] = '200';
             } else {
                 $exp = explode('|', $request->_sz_id);
@@ -1515,7 +1750,7 @@ class ProductController extends Controller
         $p_id = ProductStock::where(['id' => $running])->first()->p_id;
         $ps = ProductStock::where(['id' => $running])->update(['ps_barcode' => $barcode]);
         if (!empty($ps)) {
-            $this->UserActivity(Auth::user()->id,'mengubah barcode produk ' . $barcode . ' Berhasil ', $p_id);
+            $this->UserActivity(Auth::user()->id, 'mengubah barcode produk ' . $barcode . ' Berhasil ', $p_id);
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -1537,7 +1772,7 @@ class ProductController extends Controller
                     $item_name = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
                     $save_product = $product->deleteData($id);
                     if ($save_product) {
-//                        $this->UserActivity(A,'menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
+                        //                        $this->UserActivity(A,'menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
                         $r['status'] = '200';
                     } else {
                         $r['status'] = '400';
@@ -1549,7 +1784,7 @@ class ProductController extends Controller
                 $item_name = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
                 $save_product = $product->deleteData($id);
                 if ($save_product) {
-//                    $this->UserActivity('menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
+                    //                    $this->UserActivity('menghapus data produk ' . $item_name->p_name . ' ' . $item_name->p_color);
                     $r['status'] = '200';
                 } else {
                     $r['status'] = '400';

@@ -1,5 +1,5 @@
 <script src="https://cdn.tiny.cloud/1/323apjbgqf1hr5qmcz0u8uwvl3oymnrypmtg98wfpvhw0khd/tinymce/5/tinymce.min.js"
-        referrerpolicy="origin"></script>
+    referrerpolicy="origin"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -10,7 +10,8 @@
 
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
 
         const dayName = days[date.getDay()];
         const day = date.getDate();
@@ -25,15 +26,15 @@
 
     function toggleFlag(column, productId) {
         fetch(`/data_produk/update-flag/${productId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                column: column
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    column: column
+                })
             })
-        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -111,13 +112,13 @@
     //     height: '150px'
     // });
 
-    $(document).on('focusin', function (e) {
+    $(document).on('focusin', function(e) {
         if ($(e.target).closest(".mce-window").length) {
             e.stopImmediatePropagation();
         }
     });
 
-    $('.decimal').keypress(function (evt) {
+    $('.decimal').keypress(function(evt) {
         return (/^[0-9]*\.?[0-9]*$/).test($(this).val() + evt.key);
     });
 
@@ -271,7 +272,7 @@
             },
             dataType: 'json',
             url: "{{ url('check_exists_barcode') }}",
-            success: function (response) {
+            success: function(response) {
                 if (response.status == '200') {
                     // Jika barcode sudah ada
                     swal('Barcode', 'Barcode sudah ada dalam sistem, silahkan ganti dengan yang lain',
@@ -289,7 +290,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('update_barcode') }}",
-                        success: function (r) {
+                        success: function(r) {
                             if (r.status == '200') {
                                 toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
                             } else {
@@ -297,13 +298,13 @@
                                     'error');
                             }
                         },
-                        error: function () {
+                        error: function() {
                             toast('Gagal', 'Terjadi kesalahan saat menyimpan barcode', 'error');
                         }
                     });
                 }
             },
-            error: function () {
+            error: function() {
                 toast('Gagal', 'Terjadi kesalahan saat memeriksa barcode', 'error');
             }
         });
@@ -398,7 +399,7 @@
             },
             dataType: 'json',
             url: "{{ url('update_price_tag') }}",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga banderol berhasil diupdate', 'success');
                 }
@@ -417,7 +418,7 @@
             },
             dataType: 'json',
             url: "{{ url('update_sell_price') }}",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga jual berhasil diupdate', 'success');
                 }
@@ -427,14 +428,14 @@
 
     function updateSzIdFilterOptions(selectedValue) {
         try {
-            fetchDataBasedOnSchemaId(selectedValue).then(function (newData) {
+            fetchDataBasedOnSchemaId(selectedValue).then(function(newData) {
                 $('#sz_id_filter').empty();
-                $.each(newData, function (key, value) {
+                $.each(newData, function(key, value) {
                     $('#sz_id_filter').append('<option value="' + value.value + '">' + value.text +
                         '</option>');
                 });
                 $('#sz_id_filter').trigger('change');
-            }).catch(function (error) {
+            }).catch(function(error) {
                 console.error(error);
             });
         } catch (error) {
@@ -443,7 +444,7 @@
     }
 
     function fetchDataBasedOnSchemaId(schemaId) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             var dataReturn = [];
             $.ajax({
                 type: "GET",
@@ -451,8 +452,8 @@
                 data: {
                     schema_id: schemaId
                 },
-                success: function (data) {
-                    $.each(data, function (key, value) {
+                success: function(data) {
+                    $.each(data, function(key, value) {
                         dataReturn.push({
                             text: value.sz_name,
                             value: value.id
@@ -460,7 +461,7 @@
                     });
                     resolve(dataReturn);
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     reject(error);
                 }
             });
@@ -478,7 +479,7 @@
             },
             dataType: 'json',
             url: "{{ url('update_purchase_price') }}",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga beli berhasil diupdate', 'success');
                 }
@@ -487,7 +488,7 @@
     }
 
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -510,7 +511,7 @@
             }],
             ajax: {
                 url: "{{ url('product_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#product_search').val();
                     d.pc_id = $('#pc_id_filter').val();
                     d.psc_id = $('#psc_id_filter').val();
@@ -524,10 +525,10 @@
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'pid',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'pid',
+                    searchable: false
+                },
                 {
                     data: 'article_id',
                     name: 'article_id'
@@ -551,7 +552,7 @@
                 {
                     data: 'p_price_tag_show',
                     name: 'p_price_tag',
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -560,7 +561,7 @@
                 {
                     data: 'p_purchase_price_show',
                     name: 'p_purchase_price',
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -569,7 +570,7 @@
                 {
                     data: 'p_sell_price_show',
                     name: 'p_sell_price',
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -586,13 +587,13 @@
                 },
             ],
             columnDefs: [{
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            },
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                },
                 {
                     targets: 9,
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         if (row.p_active == '1') {
                             return '<span class="badge badge-success">Aktif</span>';
                         } else {
@@ -614,12 +615,12 @@
         });
 
         product_table.buttons().container().appendTo($('#product_excel_btn'));
-        $('#product_search').on('keyup', function () {
+        $('#product_search').on('keyup', function() {
             product_table.draw();
         });
 
         $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_photo_status_filter, #pc_id_filter, #psc_id_filter, #pssc_id_filter')
-            .on('change', function () {
+            .on('change', function() {
                 product_table.draw();
             });
 
@@ -733,7 +734,7 @@
             dropdownParent: $('#pc_id_filter_parent')
         });
 
-        $('#pc_id_filter').on('select2:open', function (e) {
+        $('#pc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -744,7 +745,7 @@
             dropdownParent: $('#psc_id_filter_parent')
         });
 
-        $('#psc_id_filter').on('select2:open', function (e) {
+        $('#psc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -755,7 +756,7 @@
             dropdownParent: $('#pssc_id_filter_parent')
         });
 
-        $('#pssc_id_filter').on('select2:open', function (e) {
+        $('#pssc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -766,13 +767,13 @@
             dropdownParent: $('#sz_schema_id_parent')
         });
 
-        $('#sz_schema_id').on('select2:open', function (e) {
+        $('#sz_schema_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#sz_schema_id').on('change', function (e) {
+        $('#sz_schema_id').on('change', function(e) {
             // Get the selected value in sz_schema_id
             var selectedValue = $(this).val();
 
@@ -783,7 +784,7 @@
             width: "130px",
             dropdownParent: $('#br_id_filter_parent')
         });
-        $('#br_id_filter').on('select2:open', function (e) {
+        $('#br_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -793,7 +794,7 @@
             width: "130px",
             dropdownParent: $('#ps_id_filter_parent')
         });
-        $('#ps_id_filter').on('select2:open', function (e) {
+        $('#ps_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -803,7 +804,7 @@
             width: "130px",
             dropdownParent: $('#sz_id_filter_parent')
         });
-        $('#sz_id_filter').on('select2:open', function (e) {
+        $('#sz_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -822,7 +823,7 @@
             width: "130px",
             dropdownParent: $('#mc_id_filter_parent')
         });
-        $('#mc_id_filter').on('select2:open', function (e) {
+        $('#mc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -832,7 +833,7 @@
             width: "100%",
             dropdownParent: $('#br_id_parent')
         });
-        $('#br_id').on('select2:open', function (e) {
+        $('#br_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -842,7 +843,7 @@
             width: "100%",
             dropdownParent: $('#gn_id_parent')
         });
-        $('#gn_id').on('select2:open', function (e) {
+        $('#gn_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -852,7 +853,7 @@
             width: "100%",
             dropdownParent: $('#ss_id_parent')
         });
-        $('#ss_id').on('select2:open', function (e) {
+        $('#ss_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -862,7 +863,7 @@
             width: "100%",
             dropdownParent: $('#ps_id_parent')
         });
-        $('#ps_id').on('select2:open', function (e) {
+        $('#ps_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -872,7 +873,7 @@
             width: "100%",
             dropdownParent: $('#pu_id_parent')
         });
-        $('#pu_id').on('select2:open', function (e) {
+        $('#pu_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -882,7 +883,7 @@
             width: "100%",
             dropdownParent: $('#mc_id_parent')
         });
-        $('#mc_id').on('select2:open', function (e) {
+        $('#mc_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -892,32 +893,32 @@
             width: "100%",
             dropdownParent: $('#sz_schema_modal_id_parent')
         });
-        $('#sz_schema_modal_id').on('select2:open', function (e) {
+        $('#sz_schema_modal_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#import_modal_btn').on('click', function () {
+        $('#import_modal_btn').on('click', function() {
             jQuery.noConflict();
             $('#ImportModal').modal('show');
             $('#f_import')[0].reset();
         });
 
 
-        $('#mass_update_product').on('click', function () {
+        $('#mass_update_product').on('click', function() {
             jQuery.noConflict();
             $('#MassUpdateModal').modal('show');
             $('#f_mass_update')[0].reset();
         });
 
-        $('#mass_img_product').on('click', function () {
+        $('#mass_img_product').on('click', function() {
             jQuery.noConflict();
             $('#MassImgModal').modal('show');
             $('#f_mass_img')[0].reset();
         });
 
-        $('#f_mass_img').on('submit', function (e) {
+        $('#f_mass_img').on('submit', function(e) {
             e.preventDefault();
 
             let formData = new FormData(this);
@@ -929,7 +930,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (response) {
+                success: function(response) {
                     $('#import_img_btn').prop('disabled', false).text('Import');
                     $('#MassImgModal').modal('hide');
                     Swal.fire({
@@ -938,7 +939,7 @@
                         text: response.message
                     });
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     $('#import_img_btn').prop('disabled', false).text('Import');
                     Swal.fire({
                         icon: 'error',
@@ -979,11 +980,11 @@
                 },
                 dataType: 'json',
                 url: "{{ url('check_product_stock') }}",
-                success: function (r) {
+                success: function(r) {
                     console.log("id checksize : " + id);
                     if (r.data != '400') {
                         var _sz_barcode_edit = '';
-                        $.each($(r.data), function (key, value) {
+                        $.each($(r.data), function(key, value) {
                             //alert(value.sz_id+' '+value.ps_barcode+' '+value.ps_running_code);
                             _sz_barcode_edit = _sz_barcode_edit + value.sz_id + '-' + value
                                 .ps_barcode + '|';
@@ -1050,12 +1051,12 @@
                 }, // Pass id as data parameter
                 dataType: 'html',
                 url: "{{ url('reload_size_schema_modal') }}",
-                success: function (r) {
+                success: function(r) {
                     $('#reload_size').html(r);
                     console.log('schema id : ' + id); // Now id should be accessible here
                     checkSize(id);
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.error(xhr.responseText);
                 }
             });
@@ -1063,7 +1064,7 @@
 
 
         //producttb 
-        $('#Producttb tbody').on('click', 'tr td:not(:nth-child(11))', function () {
+        $('#Producttb tbody').on('click', 'tr td:not(:nth-child(11))', function() {
             jQuery('#product_qr').empty();
             $('#f_product')[0].reset();
             $('#_sz_barcode').val('');
@@ -1126,7 +1127,7 @@
                 type: "GET",
                 dataType: 'html',
                 url: "{{ url('psc_reload') }}",
-                success: function (r) {
+                success: function(r) {
                     $('#_psc_id').html(r);
                     $('#_psc_id').val(psc_id);
                     // $('#_psc_id').prop('disabled', true);
@@ -1136,7 +1137,7 @@
                 type: "GET",
                 dataType: 'html',
                 url: "{{ url('pssc_reload') }}",
-                success: function (r) {
+                success: function(r) {
                     $('#_pssc_id').html(r);
                     $('#_pssc_id').val(pssc_id);
                     // $('#_pssc_id').prop('disabled', true);
@@ -1154,7 +1155,7 @@
                 },
                 dataType: 'json',
                 url: "{{ url('check_product_po') }}",
-                success: function (r) {
+                success: function(r) {
                     if (r.status == '200') {
                         $('#_pc_id').prop('disabled', true);
                     }
@@ -1255,37 +1256,37 @@
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ($data['user']->delete_access == '1')
-            $('#delete_product_btn').show();
+                $('#delete_product_btn').show();
             @endif
             generateQR(article_id);
         })
 
-        $(document).ready(function () {
+        $(document).ready(function() {
             let tableMarketplace;
             let tableSocial;
             let tableHistory;
 
-            $('#showLinkModalBtn').on('click', function () {
+            $('#showLinkModalBtn').on('click', function() {
                 $('#ProductLinkModal').modal('show');
                 initMarketplace($('#article_id').val());
                 initSocial($('#article_id').val());
             });
 
 
-            $('#btnLogHistory').on('click', function () {
+            $('#btnLogHistory').on('click', function() {
                 $('#HistoryModal').modal('show');
                 console.log($('#article_id').val());
                 initHistory($('#article_id').val());
             });
 
-            $('#skuGenerate').on('click', function () {
+            $('#skuGenerate').on('click', function() {
                 $('#genaratorSKUModal').modal('show');
                 console.log($('#article_id').val());
                 // initHistory($('#article_id').val());
             });
 
 
-            $('#ProductLinkModal').on('shown.bs.modal', function () {
+            $('#ProductLinkModal').on('shown.bs.modal', function() {
                 initMarketplace($('#article_id').val());
                 initSocial($('#article_id').val());
 
@@ -1296,7 +1297,7 @@
                 }
             });
 
-            $('a[data-toggle="tab"]').on('click', function (e) {
+            $('a[data-toggle="tab"]').on('click', function(e) {
                 e.preventDefault();
 
                 const target = $(this).attr("href");
@@ -1323,8 +1324,8 @@
                         serverSide: true,
                         ajax: `/product-links/marketplace/${articleId}`,
                         columns: [{
-                            data: "platform"
-                        },
+                                data: "platform"
+                            },
                             {
                                 data: "url"
                             },
@@ -1344,22 +1345,54 @@
             }
 
             function initHistory(articleId) {
+
                 if (!tableHistory) {
-                tableHistory = jQuery("#tableHistory").DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: `/product-history/${articleId}`,
-                    columns: [
-                        {
-                            data: "u_name",
-                            name: 'u_name'
-                        },
-                        {
-                            data: "ua_description",
-                            name: 'activity'
-                        }
-                    ]
-                });
+                    tableHistory = jQuery("#tableHistory").DataTable({
+                        processing: true,
+                        serverSide: true,
+                        searching: false,
+                        ajax: `/product-history/${articleId}`,
+                        columns: [
+                            {
+                                data: 'DT_RowIndex',
+                                name: 'DT_RowIndex',
+                                orderable: false,
+                                searchable: false
+                            },
+                            {
+                                data: 'created_at',
+                                name: 'created_at'
+                            },
+                            {
+                                data: 'u_name',
+                                name: 'u_name'
+                            },
+                            {
+                                data: 'levels',
+                                name: 'levels'
+                            },
+                            {
+                                data: 'sku',
+                                name: 'sku'
+                            },
+                            {
+                                data: 'target_column',
+                                name: 'target_column'
+                            },
+                            {
+                                data: 'source',
+                                name: 'source'
+                            },
+                            {
+                                data: 'data_before',
+                                name: 'data_before'
+                            },
+                            {
+                                data: 'data_after',
+                                name: 'data_after'
+                            }
+                        ]
+                    });
                 } else {
                     tableHistory.ajax.url(`/product-history/${articleId}`).load();
                 }
@@ -1373,8 +1406,8 @@
                         serverSide: true,
                         ajax: `/product-links/social/${articleId}`,
                         columns: [{
-                            data: "platform"
-                        },
+                                data: "platform"
+                            },
                             {
                                 data: "url"
                             },
@@ -1394,10 +1427,10 @@
             }
 
             const marketplaceList = [{
-                name: "Shopee",
-                icon: "fa fa-shopping-bag",
-                value: "shopee"
-            },
+                    name: "Shopee",
+                    icon: "fa fa-shopping-bag",
+                    value: "shopee"
+                },
                 {
                     name: "Tokopedia",
                     icon: "fa fa-store",
@@ -1411,10 +1444,10 @@
             ];
 
             const socialMediaList = [{
-                name: "Instagram",
-                icon: "fa fa-instagram",
-                value: "instagram"
-            },
+                    name: "Instagram",
+                    icon: "fa fa-instagram",
+                    value: "instagram"
+                },
                 {
                     name: "Facebook",
                     icon: "fa fa-facebook",
@@ -1452,9 +1485,9 @@
                 $.ajax({
                     url: "/product-links/locations",
                     method: "GET",
-                    success: function (data) {
+                    success: function(data) {
                         $("#pl_location").empty();
-                        data.forEach(function (loc) {
+                        data.forEach(function(loc) {
                             $("#pl_location").append(
                                 `<option value="${loc}">${loc}</option>`);
                         });
@@ -1468,7 +1501,7 @@
                 });
             }
 
-            $("#addMarketplaceLinkBtn").on("click", function () {
+            $("#addMarketplaceLinkBtn").on("click", function() {
                 $("#ProductLinkFormTitle").html("<span>Add</span> Marketplace Link");
                 $("#pl_id").val("");
                 $("#pl_type").val("marketplace");
@@ -1480,7 +1513,7 @@
                 $("#ProductLinkFormModal").modal("show");
             });
 
-            $("#addSocialLinkBtn").on("click", function () {
+            $("#addSocialLinkBtn").on("click", function() {
                 $("#ProductLinkFormTitle").html("<span>Add</span> Social Media Link");
                 $("#pl_id").val("");
                 $("#pl_type").val("social");
@@ -1492,17 +1525,17 @@
                 $("#ProductLinkFormModal").modal("show");
             });
 
-            $(document).on("click", ".editLink", function () {
+            $(document).on("click", ".editLink", function() {
                 const id = $(this).data("id");
                 const type = $(this).data("type");
 
                 $.ajax({
                     url: `/product-links/${id}`,
                     method: "GET",
-                    success: function (data) {
+                    success: function(data) {
                         $("#ProductLinkFormTitle").html("<span>Edit</span> " + (
                             type === "marketplace" ? "Marketplace" :
-                                "Social Media") + " Link");
+                            "Social Media") + " Link");
                         $("#pl_id").val(data.data.id);
                         $("#pl_product_id").val(data.data.product_id);
                         $("#pl_type").val(data.data.type);
@@ -1524,7 +1557,7 @@
                 });
             });
 
-            $("#SaveProductLinkBtn").on("click", function () {
+            $("#SaveProductLinkBtn").on("click", function() {
                 const articleId = $('#article_id').val();
                 const mode = $("#mode").val();
                 const id = $("#pl_id").val();
@@ -1544,7 +1577,7 @@
                         location: $("#pl_location").val(),
                         _token: "{{ csrf_token() }}"
                     },
-                    success: function (res) {
+                    success: function(res) {
                         toastr.success(mode === "edit" ? "Link berhasil diupdate!" :
                             "Link berhasil disimpan!");
 
@@ -1554,21 +1587,21 @@
                         if (tableMarketplace) tableMarketplace.ajax.reload();
                         if (tableSocial) tableSocial.ajax.reload();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         toastr.error(xhr.responseJSON?.message ||
                             "Gagal menyimpan link!");
                     }
                 });
             });
 
-            $('.close_product_link_detail').on('click', function () {
+            $('.close_product_link_detail').on('click', function() {
                 $('#ProductLinkFormModal').modal('hide');
 
                 if (tableMarketplace) tableMarketplace.ajax.reload();
                 if (tableSocial) tableSocial.ajax.reload();
             });
 
-            $(document).on("click", ".deleteLink", function () {
+            $(document).on("click", ".deleteLink", function() {
                 const id = $(this).data("id");
                 const type = $(this).data("type");
 
@@ -1589,7 +1622,7 @@
                             data: {
                                 _token: "{{ csrf_token() }}"
                             },
-                            success: function (res) {
+                            success: function(res) {
                                 toastr.success("Link berhasil dihapus!");
 
                                 // reload datatables
@@ -1601,7 +1634,7 @@
                                     tableSocial.ajax.reload();
                                 }
                             },
-                            error: function (xhr) {
+                            error: function(xhr) {
                                 toastr.error("Gagal menghapus link!");
                             }
                         });
@@ -1610,7 +1643,7 @@
             });
 
 
-            $('#showImageModalBtn').on('click', function () {
+            $('#showImageModalBtn').on('click', function() {
                 const articleId = $('#article_id').val();
 
                 if (!articleId) {
@@ -1624,9 +1657,9 @@
                 $.ajax({
                     url: `/product-images/${articleId}`,
                     type: 'GET',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.images.length > 0) {
-                            response.images.forEach(function (img) {
+                            response.images.forEach(function(img) {
                                 const imgBox = `
                             <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4 position-relative" id="image-card-${img.id}">
                                 <div class="img-box shadow-sm border position-relative">
@@ -1647,14 +1680,14 @@
 
                         $('#ProductImageModal').modal('show');
                     },
-                    error: function () {
+                    error: function() {
                         alert('Terjadi kesalahan saat mengambil data gambar.');
                     }
                 });
             });
 
             // Action tombol Download All
-            $(document).on('click', '#downloadAllBtn', function () {
+            $(document).on('click', '#downloadAllBtn', function() {
                 const articleId = $('#article_id').val();
 
                 Swal.fire({
@@ -1673,7 +1706,7 @@
 
 
             // Event hapus gambar
-            $(document).on('click', '.delete-image-btn', function () {
+            $(document).on('click', '.delete-image-btn', function() {
                 const id = $(this).data('id');
                 const card = $(`#image-card-${id}`);
 
@@ -1695,9 +1728,9 @@
                                 _token: $('meta[name="csrf-token"]').attr(
                                     'content')
                             },
-                            success: function (response) {
+                            success: function(response) {
                                 if (response.success) {
-                                    card.fadeOut(300, function () {
+                                    card.fadeOut(300, function() {
                                         $(this).remove();
                                     });
                                     Swal.fire('Terhapus!', response.message,
@@ -1707,7 +1740,7 @@
                                         'error');
                                 }
                             },
-                            error: function () {
+                            error: function() {
                                 Swal.fire('Gagal!',
                                     'Terjadi kesalahan server.', 'error'
                                 );
@@ -1721,18 +1754,18 @@
 
 
         //hehe haha
-        $(document).on('click', '.img-box img', function () {
+        $(document).on('click', '.img-box img', function() {
             const src = $(this).attr('src');
             $('#previewImageFull').attr('src', src);
             $('#ImagePreviewModal').modal('show');
         });
 
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             let typingTimer;
             let doneTypingInterval = 800;
 
-            $('#link_content').on('keyup paste', function () {
+            $('#link_content').on('keyup paste', function() {
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(saveLinkContent, doneTypingInterval);
             });
@@ -1748,17 +1781,17 @@
                         _token: '{{ csrf_token() }}',
                         link_content: value
                     },
-                    success: function (res) {
+                    success: function(res) {
                         toastr.success('Link konten berhasil disimpan', 'Berhasil');
                     },
-                    error: function (err) {
+                    error: function(err) {
                         toastr.error('Gagal menyimpan link konten', 'Error');
                     }
                 });
             }
         });
 
-        $('#article_id').on('change', function () {
+        $('#article_id').on('change', function() {
             var article_id = $(this).val();
 
             $.ajaxSetup({
@@ -1773,7 +1806,7 @@
                 },
                 dataType: 'json',
                 url: "{{ url('check_exists_article_id') }}",
-                success: function (r) {
+                success: function(r) {
                     if (r.status == '200') {
                         swal('Kode',
                             'Article ID sudah ada disistem, silahkan ganti dengan yang lain',
@@ -1785,7 +1818,7 @@
             });
         });
 
-        $('#add_product_btn').on('click', function (e) {
+        $('#add_product_btn').on('click', function(e) {
             e.preventDefault();
             jQuery('#product_qr').empty();
             var check_pc_id = $('#pc_id').val();
@@ -1824,7 +1857,7 @@
             $('#_pssc_id').prop('required', false);
         });
 
-        $(document).delegate('#product_detail_btn', 'click', function () {
+        $(document).delegate('#product_detail_btn', 'click', function() {
             var id = $(this).attr('data-id');
             var article = $(this).attr('data-article');
             jQuery.noConflict();
@@ -1842,7 +1875,7 @@
                 },
                 dataType: 'html',
                 url: "{{ url('product_detail') }}",
-                success: function (r) {
+                success: function(r) {
                     $('#productDetailContent').html(r);
                     $.ajax({
                         type: "POST",
@@ -1852,16 +1885,16 @@
                         },
                         dataType: 'json',
                         url: "{{ url('check_product_stock') }}",
-                        success: function (r) {
+                        success: function(r) {
                             if (r.data != '400') {
-                                $.each($(r.data), function (key, value) {
+                                $.each($(r.data), function(key, value) {
                                     $('#ProductStockDetailtb tr:last')
                                         .after(
                                             "<tr id='ProductStockDetailAppend'><td>" +
                                             value.sz_name +
                                             "</td><td>" + value.qty +
                                             "</td><td>" + value
-                                                .ps_barcode + "</td><td>" +
+                                            .ps_barcode + "</td><td>" +
                                             formatToRupiah(value
                                                 .ps_price_tag) +
                                             "</td></tr>");
@@ -1884,12 +1917,12 @@
             }).format(value);
         }
 
-        $('#close_import_btn').on('click', function () {
+        $('#close_import_btn').on('click', function() {
             $("#import_data_btn").html('Import');
             $("#import_data_btn").attr("disabled", false);
         });
 
-        $('#f_import').on('submit', function (e) {
+        $('#f_import').on('submit', function(e) {
             e.preventDefault();
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
@@ -1903,7 +1936,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (data) {
+                success: function(data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -1918,7 +1951,7 @@
 
                         if (data.error_messages && data.error_messages.length > 0) {
                             var errorMessageHtml = '';
-                            data.error_messages.forEach(function (message) {
+                            data.error_messages.forEach(function(message) {
                                 errorMessageHtml += message + '<br>';
                             });
 
@@ -1946,14 +1979,14 @@
                             'Peringatan');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     console.log(data);
                     toastr.error('Terjadi kesalahan saat mengimpor data', 'Error');
                 }
             });
         });
 
-        $('#f_mass_update').on('submit', function (e) {
+        $('#f_mass_update').on('submit', function(e) {
             e.preventDefault();
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
@@ -1977,7 +2010,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (data) {
+                success: function(data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -2021,7 +2054,7 @@
                                 didOpen: () => {
                                     let tbody = document.getElementById(
                                         'error-table-body');
-                                    errorIds.forEach(function (id) {
+                                    errorIds.forEach(function(id) {
                                         let row = document
                                             .createElement('tr');
                                         row.innerHTML = `
@@ -2032,7 +2065,7 @@
 
                                     // Export to Excel button
                                     document.getElementById('export_error_ids')
-                                        .addEventListener('click', function () {
+                                        .addEventListener('click', function() {
                                             let wb = XLSX.utils.book_new();
                                             let ws_data = [
                                                 ["Error ID"], // Header
@@ -2050,7 +2083,7 @@
 
                                     // Close button
                                     document.getElementById('close_error_alert')
-                                        .addEventListener('click', function () {
+                                        .addEventListener('click', function() {
                                             Swal.close();
                                         });
                                 }
@@ -2065,7 +2098,7 @@
                     }
                     $("#MassUpdateModal").modal('hide');
                 },
-                error: function (data) {
+                error: function(data) {
                     Swal.close(); // Close loading on error
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
@@ -2076,7 +2109,7 @@
         });
 
 
-        $('#f_product').on('submit', function (e) {
+        $('#f_product').on('submit', function(e) {
             e.preventDefault();
             $("#save_product_btn").html('Proses ..');
             $("#save_product_btn").attr("disabled", true);
@@ -2109,7 +2142,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (data) {
+                success: function(data) {
                     $("#save_product_btn").html('Simpan');
                     $("#save_product_btn").attr("disabled", false);
                     if (data.status == '200') {
@@ -2132,7 +2165,7 @@
                             'Relationship');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     $("#save_product_btn").html('Simpan');
                     $("#save_product_btn").attr("disabled", false);
                     toastr.error('Terjadi kesalahan saat menyimpan data', 'Error');
@@ -2141,7 +2174,7 @@
         });
 
 
-        $('#delete_product_btn').on('click', function () {
+        $('#delete_product_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini?",
@@ -2151,7 +2184,7 @@
                     'Hapus'
                 ],
                 dangerMode: true,
-            }).then(function (isConfirm) {
+            }).then(function(isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -2165,7 +2198,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('p_delete') }}",
-                        success: function (r) {
+                        success: function(r) {
                             if (r.status == '200') {
                                 toastr.success("Data berhasil dihapus", "Berhasil");
                                 $('#ProductModal').modal('hide');
@@ -2174,7 +2207,7 @@
                                 toastr.error('Gagal hapus data', 'Gagal');
                             }
                         },
-                        error: function () {
+                        error: function() {
                             toastr.error('Terjadi kesalahan saat menghapus data',
                                 'Error');
                         }
@@ -2197,15 +2230,15 @@
             }],
             ajax: {
                 url: "{{ url('scan_adjustment_product_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#p_search').val();
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'id',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
                     data: 'br_name',
                     name: 'br_name'
@@ -2237,18 +2270,18 @@
             ],
         });
 
-        $('#p_search').on('keyup', function () {
+        $('#p_search').on('keyup', function() {
             product.draw(false);
         });
 
-        $(document).delegate('#product_barcode_btn', 'click', function (e) {
+        $(document).delegate('#product_barcode_btn', 'click', function(e) {
             e.preventDefault();
             jQuery.noConflict();
             $('#ProductBarcodeModal').modal('show');
             product.draw(false);
         });
 
-        $(document).delegate('#input_barcode', 'change', function (e) {
+        $(document).delegate('#input_barcode', 'change', function(e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
             var barcode = $(this).val();
@@ -2265,7 +2298,7 @@
                 },
                 dataType: 'json',
                 url: "{{ url('scan_adjustment_barcode_update') }}",
-                success: function (r) {
+                success: function(r) {
                     if (r.status == '200') {
                         toastr.success("Data berhasil diupdate", "Berhasil");
                         product.draw(false);
@@ -2273,13 +2306,13 @@
                         toastr.error('Gagal update data', 'Gagal');
                     }
                 },
-                error: function () {
+                error: function() {
                     toastr.error('Terjadi kesalahan saat memperbarui data', 'Error');
                 }
             });
             return false;
         });
-        $(document).on('click', '.relatedColor', function () {
+        $(document).on('click', '.relatedColor', function() {
             const articleName = $(this).data('article');
             const linkType = $(this).data('type');
             const platform = $(this).data('platform');
@@ -2307,7 +2340,7 @@
             getRelatedArticle(articleName, linkId);
         });
 
-        $(document).on('change', '#related_toggle', function () {
+        $(document).on('change', '#related_toggle', function() {
             const isChecked = $(this).is(':checked');
             const linkId = $(this).data('product_link_id');
             const articleName = $(this).data('article');
@@ -2322,7 +2355,7 @@
                     product_id: productId,
                     _token: '{{ csrf_token() }}'
                 },
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         toastr.success('Status produk terkait berhasil diperbarui');
                         // Reload the related articles list
@@ -2331,7 +2364,7 @@
                         toastr.error('Gagal memperbarui status produk terkait');
                     }
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     toastr.error('Gagal memperbarui status produk terkait');
                 }
             });
@@ -2344,13 +2377,13 @@
                 data: {
                     link_id: linkId
                 },
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         // Populate modal with product details
                         $('#productColorSkuBody').html(response.html);
                     }
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     toastr.error('Gagal mengambil data produk terkait');
                 }
             });
