@@ -101,13 +101,46 @@ class ProductStockController extends Controller
 
     public function updatePriceTag(Request $request)
     {
+        $user_id = Auth::user()->id;
+        $user = new User;
+        $product = new \App\Models\Product;
+
+        $is_mdcx = $user->isMDCX($user_id);
+        $is_finance = $user->isFintech($user_id);
+        $is_admin = $user->isAdmin($user_id);
+
+        $fintechCanChange = $product::$fintechCanChange;
+        $mdcxCanChange = $product::$mdcxCanChange;
+
+        if (!$is_admin) {
+            $restricted = [];
+            $key = 'ps_price_tag';
+            $value = $request->_price_tag;
+            if (
+                (in_array($key, $fintechCanChange) && !$is_finance) ||
+                (in_array($key, $mdcxCanChange) && !$is_mdcx)
+            ) {
+                $current = ProductStock::where('ps_barcode', $request->_barcode)->value($key);
+                if ($current != $value) {
+                    $restricted[] = $key;
+                }
+            }
+
+            if (!empty($restricted)) {
+                return json_encode([
+                    'status' => '403',
+                    'message' => 'Anda tidak memiliki izin untuk mengubah kolom Harga Bandrol'
+                ]);
+            }
+        }
+
         $get_data =  ProductStock::where(['ps_barcode' => $request->_barcode])->first();
         $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_price_tag' => $request->_price_tag]);
         if (!empty($check)) {
             $this->saveLogProductStock(
                 $get_data->id,
                 $get_data->p_id,
-                Auth::user()->id,
+                $user_id,
                 ProductLogs::LEVEL_SKU,
                 'ps_price_tag',
                 '/data_produk',
@@ -124,13 +157,46 @@ class ProductStockController extends Controller
 
     public function updateSellPrice(Request $request)
     {
+        $user_id = Auth::user()->id;
+        $user = new User;
+        $product = new \App\Models\Product;
+
+        $is_mdcx = $user->isMDCX($user_id);
+        $is_finance = $user->isFintech($user_id);
+        $is_admin = $user->isAdmin($user_id);
+
+        $fintechCanChange = $product::$fintechCanChange;
+        $mdcxCanChange = $product::$mdcxCanChange;
+
+        if (!$is_admin) {
+            $restricted = [];
+            $key = 'ps_sell_price';
+            $value = $request->_sell_price;
+
+            if (
+                (in_array($key, $fintechCanChange) && !$is_finance) ||
+                (in_array($key, $mdcxCanChange) && !$is_mdcx)
+            ) {
+                $current = ProductStock::where('ps_barcode', $request->_barcode)->value($key);
+                if ($current != $value) {
+                    $restricted[] = $key;
+                }
+            }
+            if (!empty($restricted)) {
+                return json_encode([
+                    'status' => '403',
+                    'message' => 'Anda tidak memiliki izin untuk mengubah kolom Harga Jual'
+                ]);
+            }
+        }
+
         $get_data =  ProductStock::where(['ps_barcode' => $request->_barcode])->first();
         $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_sell_price' => $request->_sell_price]);
         if (!empty($check)) {
             $this->saveLogProductStock(
                 $get_data->id,
                 $get_data->p_id,
-                Auth::user()->id,
+                $user_id,
                 ProductLogs::LEVEL_SKU,
                 'ps_sell_price',
                 '/data_produk',
@@ -146,13 +212,47 @@ class ProductStockController extends Controller
 
     public function updatePurchasePrice(Request $request)
     {
+        $user_id = Auth::user()->id;
+        $user = new User;
+        $product = new \App\Models\Product;
+
+        $is_mdcx = $user->isMDCX($user_id);
+        $is_finance = $user->isFintech($user_id);
+        $is_admin = $user->isAdmin($user_id);
+
+        $fintechCanChange = $product::$fintechCanChange;
+        $mdcxCanChange = $product::$mdcxCanChange;
+
+        if (!$is_admin) {
+            $restricted = [];
+            $key = 'ps_purchase_price';
+            $value = $request->_purchase_price;
+
+            if (
+                (in_array($key, $fintechCanChange) && !$is_finance) ||
+                (in_array($key, $mdcxCanChange) && !$is_mdcx)
+            ) {
+                $current = ProductStock::where('ps_barcode', $request->_barcode)->value($key);
+                if ($current != $value) {
+                    $restricted[] = $key;
+                }
+            }
+
+            if (!empty($restricted)) {
+                return json_encode([
+                    'status' => '403',
+                    'message' => 'Anda tidak memiliki izin untuk mengubah kolom Harga Beli'
+                ]);
+            }
+        }
+
         $get_data =  ProductStock::where(['ps_barcode' => $request->_barcode])->first();
         $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_purchase_price' => $request->_purchase_price]);
         if (!empty($check)) {
             $this->saveLogProductStock(
                 $get_data->id,
                 $get_data->p_id,
-                Auth::user()->id,
+                $user_id,
                 ProductLogs::LEVEL_SKU,
                 'ps_purchase_price',
                 '/data_produk',

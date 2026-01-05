@@ -402,6 +402,8 @@
             success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga banderol berhasil diupdate', 'success');
+                } else {
+                    toast('Gagal', r.message, 'error');
                 }
             }
         });
@@ -421,6 +423,8 @@
             success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga jual berhasil diupdate', 'success');
+                } else {
+                    toast('Gagal', r.message, 'error');
                 }
             }
         });
@@ -482,6 +486,8 @@
             success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga beli berhasil diupdate', 'success');
+                } else {
+                    toast('Gagal', r.message, 'error');
                 }
             }
         })
@@ -1258,6 +1264,23 @@
             @if ($data['user']->delete_access == '1')
                 $('#delete_product_btn').show();
             @endif
+
+                        // Only disable if not admin and not finance
+            @if (!$is_admin && !$is_finance)
+                $('#is_everlast').prop('disabled', true);
+                $('#p_purchase_price').prop('disabled', true);
+            @else
+                $('#is_everlast').prop('disabled', false);
+                $('#p_purchase_price').prop('disabled', false);
+            @endif
+
+            @if (!$is_admin && !$is_mdcx)
+                $('#p_price_tag').prop('disabled', true);
+                $('#p_sell_price').prop('disabled', true);
+            @else
+                $('#p_price_tag').prop('disabled', false);
+                $('#p_sell_price').prop('disabled', false);
+            @endif
             generateQR(article_id);
         })
 
@@ -1892,11 +1915,14 @@
                                         .after(
                                             "<tr id='ProductStockDetailAppend'><td>" +
                                             value.sz_name +
-                                            "</td><td>" + value.qty +
+                                            
                                             "</td><td>" + value
                                             .ps_barcode + "</td><td>" +
                                             formatToRupiah(value
                                                 .ps_price_tag) +
+                                            "</td><td>" +
+                                            formatToRupiah(value
+                                                .ps_sell_price) +
                                             "</td></tr>");
                                 });
                             } else {
@@ -2160,9 +2186,9 @@
                         toastr.warning('Data tidak tersimpan', 'Gagal');
                     } else {
                         $("#ProductModal").modal('hide');
-                        toastr.warning(
-                            'Data gagal disimpan karena ada perubahan data yang terikat ke suatu pencatatan transaksi',
-                            'Relationship');
+                        toastr.error(
+                            data.message || 'Terjadi kesalahan saat menyimpan data',
+                            'Gagal Menyimpan');
                     }
                 },
                 error: function(data) {

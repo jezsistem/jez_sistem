@@ -411,7 +411,8 @@
                                         <label class="label-space">
                                             Size Artikel:
                                             <span id="barcode_running_label" style="display:none;"></span>
-                                            <a class="btn btn-sm btn-primary" onclick="return activateColumn()">undisabled</a>
+                                            <a class="btn btn-sm btn-primary"
+                                                onclick="return activateColumn()">undisabled</a>
                                         </label>
                                     </div>
 
@@ -429,8 +430,10 @@
                                     <div class="col-md-4">
                                         <label>
                                             Schema Display
-                                            <button type="button" class="btn btn-primary" onclick="showAllSchema()">All Schema</button>
-                                            <button type="button" class="btn btn-secondary" onclick="showStockedSchema()">Stocked Schema</button>
+                                            <button type="button" class="btn btn-primary"
+                                                onclick="showAllSchema()">All Schema</button>
+                                            <button type="button" class="btn btn-secondary"
+                                                onclick="showStockedSchema()">Stocked Schema</button>
                                         </label>
                                     </div>
 
@@ -508,7 +511,7 @@
 
 <!-- Modal untuk menampilkan semua link -->
 <div class="modal fade" id="HistoryModal" tabindex="-1" role="dialog" aria-labelledby="HistoryModalLabel"
-     aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
 
@@ -527,20 +530,20 @@
                 <div class="tab-content mt-3">
                     <!-- Marketplace -->
                     <div class="tab-pane fade show active">
-{{--                        <button class="btn btn-primary mb-3" id="tableHistory">+ Add Marketplace</button>--}}
+                        {{--                        <button class="btn btn-primary mb-3" id="tableHistory">+ Add Marketplace</button> --}}
                         <table id="tableHistory" class="table table-bordered table-striped">
                             <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Tanggal</th>
-                                <th>User</th>
-                                <th>Type</th>
-                                <th>SKU</th>
-                                <th>Kolom</th>
-                                <th>Source</th>
-                                <th>Sebelum</th>
-                                <th>Sesudah</th>
-                            </tr>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal</th>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>SKU</th>
+                                    <th>Kolom</th>
+                                    <th>Source</th>
+                                    <th>Sebelum</th>
+                                    <th>Sesudah</th>
+                                </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -555,8 +558,8 @@
 
 
 <!-- Modal untuk menampilkan semua link -->
-<div class="modal fade" id="genaratorSKUModal" tabindex="-1" role="dialog" aria-labelledby="genaratorSKUModalLabel"
-     aria-hidden="true">
+<div class="modal fade" id="genaratorSKUModal" tabindex="-1" role="dialog"
+    aria-labelledby="genaratorSKUModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-l" role="document">
         <div class="modal-content">
 
@@ -575,15 +578,15 @@
                 <div class="tab-content mt-3">
                     <!-- Marketplace -->
                     <div class="tab-pane fade show active">
-                        {{--                        <button class="btn btn-primary mb-3" id="tableHistory">+ Add Marketplace</button>--}}
-{{--                        <input type="text" class="form-control" id="selectedSKU">--}}
+                        {{--                        <button class="btn btn-primary mb-3" id="tableHistory">+ Add Marketplace</button> --}}
+                        {{--                        <input type="text" class="form-control" id="selectedSKU"> --}}
 
                         <label>Satuan Artikel <span class="text-danger">*</span></label>
                         <select class="form-control" id="sku_selected" name="sku_selected" required>
                             <option value="">- Pilih Satuan -</option>
-{{--                            @foreach ($data['pu_id'] as $key => $value)--}}
-{{--                                <option value="{{ $key }}">{{ $value }}</option>--}}
-{{--                            @endforeach--}}
+                            {{--                            @foreach ($data['pu_id'] as $key => $value) --}}
+                            {{--                                <option value="{{ $key }}">{{ $value }}</option> --}}
+                            {{--                            @endforeach --}}
                         </select>
                         <div id="pu_id_parent"></div>
                     </div>
@@ -898,7 +901,8 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="ProductLinkDetailModalLabel">Product Link Detail</h5>
-                <button type="button" class="close close_product_link_detail" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close close_product_link_detail" data-dismiss="modal"
+                    aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
             </div>
@@ -911,8 +915,8 @@
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-md-4"><strong>Link Type:</strong></div>
-                            <div class="col-md-8"><span class="badge badge-primary"
-                                    id="detail_link_type"></span></div>
+                            <div class="col-md-8"><span class="badge badge-primary" id="detail_link_type"></span>
+                            </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4"><strong>Platform:</strong></div>

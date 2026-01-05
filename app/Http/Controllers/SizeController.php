@@ -159,6 +159,12 @@ class SizeController extends Controller
     public function reloadSizeSchemaModal(Request $request)
     {
         $size = new Size;
+        $user = new User;
+        $user_id = Auth::user()->id;
+        $is_mdcx = $user->isMDCX($user_id);
+        $is_finance = $user->isFintech($user_id);
+        $is_admin = $user->isAdmin($user_id);
+
         $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
         $where = [
             'sz_schema' => $request->_sz_schema,
@@ -169,7 +175,7 @@ class SizeController extends Controller
             'size' => $size_data
         ];
 
-        return view('app.product._reload_size_schema', compact('data'));
+        return view('app.product._reload_size_schema', compact('data', 'is_mdcx', 'is_finance', 'is_admin'));
     }
 
     public function reloadSizeSchema(Request $request)

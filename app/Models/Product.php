@@ -211,4 +211,17 @@ class Product extends Model
         'ps_price_tag',
         'ps_sell_price',
     ];
+
+    public static $fintechCanChange = [
+        'is_everlast',
+        'p_purchase_price',
+        'ps_purchase_price'
+    ];
+
+    public static $mdcxCanChange = [
+        'p_price_tag',
+        'p_sell_price',
+        'ps_price_tag',
+        'ps_sell_price'
+    ];
 }

@@ -143,7 +143,9 @@ class ProductController extends Controller
 
         $stt = DB::table('store_types')->where('id', Auth::user()->stt_id)->first()->stt_name;
 
-
+        $is_mdcx = $user->isMDCX(Auth::user()->id);
+        $is_finance = $user->isFintech(Auth::user()->id);
+        $is_admin = $user->isAdmin(Auth::user()->id);
 
         $data = [
             'title' => $title,
@@ -171,7 +173,8 @@ class ProductController extends Controller
             'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
 
         ];
-        return view('app.product.product', compact('data'));
+
+        return view('app.product.product', compact('data', 'is_mdcx', 'is_finance', 'is_admin'));
     }
 
     //    public function getSkuAvailable(Request $request){
@@ -1595,8 +1598,44 @@ class ProductController extends Controller
     {
         //     return json_encode($request->all());
 
+        $user_id = Auth::user()->id;
+
+        $user = new User;
+        $product = new Product;
+
+        $is_mdcx = $user->isMDCX($user_id);
+        $is_finance = $user->isFintech($user_id);
+        $is_admin = $user->isAdmin($user_id);
+
+        // Check if user can change certain columns based on their role
+        $fintechCanChange = Product::$fintechCanChange;
+        $mdcxCanChange = Product::$mdcxCanChange;
+
+        // If not admin, check if user tries to change restricted columns
+        if (!$is_admin) {
+            $restricted = [];
+            foreach ($request->all() as $key => $value) {
+                if (
+                    (in_array($key, $fintechCanChange) && !$is_finance) ||
+                    (in_array($key, $mdcxCanChange) && !$is_mdcx)
+                ) {
+                    // Compare with current value in DB
+                    $current = Product::where('id', $request->_id)->value($key);
+                    if ($current != $value) {
+                        $restricted[] = $key;
+                    }
+                }
+            }
+            if (!empty($restricted)) {
+                return json_encode([
+                    'status' => '403',
+                    'message' => 'Anda tidak memiliki izin untuk mengubah kolom: ' . implode(', ', $restricted)
+                ]);
+            }
+        }
+
         try {
-            $product = new Product;
+
             $product_stock = new ProductStock;
             $mode = $request->input('_mode');
             $id = $request->input('_id');
@@ -1604,40 +1643,82 @@ class ProductController extends Controller
             $sz_sell_price = $request->input('_sz_sell_price');
 
             $product_data_before = Product::where('id', $id)->first();
-            $data = [
-                'br_id' => $request->input('br_id'),
-                'pc_id' => $request->input('pc_id'),
-                'psc_id' => $request->input('psc_id'),
-                'pssc_id' => $request->input('pssc_id'),
-                'mc_id' => $request->input('mc_id'),
-                'ps_id' => $request->input('ps_id'),
-                'pu_id' => $request->input('pu_id'),
-                'gn_id' => $request->input('gn_id'),
-                'ss_id' => $request->input('ss_id'),
-                'p_color' => ltrim($request->input('p_color')),
-                'p_code' => ltrim($request->input('p_code')),
-                'p_name' => ltrim($request->input('p_name')),
-                'p_description' => $request->input('p_description'),
-                'p_aging' => $request->input('p_aging'),
-                'p_price_tag' => $request->input('p_price_tag'),
-                'p_purchase_price' => $request->input('p_purchase_price'),
-                'p_sell_price' => $request->input('p_sell_price'),
-                'p_weight' => $request->input('p_weight'),
-                'article_id' => $request->input('article_id'),
-                'schema_size' => $request->input('sz_schema_modal_id'),
-                'p_delete' => '0',
-                'subcategory1' => $request->input('subcatone'),
-                'subcategory2' => $request->input('subcattwo'),
-                'consignment' => $request->input('consignment'),
-                'complement' => $request->input('complement') ?? 0,
-                'mp_best_seller' => $request->input('mp_best_seller'),
-                'mp_stock_masking' => $request->input('mp_stock_masking'),
-                'is_everlast' => $request->input('is_everlast') ?? 0,
-                'is_supersale' => $request->input('is_supersale') ?? 0,
-                'is_reguler' => $request->input('is_reguler') ?? 0,
-                'mark_down' => $request->input('mark_down') ?? 0,
-                'p_turnoverclass' => $request->input('p_turnoverclass'),
+
+            // Only include fields that are allowed to be changed by the current user role
+            $allowedFields = array_keys($request->all());
+            // Remove internal fields (those starting with '_')
+            $allowedFields = array_filter($allowedFields, function ($key) {
+                return strpos($key, '_') !== 0;
+            });
+
+            // Define all possible fields for product
+            $allFields = [
+                'br_id',
+                'pc_id',
+                'psc_id',
+                'pssc_id',
+                'mc_id',
+                'ps_id',
+                'pu_id',
+                'gn_id',
+                'ss_id',
+                'p_color',
+                'p_code',
+                'p_name',
+                'p_description',
+                'p_aging',
+                'p_price_tag',
+                'p_purchase_price',
+                'p_sell_price',
+                'p_weight',
+                'article_id',
+                'schema_size',
+                'p_delete',
+                'subcategory1',
+                'subcategory2',
+                'consignment',
+                'complement',
+                'mp_best_seller',
+                'mp_stock_masking',
+                'is_everlast',
+                'is_supersale',
+                'is_reguler',
+                'mark_down',
+                'p_turnoverclass'
             ];
+
+            $data = [];
+            foreach ($allFields as $field) {
+                if (in_array($field, $allowedFields)) {
+                    switch ($field) {
+                        case 'p_color':
+                        case 'p_code':
+                        case 'p_name':
+                            $data[$field] = ltrim($request->input($field));
+                            break;
+                        case 'complement':
+                        case 'is_everlast':
+                        case 'is_supersale':
+                        case 'is_reguler':
+                        case 'mark_down':
+                            $data[$field] = $request->input($field) ?? 0;
+                            break;
+                        case 'schema_size':
+                            $data[$field] = $request->input('sz_schema_modal_id');
+                            break;
+                        case 'subcategory1':
+                            $data[$field] = $request->input('subcatone');
+                            break;
+                        case 'subcategory2':
+                            $data[$field] = $request->input('subcattwo');
+                            break;
+                        default:
+                            $data[$field] = $request->input($field);
+                    }
+                }
+            }
+            // Always set p_delete to '0' on save
+            $data['p_delete'] = '0';
             $save = $product->storeData($mode, $id, $data);
 
             //save log update
@@ -1856,38 +1937,79 @@ class ProductController extends Controller
     public function massUpdateProductImport(Request $request)
     {
         $update_type = $request->input('update_type');
-
         $import_data = Excel::toArray(new MassUpdateProductImport, $request->file('p_mass_import'));
-
         $update_column = $import_data[0][0][1];
 
-        if ($update_type == 'article') {
-            $is_allowed = Product::$massUpdateColumns; // Accessing the property as static
+        // Role validation
+        $user_id = Auth::user()->id;
+        $user = new User;
+        $product = new \App\Models\Product;
 
+        $is_mdcx = $user->isMDCX($user_id);
+        $is_finance = $user->isFintech($user_id);
+        $is_admin = $user->isAdmin($user_id);
+
+        $fintechCanChange = $product::$fintechCanChange;
+        $mdcxCanChange = $product::$mdcxCanChange;
+
+        if (!$is_admin) {
+            $restricted = [];
+            $key = $update_column;
+
+            // Check for restricted columns
+            if (
+                (in_array($key, $fintechCanChange) && !$is_finance) ||
+                (in_array($key, $mdcxCanChange) && !$is_mdcx)
+            ) {
+                // Check if any value is different from current DB value
+                foreach ($import_data[0] as $row) {
+                    if ($update_type == 'article') {
+                        $current = Product::where('article_id', $row[0])->value($key);
+                        $value = $row[2] ?? null;
+                    } else if ($update_type == 'sku') {
+                        $current = ProductStock::where('ps_barcode', $row[0])->value($key);
+                        $value = $row[2] ?? null;
+                    } else {
+                        $current = null;
+                        $value = null;
+                    }
+                    if ($current != $value) {
+                        $restricted[] = $key;
+                        break;
+                    }
+                }
+            }
+            if (!empty($restricted)) {
+                return json_encode([
+                    'status' => '403',
+                    'message' => 'Anda tidak memiliki izin untuk mengubah kolom: ' . implode(', ', $restricted)
+                ]);
+            }
+        }
+
+        if ($update_type == 'article') {
+            $is_allowed = Product::$massUpdateColumns;
             if (!in_array($update_column, $is_allowed) || $import_data[0][0][0] != 'article_id') {
                 $r['status'] = '400';
                 $r['message'] = 'Kolom yang akan diupdate tidak sesuai.';
                 return json_encode($r);
             }
-
-            $massUpdateService = new MassUpdateProductService(); // Instantiate the service
-            $error_ids = $massUpdateService->processRowArticleLevel($import_data[0], $update_column); // Call the method on the service with the first array
+            $massUpdateService = new MassUpdateProductService();
+            $error_ids = $massUpdateService->processRowArticleLevel($import_data[0], $update_column);
         } else if ($update_type == 'sku') {
-            $is_allowed = Product::$massUpdateSKUColumns; // Accessing the property as static
+            $is_allowed = Product::$massUpdateSKUColumns;
             if (!in_array($update_column, $is_allowed) || $import_data[0][0][0] != 'ps_barcode') {
                 $r['status'] = '400';
                 $r['message'] = 'Kolom yang akan diupdate tidak sesuai.';
                 return json_encode($r);
             }
-
             $massUpdateService = new MassUpdateProductService();
-            $error_ids = $massUpdateService->processRowSKUlevel($import_data[0], $update_column); // Call the method on the service with the first array
+            $error_ids = $massUpdateService->processRowSKUlevel($import_data[0], $update_column);
         } else {
             $r['status'] = '400';
             $r['message'] = 'Tipe update tidak sesuai.';
             return json_encode($r);
         }
-
 
         if (!$error_ids) {
             $r['status'] = '200';
