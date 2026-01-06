@@ -1105,6 +1105,7 @@
             var is_reguler = product_table.row(this).data().is_reguler;
             var p_turnoverclass = product_table.row(this).data().p_turnoverclass;
             var mark_down = product_table.row(this).data().mark_down;
+            var for_offline = product_table.row(this).data().for_offline;
             var link_content = product_table.row(this).data().link_content;
 
             console.log(product_table.row(this).data())
@@ -1242,6 +1243,12 @@
                 $('#mark_down').prop('checked', true);
             } else {
                 $('#mark_down').prop('checked', false);
+            }
+
+            if (for_offline == '1') {
+                $('#for_offline').prop('checked', true);
+            } else {
+                $('#for_offline').prop('checked', false);
             }
 
             $('#p_turnoverclass').val(p_turnoverclass);

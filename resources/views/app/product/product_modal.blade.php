@@ -363,6 +363,15 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="for_offline" name="for_offline"
+                                        value="1">
+                                    <label class="" for="for_offline">
+                                        Untuk Offline
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-4 pt-1">

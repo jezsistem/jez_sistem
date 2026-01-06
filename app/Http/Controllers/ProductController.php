@@ -998,7 +998,8 @@ class ProductController extends Controller
                     'is_reguler',
                     'mark_down',
                     'p_turnoverclass',
-                    'link_content'
+                    'link_content',
+                    'for_offline'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
@@ -1420,6 +1421,7 @@ class ProductController extends Controller
                 'is_reguler' => $request->input('is_reguler') ?? 0,
                 'mark_down' => $request->input('mark_down') ?? 0,
                 'p_turnoverclass' => $request->input('p_turnoverclass'),
+                'for_offline' => $request->input('for_offline') ?? 0
             ];
             $save = $product->storeData($mode, $id, $data);
 
