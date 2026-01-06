@@ -99,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('mass_adjustment', [MassAdjustmentController::class, 'index']);
     Route::get('mass_stock_datatables', [MassAdjustmentController::class, 'stockDatatables']);
     Route::get('mass_adjustment_datatables', [MassAdjustmentController::class, 'adjustmentDatatables']);
+    Route::get('mass-adjustment/show/{id}',[MassAdjustmentController::class, 'show'])->name('mass_adjustment.show');
     Route::get('mass_adjustment_detail_datatables', [MassAdjustmentController::class, 'adjustmentDetailDatatables']);
     Route::post('export_mass_table', [MassAdjustmentController::class, 'exportTable']);
     Route::post('export_mass_by_date', [MassAdjustmentController::class, 'exportMassByDate']);

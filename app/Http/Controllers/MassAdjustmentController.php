@@ -90,6 +90,45 @@ class MassAdjustmentController extends Controller
         return view('app.mass_adjustment.mass_adjustment', compact('data'));
     }
 
+    public function show($id)
+    {
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $ma = DB::table('mass_adjustments')
+            ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
+            ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
+            ->leftJoin('users as approver', 'approver.id', '=', 'mass_adjustments.ma_approve')
+            ->select(
+                'mass_adjustments.*',
+                'stores.st_name',
+                'users.u_name',
+                'approver.u_name as approve_name',
+            )
+            ->where('mass_adjustments.id', $id)
+            ->first();
+
+        if (!$ma) {
+            abort(404);
+        }
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Detail Mass Adjustments',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'ma' => $ma
+        ];
+
+        return view('app.mass_adjustment.mass_adjustment_show', compact('data'));
+    }
+
     public function stockDatatables(Request $request)
     {
         $exception = ExceptionLocation::select('pl_code')
@@ -165,7 +204,7 @@ class MassAdjustmentController extends Controller
     public function adjustmentDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_proof_file','ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name','st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe', 'product_stocks.ps_barcode')
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_proof_file', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time', 'ma_executor_time', 'st_name', 'st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe', 'product_stocks.ps_barcode')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
                 ->leftJoin('mass_adjustment_details', 'mass_adjustment_details.ma_id', '=', 'mass_adjustments.id')
@@ -185,8 +224,7 @@ class MassAdjustmentController extends Controller
                         $query->where('mass_adjustments.note_adjustment', 'LIKE', '%' . $request->get('note_adjustment') . '%');
                     }
                 })
-                )
-                
+            )
                 ->editColumn('ma_code_show', function ($d) {
                     return "<a class='btn btn-primary' id='madj_btn' data-id='" . $d->id . "'>" . $d->ma_code . "</a>";
                 })
@@ -205,9 +243,9 @@ class MassAdjustmentController extends Controller
                     }
                 })
                 ->editColumn('ma_proof_file', function ($d) {
-                    if(!empty($d->ma_proof_file)){
+                    if (!empty($d->ma_proof_file)) {
                         return "<a href='https://nos.wjv-1.neo.id/$d->ma_proof_file' target='_blank' data-id='" . $d->id . "'>View Files</a>";
-                    } else{
+                    } else {
                         return '-';
                     }
                 })
@@ -227,20 +265,55 @@ class MassAdjustmentController extends Controller
                 ->editColumn('ma_status', function ($d) {
                     if ($d->ma_status == '0') {
                         return 'Menunggu Eksekusi';
-                    } else If($d->ma_status == '2'){
+                    } else if ($d->ma_status == '2') {
                         return 'Cancel';
                     } else {
                         return 'Selesai';
                     }
                 })
+//                ->editColumn('action', function ($d) {
+//                    if ($d->ma_status == '0') {
+//                        return "<a class='btn btn-success' id='btn_cancel' data-id='" . $d->id . "'>Batalkan</a>";
+//                    } else if($d->ma_status == '2'){
+//                        return "<a class='btn btn-primary'>Cancel</a>";
+//                    } else {
+//                        return "<a class='btn btn-danger'>Done</a>";
+//                    }
+//                })
                 ->editColumn('action', function ($d) {
+
+                    $showUrl = url('mass-adjustment/show/' . $d->id);
+                    $copyLink = url('mass-adjustment/' . $d->ma_code);
+
+                    $html = '
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-toggle="dropdown">
+                                Action
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right">
+                    
+                                <a class="dropdown-item" href="' . $showUrl . '">
+                                    <i class="fas fa-eye mr-2"></i> Show
+                                </a>
+                    
+                                <a class="dropdown-item copy-link" href="javascript:void(0)" data-link="' . $copyLink . '">
+                                    <i class="fas fa-copy mr-2"></i> Copy Link
+                                </a>';
+
+                    // Hanya tampil jika status = 0
                     if ($d->ma_status == '0') {
-                        return "<a class='btn btn-success' id='btn_cancel' data-id='" . $d->id . "'>Batalkan</a>";
-                    } else if($d->ma_status == '2'){
-                        return "<a class='btn btn-primary'>Cancel</a>";
-                    } else {
-                        return "<a class='btn btn-danger'>Done</a>";
+                        $html .= '
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-danger btn-cancel" href="javascript:void(0)" data-id="' . $d->id . '">
+                                    <i class="fas fa-times mr-2"></i> Batalkan
+                                </a>';
                     }
+
+                    $html .= '
+                            </div>
+                        </div>';
+
+                    return $html;
                 })
                 ->editColumn('note', function ($d) {
                     $aliases = [
@@ -259,9 +332,9 @@ class MassAdjustmentController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('ma_code', 'LIKE', "%$search%")
-                              ->orWhere('u_name', 'LIKE', "%$search%")
-                              ->orWhere('note_adjustment', 'LIKE', "%$search%")
-                              ->orWhere('ps_barcode', 'LIKE', "%$search%");
+                                ->orWhere('u_name', 'LIKE', "%$search%")
+                                ->orWhere('note_adjustment', 'LIKE', "%$search%")
+                                ->orWhere('ps_barcode', 'LIKE', "%$search%");
                         });
                     }
                     if (!empty($request->get('filter'))) {
@@ -322,6 +395,7 @@ class MassAdjustmentController extends Controller
                 ->make(true);
         }
     }
+
 
     public function loadAsset(Request $req)
     {
@@ -688,25 +762,25 @@ class MassAdjustmentController extends Controller
         $ma_id = $req->post('ma_id');
 
         $data = DB::table('mass_adjustment_details')
-        ->join('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
-        ->where('ma_id', '=', $ma_id);
+            ->join('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+            ->where('ma_id', '=', $ma_id);
 
         $differences = [];
 
         foreach ($data->get() as $row) {
             $productLocation = DB::table('product_location_setups')
-            ->select('pls_qty', 'pst_id','ps_barcode')
-            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->where('product_location_setups.id', '=', $row->pls_id)
-            ->first();
+                ->select('pls_qty', 'pst_id', 'ps_barcode')
+                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->where('product_location_setups.id', '=', $row->pls_id)
+                ->first();
 
             if ($productLocation && $row->qty_export != $productLocation->pls_qty) {
 
-            $differences[] = [
-                'sku' => $productLocation->ps_barcode,
-                'qty_export' => $row->qty_export,
-                'pls_qty' => $productLocation->pls_qty,
-            ];
+                $differences[] = [
+                    'sku' => $productLocation->ps_barcode,
+                    'qty_export' => $row->qty_export,
+                    'pls_qty' => $productLocation->pls_qty,
+                ];
             }
         }
 
@@ -807,7 +881,7 @@ class MassAdjustmentController extends Controller
                 $st_code = $data->st_code ?? '';
                 $alias = $aliases[$st_code] ?? $st_code;
                 $data->adjust_note_formatted = $alias . ' - ' . ($data->adjust_note ?? '-');
-            
+
 
                 return $data;
             });
@@ -877,7 +951,7 @@ class MassAdjustmentController extends Controller
                     'JEMBER' => 'JBR',
                     'SIDOARJO' => 'SDA'
                 ];
-            
+
                 $alias = $aliases[$data->st_code] ?? $data->st_code;
                 $data->adjust_note = $alias . ' - ' . ($data->adjust_note ?? '-');
 

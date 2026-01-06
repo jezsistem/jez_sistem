@@ -7,6 +7,7 @@
     var br_id = $('#br_filter').val();
     var qty_filter = $('#qty_filter').val();
     var pl_id = [];
+    loadApproval();
 
     function loadLocation(st_id) {
         $.ajaxSetup({
@@ -433,7 +434,9 @@
                 url: "{{ url('mass_adjustment_detail_datatables') }}",
                 data: function(d) {
                     d.search = $('#mad_search').val();
-                    d.ma_id = $('#ma_code').attr('data-id');
+                    d.ma_id = $('#ma_code').attr('data-id')
+                        || $('#ma_id').val()
+                        || null;
                 }
             },
             columns: [{
@@ -801,7 +804,7 @@
                     $.ajax({
                         type: "POST",
                         data: {
-                            ma_id: $('#ma_code').attr('data-id')
+                            ma_id: $('#ma_code').attr('data-id') || $('#ma_id').val()
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_approval') }}",
