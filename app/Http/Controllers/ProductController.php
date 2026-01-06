@@ -147,6 +147,8 @@ class ProductController extends Controller
         $is_finance = $user->isFintech(Auth::user()->id);
         $is_admin = $user->isAdmin(Auth::user()->id);
 
+        $is_at_least_supervisor = $user->isAtLeastSupervisor(Auth::user()->id);
+
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
@@ -174,7 +176,7 @@ class ProductController extends Controller
 
         ];
 
-        return view('app.product.product', compact('data', 'is_mdcx', 'is_finance', 'is_admin'));
+        return view('app.product.product', compact('data', 'is_mdcx', 'is_finance', 'is_admin', 'is_at_least_supervisor'));
     }
 
     //    public function getSkuAvailable(Request $request){
@@ -519,36 +521,19 @@ class ProductController extends Controller
                 if ($row->target_column == 'ss_id') {
                     return $row->season_before_name;
                 }
+                $booleanColumns = [
+                    'consignment',
+                    'complement',
+                    'mp_stock_masking',
+                    'mp_best_seller',
+                    'is_everlast',
+                    'is_supersale',
+                    'is_reguler',
+                    'mark_down',
+                    'for_offline'
+                ];
 
-                if ($row->target_column == 'consignment') {
-                    return $row->data_before == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'complement') {
-                    return $row->data_before == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'mp_stock_masking') {
-                    return $row->data_before == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'ms_best_seller') {
-                    return $row->data_before == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'is_everlast') {
-                    return $row->data_before == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'is_supersale') {
-                    return $row->data_before == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'is_reguler') {
-                    return $row->data_before == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'mark_down') {
+                if (in_array($row->target_column, $booleanColumns)) {
                     return $row->data_before == 1 ? 'Yes' : 'No';
                 }
 
@@ -591,35 +576,19 @@ class ProductController extends Controller
                     return $row->season_after_name;
                 }
 
-                if ($row->target_column == 'consignment') {
-                    return $row->data_after == 1 ? 'Yes' : 'No';
-                }
+                $booleanColumns = [
+                    'consignment',
+                    'complement',
+                    'mp_stock_masking',
+                    'mp_best_seller',
+                    'is_everlast',
+                    'is_supersale',
+                    'is_reguler',
+                    'mark_down',
+                    'for_offline'
+                ];
 
-                if ($row->target_column == 'complement') {
-                    return $row->data_after == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'mp_stock_masking') {
-                    return $row->data_after == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'ms_best_seller') {
-                    return $row->data_after == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'is_everlast') {
-                    return $row->data_after == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'is_supersale') {
-                    return $row->data_after == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'is_reguler') {
-                    return $row->data_after == 1 ? 'Yes' : 'No';
-                }
-
-                if ($row->target_column == 'mark_down') {
+                if (in_array($row->target_column, $booleanColumns)) {
                     return $row->data_after == 1 ? 'Yes' : 'No';
                 }
 
@@ -1607,20 +1576,31 @@ class ProductController extends Controller
         $is_mdcx = $user->isMDCX($user_id);
         $is_finance = $user->isFintech($user_id);
         $is_admin = $user->isAdmin($user_id);
+        $is_at_least_supervisor = $user->isAtLeastSupervisor($user_id);
 
         // Check if user can change certain columns based on their role
         $fintechCanChange = Product::$fintechCanChange;
         $mdcxCanChange = Product::$mdcxCanChange;
+        $atLeastSupervisorCanChange = Product::$atLeastSupervisorCanChange;
 
         // If not admin, check if user tries to change restricted columns
         if (!$is_admin) {
             $restricted = [];
             foreach ($request->all() as $key => $value) {
-                if (
-                    (in_array($key, $fintechCanChange) && !$is_finance) ||
-                    (in_array($key, $mdcxCanChange) && !$is_mdcx)
-                ) {
-                    // Compare with current value in DB
+                $isRestricted = false;
+
+                if (in_array($key, $atLeastSupervisorCanChange) && $is_at_least_supervisor) {
+                    continue;
+                }
+
+
+                if (in_array($key, $mdcxCanChange) && !$is_mdcx) {
+                    $isRestricted = true;
+                } elseif (in_array($key, $fintechCanChange) && !$is_finance) {
+                    $isRestricted = true;
+                }
+
+                if ($isRestricted) {
                     $current = Product::where('id', $request->_id)->value($key);
                     if ($current != $value) {
                         $restricted[] = $key;
@@ -1685,7 +1665,8 @@ class ProductController extends Controller
                 'is_supersale',
                 'is_reguler',
                 'mark_down',
-                'p_turnoverclass'
+                'p_turnoverclass',
+                'for_offline',
             ];
 
             $data = [];
@@ -1698,11 +1679,16 @@ class ProductController extends Controller
                             $data[$field] = ltrim($request->input($field));
                             break;
                         case 'complement':
+                        case 'consignment':
+                        case 'mp_best_seller':
+                        case 'mp_stock_masking':
                         case 'is_everlast':
                         case 'is_supersale':
                         case 'is_reguler':
                         case 'mark_down':
-                            $data[$field] = $request->input($field) ?? 0;
+                        case 'for_offline':
+                            // Checkbox: if not present in request, treat as 0 (unchecked)
+                            $data[$field] = $request->has($field) ? 1 : 0;
                             break;
                         case 'schema_size':
                             $data[$field] = $request->input('sz_schema_modal_id');
@@ -1715,6 +1701,21 @@ class ProductController extends Controller
                             break;
                         default:
                             $data[$field] = $request->input($field);
+                    }
+                } else {
+                    // For boolean fields not present in allowedFields, set to 0 if not in request
+                    if (in_array($field, [
+                        'complement',
+                        'consignment',
+                        'mp_best_seller',
+                        'mp_stock_masking',
+                        'is_everlast',
+                        'is_supersale',
+                        'is_reguler',
+                        'mark_down',
+                        'for_offline'
+                    ])) {
+                        $data[$field] = 0;
                     }
                 }
             }
@@ -1949,37 +1950,34 @@ class ProductController extends Controller
         $is_mdcx = $user->isMDCX($user_id);
         $is_finance = $user->isFintech($user_id);
         $is_admin = $user->isAdmin($user_id);
+        $is_at_least_supervisor = $user->isAtLeastSupervisor($user_id);
 
+        // Check if user can change certain columns based on their role
         $fintechCanChange = $product::$fintechCanChange;
         $mdcxCanChange = $product::$mdcxCanChange;
+        $atLeastSupervisorCanChange = $product::$atLeastSupervisorCanChange;
 
+        // If not admin, check if user tries to change restricted columns
         if (!$is_admin) {
             $restricted = [];
             $key = $update_column;
+            $isRestricted = false;
 
-            // Check for restricted columns
-            if (
-                (in_array($key, $fintechCanChange) && !$is_finance) ||
-                (in_array($key, $mdcxCanChange) && !$is_mdcx)
-            ) {
-                // Check if any value is different from current DB value
-                foreach ($import_data[0] as $row) {
-                    if ($update_type == 'article') {
-                        $current = Product::where('article_id', $row[0])->value($key);
-                        $value = $row[2] ?? null;
-                    } else if ($update_type == 'sku') {
-                        $current = ProductStock::where('ps_barcode', $row[0])->value($key);
-                        $value = $row[2] ?? null;
-                    } else {
-                        $current = null;
-                        $value = null;
-                    }
-                    if ($current != $value) {
-                        $restricted[] = $key;
-                        break;
-                    }
+            if (in_array($key, $atLeastSupervisorCanChange) && $is_at_least_supervisor) {
+                // allowed, do nothing
+            } else {
+                if (in_array($key, $mdcxCanChange) && !$is_mdcx) {
+                    $isRestricted = true;
+                } elseif (in_array($key, $fintechCanChange) && !$is_finance) {
+                    $isRestricted = true;
                 }
             }
+
+            if ($isRestricted) {
+                // For mass update, we can't compare old/new value here, just block the update
+                $restricted[] = $key;
+            }
+
             if (!empty($restricted)) {
                 return json_encode([
                     'status' => '403',

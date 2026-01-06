@@ -282,4 +282,16 @@ class User extends Authenticatable
 
         return $is_mdcx;
     }
+
+    public function isAtLeastSupervisor($user_id)
+    {
+        //get user position
+        $is_spv = User::query()
+            ->where('users.id', $user_id)
+            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+            ->where('up_code', '!=', 'STAFF')
+            ->exists();
+
+        return $is_spv;
+    }
 }

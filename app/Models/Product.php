@@ -80,6 +80,7 @@ class Product extends Model
         'ps_price_tag' => 'SKU Price Tag',
         'ps_sell_price' => 'SKU Sell Price',
         'ps_purchase_price' => 'SKU Purchase Price',
+        'for_offline' => 'For Offline'
     ];
 
 
@@ -224,6 +225,11 @@ class Product extends Model
         'p_price_tag',
         'p_sell_price',
         'ps_price_tag',
-        'ps_sell_price'
+        'ps_sell_price',
+        'for_offline'
+    ];
+
+    public static $atLeastSupervisorCanChange = [
+        'for_offline'
     ];
 }
