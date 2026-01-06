@@ -1216,7 +1216,8 @@ class ProductController extends Controller
                     'is_reguler',
                     'mark_down',
                     'p_turnoverclass',
-                    'link_content'
+                    'link_content',
+                    'for_offline'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')

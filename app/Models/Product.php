@@ -43,7 +43,8 @@ class Product extends Model
         'created_at',
         'p_turnoverclass',
         'updated_at',
-        'mark_down'
+        'mark_down',
+        'for_offline'
     ];
 
     public const readableColumns = [
@@ -204,7 +205,8 @@ class Product extends Model
         'is_supersale',
         'is_reguler',
         'p_turnoverclass',
-        'mark_down'
+        'mark_down',
+        'for_offline'
     ];
 
     public static $massUpdateSKUColumns = [
