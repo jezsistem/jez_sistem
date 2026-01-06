@@ -195,18 +195,25 @@ ORDER BY ts_stores.st_name;
 
 
         $sql = "
-            SELECT
-    ts_stores.st_name AS Store,
-    SUM(ts_product_stocks.ps_purchase_price * ts_pos_transaction_details.pos_td_qty) AS COGS
-    FROM ts_pos_transaction_details
-    LEFT JOIN ts_pos_transactions ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
-    LEFT JOIN ts_product_stocks ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
-    LEFT JOIN ts_stores ON ts_pos_transactions.st_id = ts_stores.id
-    WHERE ts_pos_transactions.pos_status NOT IN ('UNPAID')
-    AND ts_pos_transactions.created_at BETWEEN ? AND ?
-    GROUP BY ts_stores.st_name
-    ORDER BY ts_stores.st_name;
-    ";
+        SELECT
+            ts_stores.st_name AS Store,
+            SUM(tptd.pos_td_qty) AS total_unit,
+            COUNT(DISTINCT tpt.pos_invoice) AS total_trx,
+            ROUND(
+                SUM(tptd.pos_td_qty) / NULLIF(COUNT(DISTINCT tpt.pos_invoice), 0),
+                2
+            ) AS upt
+        FROM ts_pos_transactions tpt
+        JOIN ts_pos_transaction_details tptd
+            ON tptd.pt_id = tpt.id
+        JOIN ts_stores
+            ON tpt.st_id = ts_stores.id
+        WHERE
+            tptd.pos_td_qty > 0
+            AND tpt.created_at BETWEEN ? AND ?
+        GROUP BY ts_stores.st_name
+        ";
+
 
         $result = DB::select($sql, [$start, $end]);
 
@@ -214,14 +221,14 @@ ORDER BY ts_stores.st_name;
         $total = 0;
 
         foreach ($result as $row) {
-            $cogs = $row->COGS ?? 0;
-            if ($cogs > 0) {
+            $upt = $row->upt ?? 0;
+            if ($upt > 0) {
                 $item[] = [
                     'st_name' => $row->Store,
-                    'total' => $cogs,
+                    'total' => $upt,
                     'color' => $this->getColorForStore($row->Store),
                 ];
-                $total += $cogs;
+                $total += $upt;
             }
         }
 
