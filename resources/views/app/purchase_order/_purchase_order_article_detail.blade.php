@@ -84,7 +84,7 @@
                                             style="width:50px;" value="{{ $srow->poad_qty }}"
                                             class="order_po_qty order_po_qty_row{{ $a }}"
                                             onchange="return orderQty( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }} )"
-                                            required />
+                                            @if ($srow->is_approved == 1) disabled @endif required />
                                         <input type="text" style="width:80px;"
                                             value="{{ $srow['total_pls_qty'] ?? '' }}"
                                             class="order_po_qty order_po_qty_row{{ $a }} bg-light"
@@ -128,9 +128,17 @@
                                         @endif
                                         <input type="text" style="width:100px;"
                                             id="total_purchase_price_{{ $row->poa_id }}_{{ $i }}"
-                                            value="{{ number_format($srow->poad_total_price) }}" readonly /> <img
-                                            onclick="return deletePoad( {{ $srow->poad_id }} )"
-                                            src="{{ asset('cdn/details_close.png') }}" /><br />
+                                            value="{{ number_format($srow->poad_total_price) }}" readonly />
+                                        @if ($srow->is_approved == 0)
+                                            <img onclick="return deletePoad( {{ $srow->poad_id }} )"
+                                                src="{{ asset('cdn/details_close.png') }}" />
+                                        @endif
+                                        @if ($srow->is_approved == 1 && $is_fintech)
+                                            <button type="button" class="btn p-0" onclick="activeEditPoad({{ $row->poa_id }}, {{ $i }})">
+                                                <i class="fas fa-pen text-warning"></i>
+                                            </button>
+                                        @endif
+                                        <br />
                                         @php
                                             $i++;
                                             $total_poad_price += $srow->poad_total_price;
@@ -160,11 +168,16 @@
                     <td colspan="9">
                         <span class="float-right">
                             <div class="d-flex">
-                                <a class="btn-sm btn-primary form-control" style="width: fit-content; min-width: 120px;">
-                                    <center>Rp. <span id="poad_total_price">{{ number_format($final_price) }}</span></center>
+                                <a class="btn-sm btn-primary form-control"
+                                    style="width: fit-content; min-width: 120px;">
+                                    <center>Rp. <span id="poad_total_price">{{ number_format($final_price) }}</span>
+                                    </center>
                                 </a>
-                                <a class="btn-sm btn-success form-control ml-2" style="width: fit-content; min-width: 120px;">
-                                    <center>Rp. <span id="poads_total_approved_price">{{ number_format($final_approved_price) }}</span></center>
+                                <a class="btn-sm btn-success form-control ml-2"
+                                    style="width: fit-content; min-width: 120px;">
+                                    <center>Rp. <span
+                                            id="poads_total_approved_price">{{ number_format($final_approved_price) }}</span>
+                                    </center>
                                 </a>
                             </div>
                         </span>

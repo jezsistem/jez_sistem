@@ -81,4 +81,6 @@ Route::middleware(['auth'])->group(function () {
     //    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
     //    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
     //    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);
+
+    Route::get('analytic_link', [ReportShiftController::class, 'analytic_link']);
 });

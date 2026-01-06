@@ -732,6 +732,11 @@
         })
     }
 
+    function activeEditPoad(id, index) {
+        $('#poad_purchase_price_' + id + '_' + index).prop('disabled', false);
+        $('#poad_qty_' + id + '_' + index).prop('disabled', false);
+    }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {

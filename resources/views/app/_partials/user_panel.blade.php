@@ -216,7 +216,7 @@
                     <i class="ki-outline ki-calendar bg-icon-sm fs-2 mr-2"></i>
                     <div class="navi-text">
                         <div class="font-weight-bold">Sisa Cuti</div>
-                        <div class="text-muted">{{ $data['user']->leave_balance ?? 0 }} hari</div>
+                        <div class="text-muted">{{ optional(auth()->user()->remainingLeaveBalance)->lb_remaining_balance ?? 0 }} hari</div>
                     </div>
                 </div>
             </a>
@@ -226,6 +226,14 @@
                     <i class="ki-outline ki-key bg-icon-sm fs-2 mr-2"></i>
                     <div class="navi-text">
                         <div class="font-weight-bold">Ganti Password</div>
+                    </div>
+                </div>
+            </a>
+            <a href="{{ route('break-times.index') }}" class="navi-item">
+                <div class="navi-link">
+                    <i class="ki-outline ki-coffee bg-icon-sm fs-2 mr-2"></i>
+                    <div class="navi-text">
+                        <div class="font-weight-bold">Break Times</div>
                     </div>
                 </div>
             </a>

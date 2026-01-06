@@ -209,8 +209,13 @@
                     orderable: false
                 },
                 {
-                    data: 'qty',
-                    name: 'qty',
+                    data: 'qty_send',
+                    name: 'qty_send',
+                    orderable: false
+                },
+                {
+                    data: 'qty_receive',
+                    name: 'qty_receive',
                     orderable: false
                 },
                 {

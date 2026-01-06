@@ -254,4 +254,44 @@ class User extends Authenticatable
     {
         return $this->u_name ?: $this->name;
     }
+
+    public function remainingLeaveBalance() {
+        return $this->hasOne(LeaveBalance::class, 'user_id')->select('user_id', 'lb_remaining_balance')->latest('created_at');
+    }
+
+    public function isFintech($user_id)
+    {
+        //get user division
+        $is_fintech = User::query()
+            ->where('users.id', $user_id)
+            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->where('ud_code', 'FINANCETEC')
+            ->exists();
+
+        return $is_fintech;
+    }
+
+    public function isMDCX($user_id)
+    {
+        //get user division
+        $is_mdcx = User::query()
+            ->where('users.id', $user_id)
+            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->where('ud_code', 'MDCX')
+            ->exists();
+
+        return $is_mdcx;
+    }
+
+    public function isAtLeastSupervisor($user_id)
+    {
+        //get user position
+        $is_spv = User::query()
+            ->where('users.id', $user_id)
+            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+            ->where('up_code', '!=', 'STAFF')
+            ->exists();
+
+        return $is_spv;
+    }
 }

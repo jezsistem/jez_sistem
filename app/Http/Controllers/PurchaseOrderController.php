@@ -1007,13 +1007,19 @@ class PurchaseOrderController extends Controller
         } else {
             $get_product = null;
         }
+        $user = auth()->user();
+        $is_fintech = DB::table('user_divisions')
+                ->where('id', $user->ud_id)
+                ->where('ud_code', 'FINANCETEC')
+                ->exists();
         $data = [
-            'product' => $get_product
+            'product' => $get_product,
+            'is_fintech' => $is_fintech
         ];
 
         // dd($data);
 
-        return view('app.purchase_order._purchase_order_article_detail', compact('data'));
+        return view('app.purchase_order._purchase_order_article_detail', compact('data', 'is_fintech'));
     }
 
     public function reloadPoDetail(Request $request)
