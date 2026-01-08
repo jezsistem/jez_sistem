@@ -1525,6 +1525,7 @@ class PointOfSaleController extends Controller
                 ->where('product_locations.st_id', '=', $st_id)
                 //                    ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)
+                ->where('pl_freeze', false)
                 ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
                 ->orWhere('ps_barcode', 'LIKE', "%$query%")
                 ->groupBy('product_stocks.id')
@@ -1537,6 +1538,7 @@ class PointOfSaleController extends Controller
                         ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->where('product_locations.st_id', '=', $st_id)
                         ->where('pst_id', $row->pst_id)
+                        ->where('pl_freeze', false)
                         //                    ->where('pls_qty', '>', '0')
                         ->whereNotIn('pl_code', $exception)->get();
                     $bin = '';
