@@ -199,7 +199,7 @@ class StockTransferDataController extends Controller
     public function getAcceptDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(StockTransferDetail::select(
+            $query = StockTransferDetail::select(
                 'stock_transfer_details.id as stfd_id',
                 'pst_id',
                 'pl_id',
@@ -222,7 +222,14 @@ class StockTransferDataController extends Controller
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('temp_stock_transfer_receive', 'temp_stock_transfer_receive.stfd_id', '=', 'stock_transfer_details.id')
-                ->where('stf_code', '=', $request->stf_code))
+                ->where('stf_code', '=', $request->stf_code);
+
+            // If show_not_receive_only == 1, only show not fully accepted
+            if ($request->show_not_receive_only == 1) {
+                $query->whereRaw('(SELECT COALESCE(SUM(stfds_qty),0) FROM ts_stock_transfer_detail_statuses WHERE stfd_id = ts_stock_transfer_details.id) < ts_stock_transfer_details.stfd_qty');
+            }
+
+            return datatables()->of($query)
                 ->editColumn('article', function ($data) {
                     return '<span class="btn-sm btn-primary" style="white-space:nowrap;">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })

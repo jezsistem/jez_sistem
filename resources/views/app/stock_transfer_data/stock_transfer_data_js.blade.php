@@ -152,7 +152,7 @@
                 data: function(d) {
                     d.stf_code = $('#stf_code_label').val();
                     d.search = $('#stock_transfer_receive_search').val();
-
+                    d.show_not_receive_only = $('#show_not_receive_only_btn').is(':checked') ? 1 : 0;
                 }
             },
             columns: [{
@@ -301,6 +301,10 @@
         });
 
         $('#stock_transfer_receive_search').keyup(function() {
+            stock_transfer_data_accept_table.draw();
+        });
+
+        $('#show_not_receive_only_btn').change(function() {
             stock_transfer_data_accept_table.draw();
         });
 
