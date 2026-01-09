@@ -26,13 +26,13 @@ class PurchaseOrderImportExcelController extends Controller
                 $file->move('excel', $nama_file);
                 $import = new PurchaseOrderExcelImport;
                 Excel::import($import, public_path('excel/' . $nama_file));
-//                dd($import);
+                //                dd($import);
                 unlink(public_path('excel/' . $nama_file));
                 if ($import->getRowCount() >= 0) {
                     $processData = $this->processImportData($import->getData(), $po_id);
 
                     $r['process_data'] = $processData;
-                    
+
                     if (isset($processData['status']) && $processData['status'] === 'error') {
                         $r['status'] = '404';
                         $r['not_found'] = $processData['not_found'];
@@ -48,7 +48,6 @@ class PurchaseOrderImportExcelController extends Controller
                     $r['data'] = $import;
                     $r['status'] = '200';
                     $r['po_id'] = $po_id;
-
                 } else {
                     $r['status'] = '419';
                 }
@@ -64,37 +63,37 @@ class PurchaseOrderImportExcelController extends Controller
 
     public function processImportData(array $data, $po_id)
     {
-//        dd($data);
+        // dd($data);
         $notFoundItems = array_filter($data, fn($value) => $value['status'] === 'Not Found');
         if (!empty($notFoundItems)) {
             return [
-            'status' => 'error',
-            'not_found' => array_map(fn($item) => [
-                'sku' => $item['sku'],
-                'qty' => $item['poad_qty'],
-            ], $notFoundItems),
+                'status' => 'error',
+                'not_found' => array_map(fn($item) => [
+                    'sku' => $item['sku'],
+                    'qty' => $item['poad_qty'],
+                ], $notFoundItems),
             ];
         }
 
         $duplicateItems = array_filter($data, function ($value) use ($po_id) {
             $poa_id = PurchaseOrderArticle::where([
-            'po_id' => $po_id,
-            'p_id' => $value['p_id'],
+                'po_id' => $po_id,
+                'p_id' => $value['p_id'],
             ])->value('id');
 
             return PurchaseOrderArticleDetail::where([
-            'poa_id' => $poa_id,
-            'pst_id' => $value['pst_id'],
+                'poa_id' => $poa_id,
+                'pst_id' => $value['pst_id'],
             ])->exists();
         });
 
         if (!empty($duplicateItems)) {
             return [
-            'status' => 'duplicate',
-            'duplicate_items' => array_map(fn($item) => [
-                'sku' => $item['sku'],
-                'qty' => $item['poad_qty'],
-            ], $duplicateItems),
+                'status' => 'duplicate',
+                'duplicate_items' => array_map(fn($item) => [
+                    'sku' => $item['sku'],
+                    'qty' => $item['poad_qty'],
+                ], $duplicateItems),
             ];
         }
 
@@ -126,20 +125,26 @@ class PurchaseOrderImportExcelController extends Controller
                     'pst_id' => $value['pst_id'],
                 ])->exists();
 
-                $price_tag = ProductStock::where('id', $value['pst_id'])->first()->ps_price_tag;
-                $new_price = $price_tag;
-                if ($value['disc']) {
-                    $new_price = $new_price - ($new_price * ((float)$value['disc'] / 100));
+                if ($value['purchase_price'] == 0) {
+
+                    $price_tag = ProductStock::where('id', $value['pst_id'])->first()->ps_price_tag;
+                    $new_price = $price_tag;
+                    if ($value['disc']) {
+                        $new_price = $new_price - ($new_price * ((float)$value['disc'] / 100));
+                    }
+
+                    if ($value['ex_disc']) {
+                        $new_price = $new_price - ($new_price * ((float)$value['ex_disc'] / 100));
+                    }
+
+                    if ($value['sub_disc']) {
+                        $new_price = $new_price - ($new_price * ((float)$value['sub_disc'] / 100));
+                    }
+                    $new_cogs = $new_price;
+                } else {
+                    $new_cogs = (float)$value['purchase_price'];
                 }
 
-                if ($value['ex_disc']) {
-                    $new_price = $new_price - ($new_price * ((float)$value['ex_disc'] / 100));
-                }
-
-                if ($value['sub_disc']) {
-                    $new_price = $new_price - ($new_price * ((float)$value['sub_disc'] / 100));
-                }
-                $new_cogs = $new_price;
                 $total_cogs = $new_cogs *  (float)$value['poad_qty'];
 
                 if (!$check_poad) {
