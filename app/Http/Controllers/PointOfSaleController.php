@@ -2447,7 +2447,7 @@ class PointOfSaleController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
 
-        $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date_start','pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
+        $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date_start','pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id', \DB::raw('COUNT(product_location_setup_transactions.id) as quantity'))
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -2473,6 +2473,55 @@ class PointOfSaleController extends Controller
             ];
         }
         return view('app.offline_pos._reload_waiting_for_checkout', compact('data'));
+    }
+
+    public function checkWaitingForCheckoutJson()
+    {
+        try {
+            // Get all transactions
+            $transactions = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'p_name', 'br_name', 'sz_name', 'p_color', 'ps_sell_price', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where('plst_status', '=', 'WAITING FOR CHECKOUT')
+                ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                ->where('product_location_setup_transactions.u_id', Auth::user()->id)
+                ->get();
+
+            // Group by pst_id and pl_id in PHP
+            $grouped = [];
+            foreach ($transactions as $transaction) {
+                $key = $transaction->pst_id . '_' . $transaction->pl_id;
+                if (!isset($grouped[$key])) {
+                    $grouped[$key] = [
+                        'plst_id' => $transaction->plst_id,
+                        'p_name' => $transaction->p_name,
+                        'br_name' => $transaction->br_name,
+                        'sz_name' => $transaction->sz_name,
+                        'p_color' => $transaction->p_color,
+                        'ps_sell_price' => $transaction->ps_sell_price,
+                        'pls_qty' => $transaction->pls_qty,
+                        'pst_id' => $transaction->pst_id,
+                        'pl_id' => $transaction->pl_id,
+                        'quantity' => 0,
+                        'plst_ids' => []
+                    ];
+                }
+                $grouped[$key]['quantity']++;
+                $grouped[$key]['plst_ids'][] = $transaction->plst_id;
+            }
+
+            $data = array_values($grouped);
+
+            return response()->json([
+                'pos_data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     function fetchRefundInvoice(Request $request)

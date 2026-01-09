@@ -13,7 +13,7 @@
                 <i class="cft-standard-stroke cft-file mr-2"></i>
                         Detail Asset/Penjualan
                     </a>
-            <button id="detail_activity_btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <button id="detail_activity_btn" class="px-4 py-2 bg-red-400 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                 <i class="cft-standard-stroke cft-user mr-2"></i>
                         Aktifitas User
             </button>
@@ -63,7 +63,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-4">Pilih Store</label>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                                     @foreach ($data['st_id'] as $key => $value)
-                <button data-id="{{ $key }}" class="st_selection px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-sm rounded-lg border-2 border-transparent hover:border-blue-500 transition-all">
+                <button data-id="{{ $key }}" class="st_selection px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium text-sm rounded-lg border-2 border-transparent hover:border-gray-800 hover:text-gray-900 transition-all">
                     {{ $value }}
                 </button>
                                     @endforeach
@@ -76,7 +76,7 @@
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                    <i class="cft-standard-solid cft-chart text-2xl"></i>
+                    <i class="cft-standard-solid cft-sales-money text-2xl"></i>
                 </div>
                 <span class="text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">Today</span>
                                 </div>
@@ -104,7 +104,7 @@
         <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                    <i class="cft-standard-solid cft-box text-2xl"></i>
+                    <i class="cft-standard-solid cft-purchase-order text-2xl"></i>
                                 </div>
                 <span class="text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">Today</span>
                                     </div>
@@ -118,7 +118,7 @@
         <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                    <i class="cft-standard-solid cft-package text-2xl"></i>
+                    <i class="cft-standard-solid cft-store text-2xl"></i>
                                 </div>
                 <span class="text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">Total</span>
                                     </div>
@@ -346,14 +346,14 @@ $(document).ready(function() {
         $('#dashboard_date').val(start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD'));
         
         // Get selected store and reload data
-        const selectedStore = $('.st_selection.bg-blue-600').data('id');
+        const selectedStore = $('.st_selection.bg-gray-900').data('id');
         loadDashboardData(selectedStore);
     });
 
     // Store Selection - Auto run immediately on click
     $('.st_selection').on('click', function() {
-        $('.st_selection').removeClass('bg-blue-600 text-white border-blue-600').addClass('bg-blue-50 text-blue-700');
-        $(this).removeClass('bg-blue-50 text-blue-700').addClass('bg-blue-600 text-white border-blue-600');
+        $('.st_selection').removeClass('bg-gray-900 text-white border-gray-900').addClass('bg-gray-100 text-gray-900');
+        $(this).removeClass('bg-gray-100 text-gray-900').addClass('bg-gray-900 text-white border-gray-900');
         
         const storeId = $(this).data('id');
         

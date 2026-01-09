@@ -979,306 +979,190 @@
         </div>
     </div>
 
+    <!-- Modal Payment (Offline) - Keep both IDs for compatibility with old JS -->
     <div id="payment-offline-popup" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center w-full h-full" data-modal-backdrop="static" data-modal-placement="center">
         <div class="relative p-4 w-full max-w-4xl max-h-full">
-            <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800">
-                <!-- Header -->
-                <div class="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-600 bg-gradient-to-r from-red-500 to-red-500 rounded-t-lg">
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        Pembayaran
-                    </h3>
-                    <button type="button" class="text-white hover:bg-white/20 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center transition-colors" data-modal-hide="payment-offline-popup" aria-label="Close modal">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                    <h3 class="modal-title font-semibold bg-primary p-3 rounded-t">Pembayaran</h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="payment-offline-popup" aria-label="Close modal">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
                         <span class="sr-only">Close modal</span>
                     </button>
                 </div>
-
-                <div class="modal-body bg-gray-50 p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-                    <!-- Total Bayar Card -->
-                    <div class="mb-6 bg-gradient-to-r from-red-100 to-red-100 rounded-xl p-5 shadow-md">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="bg-red-500 rounded-lg p-2">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-dark text-sm font-medium">Total Bayar</p>
-                                    <h4 class="text-dark text-2xl font-bold mt-1"><span id="payment_total"></span></h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <!-- Pengaturan Pembayaran -->
-                        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-                            <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                Pengaturan Pembayaran
-                            </h4>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Down Payment -->
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                    <label for="dp_checkbox" class="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-orange-500 text-white">Down Payment</span>
-                                    </label>
-                                    <input type="checkbox" id="dp_checkbox" value="dp" class="w-5 h-5 text-red-600 bg-white border-gray-300 rounded focus:ring-red-500 focus:ring-2 cursor-pointer" />
-                                </div>
-
-                                <!-- Metode Pembayaran -->
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">Metode Pembayaran</span>
-                                    </label>
-                                    <div class="flex gap-2">
-                                        <select id="payment_option" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm">
-                                            <option value="">- Pilih -</option>
-                                            <option value="one" selected>1 Metode</option>
-                                            <option value="two">2 Metode</option>
-                                        </select>
-                                        <div id="payment_option_parent"></div>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="modal-body bg-white p-4 md:p-5 max-h-[calc(100vh-200px)] overflow-y-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Total Bayar -->
+                        <div class="col-span-2 flex justify-between items-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-orange-500 text-white">Total Bayar</span>
+                            <h4 class="text-primary font-bold"><span id="payment_total"></span></h4>
                         </div>
 
-                        <!-- Metode Pembayaran 1 -->
-                        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 border-l-4 border-l-red-500">
-                            <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-500 text-white text-sm font-bold">1</span>
-                                Metode Pembayaran Pertama
-                            </h4>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Jenis Pembayaran -->
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">Jenis Pembayaran</span>
-                                    </label>
-                                    <select id="pm_id_offline" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm">
-                                        <option value="">- Pilih -</option>
-                                        @foreach ($data['payment_method'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div id="pm_id_offline_parent"></div>
-                                </div>
+                        <!-- Down Payment -->
+                        <div class="flex justify-between items-center" id="payment_type_content">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-orange-500 text-white">Down Payment</span>
+                            <input type="checkbox" id="dp_checkbox" value="dp" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
+                        </div>
 
-                                <!-- Sub Pembayaran -->
-                                <div class="space-y-2 hidden" id="sub_payment_offline_content">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">Sub Pembayaran</span>
-                                    </label>
-                                    <select id="sub_payment_offline" name="sub_payment_offline" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm">
-                                        <option value="">- Pilih -</option>
-                                        <option value="3">On Us</option>
-                                        <option value="4">Off Us</option>
-                                    </select>
-                                </div>
+                        <!-- Metode Pembayaran -->
+                        <div class="flex justify-between items-center" id="payment_type_content">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-orange-500 text-white">Metode Pembayaran</span>
+                            <select id="payment_option" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5">
+                                <option value="">- Pilih -</option>
+                                <option value="one" selected>1 Metode</option>
+                                <option value="two">2 Metode</option>
+                            </select>
+                            <div id="payment_option_parent"></div>
+                        </div>
 
-                                <!-- Mesin EDC -->
-                                <div class="space-y-2 hidden" id="card_provider_content">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">Mesin EDC</span>
-                                    </label>
-                                    <select id="cp_id" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm">
-                                        <option value="">- Pilih -</option>
-                                        @foreach ($data['cp_id'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                        <!-- Jenis Pembayaran -->
+                        <div class="flex justify-between items-center" id="payment_type_content">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-500 text-white">Jenis Pembayaran</span>
+                            <select id="pm_id_offline" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5">
+                                <option value="">- Pilih -</option>
+                                @foreach ($data['payment_method'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                            <div id="pm_id_offline_parent"></div>
+                        </div>
 
-                                <!-- No. Kartu -->
-                                <div class="space-y-2 hidden" id="card_number_label">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">No. Kartu</span>
-                                    </label>
-                                    <input class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm" type="text" placeholder="Masukkan nomor kartu" id="card_number" />
-                                </div>
+                        <!-- Sub Pembayaran -->
+                        <div class="flex justify-between items-center hidden" id="sub_payment_offline_content">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-500 text-white">Sub Pembayaran</span>
+                            <select id="sub_payment_offline" name="sub_payment_offline" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5">
+                                <option value="">- Pilih -</option>
+                                <option value="3">On Us</option>
+                                <option value="4">Off Us</option>
+                            </select>
+                        </div>
 
-                                <!-- Nama Rekening Pengirim -->
-                                <div class="space-y-2 hidden" id="ref_number_label">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">Nama Rekening Pengirim</span>
-                                    </label>
-                                    <input class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm" type="text" placeholder="Masukkan nama rekening" id="ref_number" />
-                                </div>
+                        <!-- Mesin EDC -->
+                        <div class="flex justify-between items-center hidden" id="card_provider_content">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-500 text-white">Mesin EDC</span>
+                            <select id="cp_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5">
+                                <option value="">- Pilih -</option>
+                                @foreach ($data['cp_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                                <!-- Charge (%) -->
-                                <div class="space-y-2 hidden" id="charge_label">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">Charge (%)</span>
-                                    </label>
-                                    <div class="flex gap-2">
-                                        <input class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm" type="number" placeholder="%" id="charge" />
-                                        <input class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 shadow-sm cursor-not-allowed" type="number" placeholder="Total" id="charge_total" readonly />
-                                    </div>
-                                </div>
+                        <!-- No. Kartu -->
+                        <div class="flex justify-between items-center hidden" id="card_number_label">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-500 text-white">No. Kartu</span>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" type="text" placeholder="" id="card_number" />
+                        </div>
+
+                        <!-- Nama Rekening Pengirim -->
+                        <div class="flex justify-between items-center hidden" id="ref_number_label">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-500 text-white">Nama Rekening Pengirim</span>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" type="text" placeholder="" id="ref_number" />
+                        </div>
+
+                        <!-- Charge (%) -->
+                        <div class="flex justify-between items-center hidden" id="charge_label">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-500 text-white">Charge (%)</span>
+                            <div class="flex gap-2">
+                                <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-20 p-2.5" type="number" placeholder="" id="charge" />
+                                <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-20 p-2.5" type="number" placeholder="" id="charge_total" readonly />
                             </div>
                         </div>
 
-                        <!-- Metode Pembayaran 2 -->
-                        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 border-l-4 border-l-green-500 hidden" id="payment_method_two_section">
-                            <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white text-sm font-bold">2</span>
-                                Metode Pembayaran Kedua
-                            </h4>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Jenis Pembayaran 2 -->
-                                <div class="space-y-2" id="payment_type_content_two">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-green-500 text-white mb-2">Jenis Pembayaran</span>
-                                    </label>
-                                    <select id="pm_id_offline_two" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 shadow-sm">
-                                        <option value="">- Pilih -</option>
-                                        @foreach ($data['payment_method'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div id="pm_id_offline_two_parent"></div>
-                                </div>
+                        <!-- Jenis Pembayaran 2 -->
+                        <div class="flex justify-between items-center hidden" id="payment_type_content_two">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-green-500 text-white">Jenis Pembayaran</span>
+                            <select id="pm_id_offline_two" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5">
+                                <option value="">- Pilih -</option>
+                                @foreach ($data['payment_method'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                            <div id="pm_id_offline_two_parent"></div>
+                        </div>
 
-                                <!-- Mesin EDC 2 -->
-                                <div class="space-y-2 hidden" id="card_provider_content_two">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-green-500 text-white mb-2">Mesin EDC</span>
-                                    </label>
-                                    <select id="cp_id_two" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 shadow-sm">
-                                        <option value="">- Pilih -</option>
-                                        @foreach ($data['cp_id'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                        <!-- Mesin EDC 2 -->
+                        <div class="flex justify-between items-center hidden" id="card_provider_content_two">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-green-500 text-white">Mesin EDC</span>
+                            <select id="cp_id_two" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5">
+                                <option value="">- Pilih -</option>
+                                @foreach ($data['cp_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                                <!-- No. Kartu 2 -->
-                                <div class="space-y-2 hidden" id="card_number_label_two">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-green-500 text-white mb-2">No. Kartu</span>
-                                    </label>
-                                    <input class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 shadow-sm" type="text" placeholder="Masukkan nomor kartu" id="card_number_two" />
-                                </div>
+                        <!-- No. Kartu 2 -->
+                        <div class="flex justify-between items-center hidden" id="card_number_label_two">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-green-500 text-white">No. Kartu</span>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" type="text" placeholder="" id="card_number_two" />
+                        </div>
 
-                                <!-- Nama Rekening Pengirim 2 -->
-                                <div class="space-y-2 hidden" id="ref_number_label_two">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-green-500 text-white mb-2">Nama Rekening Pengirim</span>
-                                    </label>
-                                    <input class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 shadow-sm" type="text" placeholder="Masukkan nama rekening" id="ref_number_two" />
-                                </div>
-                            </div>
+                        <!-- Nama Rekening Pengirim 2 -->
+                        <div class="flex justify-between items-center hidden" id="ref_number_label_two">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-green-500 text-white">Nama Rekening Pengirim</span>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" type="text" placeholder="" id="ref_number_two" />
                         </div>
 
                         <!-- Online Mode Fields -->
-                        <div id="online_mode" class="hidden bg-white rounded-xl p-5 shadow-sm border border-gray-200 border-l-4 border-l-purple-500">
-                            <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-                                </svg>
-                                Pengaturan Online
-                            </h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Kode Unik</label>
-                                    <input type="text" placeholder="(isi jika online)" id="unique_code" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block w-full p-3 shadow-sm" />
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Charge Lain-Lain (+)</label>
-                                    <input type="text" placeholder="(isi jika online)" id="another_cost" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block w-full p-3 shadow-sm" />
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Biaya Admin (-)</label>
-                                    <input type="text" placeholder="(isi jika online)" id="admin_cost" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block w-full p-3 shadow-sm" />
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Kurir & Ongkos Kirim</label>
-                                    <div class="flex gap-2">
-                                        <select name="cr_id" id="cr_id" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block flex-1 p-3 shadow-sm">
-                                            <option value="">- Pilih Kurir -</option>
-                                            @foreach ($data['courier'] as $key => $value)
-                                                <option value="{{ $key }}">{{ $value }}</option>
-                                            @endforeach
-                                        </select>
-                                        <input type="number" placeholder="Ongkos Kirim" id="shipping_cost" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block flex-1 p-3 shadow-sm" />
-                                    </div>
-                                </div>
+                        <div id="online_mode" class="hidden col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-900">Kode Unik</span>
+                                <input type="text" placeholder="(isi jika online)" id="unique_code" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" />
                             </div>
-                        </div>
-
-                        <!-- Jumlah Pembayaran -->
-                        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-                            <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Jumlah Pembayaran
-                            </h4>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="total_payment_label">
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white mb-2">Jumlah yang dibayar Customer</span>
-                                    </label>
-                                    <input type="text" name="number" class="bg-white border-2 border-gray-300 text-gray-900 text-base font-semibold rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-4 shadow-sm" id="total_payment" value="" placeholder="Rp 0">
-                                </div>
-                                <div class="space-y-2 hidden" id="total_payment_two_label">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-green-500 text-white mb-2">Jumlah yang dibayar Customer (Metode 2)</span>
-                                    </label>
-                                    <input type="text" name="number" class="bg-white border-2 border-gray-300 text-gray-900 text-base font-semibold rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-4 shadow-sm" id="total_payment_two" value="" placeholder="Rp 0">
-                                </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-900">Charge Lain-Lain (+)</span>
+                                <input type="text" placeholder="(isi jika online)" id="another_cost" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" />
                             </div>
-
-                            <!-- Kembalian -->
-                            <div class="hidden mt-4" id="return_payment_label">
-                                <div class="p-4 flex justify-between items-center bg-gradient-to-r from-red-100 to-red-100 rounded-lg shadow-md">
-                                    <div class="flex items-center gap-3">
-                                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <h5 class="font-bold text-red-500 text-lg mb-0">Kembalian</h5>
-                                    </div>
-                                    <h5 class="font-bold text-red-500 text-xl mb-0"><span id="return_payment"></span></h5>
-                                </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-900">Biaya Admin (-)</span>
+                                <input type="text" placeholder="(isi jika online)" id="admin_cost" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" />
                             </div>
-                        </div>
+                            <div class="flex justify-between items-center">
+                                <select name="cr_id" id="cr_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5">
+                                    <option value="">- Pilih Kurir -</option>
+                                    @foreach ($data['courier'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
 
-                        <!-- Catatan -->
-                        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-                            <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                                Catatan (Jika ada)
-                            </label>
-                            <textarea class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 block w-full p-3 shadow-sm resize-none" id="note" rows="3" placeholder="Tambahkan catatan untuk transaksi ini..."></textarea>
+                                </select>
+                                <input type="number" placeholder="Ongkos Kirim (isi jika online)" id="shipping_cost" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5" />
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Jumlah yang dibayar Customer -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" id="total_payment_label">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2"><span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-500 text-white">Jumlah yang dibayar Customer</span></label>
+                            <input type="text" name="number" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" id="total_payment" value="" placeholder="Jumlah">
+                        </div>
+                        <div class="hidden" id="total_payment_two_label">
+                            <label class="block text-sm font-medium text-gray-900 mb-2"><span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-green-500 text-white">Jumlah yang dibayar Customer</span></label>
+                            <input type="text" name="number" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" id="total_payment_two" value="" placeholder="Jumlah">
+                        </div>
+                    </div>
+
+                    <!-- Kembalian -->
+                    <div class="hidden mt-4" id="return_payment_label">
+                        <div class="p-3 flex justify-between items-center bg-blue-500 rounded-lg">
+                            <h5 class="font-bold text-white mb-0">Kembalian</h5>
+                            <h5 class="font-bold text-white mb-0"><span id="return_payment"></span></h5>
+                        </div>
+                    </div>
+
+                    <!-- Catatan -->
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Catatan (Jika ada)</label>
+                        <textarea class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" id="note" rows="3" placeholder=""></textarea>
+                    </div>
+
                     <!-- Footer Buttons -->
-                    <div class="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-gray-200 dark:border-gray-600">
-                        <button type="button" data-modal-hide="payment-offline-popup" class="px-6 py-3 text-gray-700 bg-white hover:bg-gray-50 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border-2 border-gray-300 text-sm font-semibold transition-all duration-200 hover:shadow-md">
-                            Batal
-                        </button>
-                        <a href="#" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-red-600 rounded-lg hover:from-red-700 hover:to-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5" id="checkout_btn">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Checkout
-                        </a>
+                    <div class="flex items-center justify-end space-x-2 pt-4 border-t border-gray-200 dark:border-gray-600 mt-4">
+                        <button type="button" data-modal-hide="payment-offline-popup" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white">Batal</button>
+                        <a href="#" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300" id="checkout_btn">Checkout</a>
                     </div>
                 </div>
             </div>
@@ -1366,7 +1250,7 @@
     </div>
 
     <!-- Modal Input Code -->
-    <div id="InputCodeModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[100] justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full" style="z-index: 10000;">
+    <div id="InputCodeModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div class="relative p-4 w-full max-w-md max-h-full">
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
@@ -1634,6 +1518,7 @@
             return intNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
+        // Handle payment modal opening
         document.addEventListener('DOMContentLoaded', function() {
             console.log('💳 Setting up simple payment modal handler...');
 
@@ -1652,531 +1537,25 @@
                 });
             }
 
-            // CRITICAL: Add payment_option change handler here in blade.php
-            console.log('💳💳💳 Registering payment_option handler in blade.php...');
-            
-            // Function to handle payment option change
-            function handlePaymentOptionChangeBlade(value) {
-                console.log('💳💳💳💳💳 Payment option changed in blade.php! Value:', value);
-                
-                const section2 = document.getElementById('payment_method_two_section');
-                const paymentType2 = document.getElementById('payment_type_content_two');
-                const totalPayment2Label = document.getElementById('total_payment_two_label');
-                const totalPayment2 = document.getElementById('total_payment_two');
-                const returnPaymentLabel = document.getElementById('return_payment_label');
-                
-                // Clear fields
-                const pmIdOffline = document.getElementById('pm_id_offline');
-                const pmIdOfflineTwo = document.getElementById('pm_id_offline_two');
-                if (pmIdOffline) pmIdOffline.value = '';
-                if (pmIdOfflineTwo) pmIdOfflineTwo.value = '';
-                
-                const totalPayment = document.getElementById('total_payment');
-                const totalPaymentTwo = document.getElementById('total_payment_two');
-                if (totalPayment) totalPayment.value = '';
-                if (totalPaymentTwo) totalPaymentTwo.value = '';
-                
-                if (value === 'two') {
-                    console.log('💳💳💳 Showing payment method 2 section');
-                    if (section2) {
-                        section2.classList.remove('hidden');
-                        console.log('✅ Section 2 shown - classes:', section2.className);
-                    } else {
-                        console.error('❌ Section 2 element not found!');
-                    }
-                    if (paymentType2) paymentType2.classList.remove('hidden');
-                    if (totalPayment2Label) totalPayment2Label.classList.remove('hidden');
-                    if (totalPayment2) totalPayment2.classList.remove('hidden');
-                    if (returnPaymentLabel) returnPaymentLabel.classList.add('hidden');
-                } else {
-                    console.log('💳💳💳 Hiding payment method 2 section');
-                    if (section2) {
-                        section2.classList.add('hidden');
-                        console.log('✅ Section 2 hidden');
-                    }
-                    if (paymentType2) paymentType2.classList.add('hidden');
-                    if (totalPayment2Label) totalPayment2Label.classList.add('hidden');
-                    if (totalPayment2) totalPayment2.classList.add('hidden');
-                    if (returnPaymentLabel) returnPaymentLabel.classList.remove('hidden');
-                }
-            }
-            
-            // Method 1: Event delegation
-            document.addEventListener('change', function(e) {
-                if (e.target && e.target.id === 'payment_option') {
-                    handlePaymentOptionChangeBlade(e.target.value);
-                }
-            });
-            
-            // Method 2: Direct binding when element exists (with retry)
-            function bindPaymentOptionHandler() {
-                const paymentOption = document.getElementById('payment_option');
-                if (paymentOption) {
-                    console.log('💳 Payment option element found, binding handler directly');
-                    paymentOption.removeEventListener('change', paymentOption._bladeHandler);
-                    paymentOption._bladeHandler = function() {
-                        handlePaymentOptionChangeBlade(this.value);
-                    };
-                    paymentOption.addEventListener('change', paymentOption._bladeHandler);
-                    console.log('✅ Direct handler bound to payment_option');
-                } else {
-                    console.log('💳 Payment option not found yet, will retry...');
-                    setTimeout(bindPaymentOptionHandler, 500);
-                }
-            }
-            
-            // Try binding immediately
-            bindPaymentOptionHandler();
-            
-            // Handler to close InputCodeModal
-            function closeInputCodeModal() {
-                const inputCodeModal = document.getElementById('InputCodeModal');
-                if (inputCodeModal) {
-                    inputCodeModal.classList.add('hidden');
-                    inputCodeModal.setAttribute('aria-hidden', 'true');
-                    inputCodeModal.style.display = 'none';
-                    
-                    // Remove backdrop
-                    const backdrop = document.getElementById('input-code-modal-backdrop');
-                    if (backdrop) {
-                        backdrop.remove();
-                    }
-                    
-                    // Restore body scroll
-                    document.body.style.overflow = '';
-                }
-            }
-            
-            // Bind close handlers for InputCodeModal
-            document.addEventListener('click', function(e) {
-                if (e.target && (
-                    e.target.closest('[data-modal-hide="InputCodeModal"]') ||
-                    e.target.getAttribute('data-modal-hide') === 'InputCodeModal'
-                )) {
-                    e.preventDefault();
-                    closeInputCodeModal();
-                }
-            });
-            
-            // Also bind when payment button is clicked (modal opens)
-            if (paymentBtn) {
-                paymentBtn.addEventListener('click', function() {
-                    setTimeout(function() {
-                        console.log('💳 Re-binding all payment handlers after modal opens');
-                        bindPaymentOptionHandler();
-                        
-                        // Bind pm_id_offline handler for auto-fill and field visibility
-                        const pmIdOffline = document.getElementById('pm_id_offline');
-                        if (pmIdOffline) {
-                            pmIdOffline.removeEventListener('change', pmIdOffline._bladeHandler);
-                            pmIdOffline._bladeHandler = function() {
-                                const label = this.options[this.selectedIndex].text;
-                                const paymentTotal = document.getElementById('payment_total');
-                                const totalPayment = document.getElementById('total_payment');
-                                
-                                console.log('💳 pm_id_offline changed to:', label);
-                                
-                                // Show/hide fields based on payment method
-                                const cardProvider = document.getElementById('card_provider_content');
-                                const cardNumber = document.getElementById('card_number_label');
-                                const refNumber = document.getElementById('ref_number_label');
-                                const chargeLabel = document.getElementById('charge_label');
-                                const subPayment = document.getElementById('sub_payment_offline_content');
-                                
-                                if (label === 'DEBIT CARD' || label === 'CREDIT CARD') {
-                                    if (cardProvider) cardProvider.classList.remove('hidden');
-                                    if (cardNumber) cardNumber.classList.remove('hidden');
-                                    if (refNumber) refNumber.classList.remove('hidden');
-                                    if (chargeLabel) {
-                                        if (label === 'CREDIT CARD') {
-                                            chargeLabel.classList.remove('hidden');
-                                        } else {
-                                            chargeLabel.classList.add('hidden');
-                                        }
-                                    }
-                                    if (subPayment) subPayment.classList.add('hidden');
-                                } else if (label.includes('EDC')) {
-                                    if (subPayment) subPayment.classList.remove('hidden');
-                                    if (cardNumber) cardNumber.classList.add('hidden');
-                                    if (cardProvider) cardProvider.classList.add('hidden');
-                                    if (refNumber) refNumber.classList.add('hidden');
-                                    if (chargeLabel) chargeLabel.classList.add('hidden');
-                                } else if (label === 'CASH') {
-                                    if (cardProvider) cardProvider.classList.add('hidden');
-                                    if (cardNumber) cardNumber.classList.add('hidden');
-                                    if (refNumber) refNumber.classList.add('hidden');
-                                    if (subPayment) subPayment.classList.add('hidden');
-                                    if (chargeLabel) chargeLabel.classList.add('hidden');
-                                } else {
-                                    // TRANSFER, QRIS, etc
-                                    if (refNumber) refNumber.classList.remove('hidden');
-                                    if (cardNumber) cardNumber.classList.add('hidden');
-                                    if (cardProvider) cardProvider.classList.add('hidden');
-                                    if (subPayment) subPayment.classList.add('hidden');
-                                    if (chargeLabel) chargeLabel.classList.add('hidden');
-                                }
-                                
-                                // Auto-fill payment amount
-                                if (paymentTotal && totalPayment && label !== 'CASH' && label !== '- Pilih -') {
-                                    const paymentText = paymentTotal.textContent || '0';
-                                    const cleanPayment = String(paymentText).replace('Rp. ', '').trim();
-                                    const numericPayment = replaceComma(cleanPayment);
-                                    
-                                    // Set value and trigger input event for formatter
-                                    totalPayment.value = numericPayment.toString();
-                                    const inputEvent = new Event('input', { bubbles: true });
-                                    totalPayment.dispatchEvent(inputEvent);
-                                    
-                                    console.log('💳 Auto-filled payment amount:', numericPayment);
-                                } else if (label === 'CASH') {
-                                    if (totalPayment) totalPayment.value = '';
-                                }
-                            };
-                            pmIdOffline.addEventListener('change', pmIdOffline._bladeHandler);
-                            console.log('✅ pm_id_offline handler bound (auto-fill + field visibility)');
-                        }
-                        
-                        // Bind pm_id_offline_two handler
-                        const pmIdOfflineTwo = document.getElementById('pm_id_offline_two');
-                        if (pmIdOfflineTwo) {
-                            pmIdOfflineTwo.removeEventListener('change', pmIdOfflineTwo._bladeHandler);
-                            pmIdOfflineTwo._bladeHandler = function() {
-                                const label = this.options[this.selectedIndex].text;
-                                console.log('💳 pm_id_offline_two changed to:', label);
-                                
-                                // Show/hide fields for payment method 2
-                                const cardProviderTwo = document.getElementById('card_provider_content_two');
-                                const cardNumberTwo = document.getElementById('card_number_label_two');
-                                const refNumberTwo = document.getElementById('ref_number_label_two');
-                                
-                                if (label === 'DEBIT CARD') {
-                                    if (cardProviderTwo) cardProviderTwo.classList.remove('hidden');
-                                    if (cardNumberTwo) cardNumberTwo.classList.remove('hidden');
-                                    if (refNumberTwo) refNumberTwo.classList.remove('hidden');
-                                } else if (label === 'CASH') {
-                                    if (cardProviderTwo) cardProviderTwo.classList.add('hidden');
-                                    if (cardNumberTwo) cardNumberTwo.classList.add('hidden');
-                                    if (refNumberTwo) refNumberTwo.classList.add('hidden');
-                                } else {
-                                    // TRANSFER, QRIS, etc
-                                    if (refNumberTwo) refNumberTwo.classList.remove('hidden');
-                                    if (cardNumberTwo) cardNumberTwo.classList.add('hidden');
-                                    if (cardProviderTwo) cardProviderTwo.classList.add('hidden');
-                                }
-                            };
-                            pmIdOfflineTwo.addEventListener('change', pmIdOfflineTwo._bladeHandler);
-                            console.log('✅ pm_id_offline_two handler bound');
-                        }
-                        
-                        // Bind total_payment input handler for return calculation
-                        const totalPayment = document.getElementById('total_payment');
-                        if (totalPayment) {
-                            // Currency formatter
-                            totalPayment.removeEventListener('input', totalPayment._currencyFormatter);
-                            totalPayment._currencyFormatter = function(e) {
-                                const input = e.target;
-                                let value = input.value;
-                                value = value.replace(/\D/g, '');
-                                const formattedValue = new Intl.NumberFormat('en-US', {
-                                    style: 'currency',
-                                    currency: 'IDR',
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                }).format(value);
-                                input.value = formattedValue.replace('IDR', 'Rp');
-                            };
-                            totalPayment.addEventListener('input', totalPayment._currencyFormatter);
-                            
-                            // Return payment calculator
-                            totalPayment.removeEventListener('keyup', totalPayment._returnCalculator);
-                            totalPayment._returnCalculator = function(e) {
-                                const paymentTotal = document.getElementById('payment_total');
-                                const returnPayment = document.getElementById('return_payment');
-                                const returnPaymentLabel = document.getElementById('return_payment_label');
-                                const totalPaymentTwo = document.getElementById('total_payment_two');
-                                const paymentOption = document.getElementById('payment_option');
-                                
-                                if (!paymentTotal) return;
-                                
-                                let totalPaymentValue = this.value.replace(/Rp|,|\./g, '').trim();
-                                const totalPriceText = paymentTotal.textContent || '0';
-                                const cleanTotalPrice = String(totalPriceText).replace('Rp. ', '').trim();
-                                const numericTotalPrice = replaceComma(cleanTotalPrice);
-                                
-                                const method = paymentOption ? paymentOption.value : 'one';
-                                
-                                if (method === 'two') {
-                                    // 2 Metode: calculate total_payment_two
-                                    if (totalPaymentTwo) {
-                                        if (totalPaymentValue === '') {
-                                            totalPaymentTwo.value = numericTotalPrice.toString();
-                                        } else {
-                                            const payment1 = parseFloat(totalPaymentValue.replace(/\./g, ''));
-                                            const payment2 = numericTotalPrice - payment1;
-                                            totalPaymentTwo.value = payment2.toString();
-                                        }
-                                    }
-                                    if (returnPaymentLabel) returnPaymentLabel.classList.add('hidden');
-                                } else {
-                                    // 1 Metode: calculate return payment
-                                    if (totalPaymentValue === '') {
-                                        if (returnPayment) returnPayment.textContent = '';
-                                        if (returnPaymentLabel) returnPaymentLabel.classList.add('hidden');
-                                    } else {
-                                        const payment1 = parseFloat(totalPaymentValue.replace(/\./g, ''));
-                                        const returnAmount = payment1 - numericTotalPrice;
-                                        
-                                        if (returnAmount >= 0) {
-                                            if (returnPayment) {
-                                                returnPayment.textContent = 'Rp. ' + addCommas(returnAmount.toString());
-                                            }
-                                            if (returnPaymentLabel) returnPaymentLabel.classList.remove('hidden');
-                                        } else {
-                                            if (returnPayment) returnPayment.textContent = '';
-                                            if (returnPaymentLabel) returnPaymentLabel.classList.add('hidden');
-                                        }
-                                    }
-                                }
-                            };
-                            totalPayment.addEventListener('keyup', totalPayment._returnCalculator);
-                            console.log('✅ total_payment handlers bound (formatter + return calculator)');
-                        }
-                        
-                        // Bind total_payment_two input handler
-                        const totalPaymentTwo = document.getElementById('total_payment_two');
-                        if (totalPaymentTwo) {
-                            // Currency formatter for payment 2
-                            totalPaymentTwo.removeEventListener('input', totalPaymentTwo._currencyFormatter);
-                            totalPaymentTwo._currencyFormatter = function(e) {
-                                const input = e.target;
-                                let value = input.value;
-                                value = value.replace(/\D/g, '');
-                                const formattedValue = new Intl.NumberFormat('en-US', {
-                                    style: 'currency',
-                                    currency: 'IDR',
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                }).format(value);
-                                input.value = formattedValue.replace('IDR', 'Rp');
-                            };
-                            totalPaymentTwo.addEventListener('input', totalPaymentTwo._currencyFormatter);
-                            console.log('✅ total_payment_two formatter bound');
-                        }
-                        
-                        // Bind checkout button handler
-                        const checkoutBtn = document.getElementById('checkout_btn');
-                        if (checkoutBtn) {
-                            checkoutBtn.removeEventListener('click', checkoutBtn._bladeHandler);
-                            checkoutBtn._bladeHandler = function(e) {
-                                e.preventDefault();
-                                console.log('💳💳💳 Checkout button clicked!');
-                                
-                                // Get all payment values
-                                const paymentOption = document.getElementById('payment_option');
-                                const paymentMethod = document.getElementById('pm_id_offline');
-                                const paymentMethodTwo = document.getElementById('pm_id_offline_two');
-                                const paymentTotal = document.getElementById('payment_total');
-                                const totalPayment = document.getElementById('total_payment');
-                                const totalPaymentTwo = document.getElementById('total_payment_two');
-                                const cpId = document.getElementById('cp_id');
-                                const cpIdTwo = document.getElementById('cp_id_two');
-                                
-                                if (!paymentOption || !paymentMethod || !paymentTotal) {
-                                    console.error('❌ Required payment elements not found');
-                                    return false;
-                                }
-                                
-                                const paymentOptionValue = paymentOption.value;
-                                const paymentOptionLabel = paymentOption.options[paymentOption.selectedIndex].text;
-                                const paymentMethodValue = paymentMethod.value;
-                                const paymentMethodLabel = paymentMethod.options[paymentMethod.selectedIndex].text;
-                                const paymentMethodTwoValue = paymentMethodTwo ? paymentMethodTwo.value : '';
-                                const paymentMethodTwoLabel = paymentMethodTwo ? paymentMethodTwo.options[paymentMethodTwo.selectedIndex].text : '';
-                                
-                                const paymentTotalText = paymentTotal.textContent || '0';
-                                const cleanTotal = String(paymentTotalText).replace('Rp. ', '').trim();
-                                const numericTotal = replaceComma(cleanTotal);
-                                
-                                let totalPaymentValue = totalPayment ? totalPayment.value.replace(/Rp|,|\./g, '').trim() : '';
-                                totalPaymentValue = totalPaymentValue ? parseFloat(totalPaymentValue.replace(/\./g, '')) : 0;
-                                
-                                const totalPaymentTwoValue = totalPaymentTwo ? totalPaymentTwo.value : '';
-                                
-                                // Validation
-                                if (numericTotal > 0) {
-                                    if (paymentOptionValue === '') {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Metode Pembayaran", "Silahkan pilih metode pembayaran", "warning");
-                                        } else {
-                                            alert("Silahkan pilih metode pembayaran");
-                                        }
-                                        return false;
-                                    }
-                                    
-                                    if (paymentOptionValue !== '' && paymentMethodValue === '') {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Jenis Pembayaran", "Silahkan pilih jenis pembayaran", "warning");
-                                        } else {
-                                            alert("Silahkan pilih jenis pembayaran");
-                                        }
-                                        return false;
-                                    }
-                                    
-                                    if (paymentOptionLabel !== '2 Metode' && paymentMethodLabel === 'CASH' && totalPaymentValue < numericTotal) {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Jumlah Dibayar", "Silahkan periksa jumlah dibayar", "warning");
-                                        } else {
-                                            alert("Jumlah dibayar kurang dari total bayar");
-                                        }
-                                        return false;
-                                    }
-                                    
-                                    if ((paymentMethodLabel === 'DEBIT CARD' || paymentMethodLabel === 'CREDIT CARD') && (!cpId || cpId.value === '')) {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Penyedia Kartu", "Silahkan pilih penyedia kartu", "warning");
-                                        } else {
-                                            alert("Silahkan pilih penyedia kartu");
-                                        }
-                                        return false;
-                                    }
-                                    
-                                    if (paymentOptionLabel === '2 Metode' && paymentMethodTwoValue === '') {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Jenis Pembayaran Dua", "Silahkan pilih jenis pembayaran kedua", "warning");
-                                        } else {
-                                            alert("Silahkan pilih jenis pembayaran kedua");
-                                        }
-                                        return false;
-                                    }
-                                    
-                                    if ((paymentMethodTwoLabel === 'DEBIT CARD' || paymentMethodTwoLabel === 'CREDIT CARD') && (!cpIdTwo || cpIdTwo.value === '')) {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Penyedia Kartu Kedua", "Silahkan pilih penyedia kartu kedua", "warning");
-                                        } else {
-                                            alert("Silahkan pilih penyedia kartu kedua");
-                                        }
-                                        return false;
-                                    }
-                                    
-                                    if (paymentMethodTwoValue !== '' && totalPaymentValue === 0) {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Jumlah Dibayar Pertama", "Silahkan masukkan jumlah dibayar pertama", "warning");
-                                        } else {
-                                            alert("Silahkan masukkan jumlah dibayar pertama");
-                                        }
-                                        return false;
-                                    }
-                                    
-                                    if (paymentMethodTwoValue !== '' && (!totalPaymentTwo || totalPaymentTwo.value === '')) {
-                                        if (typeof swal !== 'undefined') {
-                                            swal("Jumlah Dibayar Kedua", "Silahkan masukkan jumlah dibayar kedua", "warning");
-                                        } else {
-                                            alert("Silahkan masukkan jumlah dibayar kedua");
-                                        }
-                                        return false;
-                                    }
-                                }
-                                
-                                // Close payment modal first
-                                const paymentModal = document.getElementById('payment-offline-popup');
-                                if (paymentModal) {
-                                    console.log('💳 Closing payment modal...');
-                                    paymentModal.classList.add('hidden');
-                                    paymentModal.setAttribute('aria-hidden', 'true');
-                                }
-                                
-                                // Show InputCodeModal
-                                console.log('💳 Opening InputCodeModal...');
-                                const inputCodeModal = document.getElementById('InputCodeModal');
-                                if (inputCodeModal) {
-                                    console.log('💳 InputCodeModal element found');
-                                    console.log('💳 Modal current classes:', inputCodeModal.className);
-                                    console.log('💳 Modal current display:', window.getComputedStyle(inputCodeModal).display);
-                                    
-                                    // Always try manual show first as primary method
-                                    console.log('💳 Showing modal manually...');
-                                    inputCodeModal.classList.remove('hidden');
-                                    inputCodeModal.setAttribute('aria-hidden', 'false');
-                                    inputCodeModal.style.display = 'flex';
-                                    inputCodeModal.style.zIndex = '10000';
-                                    inputCodeModal.style.position = 'fixed';
-                                    inputCodeModal.style.top = '0';
-                                    inputCodeModal.style.left = '0';
-                                    inputCodeModal.style.right = '0';
-                                    inputCodeModal.style.bottom = '0';
-                                    
-                                    // Add backdrop with higher z-index
-                                    let backdrop = document.getElementById('input-code-modal-backdrop');
-                                    if (!backdrop) {
-                                        backdrop = document.createElement('div');
-                                        backdrop.id = 'input-code-modal-backdrop';
-                                        backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;';
-                                        document.body.appendChild(backdrop);
-                                        console.log('✅ Backdrop created');
-                                    }
-                                    
-                                    // Prevent body scroll
-                                    document.body.style.overflow = 'hidden';
-                                    
-                                    console.log('✅ InputCodeModal shown manually');
-                                    console.log('💳 Modal display after show:', window.getComputedStyle(inputCodeModal).display);
-                                    console.log('💳 Modal visibility:', window.getComputedStyle(inputCodeModal).visibility);
-                                    console.log('💳 Modal z-index:', window.getComputedStyle(inputCodeModal).zIndex);
-                                    
-                                    // Also try Flowbite if available (as secondary)
-                                    if (typeof Flowbite !== 'undefined' && Flowbite.Modal) {
-                                        try {
-                                            let modal = Flowbite.Modal.getInstance(inputCodeModal);
-                                            if (!modal) {
-                                                modal = new Flowbite.Modal(inputCodeModal, { 
-                                                    backdrop: 'static', 
-                                                    closable: true 
-                                                });
-                                            }
-                                            // Don't call show() again, just ensure it's initialized
-                                            console.log('💳 Flowbite Modal instance ready');
-                                        } catch (err) {
-                                            console.warn('⚠️ Flowbite Modal error (ignored, using manual):', err);
-                                        }
-                                    }
-                                    
-                                    // Focus on secret code input
-                                    setTimeout(() => {
-                                        const secretCodeInput = document.getElementById('u_secret_code');
-                                        if (secretCodeInput) {
-                                            secretCodeInput.focus();
-                                            console.log('✅ Focused on secret code input');
-                                        } else {
-                                            console.error('❌ Secret code input not found!');
-                                        }
-                                    }, 300);
-                                } else {
-                                    console.error('❌ InputCodeModal not found in DOM!');
-                                }
-                            };
-                            checkoutBtn.addEventListener('click', checkoutBtn._bladeHandler);
-                            console.log('✅ checkout_btn handler bound');
-                        }
-                        
-                    }, 300);
-                });
-            }
-
             console.log('✅ Simple payment modal handler setup complete');
         });
     </script>
 
+    <!-- Small compatibility script: ensure Shift modal and Start/Stop work reliably -->
     <script>
         (function() {
+            // Keep this small and defensive so it runs even if other scripts fail
             const modalId = 'shiftEmployeeModal';
             const modal = document.getElementById(modalId);
 
+            // Utilities to manually show/hide modal (fallback when Flowbite not usable)
             function manualShowModal(el) {
                 if (!el) return;
                 el.classList.remove('hidden');
                 el.setAttribute('aria-hidden', 'false');
                 el.style.display = 'flex';
                 document.body.classList.add('overflow-hidden');
+                // create backdrop if not exists
                 if (!document.getElementById('manual-modal-backdrop')) {
                     const bd = document.createElement('div');
                     bd.id = 'manual-modal-backdrop';
@@ -2195,6 +1574,7 @@
                 if (bd) bd.remove();
             }
 
+            // Ensure clicking the header close or any data-modal-hide inside modal hides it
             function attachModalCloseHandlers() {
                 if (!modal) return;
                 modal.querySelectorAll('[data-modal-hide]').forEach(function(btn) {
@@ -3749,9 +3129,9 @@
                 } else {
                     // Use initial with retur styling (red) vs regular (gray)
                     const initial = displayName ? displayName.charAt(0).toUpperCase() : (brandName ? brandName.charAt(0).toUpperCase() : 'P');
-                    const bgColor = isRetur ? 'bg-red-100' : 'bg-red-500';
-                    const txtColor = isRetur ? 'text-red-600' : 'text-white';
-                    imageHtml = `<div class="w-10 h-10 rounded ${bgColor} flex items-center justify-center ${txtColor} font-bold mr-3 p-4 text-sm">${initial}</div>`;
+                    const bgColor = isRetur ? 'bg-red-100' : 'bg-gray-200';
+                    const txtColor = isRetur ? 'text-red-600' : 'text-gray-600';
+                    imageHtml = `<div class="w-10 h-10 rounded ${bgColor} flex items-center justify-center ${txtColor} font-bold mr-3">${initial}</div>`;
                 }
                 
                 // Debug log (only for first few items to avoid spam)
@@ -3881,52 +3261,27 @@
                 },
                 success: function(r) {
                     if (r.status == '200') {
-                        // Find the item and reduce quantity
+                        jQuery('#orderList' + index).remove();
                         if (window.orderItems) {
-                            const itemIndex = window.orderItems.findIndex(item => item.index === index);
-                            if (itemIndex >= 0) {
-                                const item = window.orderItems[itemIndex];
-                                item.quantity = (parseInt(item.quantity) || 1) - 1;
-                                
-                                // Remove the used plst_id from the array
-                                if (item.plst_ids && item.plst_ids.length > 0) {
-                                    item.plst_ids.shift(); // Remove first plst_id
-                                    if (item.plst_ids.length > 0) {
-                                        item.plst_id = item.plst_ids[0]; // Update current plst_id
-                                    }
-                                }
-                                
-                                if (item.quantity <= 0) {
-                                    // Remove item completely if quantity is 0
-                                    window.orderItems.splice(itemIndex, 1);
-                                    jQuery('#orderList' + index).remove();
-                                } else {
-                                    // Update the quantity display
-                                    jQuery('#item_qty' + index).val(item.quantity);
-                                    // Rebuild table to update calculations
-                                    if (typeof window.updateProductTable === 'function') {
-                                        window.updateProductTable();
-                                    }
-                                }
-                            }
+                            window.orderItems = window.orderItems.filter(item => item.index !== index);
                         }
                         if (typeof updateGrandTotal === 'function') updateGrandTotal();
-                        if (typeof toast === 'function') {
-                            toast('Dihapus', 'Item berhasil dihapus', 'success');
+                        if (typeof swal !== 'undefined') {
+                            swal('Berhasil', 'Item berhasil dihapus', 'success');
                         } else {
                             alert('Item berhasil dihapus');
                         }
                     } else {
-                        if (typeof toast === 'function') {
-                            toast('Gagal', 'Gagal menghapus item', 'error');
+                        if (typeof swal !== 'undefined') {
+                            swal('Gagal', 'Gagal menghapus item', 'error');
                         } else {
                             alert('Gagal menghapus item');
                         }
                     }
                 },
                 error: function() {
-                    if (typeof toast === 'function') {
-                        toast('Error', 'Terjadi kesalahan', 'error');
+                    if (typeof swal !== 'undefined') {
+                        swal('Error', 'Error menghapus item', 'error');
                     } else {
                         alert('Error menghapus item');
                     }
@@ -4047,10 +3402,8 @@
                     success: function(data) {
                         try {
                             var items = [];
-                            console.log('📦 Processing', data.pos_data.length, 'cart items from server');
                             if (data.pos_data && Array.isArray(data.pos_data)) {
                                 data.pos_data.forEach(function(item, idx) {
-                                    console.log('📦 Processing item', idx + 1, ':', item.p_name, 'qty:', item.quantity);
                                     var pst_id = item.pst_id;
                                     var name = (item.p_name || '') + (item.br_name ? ' ' + item.br_name : '') + (item.sz_name ? ' ' + item.sz_name : '') + (item.p_color ? ' ' + item.p_color : '');
                                     var price = parseFloat(item.ps_sell_price) || parseFloat(item.p_sell_price) || 0;
@@ -4058,7 +3411,6 @@
                                     var pl_id = item.pl_id;
                                     var plst_id = item.plst_id;
                                     var qty = parseInt(item.quantity) || 1;
-                                    var plst_ids = Array.isArray(item.plst_ids) ? item.plst_ids : [plst_id];
 
                                     if (pst_id) {
                                         items.push({
@@ -4068,12 +3420,10 @@
                                             quantity: qty,
                                             pls_qty: pls_qty,
                                             pl_id: pl_id,
-                                            plst_id: plst_ids[0], // Use first plst_id for delete
-                                            plst_ids: plst_ids, // Store all plst_ids
+                                            plst_id: plst_id,
                                             bandrol: price,
                                             index: idx + 1
                                         });
-                                        console.log('✅ Added item to orderItems:', name.trim(), 'qty:', qty);
                                     }
                                 });
                             }
@@ -4247,41 +3597,6 @@
                     
                     console.log('✅ orderItems array now has', window.orderItems.length, 'items');
                     
-                    // Persist item to database
-                    console.log('📡 Sending AJAX to persist item:', {
-                        _pst_id: product.id || product.pst_id || '',
-                        _pl_id: product.pl_id || '',
-                        _sell_price: parseFloat(product.price) || 0
-                    });
-                    jQuery.ajax({
-                        type: 'POST',
-                        url: "{{ url('change_waiting_status') }}",
-                        dataType: 'json',
-                        data: {
-                            _pst_id: product.id || product.pst_id || '',
-                            _pl_id: product.pl_id || '',
-                            _mode: 'add',
-                            _item_type: 'store',
-                            _sell_price: parseFloat(product.price) || 0,
-                            _token: jQuery('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function(r) {
-                            console.log('📡 AJAX response:', r);
-                            if (r.status == '200') {
-                                console.log('✅ Item persisted to database');
-                                // Update the item with the returned plst_id if available
-                                if (r.plst_id && item) {
-                                    item.plst_id = r.plst_id;
-                                }
-                            } else {
-                                console.error('❌ Failed to persist item to database, status:', r.status);
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('❌ Error persisting item to database:', error, xhr.responseText);
-                        }
-                    });
-                    
                     // Hide autocomplete list after product is selected (multiple methods to ensure it's hidden)
                     const $itemList = jQuery('#itemList');
                     if ($itemList.length) {
@@ -4338,7 +3653,7 @@
             
             const originalJQueryAjax = jQuery.ajax;
             jQuery.ajax = function(options) {
-                if (options && options.url && (String(options.url).includes('change_waiting_status')) && !options.isCartRestore) {
+                if (options && options.url && (String(options.url).includes('change_waiting_status'))) {
                     const originalSuccess = options.success;
                     options.success = function(data) {
                         const $tbody = jQuery('#orderTableBody, #orderTable tbody');
@@ -4656,7 +3971,7 @@
 
                     } else {
                         const initial = displayName ? displayName.charAt(0).toUpperCase() : (item.brand ? item.brand.charAt(0).toUpperCase() : 'P');
-                        imageHtml = `<div class="w-9 h-9 p-3 rounded bg-red-500 flex items-center justify-center text-white font-bold text-sm">${initial}</div>`;
+                        imageHtml = `<div class="w-9 h-9 rounded bg-red-500 flex items-center justify-center text-white font-bold text-sm">${initial}</div>`;
                     }
                     
                     const subtotal = item.subtotal || (item.price * qty) + (parseFloat(item.nameset) || 0);
@@ -7198,19 +6513,13 @@
     </script>
 
     <script>
-        // Override original POS functions that interfere with v2
-        window.reloadWaitingForCheckout = function() {
-            console.log('🚫 reloadWaitingForCheckout blocked - using v2 cart system');
-            return false;
-        };
-        
         // Auto-restore cart from server on page load
         setTimeout(function() {
             if (typeof window.loadWaitingCartFromServer === 'function') {
                 console.log('🔁 Auto-restoring waiting cart from server on page load...');
                 window.loadWaitingCartFromServer();
             }
-        }, 1500); // Increased delay to ensure all other scripts have loaded
+        }, 500);
     </script>
 </body>
 </html>

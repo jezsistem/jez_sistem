@@ -632,7 +632,7 @@
                 jQuery.noConflict();
                 if (r.status == '200') {
                     jQuery('#cancel_voucher').trigger('click');
-                    toast('Dihapus', 'Item berhasil dihapus', 'success');
+                    alert('Item berhasil dihapus');
                     jQuery('#total_item_side').text(parseInt(total_item) - 1);
                     jQuery('#total_nameset_side').text(addCommas(final_nameset));
                     jQuery('#total_price_side').text(addCommas(final_price));
@@ -674,13 +674,11 @@
                     updateTotalDiskon();
                     updateGrandTotal();
                 } else if (r.status == '400') {
-                    toast('Gagal',
-                        'Item gagal dihapus, jika ingin menghapus, pilih terlebih dahulu LOKASI tempat barang diambil, coba kembali',
-                        'danger');
+                    alert('Item gagal dihapus, jika ingin menghapus, pilih terlebih dahulu LOKASI tempat barang diambil, coba kembali');
                 }
             },
             error: function(data) {
-                swal('Error', data, 'error');
+                alert('Error menghapus item');
             }
         });
     }
@@ -883,7 +881,6 @@
                     jQuery('#card_number_label_two').addClass('hidden');
                     jQuery('#ref_number_label_two').addClass('hidden');
                     jQuery('#total_payment_two_label').addClass('hidden');
-                    jQuery('#payment_method_two_section').addClass('hidden');
                     jQuery('#payment_type_content_two').addClass('hidden');
                     jQuery('#total_payment_two').addClass('hidden');
 
@@ -2791,77 +2788,6 @@
 
     jQuery(document).ready(function(e) {
         console.log('📋 offline_pos_v2 jQuery(document).ready started - attaching all event handlers');
-        console.log('💳💳💳 Payment modal handlers will be registered...');
-        try {
-            console.log('💳💳💳 EARLY: Registering payment handlers immediately...');
-            
-            // Define handler function first
-            window.handlePaymentOptionChange = function() {
-                var payment_option = jQuery('#payment_option').val();
-                console.log('💳💳💳 Payment option changed to: ' + payment_option);
-                console.log('💳 Element found:', jQuery('#payment_option').length > 0);
-
-                // Clear payment method selections
-                jQuery('#pm_id_offline').val('');
-                jQuery('#pm_id_offline_two').val('');
-                jQuery('#cp_id').val('');
-                jQuery('#cp_id_two').val('');
-
-                // Clear input fields
-                jQuery('#total_payment').val('');
-                jQuery('#total_payment_two').val('');
-                jQuery('#return_payment').text('');
-                jQuery('#return_payment_label').addClass('hidden');
-                
-                // Hide all payment method specific fields
-                jQuery('#card_provider_content').addClass('hidden');
-                jQuery('#card_number_label').addClass('hidden');
-                jQuery('#ref_number_label').addClass('hidden');
-                jQuery('#charge_label').addClass('hidden');
-                jQuery('#sub_payment_offline_content').addClass('hidden');
-                jQuery('#card_provider_content_two').addClass('hidden');
-                jQuery('#card_number_label_two').addClass('hidden');
-                jQuery('#ref_number_label_two').addClass('hidden');
-                
-                // Set payment total
-                var payment_total = jQuery('#total_final_price_side').text();
-                var cleanTotal = String(payment_total).replace('Rp. ', '').trim();
-                var total = parseFloat(replaceComma(cleanTotal));
-                var formattedTotal = addCommas(total.toString());
-                jQuery('#payment_total').text('Rp. ' + formattedTotal);
-                
-                if (payment_option == 'two') {
-                    console.log('💳💳💳 Showing payment method 2 section');
-                    var section2 = jQuery('#payment_method_two_section');
-                    section2.removeClass('hidden');
-                    jQuery('#payment_type_content_two').removeClass('hidden');
-                    jQuery('#total_payment_two_label').removeClass('hidden');
-                    jQuery('#total_payment_two').removeClass('hidden');
-                    jQuery('#return_payment_label').addClass('hidden');
-                } else {
-                    console.log('💳💳💳 Hiding payment method 2');
-                    jQuery('#payment_method_two_section').addClass('hidden');
-                    jQuery('#payment_type_content_two').addClass('hidden');
-                    jQuery('#total_payment_two_label').addClass('hidden');
-                    jQuery('#total_payment_two').addClass('hidden');
-                    jQuery('#return_payment_label').removeClass('hidden');
-                }
-            };
-            
-            // Register handler with event delegation (works even if element doesn't exist)
-            jQuery(document).off('change', '#payment_option');
-            jQuery(document).on('change', '#payment_option', function(e) {
-                console.log('💳💳💳💳💳 Payment option CHANGE EVENT TRIGGERED!');
-                if (window.handlePaymentOptionChange) {
-                    window.handlePaymentOptionChange();
-                }
-            });
-            
-            console.log('✅ Payment option handler registered EARLY with event delegation');
-        } catch (error) {
-            console.error('❌ Error registering payment handlers:', error);
-        }
-        
         jQuery('#_pt_id_complaint').val('');
         jQuery('#_exchange').val('');
         reloadWaitingForCheckout();
@@ -3195,11 +3121,8 @@
             });
         });
 
-        // Payment option change handler function
-        function handlePaymentOptionChange() {
-            var payment_option = jQuery('#payment_option').val();
-            console.log('💳💳💳 Payment option changed to: ' + payment_option);
-            console.log('💳 Element found:', jQuery('#payment_option').length > 0);
+        jQuery('#payment_option').on('change', function() {
+            var payment_option = jQuery(this).val();
 
             // Clear payment method selections (without triggering change yet)
             jQuery('#pm_id_offline').val('');
@@ -3210,17 +3133,14 @@
             // Clear input fields
             jQuery('#total_payment').val('');
             jQuery('#total_payment_two').val('');
-            jQuery('#return_payment').text('');
-            jQuery('#return_payment_label').addClass('hidden');
+            jQuery('#return_payment').text('Rp. 0');
             
-            // Hide all payment method specific fields for method 1
+            // Hide all payment method specific fields
             jQuery('#card_provider_content').addClass('hidden');
             jQuery('#card_number_label').addClass('hidden');
             jQuery('#ref_number_label').addClass('hidden');
             jQuery('#charge_label').addClass('hidden');
             jQuery('#sub_payment_offline_content').addClass('hidden');
-            
-            // Hide all payment method specific fields for method 2
             jQuery('#card_provider_content_two').addClass('hidden');
             jQuery('#card_number_label_two').addClass('hidden');
             jQuery('#ref_number_label_two').addClass('hidden');
@@ -3231,87 +3151,24 @@
             var total = parseFloat(replaceComma(cleanTotal));
             var formattedTotal = addCommas(total.toString());
             jQuery('#payment_total').text('Rp. ' + formattedTotal);
-            console.log('💳 Payment total set to: Rp. ' + formattedTotal);
+            console.log('Payment option changed to: ' + payment_option + ', total: Rp. ' + formattedTotal);
             
             if (payment_option == 'two') {
-                // Show payment method 2 section
-                console.log('💳💳💳 Showing payment method 2 section');
-                var section2 = jQuery('#payment_method_two_section');
-                var paymentType2 = jQuery('#payment_type_content_two');
-                var totalPayment2Label = jQuery('#total_payment_two_label');
-                var totalPayment2 = jQuery('#total_payment_two');
-                
-                console.log('💳 Section 2 element exists:', section2.length > 0);
-                console.log('💳 Section 2 current classes:', section2.attr('class'));
-                
-                section2.removeClass('hidden');
-                paymentType2.removeClass('hidden');
-                totalPayment2Label.removeClass('hidden');
-                totalPayment2.removeClass('hidden');
+                // Show payment method 2
+                jQuery('#payment_type_content_two').removeClass('hidden');
+                jQuery('#total_payment_two_label').removeClass('hidden');
+                jQuery('#total_payment_two').removeClass('hidden');
                 jQuery('#return_payment_label').addClass('hidden');
-                
-                // Verify elements are visible after a short delay
-                setTimeout(function() {
-                    console.log('💳 Section 2 visible check after timeout:', !section2.hasClass('hidden'));
-                    console.log('💳 Section 2 display style:', section2.css('display'));
-                    if (section2.hasClass('hidden')) {
-                        console.error('❌ Section 2 still has hidden class!');
-                        // Force show using inline style as fallback
-                        section2.css('display', 'block').removeClass('hidden');
-                    }
-                }, 100);
-            } else if (payment_option == 'one' || payment_option == '') {
+                console.log('Showing payment method 2');
+            } else {
                 // Hide payment method 2, show return payment label for 1 Metode
-                console.log('💳💳💳 Hiding payment method 2, showing return payment');
-                jQuery('#payment_method_two_section').addClass('hidden');
                 jQuery('#payment_type_content_two').addClass('hidden');
                 jQuery('#total_payment_two_label').addClass('hidden');
                 jQuery('#total_payment_two').addClass('hidden');
                 jQuery('#return_payment_label').removeClass('hidden');
+                console.log('Showing payment method 1 with return payment');
             }
-        }
-
-        // Register payment option change handler - using event delegation only to avoid conflicts
-        console.log('💳💳💳 Registering payment_option change handlers...');
-        console.log('💳 handlePaymentOptionChange function exists:', typeof handlePaymentOptionChange === 'function');
-        
-        // Use event delegation as primary method (works even if element doesn't exist yet)
-        // Remove any existing handlers first to avoid duplicates
-        try {
-            jQuery(document).off('change', '#payment_option');
-            jQuery(document).on('change', '#payment_option', function(e) {
-                console.log('💳💳💳💳💳 Payment option change event triggered via delegation!');
-                console.log('💳 Event object:', e);
-                console.log('💳 Current value:', jQuery(this).val());
-                console.log('💳 This element:', this);
-                if (typeof handlePaymentOptionChange === 'function') {
-                    handlePaymentOptionChange();
-                } else {
-                    console.error('❌ handlePaymentOptionChange is not a function!');
-                }
-            });
-            console.log('✅ Payment option handler registered with event delegation');
-        } catch (error) {
-            console.error('❌ Error registering payment_option handler:', error);
-        }
-        
-        // Also try direct binding if element exists
-        try {
-            if (jQuery('#payment_option').length > 0) {
-                console.log('💳 Payment option element exists, adding direct binding');
-                jQuery('#payment_option').off('change.payment-direct').on('change.payment-direct', function() {
-                    console.log('💳💳💳 Payment option change (direct) triggered!');
-                    if (typeof handlePaymentOptionChange === 'function') {
-                        handlePaymentOptionChange();
-                    }
-                });
-                console.log('✅ Direct binding added');
-            } else {
-                console.log('💳 Payment option element does not exist yet (will bind when modal opens)');
-            }
-        } catch (error) {
-            console.error('❌ Error in direct binding:', error);
-        }
+        });
 
         // jQuery('#reload_refund_list').on('click', function () {
         //     reloadRefund();
@@ -3504,37 +3361,14 @@
 
         jQuery('#payment_btn').on('click', function(e) {
             e.preventDefault();
-            console.log('💳💳💳 payment_btn clicked - preparing payment modal');
+            console.log('payment_btn clicked - preparing payment modal');
 
             jQuery('#another_cost').val('');
             jQuery('#admin_cost').val('');
             jQuery('#unique_code').val('');
             if (b1g1_temp && b1g1_temp.length > 0) {
                 jQuery('#note').val('[B1G1]');
-            } else {
-                jQuery('#note').val('');
             }
-
-            // Reset payment form state
-            jQuery('#payment_option').val('one');
-            jQuery('#pm_id_offline').val('');
-            jQuery('#pm_id_offline_two').val('');
-            jQuery('#total_payment').val('');
-            jQuery('#total_payment_two').val('');
-            jQuery('#return_payment').text('');
-            jQuery('#return_payment_label').addClass('hidden');
-            
-            // Hide all payment method specific fields
-            jQuery('#card_provider_content').addClass('hidden');
-            jQuery('#card_number_label').addClass('hidden');
-            jQuery('#ref_number_label').addClass('hidden');
-            jQuery('#charge_label').addClass('hidden');
-            jQuery('#sub_payment_offline_content').addClass('hidden');
-            jQuery('#card_provider_content_two').addClass('hidden');
-            jQuery('#card_number_label_two').addClass('hidden');
-            jQuery('#ref_number_label_two').addClass('hidden');
-            jQuery('#payment_method_two_section').addClass('hidden');
-            jQuery('#total_payment_two_label').addClass('hidden');
 
             // Get total and display in payment modal
             var total_final_price_side = jQuery('#total_final_price_side').text();
@@ -3543,48 +3377,18 @@
             var total = parseFloat(replaceComma(cleanTotal));
             var formattedTotal = addCommas(total.toString());
             jQuery('#payment_total').text('Rp. ' + formattedTotal);
-            console.log('💳 Payment total set to: Rp. ' + formattedTotal);
+            console.log('Payment total set to: Rp. ' + formattedTotal);
             
             // Show payment modal - trigger Flowbite modal toggle
-            console.log('💳 Opening payment modal via Flowbite');
+            console.log('Opening payment modal via Flowbite');
             const paymentModal = document.getElementById('payment-offline-popup');
             if (paymentModal) {
                 // Trigger Flowbite modal toggle
                 paymentModal.classList.remove('hidden');
                 paymentModal.classList.add('flex');
-                console.log('💳 Payment modal opened successfully');
-                
-                // CRITICAL: Bind handlers immediately - use window function to avoid scope issues
-                setTimeout(function() {
-                    console.log('💳💳💳 Binding payment handlers after modal opens...');
-                    var paymentOption = jQuery('#payment_option');
-                    
-                    console.log('💳 Payment option element found:', paymentOption.length > 0);
-                    
-                    if (paymentOption.length > 0) {
-                        // Use window function if available
-                        var handlerFunc = window.handlePaymentOptionChange || handlePaymentOptionChange;
-                        
-                        // Remove all existing handlers
-                        paymentOption.off('change');
-                        
-                        // Bind with simple direct method
-                        paymentOption.on('change', function() {
-                            console.log('💳💳💳💳💳💳💳 PAYMENT OPTION CHANGED! Value:', jQuery(this).val());
-                            if (handlerFunc) {
-                                handlerFunc();
-                            } else {
-                                console.error('❌ Handler function not found!');
-                            }
-                        });
-                        
-                        console.log('✅ Payment option handler bound! Try changing dropdown now.');
-                    } else {
-                        console.error('❌ Payment option NOT FOUND in modal!');
-                    }
-                }, 200);
+                console.log('Payment modal opened successfully');
             } else {
-                console.error('❌ Payment modal element not found');
+                console.error('Payment modal element not found');
             }
         });
 
@@ -3742,37 +3546,13 @@
                 jQuery('#payment_total').text(jQuery('#total_final_price_side').text());
             }
         });
-        // Register pm_id_offline handler with event delegation
-        console.log('💳💳💳 Registering pm_id_offline change handlers...');
-        
-        function handlePmIdOfflineChange() {
+
+        jQuery('#pm_id_offline').on('change', function(e) {
+            e.preventDefault();
             var label = jQuery('#pm_id_offline option:selected').text();
             var paymentDisplay = jQuery('#payment_total').text();
             var cleanPayment = String(paymentDisplay).replace('Rp. ', '').trim();
-            var paymentValueNumeric = replaceComma(cleanPayment);
-            
-            console.log('💳💳💳 Payment method 1 changed to: ' + label);
-            console.log('💳 Payment value (numeric):', paymentValueNumeric);
-            console.log('💳 Handler triggered successfully');
-            
-            // Helper function to set payment value with proper formatting
-            function setPaymentValue(value) {
-                if (value && value > 0) {
-                    // Set numeric value and trigger input event to format it
-                    var totalPaymentInput = document.getElementById('total_payment');
-                    if (totalPaymentInput) {
-                        totalPaymentInput.value = value.toString();
-                        // Trigger input event to format the value
-                        var inputEvent = new Event('input', { bubbles: true });
-                        totalPaymentInput.dispatchEvent(inputEvent);
-                    } else {
-                        // Fallback to jQuery if native element not found
-                        jQuery('#total_payment').val('Rp. ' + addCommas(value.toString()));
-                    }
-                } else {
-                    jQuery('#total_payment').val('');
-                }
-            }
+            var paymentValue = replaceComma(cleanPayment);
             
             if (label == 'DEBIT CARD') {
                 jQuery('#card_provider_content').removeClass('hidden');
@@ -3783,7 +3563,7 @@
                 jQuery('#sub_payment_offline_content').addClass('hidden');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
-                setPaymentValue(paymentValueNumeric);
+                jQuery('#total_payment').val(paymentValue);
             } else if (label == 'CREDIT CARD') {
                 jQuery('#card_provider_content').removeClass('hidden');
                 jQuery('#card_number_label').removeClass('hidden');
@@ -3791,7 +3571,7 @@
                 jQuery('#return_payment').text('');
                 jQuery('#charge_label').removeClass('hidden');
                 jQuery('#sub_payment_offline_content').addClass('hidden');
-                setPaymentValue(paymentValueNumeric);
+                jQuery('#total_payment').val(paymentValue);
             } else if (label == 'CASH') {
                 jQuery('#card_provider_content').addClass('hidden');
                 jQuery('#card_number_label').addClass('hidden');
@@ -3800,8 +3580,7 @@
                 jQuery('#charge_label').addClass('hidden');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
-                setPaymentValue(0);
-                jQuery('#return_payment').text('');
+                jQuery('#total_payment').val('');
             } else if (label.includes('EDC')) {
                 jQuery('#sub_payment_offline_content').removeClass('hidden');
                 jQuery('#card_number_label').addClass('hidden');
@@ -3810,9 +3589,8 @@
                 jQuery('#charge_label').addClass('hidden');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
-                setPaymentValue(paymentValueNumeric);
+                jQuery('#total_payment').val(paymentValue);
             } else {
-                // For all other payment methods (TRANSFER BRI, TRANSFER BNI, TRANSFER BCA, QRIS, etc.)
                 jQuery('#card_number_label').addClass('hidden');
                 jQuery('#card_provider_content').addClass('hidden');
                 jQuery('#ref_number_label').removeClass('hidden');
@@ -3821,32 +3599,9 @@
                 jQuery('#charge_label').addClass('hidden');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
-                setPaymentValue(paymentValueNumeric);
+                jQuery('#total_payment').val(paymentValue);
             }
-        }
-        
-        // Use event delegation as primary method
-        // Remove any existing handlers first to avoid duplicates
-        jQuery(document).off('change', '#pm_id_offline');
-        jQuery(document).on('change', '#pm_id_offline', function(e) {
-            e.preventDefault();
-            console.log('💳💳💳 pm_id_offline change event triggered!');
-            console.log('💳 Event object:', e);
-            console.log('💳 Current value:', jQuery(this).val());
-            handlePmIdOfflineChange();
         });
-        
-        console.log('💳 pm_id_offline handler registered with event delegation');
-        
-        // Also try direct binding if element exists
-        if (jQuery('#pm_id_offline').length > 0) {
-            console.log('💳 pm_id_offline element exists, adding direct binding');
-            jQuery('#pm_id_offline').off('change.payment-direct').on('change.payment-direct', function(e) {
-                e.preventDefault();
-                console.log('💳💳💳 pm_id_offline change (direct) triggered!');
-                handlePmIdOfflineChange();
-            });
-        }
 
         jQuery('#pm_id_offline_two').on('change', function(e) {
             e.preventDefault();
@@ -4730,5 +4485,5 @@
                 }
             }
         });
-    });
+    })
 </script>

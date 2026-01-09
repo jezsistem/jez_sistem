@@ -26,18 +26,14 @@
                 </a>
             </div>
             
-            <!-- Dynamic Menu Items from Database -->
             <div id="sidebar-menu-container" class="space-y-2">
-                <!-- Special Dashboard Section (Always visible when Dashboard tab clicked) -->
                 <div class="menu-section" data-category="dashboard" data-original-title="Dashboard">
-                    <!-- Menu Title (Section Header) -->
                     <div class="mb-2 sidebar-section-title">
                         <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                             Dashboard
                         </h3>
                     </div>
                     
-                    <!-- Dashboard Menu Items -->
                     <div class="sidebar-menu-item mb-1">
                         <a href="{{ url('/dashboard_new') }}" 
                            class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors {{ request()->is('dashboards*') || request()->is('dashboard_new*') ? 'bg-gray-100 font-semibold' : '' }}"
@@ -58,7 +54,7 @@
                         <a href="{{ url('/asset_detail') }}" 
                            class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors {{ request()->is('asset_detail*') ? 'bg-gray-100 font-semibold' : '' }}"
                            title="Asset Detail">
-                            <i class="cft-standard-stroke cft-file text-gray-400 flex-shrink-0 text-lg"></i>
+                            <i class="cft-standard-stroke cft-ship-box-2 text-gray-400 flex-shrink-0 text-lg"></i>
                             <span class="sidebar-menu-text">Asset Detail</span>
                         </a>
                     </div>
@@ -96,7 +92,7 @@
                                             <a href="{{ url('/') }}/{{ $menuItem->ma_slug }}" 
                                                class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors {{ request()->is($menuItem->ma_slug . '*') ? 'bg-gray-100 font-semibold' : '' }}"
                                                title="{{ $menuItem->ma_title }}">
-                                                <i class="cft-standard-stroke cft-{{ $menuItem->ma_slug == 'dashboard' ? 'home' : ($menuItem->ma_slug == 'pos_v2' ? 'wallet' : 'file') }} text-gray-400 flex-shrink-0"></i>
+                                                <i class="cft-standard-stroke cft-{{ $menuItem->ma_slug == 'dashboard' ? 'home' : ($menuItem->ma_slug == 'pos_v2' ? 'wallet' : 'dot-large') }} text-gray-400 flex-shrink-0"></i>
                                                 <span class="sidebar-menu-text">{{ $menuItem->ma_title }}</span>
                                             </a>
                                         </div>

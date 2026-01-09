@@ -272,6 +272,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('autocomplete_invoice_offline', [PointOfSaleController::class, 'fetchInvoiceOffline']);
     Route::post('change_waiting_status', [PointOfSaleController::class, 'changeWaitingStatus']);
     Route::post('check_waiting_for_checkout', [PointOfSaleController::class, 'checkWaitingForCheckout']);
+    Route::post('check_waiting_for_checkout_json', [PointOfSaleController::class, 'checkWaitingForCheckoutJson']);
     Route::post('check_complaint', [PointOfSaleController::class, 'checkComplaint']);
     Route::post('check_offline_complaint', [PointOfSaleController::class, 'checkOfflineComplaint']);
     Route::post('autocomplete_refund_invoice', [PointOfSaleController::class, 'fetchRefundInvoice']);
