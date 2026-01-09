@@ -763,30 +763,32 @@
                     }
                 });
 
-                $.ajax({
-                    type: "POST",
-                    url: "{{ url('send_notification_whatsapp') }}",
-                    data: {
-                        division: 'purchasing',
-                        mode: 'penerimaan',
-                        no_order: no_order
-                    },
-                    dataType: 'json',
-                    success: function(r) {
-                        console.log(r);
-                        if (r.status == '200') {
-                            toastr.success("Berhasil Mengirim Whatsapp Notifikasi", "Berhasil");
-                        } else {
-                            toastr.error("Gagal mengirim pesan", "Gagal");
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        toastr.error("Terjadi kesalahan saat mengirim notifikasi", "Error");
-                    }
-                });
+                // $.ajax({
+                //     type: "POST",
+                //     url: "{{ url('send_notification_whatsapp') }}",
+                //     data: {
+                //         division: 'purchasing',
+                //         mode: 'penerimaan',
+                //         no_order: no_order
+                //     },
+                //     dataType: 'json',
+                //     success: function(r) {
+                //         console.log(r);
+                //         if (r.status == '200') {
+                //             toastr.success("Berhasil Mengirim Whatsapp Notifikasi", "Berhasil");
+                //         } else {
+                //             toastr.error("Gagal mengirim pesan", "Gagal");
+                //         }
+                //     },
+                //     error: function(xhr, status, error) {
+                //         toastr.error("Terjadi kesalahan saat mengirim notifikasi", "Error");
+                //     }
+                // });
                 changeFinanceStatus(po_id);
 
-                reloadArticleDetail(po_id);
+                setTimeout(function() {
+                    reloadArticleDetail(po_id);
+                }, 1000);
             }
         });
     };
