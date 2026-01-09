@@ -1591,7 +1591,7 @@ class PurchaseOrderController extends Controller
             }
 
             //hutang partial receive
-            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty < $po_qty)) {
+            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty_approved < $po_qty)) {
                 $after = 'HUTANG (PARTIAL RECEIVE)';
                 $po->finance_status = $after;
                 $po->save();
@@ -1606,7 +1606,7 @@ class PurchaseOrderController extends Controller
             }
 
             //hutang full receive
-            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty == $po_qty)) {
+            if (!$has_payment_date && $has_stock_in_date && ($po_receive_qty_approved == $po_qty)) {
                 $after = 'HUTANG';
                 $po->finance_status = $after;
                 $po->save();
@@ -1621,7 +1621,7 @@ class PurchaseOrderController extends Controller
             }
 
             //piutang overpayment partial receive
-            if ($has_payment_date && $has_stock_in_date && ($po_receive_qty < $po_qty)) {
+            if ($has_payment_date && $has_stock_in_date && ($po_receive_qty_approved < $po_qty)) {
                 $after = 'PIUTANG (OVERPAYMENT PARTIAL)';
                 $po->finance_status = $after;
                 $po->save();
@@ -1636,7 +1636,7 @@ class PurchaseOrderController extends Controller
             }
 
             //piutang 0 receive
-            if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty == 0)) {
+            if ($has_payment_date && !$has_stock_in_date && ($po_receive_qty_approved == 0)) {
                 $after = 'PIUTANG';
                 $po->finance_status = $after;
                 $po->save();
@@ -1659,7 +1659,9 @@ class PurchaseOrderController extends Controller
                 $difference = ($payment_amount + $claim_amount) - ($po_total_price + $po->adjustment_amount);
             }
 
-            if ($has_payment_date && $has_stock_in_date && $difference <= $tolerance && $difference >= -$tolerance && ($po_qty == $po_receive_qty)) {
+            // dd($has_payment_date, $has_stock_in_date, $difference, $tolerance, $po_qty, $po_receive_qty_approved);
+
+            if ($has_payment_date && $has_stock_in_date && $difference <= $tolerance && $difference >= -$tolerance && ($po_qty == $po_receive_qty_approved)) {
                 $after = 'LUNAS';
                 $po->finance_status = $after;
                 $po->save();
