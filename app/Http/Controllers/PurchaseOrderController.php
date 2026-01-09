@@ -947,7 +947,7 @@ class PurchaseOrderController extends Controller
                         'pst_id',
                         'ps_barcode',
                         'p_id',
-                        DB::raw('CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NOT NULL THEN 1 ELSE 0 END AS is_approved'),
+                        DB::raw('MAX(CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NOT NULL THEN 1 ELSE 0 END) AS is_approved'),
                         DB::raw('SUM(CASE WHEN ts_purchase_order_article_detail_statuses.u_id_approve IS NOT NULL THEN poads_total_price ELSE 0 END) AS total_approved_price'),
                     )
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
