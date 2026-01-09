@@ -939,6 +939,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('leave-requests/stats', [LeaveRequestController::class, 'getStats'])->name('leave-requests.stats');
     Route::get('leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
     Route::post('leave-requests/reprocess-all', [LeaveRequestController::class, 'reprocessAll'])->name('leave-requests.reprocess-all');
+    Route::get(('leave-requests/export/excel'), [LeaveRequestController::class, 'exportToExcel'])->name('leave-requests.export-excel');
 
     // Leave Request CRUD Routes (with {id} parameter)
     Route::get('leave-requests/{id}', [LeaveRequestController::class, 'show'])->name('leave-requests.show');

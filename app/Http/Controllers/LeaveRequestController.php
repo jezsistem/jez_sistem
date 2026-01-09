@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LeaveRequestAllExport;
 use App\Models\LeaveRequestComment;
 use Illuminate\Http\Request;
 use App\Models\LeaveRequest;
@@ -176,7 +177,7 @@ class LeaveRequestController extends Controller
         // cut saldo
         $leaveType = DB::table('leave_types')->where('id', $request->leave_type_id)->first()->lt_code;
 
-//        dd($leaveRequest);
+        //        dd($leaveRequest);
 
         if ($leaveType == 'ANNUAL') {
             $leaveRemaining = LeaveBalance::with('user')
@@ -270,25 +271,25 @@ class LeaveRequestController extends Controller
         $end = Carbon::parse($leaveRequest->lr_end_date);
         $totalDays = $start->diffInDays($end) + 1;
 
-//        $leaveType = DB::table('leave_types')->where('id', $leaveRequest->leave_type_id)->first()->lt_code;
+        //        $leaveType = DB::table('leave_types')->where('id', $leaveRequest->leave_type_id)->first()->lt_code;
 
-//        dd($leaveRequest);
+        //        dd($leaveRequest);
 
-//        if ($leaveType == 'ANNUAL') {
-//            $leaveRemaining = LeaveBalance::with('user')
-//                ->where('user_id', $leaveRequest->user_id)
-//                ->first();
-//
-//            $newLeaveRemaining = $leaveRemaining->lb_remaining_balance - $totalDays;
-//
-//            $leaveUsedBalance = $leaveRemaining->lb_used_balance + $totalDays;
-//
-//            // update leave balance
-//            $leaveRemaining->update([
-//                'lb_remaining_balance' => $newLeaveRemaining,
-//                'lb_used_balance' => $leaveUsedBalance,
-//            ]);
-//        }
+        //        if ($leaveType == 'ANNUAL') {
+        //            $leaveRemaining = LeaveBalance::with('user')
+        //                ->where('user_id', $leaveRequest->user_id)
+        //                ->first();
+        //
+        //            $newLeaveRemaining = $leaveRemaining->lb_remaining_balance - $totalDays;
+        //
+        //            $leaveUsedBalance = $leaveRemaining->lb_used_balance + $totalDays;
+        //
+        //            // update leave balance
+        //            $leaveRemaining->update([
+        //                'lb_remaining_balance' => $newLeaveRemaining,
+        //                'lb_used_balance' => $leaveUsedBalance,
+        //            ]);
+        //        }
 
         $leaveRequest->update([
             'lr_status' => 'APPROVED',
@@ -296,7 +297,7 @@ class LeaveRequestController extends Controller
             'lr_approved_at' => now(),
         ]);
 
-//        $leaveRequestType =
+        //        $leaveRequestType =
 
         if ($currentUser->id === $leaveRequester->id) {
             \Log::warning("User {$currentUser->id} mencoba self-approve");
@@ -310,10 +311,10 @@ class LeaveRequestController extends Controller
             ->where('id', $leaveRequester->ud_id)
             ->first();
 
-//        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
-//            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
-//            return $this->deny($request, 'You can only approve leave requests within your division');
-//        }
+        //        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
+        //            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
+        //            return $this->deny($request, 'You can only approve leave requests within your division');
+        //        }
 
         $isDivisionLead = $requesterDivision && $currentUser->id == $requesterDivision->lead_id;
         $isDivisionManager = $requesterDivision && $currentUser->id == $requesterDivision->manager_id;
@@ -978,7 +979,7 @@ class LeaveRequestController extends Controller
 
             $leaveType = DB::table('leave_types')->where('id', $leaveRequest->leave_type_id)->first()->lt_code;
 
-//            dd($leaveRequest);
+            //            dd($leaveRequest);
 
             $start = Carbon::parse($leaveRequest->lr_start_date);
             $end = Carbon::parse($leaveRequest->lr_end_date);
@@ -1138,7 +1139,7 @@ class LeaveRequestController extends Controller
                         ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
                 });
             }
-//teees
+            //teees
             return datatables()->eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('lr_date', function ($row) {
@@ -2457,7 +2458,7 @@ class LeaveRequestController extends Controller
             $approvers = User::where('ud_id', $requestingUser->ud_id)
                 ->whereHas('userPosition', function ($query) {
                     $query->where('up_level', '>=', 2) // Supervisor level or higher
-                    ->where('up_can_approve_leave', true);
+                        ->where('up_can_approve_leave', true);
                 })
                 ->where('id', '!=', $userId) // Don't notify the requester
                 ->get();
@@ -2589,5 +2590,43 @@ class LeaveRequestController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    public function exportToExcel(Request $request)
+    {
+        // $this->validateAccess();
+
+        try {
+            // Get filters
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+            $dateFilter = $request->get('date_filter');
+            $userId = $request->get('user_id');
+            $status = $request->get('status');
+            $leaveTypeId = $request->get('leave_type_id');
+
+            // Apply date filter if not custom
+            if ($dateFilter && $dateFilter !== 'custom') {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+
+            $leaveRequest = new LeaveRequest();
+            $leaveRequests = $leaveRequest->getLeaveRequestsByFilters($startDate, $endDate, $userId, $status, $leaveTypeId);
+
+            $filename = 'leave_requests_' . date('Y-m-d') . '.xlsx';
+            $export = new LeaveRequestAllExport($leaveRequests);
+
+            return Excel::download($export, $filename);
+        } catch (\Exception $e) {
+            \Log::error('Export Leave Requests Excel Error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            dd($e->getMessage());
+            return redirect()->back()->with('error', 'Error exporting data');
+        }
     }
 }
