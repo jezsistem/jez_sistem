@@ -25,6 +25,7 @@
                     d.search_article = $('#artikel_promo_search_article').val();
                     d.date_start = $('#artikelpromo_date').val();
                     d.artikel_promo_store = $('#artikel_promo_store').val();
+                    d.artikel_promo_status = $('#artikel_promo_status').val();
                 }
             },
             columns: [{
@@ -93,6 +94,9 @@
         });
 
         $('#artikel_promo_store').on('change', function() {
+            data_article_promo_tb.draw();
+        });
+        $('#artikel_promo_status').on('change', function() {
             data_article_promo_tb.draw();
         });
 
@@ -232,11 +236,13 @@
             var search = $('#artikel_promo_search').val();
             var dateRange = $('#artikel_promo_date_start').val();
             var store = $('#artikel_promo_store').val();
+            var status = $('#artikel_promo_status').val();
             
             var url = "{{ url('export_artikel_promo') }}" + 
                   "?search=" + encodeURIComponent(search) +
                   "&date_range=" + encodeURIComponent(dateRange) +
-                  "&artikel_promo_store=" + encodeURIComponent(store);
+                  "&artikel_promo_store=" + encodeURIComponent(store) + 
+                  "&artikel_promo_status=" + encodeURIComponent(status);
             
             window.location.href = url;
         });

@@ -120,13 +120,13 @@
                                             <i class="path3"></i>
                                             <i class="path4"></i>
                                         </i>
-                                        Cogs
+                                        Unit / TRX
                                     </span>
                                 </div>
                                 <div class="text-right col-6 px-0">
-                                    <span class="font-weight-bold fs-9 btn" id="profit_label"
+                                    <!-- <span class="font-weight-bold fs-9 btn" id="profit_label"
                                         style="background-color: transparent; color: #000; border: none;"><span
-                                            id="profit_label_reload" style="white-space:nowrap;">
+                                            id="profit_label_reload" style="white-space:nowrap;"> -->
 
                                         </span><img src="{{ asset('logo/printer1.png') }}" alt="checklist"
                                             style="width: 30px; height: 30px;"></span>

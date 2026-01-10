@@ -17,10 +17,10 @@ class UpdatedDashboardController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -29,7 +29,7 @@ class UpdatedDashboardController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -42,9 +42,9 @@ class UpdatedDashboardController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -53,7 +53,7 @@ class UpdatedDashboardController extends Controller
         }
         return $sidebar;
     }
-    
+
     protected function UserActivity($activity)
     {
         UserActivity::create([
@@ -129,32 +129,33 @@ class UpdatedDashboardController extends Controller
         $gid = 0;
         $git = 0;
 
+
         $exception = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
             ->get()
             ->toArray();
-            
+
         $draft =  DB::table('stock_transfer_details')
-        ->selectRaw("stfd_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-        ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'stock_transfer_details.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->groupBy('stock_transfer_details.id')
-        ->where(function($w) use ($start, $end, $st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('stock_transfers.st_id_start', $st_id);
-            } else {
-                $w->where('stock_transfers.st_id_start', '!=', '4');
-            }
-            $w->where('stock_transfers.stf_status', '=', '3');
-        })
-        ->get();
+            ->selectRaw("stfd_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+            ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'stock_transfer_details.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->groupBy('stock_transfer_details.id')
+            ->where(function ($w) use ($start, $end, $st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('stock_transfers.st_id_start', $st_id);
+                } else {
+                    $w->where('stock_transfers.st_id_start', '!=', '4');
+                }
+                $w->where('stock_transfers.stf_status', '=', '3');
+            })
+            ->get();
         if (!empty($draft)) {
             foreach ($draft as $row) {
                 $purchase = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $purchase = round($row->purchase);
                 } else {
                     if (!empty($row->poad_total_price)) {
@@ -172,27 +173,27 @@ class UpdatedDashboardController extends Controller
         }
 
         $transit = DB::table('stock_transfer_details')
-        ->selectRaw("ts_stock_transfer_details.id as id, stfd_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-        ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'stock_transfer_details.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->groupBy('stock_transfer_details.id')
-        ->where(function($w) use ($start, $end, $st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('stock_transfers.st_id_start', $st_id);
-            } else {
-                $w->where('stock_transfers.st_id_start', '!=', '4');
-            }
-            $w->where('stock_transfers.stf_status', '=', '1')
-            ->where('stock_transfer_details.stfd_status', '=', '1');
-        })
-        ->get();
+            ->selectRaw("ts_stock_transfer_details.id as id, stfd_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+            ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'stock_transfer_details.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->groupBy('stock_transfer_details.id')
+            ->where(function ($w) use ($start, $end, $st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('stock_transfers.st_id_start', $st_id);
+                } else {
+                    $w->where('stock_transfers.st_id_start', '!=', '4');
+                }
+                $w->where('stock_transfers.stf_status', '=', '1')
+                    ->where('stock_transfer_details.stfd_status', '=', '1');
+            })
+            ->get();
         if (!empty($transit)) {
             foreach ($transit as $row) {
                 $purchase = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $purchase = round($row->purchase);
                 } else {
                     if (!empty($row->poad_total_price)) {
@@ -216,129 +217,190 @@ class UpdatedDashboardController extends Controller
 
 
         $admin_cost = DB::table('pos_transactions')->select('pos_admin_cost', 'pos_status')
-        ->where(function($w) use ($start, $end, $st_id, $label, $division) {
-            if (!empty($st_id)) {
-                $w->whereIn('pos_transactions.st_id', $st_id);
-            }
-//            else {
-//                $w->where('pos_transactions.st_id', '!=', '4');
-//            }
-            if ($division != 'all') {
-                if ($division == 'online') {
-                    $w->where('pos_transactions.stt_id', '=', '1');
-                } else {
-                    $w->where('pos_transactions.stt_id', '=', '2');
+            ->where(function ($w) use ($start, $end, $st_id, $label, $division) {
+                if (!empty($st_id)) {
+                    $w->whereIn('pos_transactions.st_id', $st_id);
                 }
-            }
-            if (!empty($end)) {
-                $w->whereDate('pos_transactions.created_at', '>=', $start)
-                ->whereDate('pos_transactions.created_at', '<=', $end);
-            } else {
-                $w->whereDate('pos_transactions.created_at', '=', $start);
-            }
-        })
-        ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID'])
-        ->sum('pos_admin_cost');
+                //            else {
+                //                $w->where('pos_transactions.st_id', '!=', '4');
+                //            }
+                if ($division != 'all') {
+                    if ($division == 'online') {
+                        $w->where('pos_transactions.stt_id', '=', '1');
+                    } else {
+                        $w->where('pos_transactions.stt_id', '=', '2');
+                    }
+                }
+                if (!empty($end)) {
+                    $w->whereDate('pos_transactions.created_at', '>=', $start)
+                        ->whereDate('pos_transactions.created_at', '<=', $end);
+                } else {
+                    $w->whereDate('pos_transactions.created_at', '=', $start);
+                }
+            })
+            ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
+            ->sum('pos_admin_cost');
 
         $cross_admin_cost = DB::table('pos_transactions')->select('pos_admin_cost', 'pos_status')
-        ->where(function($w) use ($start, $end, $st_id, $label, $division) {
-            if (!empty($st_id)) {
-                $w->whereIn('pos_transactions.st_id_ref', $st_id);
-            }
-//            else {
-//                $w->whereNotNull('pos_transactions.st_id_ref')
-//                ->where('pos_transactions.st_id_ref', '!=', '4');
-//            }
-            if ($division != 'all') {
-                if ($division == 'online') {
-                    $w->where('pos_transactions.stt_id', '=', '1');
-                } else {
-                    $w->where('pos_transactions.stt_id', '=', '2');
+            ->where(function ($w) use ($start, $end, $st_id, $label, $division) {
+                if (!empty($st_id)) {
+                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
                 }
-            }
-            if (!empty($end)) {
-                $w->whereDate('pos_transactions.created_at', '>=', $start)
-                ->whereDate('pos_transactions.created_at', '<=', $end);
-            } else {
-                $w->whereDate('pos_transactions.created_at', '=', $start);
-            }
-        })
-        ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID'])
-        ->sum('pos_admin_cost');
+                //            else {
+                //                $w->whereNotNull('pos_transactions.st_id_ref')
+                //                ->where('pos_transactions.st_id_ref', '!=', '4');
+                //            }
+                if ($division != 'all') {
+                    if ($division == 'online') {
+                        $w->where('pos_transactions.stt_id', '=', '1');
+                    } else {
+                        $w->where('pos_transactions.stt_id', '=', '2');
+                    }
+                }
+                if (!empty($end)) {
+                    $w->whereDate('pos_transactions.created_at', '>=', $start)
+                        ->whereDate('pos_transactions.created_at', '<=', $end);
+                } else {
+                    $w->whereDate('pos_transactions.created_at', '=', $start);
+                }
+            })
+            ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
+            ->sum('pos_admin_cost');
 
-        $ns = DB::table('pos_transaction_details')->select('pos_transactions.id as pt_id', 'pos_td_discount_price', 'pos_td_marketplace_price', 'pos_status', 'pos_refund', 'pst_id')
-        ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-        ->where(function($w) use ($start, $end, $st_id, $division) {
-            if (!empty($st_id)) {
-                $w->whereIn('pos_transactions.st_id', $st_id);
-            }
-//            else {
-//                $w->where('pos_transactions.st_id', '!=', '4');
-//            }
-            if ($division != 'all') {
-                if ($division == 'online') {
-                    $w->where('pos_transactions.stt_id', '=', '1');
-                } else {
-                    $w->where('pos_transactions.stt_id', '=', '2');
-                }
-            }
-            if (!empty($end)) {
-                $w->whereDate('pos_transactions.created_at', '>=', $start)
-                ->whereDate('pos_transactions.created_at', '<=', $end);
-            } else {
-                $w->whereDate('pos_transactions.created_at', '=', $start);
-            }
-        })
-        ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID'])
-        ->groupBy('pos_transaction_details.id')
-        ->get();
-        if (!empty($ns->first())) {
-            $pt_id = null;
-            $price = 0;
-            foreach ($ns as $row) {
-                if (!empty($row->pos_td_marketplace_price)) {
-                    $price = $row->pos_td_marketplace_price;
-                } else {
-                    $price = $row->pos_td_discount_price;
-                }
-                $nett_sales += $price;
-            }
-            $adm_nett_sales = $nett_sales;
-            $nett_sales = $nett_sales - $admin_cost;
+
+        $whereDate  = '';
+        $whereStore = '';
+        $bindings   = [];
+
+        // ================= DATE FILTER =================
+        if (!empty($start) && !empty($end)) {
+            // RANGE
+            $whereDate = " AND ts_pos_transactions.created_at BETWEEN ? AND ? ";
+            $bindings[] = $start . ' 00:00:00';
+            $bindings[] = $end   . ' 23:59:59';
+        } else {
+            // SINGLE DATE
+            $whereDate = " AND DATE(ts_pos_transactions.created_at) = ? ";
+            $bindings[] = $start;
         }
 
+        // ================= STORE FILTER =================
+        if (!empty($st_id)) {
+            // pastikan array (kalau dari request bisa string / array)
+            if (!is_array($st_id)) {
+                $st_id = [$st_id];
+            }
+
+            $placeholders = implode(',', array_fill(0, count($st_id), '?'));
+            $whereStore = " AND ts_pos_transactions.st_id IN ($placeholders) ";
+
+            foreach ($st_id as $sid) {
+                $bindings[] = $sid;
+            }
+        }
+
+        // ================= QUERY =================
+        $ns = "
+SELECT
+    ts_stores.st_name AS Store,
+
+    SUM(
+        CASE
+            WHEN ts_pos_transactions.pos_invoice NOT LIKE 'INV%'
+                THEN ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+
+            WHEN ts_pos_transaction_details.pos_td_discount_number > 0
+                AND (
+                    CASE
+                        WHEN ts_products.article_id = 'CUS01' THEN 0
+                        ELSE ROUND(
+                            (ts_product_stocks.ps_price_tag * ts_pos_transaction_details.pos_td_qty)
+                            - ts_pos_transaction_details.pos_td_sell_price,
+                            1
+                        ) + COALESCE(ts_pos_transaction_details.pos_td_nameset_price, 0)
+                    END
+                ) = 0
+                THEN ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+                     - ts_pos_transaction_details.pos_td_discount_number
+
+            ELSE ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+        END
+    ) AS Total_Net_Sales,
+
+    SUM(ts_product_stocks.ps_purchase_price * ts_pos_transaction_details.pos_td_qty)
+        AS Total_COGS
+
+FROM ts_pos_transaction_details
+LEFT JOIN ts_pos_transactions
+    ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
+LEFT JOIN ts_stores
+    ON ts_pos_transactions.st_id = ts_stores.id
+LEFT JOIN ts_product_stocks
+    ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
+LEFT JOIN ts_products
+    ON ts_products.id = ts_product_stocks.p_id
+
+WHERE ts_pos_transactions.pos_status NOT IN ('UNPAID')
+$whereDate
+$whereStore
+
+GROUP BY ts_stores.st_name
+ORDER BY ts_stores.st_name
+";
+
+        // ================= EXECUTE =================
+        $result = DB::select($ns, $bindings);
+
+        // ================= HITUNG TOTAL =================
+        $nett_sales = 0;
+        $adm_nett_sales = 0;
+
+        if (!empty($result)) {
+            foreach ($result as $row) {
+                $nett_sales += $row->Total_Net_Sales ?? 0;
+            }
+
+            // sebelum admin cost
+            $adm_nett_sales = $nett_sales;
+
+            // setelah admin cost
+            $nett_sales -= $admin_cost;
+        }
+
+
+
         $pf = DB::table('pos_transaction_details')
-        ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-        ->where(function ($w) use ($start, $end, $st_id, $division) {
-            if (!empty($end)) {
-                $w->whereDate('pos_transactions.created_at', '>=', $start)
-                ->whereDate('pos_transactions.created_at', '<=', $end);
-            } else {
-                $w->whereDate('pos_transactions.created_at', '=', $start);
-            }
-            if (!empty($st_id)) {
-                $w->whereIn('pos_transactions.st_id', $st_id);
-            } else {
-                $w->where('pos_transactions.st_id', '!=', '4');
-            }
-            if ($division != 'all') {
-                if ($division == 'online') {
-                    $w->where('pos_transactions.stt_id', '=', '1');
+            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->where(function ($w) use ($start, $end, $st_id, $division) {
+                if (!empty($end)) {
+                    $w->whereDate('pos_transactions.created_at', '>=', $start)
+                        ->whereDate('pos_transactions.created_at', '<=', $end);
                 } else {
-                    $w->where('pos_transactions.stt_id', '=', '2');
+                    $w->whereDate('pos_transactions.created_at', '=', $start);
                 }
-            }
-            $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-        })
-        ->groupBy('pos_transaction_details.id')
-        ->get();
+                if (!empty($st_id)) {
+                    $w->whereIn('pos_transactions.st_id', $st_id);
+                } else {
+                    $w->where('pos_transactions.st_id', '!=', '4');
+                }
+                if ($division != 'all') {
+                    if ($division == 'online') {
+                        $w->where('pos_transactions.stt_id', '=', '1');
+                    } else {
+                        $w->where('pos_transactions.stt_id', '=', '2');
+                    }
+                }
+                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+            })
+            ->groupBy('pos_transaction_details.id')
+            ->get();
         if (!empty($pf->first())) {
             foreach ($pf as $row) {
                 $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
@@ -349,7 +411,7 @@ class UpdatedDashboardController extends Controller
                     $total = $row->pos_td_discount_price;
                 }
                 $purchase = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $purchase = round($row->purchase);
                 } else {
                     if (!empty($row->poad_total_price)) {
@@ -362,38 +424,38 @@ class UpdatedDashboardController extends Controller
                         }
                     }
                 }
-                $profit += $total-($row->pos_td_qty*$purchase);
+                $profit += $total - ($row->pos_td_qty * $purchase);
             }
             $adm_profit = $profit;
             $profit = $profit - $admin_cost;
         }
 
         $c_ns = DB::table('pos_transaction_details')->select('pos_transactions.id as pt_id', 'pos_td_discount_price', 'pos_td_marketplace_price', 'pos_status', 'pos_refund', 'pst_id')
-        ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-        ->where(function($w) use ($start, $end, $st_id, $division) {
-            if (!empty($st_id)) {
-                $w->whereIn('pos_transactions.st_id_ref', $st_id);
-            } else {
-                $w->whereNotNull('pos_transactions.st_id_ref')
-                ->where('pos_transactions.st_id_ref', '!=', '4');
-            }
-            if ($division != 'all') {
-                if ($division == 'online') {
-                    $w->where('pos_transactions.stt_id', '=', '1');
+            ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+            ->where(function ($w) use ($start, $end, $st_id, $division) {
+                if (!empty($st_id)) {
+                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
                 } else {
-                    $w->where('pos_transactions.stt_id', '=', '2');
+                    $w->whereNotNull('pos_transactions.st_id_ref')
+                        ->where('pos_transactions.st_id_ref', '!=', '4');
                 }
-            }
-            if (!empty($end)) {
-                $w->whereDate('pos_transactions.created_at', '>=', $start)
-                ->whereDate('pos_transactions.created_at', '<=', $end);
-            } else {
-                $w->whereDate('pos_transactions.created_at', '=', $start);
-            }
-        })
-        ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID'])
-        ->groupBy('pos_transaction_details.id')
-        ->get();
+                if ($division != 'all') {
+                    if ($division == 'online') {
+                        $w->where('pos_transactions.stt_id', '=', '1');
+                    } else {
+                        $w->where('pos_transactions.stt_id', '=', '2');
+                    }
+                }
+                if (!empty($end)) {
+                    $w->whereDate('pos_transactions.created_at', '>=', $start)
+                        ->whereDate('pos_transactions.created_at', '<=', $end);
+                } else {
+                    $w->whereDate('pos_transactions.created_at', '=', $start);
+                }
+            })
+            ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
+            ->groupBy('pos_transaction_details.id')
+            ->get();
         if (!empty($c_ns->first())) {
             $pt_id = null;
             $price = 0;
@@ -410,38 +472,38 @@ class UpdatedDashboardController extends Controller
         }
 
         $c_pf = DB::table('pos_transaction_details')
-        ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-        ->where(function ($w) use ($start, $end, $st_id, $division) {
-            if (!empty($end)) {
-                $w->whereDate('pos_transactions.created_at', '>=', $start)
-                ->whereDate('pos_transactions.created_at', '<=', $end);
-            } else {
-                $w->whereDate('pos_transactions.created_at', '=', $start);
-            }
-            if (!empty($st_id)) {
-                $w->whereIn('pos_transactions.st_id_ref', $st_id);
-            } else {
-                $w->whereNotNull('pos_transactions.st_id_ref')
-                ->where('pos_transactions.st_id_ref', '!=', '4');
-            }
-            if ($division != 'all') {
-                if ($division == 'online') {
-                    $w->where('pos_transactions.stt_id', '=', '1');
+            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->where(function ($w) use ($start, $end, $st_id, $division) {
+                if (!empty($end)) {
+                    $w->whereDate('pos_transactions.created_at', '>=', $start)
+                        ->whereDate('pos_transactions.created_at', '<=', $end);
                 } else {
-                    $w->where('pos_transactions.stt_id', '=', '2');
+                    $w->whereDate('pos_transactions.created_at', '=', $start);
                 }
-            }
-            $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-        })
-        ->groupBy('pos_transaction_details.id')
-        ->get();
+                if (!empty($st_id)) {
+                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                } else {
+                    $w->whereNotNull('pos_transactions.st_id_ref')
+                        ->where('pos_transactions.st_id_ref', '!=', '4');
+                }
+                if ($division != 'all') {
+                    if ($division == 'online') {
+                        $w->where('pos_transactions.stt_id', '=', '1');
+                    } else {
+                        $w->where('pos_transactions.stt_id', '=', '2');
+                    }
+                }
+                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+            })
+            ->groupBy('pos_transaction_details.id')
+            ->get();
         if (!empty($c_pf->first())) {
             foreach ($c_pf as $row) {
                 $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
@@ -452,7 +514,7 @@ class UpdatedDashboardController extends Controller
                     $total = $row->pos_td_discount_price;
                 }
                 $purchase = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $purchase = round($row->purchase);
                 } else {
                     if (!empty($row->poad_total_price)) {
@@ -465,53 +527,53 @@ class UpdatedDashboardController extends Controller
                         }
                     }
                 }
-                $cross_profit += $total-($row->pos_td_qty*$purchase);
+                $cross_profit += $total - ($row->pos_td_qty * $purchase);
             }
             $adm_cross_profit = $cross_profit;
             $cross_profit = $cross_profit - $cross_admin_cost;
         }
 
         $purchases = DB::table('purchase_order_article_detail_statuses')->select('poads_total_price')
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-        ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-        ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-        ->where(function($w) use ($start, $end, $st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('purchase_orders.st_id', $st_id);
-            } else {
-                $w->where('purchase_orders.st_id', '!=', '4');
-            }
-            if (!empty($end)) {
-                $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
-                ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
-            } else {
-                $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
-            }
-        })->sum('poads_total_price');
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+            ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+            ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+            ->where(function ($w) use ($start, $end, $st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('purchase_orders.st_id', $st_id);
+                } else {
+                    $w->where('purchase_orders.st_id', '!=', '4');
+                }
+                if (!empty($end)) {
+                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
+                        ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
+                } else {
+                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
+                }
+            })->sum('poads_total_price');
 
         $ccassets = DB::table('product_location_setups')
-        ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->whereNotIn('pl_code', $exception)
-        ->where(function($w) use ($st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('product_locations.st_id', $st_id);
-            } else {
-                $w->where('product_locations.st_id', '!=', '4');
-            }
-        })
-        ->where('product_location_setups.pls_qty', '>', '0')
-        ->whereIn('stkt_id', ['1', '3'])
-        ->groupBy('product_location_setups.id')
-        ->get();
+            ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->whereNotIn('pl_code', $exception)
+            ->where(function ($w) use ($st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('product_locations.st_id', $st_id);
+                } else {
+                    $w->where('product_locations.st_id', '!=', '4');
+                }
+            })
+            ->where('product_location_setups.pls_qty', '>', '0')
+            ->whereIn('stkt_id', ['1', '3'])
+            ->groupBy('product_location_setups.id')
+            ->get();
         if (!empty($ccassets->first())) {
             foreach ($ccassets as $row) {
                 $pp = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $pp = round($row->purchase);
                 } else {
                     if (!empty($row->ps_purchase_price)) {
@@ -525,28 +587,28 @@ class UpdatedDashboardController extends Controller
         }
 
         $cassets = DB::table('product_location_setups')
-        ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->whereNotIn('pl_code', $exception)
-        ->where(function($w) use ($st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('product_locations.st_id', $st_id);
-            } else {
-                $w->where('product_locations.st_id', '!=', '4');
-            }
-        })
-        ->where('product_location_setups.pls_qty', '>', '0')
-        ->where('stkt_id', '=', '2')
-        ->groupBy('product_location_setups.id')
-        ->get();
+            ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->whereNotIn('pl_code', $exception)
+            ->where(function ($w) use ($st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('product_locations.st_id', $st_id);
+                } else {
+                    $w->where('product_locations.st_id', '!=', '4');
+                }
+            })
+            ->where('product_location_setups.pls_qty', '>', '0')
+            ->where('stkt_id', '=', '2')
+            ->groupBy('product_location_setups.id')
+            ->get();
         if (!empty($cassets->first())) {
             foreach ($cassets as $row) {
                 $pp = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $pp = round($row->purchase);
                 } else {
                     if (!empty($row->ps_purchase_price)) {
@@ -560,28 +622,28 @@ class UpdatedDashboardController extends Controller
         }
 
         $ccexcassets = DB::table('product_location_setups')
-        ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->whereIn('pl_code', $exception)
-        ->where(function($w) use ($st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('product_locations.st_id', $st_id);
-            } else {
-                $w->where('product_locations.st_id', '!=', '4');
-            }
-        })
-        ->where('product_location_setups.pls_qty', '>', '0')
-        ->whereIn('stkt_id', ['1', '3'])
-        ->groupBy('product_location_setups.id')
-        ->get();
+            ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->whereIn('pl_code', $exception)
+            ->where(function ($w) use ($st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('product_locations.st_id', $st_id);
+                } else {
+                    $w->where('product_locations.st_id', '!=', '4');
+                }
+            })
+            ->where('product_location_setups.pls_qty', '>', '0')
+            ->whereIn('stkt_id', ['1', '3'])
+            ->groupBy('product_location_setups.id')
+            ->get();
         if (!empty($ccexcassets->first())) {
             foreach ($ccexcassets as $row) {
                 $pp = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $pp = round($row->purchase);
                 } else {
                     if (!empty($row->ps_purchase_price)) {
@@ -595,28 +657,28 @@ class UpdatedDashboardController extends Controller
         }
 
         $cexcassets = DB::table('product_location_setups')
-        ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-        ->whereIn('pl_code', $exception)
-        ->where(function($w) use ($st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('product_locations.st_id', $st_id);
-            } else {
-                $w->where('product_locations.st_id', '!=', '4');
-            }
-        })
-        ->where('product_location_setups.pls_qty', '>', '0')
-        ->where('stkt_id', '=', '2')
-        ->groupBy('product_location_setups.id')
-        ->get();
+            ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+            ->whereIn('pl_code', $exception)
+            ->where(function ($w) use ($st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('product_locations.st_id', $st_id);
+                } else {
+                    $w->where('product_locations.st_id', '!=', '4');
+                }
+            })
+            ->where('product_location_setups.pls_qty', '>', '0')
+            ->where('stkt_id', '=', '2')
+            ->groupBy('product_location_setups.id')
+            ->get();
         if (!empty($cexcassets->first())) {
             foreach ($cexcassets as $row) {
                 $pp = 0;
-                if (!empty ($row->purchase)) {
+                if (!empty($row->purchase)) {
                     $pp = round($row->purchase);
                 } else {
                     if (!empty($row->ps_purchase_price)) {
@@ -630,21 +692,21 @@ class UpdatedDashboardController extends Controller
         }
 
         $debt_list = DB::table('debt_lists')->select('dl_total', 'st_id')->where('debt_lists.dl_delete', '!=', '1')
-        ->where(function($w) use ($st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('st_id', $st_id);
-            } else {
-                $w->where('st_id', '!=', '4');
-            }
-        })->sum('dl_total');
+            ->where(function ($w) use ($st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('st_id', $st_id);
+                } else {
+                    $w->where('st_id', '!=', '4');
+                }
+            })->sum('dl_total');
         $debt_list_payment = DB::table('debt_list_payments')->select('dlp_value', 'st_id')->leftJoin('debt_lists', 'debt_lists.id', '=', 'debt_list_payments.dl_id')
-        ->where(function($w) use ($st_id) {
-            if (!empty($st_id)) {
-                $w->whereIn('st_id', $st_id);
-            } else {
-                $w->where('st_id', '!=', '4');
-            }
-        })->where('debt_lists.dl_delete', '!=', '1')->sum('dlp_value');
+            ->where(function ($w) use ($st_id) {
+                if (!empty($st_id)) {
+                    $w->whereIn('st_id', $st_id);
+                } else {
+                    $w->where('st_id', '!=', '4');
+                }
+            })->where('debt_lists.dl_delete', '!=', '1')->sum('dlp_value');
         $debts = $debt_list - $debt_list_payment;
 
         $r['adm_nett_sales'] = number_format($adm_nett_sales);
@@ -707,443 +769,443 @@ class UpdatedDashboardController extends Controller
 
     public function getNettSales(Request $req)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('pos_transactions')
-            ->selectRaw("ts_pos_transactions.id as id, pos_invoice, sum(ts_pos_transaction_details.pos_td_qty) as item, sum(ts_pos_transaction_details.pos_td_discount_price) as item_total_1, sum(ts_pos_transaction_details.pos_td_marketplace_price) as item_total_2, ts_pos_transactions.created_at as created_at, pos_admin_cost")
-            ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->where(function ($w) use ($req) {
-                $date = $req->get('date');
-                $start = null;
-                $end = null;
-                $exp = explode('|', $date);
-                $total = count($exp);
-                if ($total > 1) {
-                    if ($exp[0] != $exp[1]) {
-                        $start = $exp[0];
-                        $end = $exp[1];
+                ->selectRaw("ts_pos_transactions.id as id, pos_invoice, sum(ts_pos_transaction_details.pos_td_qty) as item, sum(ts_pos_transaction_details.pos_td_discount_price) as item_total_1, sum(ts_pos_transaction_details.pos_td_marketplace_price) as item_total_2, ts_pos_transactions.created_at as created_at, pos_admin_cost")
+                ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->where(function ($w) use ($req) {
+                    $date = $req->get('date');
+                    $start = null;
+                    $end = null;
+                    $exp = explode('|', $date);
+                    $total = count($exp);
+                    if ($total > 1) {
+                        if ($exp[0] != $exp[1]) {
+                            $start = $exp[0];
+                            $end = $exp[1];
+                        } else {
+                            $start = $exp[0];
+                        }
                     } else {
-                        $start = $exp[0];
+                        $start = $date;
                     }
-                } else {
-                    $start = $date;
-                }
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                $st_id = session()->get('st_id');
-                $division = $req->get('division');
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
-                } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transactions.id'))
-            ->editColumn('created_at', function($data) {
-                return date('d/m/Y H:i:s', strtotime($data->created_at));
-            })
-            ->editColumn('item_total', function($data) {
-                if (!empty($data->item_total_2)) {
-                    return number_format($data->item_total_2);
-                } else {
-                    return number_format($data->item_total_1);
-                }
-            })
-            ->editColumn('pos_admin_cost', function($data) {
-                return number_format($data->pos_admin_cost);
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->item_total_2)) {
-                    return number_format($data->item_total_2 - $data->pos_admin_cost);
-                } else {
-                    return number_format($data->item_total_1 - $data->pos_admin_cost);
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                    $st_id = session()->get('st_id');
+                    $division = $req->get('division');
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id', $st_id);
+                    } else {
+                        $w->where('pos_transactions.st_id', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transactions.id'))
+                ->editColumn('created_at', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                })
+                ->editColumn('item_total', function ($data) {
+                    if (!empty($data->item_total_2)) {
+                        return number_format($data->item_total_2);
+                    } else {
+                        return number_format($data->item_total_1);
+                    }
+                })
+                ->editColumn('pos_admin_cost', function ($data) {
+                    return number_format($data->pos_admin_cost);
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->item_total_2)) {
+                        return number_format($data->item_total_2 - $data->pos_admin_cost);
+                    } else {
+                        return number_format($data->item_total_1 - $data->pos_admin_cost);
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
     public function getProfits(Request $req)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where(function ($w) use ($req) {
-                $date = $req->get('date');
-                $start = null;
-                $end = null;
-                $exp = explode('|', $date);
-                $total = count($exp);
-                if ($total > 1) {
-                    if ($exp[0] != $exp[1]) {
-                        $start = $exp[0];
-                        $end = $exp[1];
-                    } else {
-                        $start = $exp[0];
-                    }
-                } else {
-                    $start = $date;
-                }
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                $st_id = session()->get('st_id');
-                $division = $req->get('division');
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
-                } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
-                    } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
-                    }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id'))
-            ->editColumn('created_at', function($data) {
-                return date('d/m/Y H:i:s', strtotime($data->created_at));
-            })
-            ->editColumn('pos_td_sell_price', function($data) {
-                return number_format($data->pos_td_sell_price);
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->pos_td_marketplace_price)) {
-                    $total = $data->pos_td_marketplace_price;
-                } else {
-                    $total = $data->pos_td_discount_price;
-                }
-                return number_format($total);
-            })
-            ->editColumn('purchase', function($data) {
-                if (!empty ($data->purchase)) {
-                    return number_format($data->purchase);
-                } else {
-                    if (!empty($data->poad_total_price)) {
-                        return number_format(round($data->poad_total_price / $data->poad_qty));
-                    } else {
-                        if (!empty($data->ps_purchase_price)) {
-                            return number_format($data->ps_purchase_price);
+                ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($req) {
+                    $date = $req->get('date');
+                    $start = null;
+                    $end = null;
+                    $exp = explode('|', $date);
+                    $total = count($exp);
+                    if ($total > 1) {
+                        if ($exp[0] != $exp[1]) {
+                            $start = $exp[0];
+                            $end = $exp[1];
                         } else {
-                            return number_format($data->p_purchase_price);
+                            $start = $exp[0];
+                        }
+                    } else {
+                        $start = $date;
+                    }
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
+                    } else {
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
+                    }
+                    $st_id = session()->get('st_id');
+                    $division = $req->get('division');
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id', $st_id);
+                    } else {
+                        $w->where('pos_transactions.st_id', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
                         }
                     }
-                }
-            })
-            ->editColumn('purchase_total', function($data) {
-                $purchase = 0;
-                if (!empty ($data->purchase)) {
-                    $purchase = $data->purchase;
-                } else {
-                    if (!empty($data->poad_total_price)) {
-                        $purchase = round($data->poad_total_price / $data->poad_qty);
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id'))
+                ->editColumn('created_at', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                })
+                ->editColumn('pos_td_sell_price', function ($data) {
+                    return number_format($data->pos_td_sell_price);
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->pos_td_marketplace_price)) {
+                        $total = $data->pos_td_marketplace_price;
                     } else {
-                        if (!empty($data->ps_purchase_price)) {
-                            $purchase = $data->ps_purchase_price;
+                        $total = $data->pos_td_discount_price;
+                    }
+                    return number_format($total);
+                })
+                ->editColumn('purchase', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->purchase);
+                    } else {
+                        if (!empty($data->poad_total_price)) {
+                            return number_format(round($data->poad_total_price / $data->poad_qty));
                         } else {
-                            $purchase = $data->p_purchase_price;
+                            if (!empty($data->ps_purchase_price)) {
+                                return number_format($data->ps_purchase_price);
+                            } else {
+                                return number_format($data->p_purchase_price);
+                            }
                         }
                     }
-                }
-                return number_format($purchase*$data->pos_td_qty);
-            })
-            ->editColumn('profit', function($data) {
-                $total = 0;
-                $purchase = 0;
-                if (!empty($data->pos_td_marketplace_price)) {
-                    $total = $data->pos_td_marketplace_price;
-                } else {
-                    $total = $data->pos_td_discount_price;
-                }
-                if (!empty ($data->purchase)) {
-                    $purchase = round($data->purchase);
-                } else {
-                    if (!empty($data->poad_total_price)) {
-                        $purchase = round($data->poad_total_price / $data->poad_qty);
+                })
+                ->editColumn('purchase_total', function ($data) {
+                    $purchase = 0;
+                    if (!empty($data->purchase)) {
+                        $purchase = $data->purchase;
                     } else {
-                        if (!empty($data->ps_purchase_price)) {
-                            $purchase = $data->ps_purchase_price;
+                        if (!empty($data->poad_total_price)) {
+                            $purchase = round($data->poad_total_price / $data->poad_qty);
                         } else {
-                            $purchase = $data->p_purchase_price;
+                            if (!empty($data->ps_purchase_price)) {
+                                $purchase = $data->ps_purchase_price;
+                            } else {
+                                $purchase = $data->p_purchase_price;
+                            }
                         }
                     }
-                }
-                return number_format($total-($purchase*$data->pos_td_qty));
-            })
-            ->addIndexColumn()
-            ->make(true);
+                    return number_format($purchase * $data->pos_td_qty);
+                })
+                ->editColumn('profit', function ($data) {
+                    $total = 0;
+                    $purchase = 0;
+                    if (!empty($data->pos_td_marketplace_price)) {
+                        $total = $data->pos_td_marketplace_price;
+                    } else {
+                        $total = $data->pos_td_discount_price;
+                    }
+                    if (!empty($data->purchase)) {
+                        $purchase = round($data->purchase);
+                    } else {
+                        if (!empty($data->poad_total_price)) {
+                            $purchase = round($data->poad_total_price / $data->poad_qty);
+                        } else {
+                            if (!empty($data->ps_purchase_price)) {
+                                $purchase = $data->ps_purchase_price;
+                            } else {
+                                $purchase = $data->p_purchase_price;
+                            }
+                        }
+                    }
+                    return number_format($total - ($purchase * $data->pos_td_qty));
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
     public function getCrossNettSales(Request $req)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('pos_transactions')
-            ->selectRaw("ts_pos_transactions.id as id, pos_invoice, sum(ts_pos_transaction_details.pos_td_qty) as item, sum(ts_pos_transaction_details.pos_td_discount_price) as item_total_1, sum(ts_pos_transaction_details.pos_td_marketplace_price) as item_total_2, ts_pos_transactions.created_at as created_at, pos_admin_cost")
-            ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->where(function ($w) use ($req) {
-                $date = $req->get('date');
-                $start = null;
-                $end = null;
-                $exp = explode('|', $date);
-                $total = count($exp);
-                if ($total > 1) {
-                    if ($exp[0] != $exp[1]) {
-                        $start = $exp[0];
-                        $end = $exp[1];
+                ->selectRaw("ts_pos_transactions.id as id, pos_invoice, sum(ts_pos_transaction_details.pos_td_qty) as item, sum(ts_pos_transaction_details.pos_td_discount_price) as item_total_1, sum(ts_pos_transaction_details.pos_td_marketplace_price) as item_total_2, ts_pos_transactions.created_at as created_at, pos_admin_cost")
+                ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->where(function ($w) use ($req) {
+                    $date = $req->get('date');
+                    $start = null;
+                    $end = null;
+                    $exp = explode('|', $date);
+                    $total = count($exp);
+                    if ($total > 1) {
+                        if ($exp[0] != $exp[1]) {
+                            $start = $exp[0];
+                            $end = $exp[1];
+                        } else {
+                            $start = $exp[0];
+                        }
                     } else {
-                        $start = $exp[0];
+                        $start = $date;
                     }
-                } else {
-                    $start = $date;
-                }
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                $st_id = session()->get('st_id');
-                $division = $req->get('division');
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                    ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transactions.id'))
-            ->editColumn('created_at', function($data) {
-                return date('d/m/Y H:i:s', strtotime($data->created_at));
-            })
-            ->editColumn('item_total', function($data) {
-                if (!empty($data->item_total_2)) {
-                    return number_format($data->item_total_2);
-                } else {
-                    return number_format($data->item_total_1);
-                }
-            })
-            ->editColumn('pos_admin_cost', function($data) {
-                return number_format($data->pos_admin_cost);
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->item_total_2)) {
-                    return number_format($data->item_total_2 - $data->pos_admin_cost);
-                } else {
-                    return number_format($data->item_total_1 - $data->pos_admin_cost);
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                    $st_id = session()->get('st_id');
+                    $division = $req->get('division');
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                    } else {
+                        $w->whereNotNull('pos_transactions.st_id_ref')
+                            ->where('pos_transactions.st_id_ref', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transactions.id'))
+                ->editColumn('created_at', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                })
+                ->editColumn('item_total', function ($data) {
+                    if (!empty($data->item_total_2)) {
+                        return number_format($data->item_total_2);
+                    } else {
+                        return number_format($data->item_total_1);
+                    }
+                })
+                ->editColumn('pos_admin_cost', function ($data) {
+                    return number_format($data->pos_admin_cost);
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->item_total_2)) {
+                        return number_format($data->item_total_2 - $data->pos_admin_cost);
+                    } else {
+                        return number_format($data->item_total_1 - $data->pos_admin_cost);
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
     public function getCrossProfits(Request $req)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where(function ($w) use ($req) {
-                $date = $req->get('date');
-                $start = null;
-                $end = null;
-                $exp = explode('|', $date);
-                $total = count($exp);
-                if ($total > 1) {
-                    if ($exp[0] != $exp[1]) {
-                        $start = $exp[0];
-                        $end = $exp[1];
-                    } else {
-                        $start = $exp[0];
-                    }
-                } else {
-                    $start = $date;
-                }
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                $st_id = session()->get('st_id');
-                $division = $req->get('division');
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                    ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
-                    } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
-                    }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id'))
-            ->editColumn('created_at', function($data) {
-                return date('d/m/Y H:i:s', strtotime($data->created_at));
-            })
-            ->editColumn('pos_td_sell_price', function($data) {
-                return number_format($data->pos_td_sell_price);
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->pos_td_marketplace_price)) {
-                    $total = $data->pos_td_marketplace_price;
-                } else {
-                    $total = $data->pos_td_discount_price;
-                }
-                return number_format($total);
-            })
-            ->editColumn('purchase', function($data) {
-                if (!empty ($data->purchase)) {
-                    return number_format($data->purchase);
-                } else {
-                    if (!empty($data->poad_total_price)) {
-                        return number_format(round($data->poad_total_price / $data->poad_qty));
-                    } else {
-                        if (!empty($data->ps_purchase_price)) {
-                            return number_format($data->ps_purchase_price);
+                ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($req) {
+                    $date = $req->get('date');
+                    $start = null;
+                    $end = null;
+                    $exp = explode('|', $date);
+                    $total = count($exp);
+                    if ($total > 1) {
+                        if ($exp[0] != $exp[1]) {
+                            $start = $exp[0];
+                            $end = $exp[1];
                         } else {
-                            return number_format($data->p_purchase_price);
+                            $start = $exp[0];
+                        }
+                    } else {
+                        $start = $date;
+                    }
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
+                    } else {
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
+                    }
+                    $st_id = session()->get('st_id');
+                    $division = $req->get('division');
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                    } else {
+                        $w->whereNotNull('pos_transactions.st_id_ref')
+                            ->where('pos_transactions.st_id_ref', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
                         }
                     }
-                }
-            })
-            ->editColumn('purchase_total', function($data) {
-                $purchase = 0;
-                if (!empty ($data->purchase)) {
-                    $purchase = $data->purchase;
-                } else {
-                    if (!empty($data->poad_total_price)) {
-                        $purchase = round($data->poad_total_price / $data->poad_qty);
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id'))
+                ->editColumn('created_at', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                })
+                ->editColumn('pos_td_sell_price', function ($data) {
+                    return number_format($data->pos_td_sell_price);
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->pos_td_marketplace_price)) {
+                        $total = $data->pos_td_marketplace_price;
                     } else {
-                        if (!empty($data->ps_purchase_price)) {
-                            $purchase = $data->ps_purchase_price;
+                        $total = $data->pos_td_discount_price;
+                    }
+                    return number_format($total);
+                })
+                ->editColumn('purchase', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->purchase);
+                    } else {
+                        if (!empty($data->poad_total_price)) {
+                            return number_format(round($data->poad_total_price / $data->poad_qty));
                         } else {
-                            $purchase = $data->p_purchase_price;
+                            if (!empty($data->ps_purchase_price)) {
+                                return number_format($data->ps_purchase_price);
+                            } else {
+                                return number_format($data->p_purchase_price);
+                            }
                         }
                     }
-                }
-                return number_format($purchase*$data->pos_td_qty);
-            })
-            ->editColumn('profit', function($data) {
-                $total = 0;
-                $purchase = 0;
-                if (!empty($data->pos_td_marketplace_price)) {
-                    $total = $data->pos_td_marketplace_price;
-                } else {
-                    $total = $data->pos_td_discount_price;
-                }
-                if (!empty ($data->purchase)) {
-                    $purchase = round($data->purchase);
-                } else {
-                    if (!empty($data->poad_total_price)) {
-                        $purchase = round($data->poad_total_price / $data->poad_qty);
+                })
+                ->editColumn('purchase_total', function ($data) {
+                    $purchase = 0;
+                    if (!empty($data->purchase)) {
+                        $purchase = $data->purchase;
                     } else {
-                        if (!empty($data->ps_purchase_price)) {
-                            $purchase = $data->ps_purchase_price;
+                        if (!empty($data->poad_total_price)) {
+                            $purchase = round($data->poad_total_price / $data->poad_qty);
                         } else {
-                            $purchase = $data->p_purchase_price;
+                            if (!empty($data->ps_purchase_price)) {
+                                $purchase = $data->ps_purchase_price;
+                            } else {
+                                $purchase = $data->p_purchase_price;
+                            }
                         }
                     }
-                }
-                return number_format($total-($purchase*$data->pos_td_qty));
-            })
-            ->addIndexColumn()
-            ->make(true);
+                    return number_format($purchase * $data->pos_td_qty);
+                })
+                ->editColumn('profit', function ($data) {
+                    $total = 0;
+                    $purchase = 0;
+                    if (!empty($data->pos_td_marketplace_price)) {
+                        $total = $data->pos_td_marketplace_price;
+                    } else {
+                        $total = $data->pos_td_discount_price;
+                    }
+                    if (!empty($data->purchase)) {
+                        $purchase = round($data->purchase);
+                    } else {
+                        if (!empty($data->poad_total_price)) {
+                            $purchase = round($data->poad_total_price / $data->poad_qty);
+                        } else {
+                            if (!empty($data->ps_purchase_price)) {
+                                $purchase = $data->ps_purchase_price;
+                            } else {
+                                $purchase = $data->p_purchase_price;
+                            }
+                        }
+                    }
+                    return number_format($total - ($purchase * $data->pos_td_qty));
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
     public function getPurchases(Request $req)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('purchase_order_article_detail_statuses')
-            ->selectRaw("ts_purchase_order_article_detail_statuses.created_at as created_at, po_invoice, br_name, p_name, p_color, sz_name, sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, sum(ts_purchase_order_article_detail_statuses.poads_total_price) as total, poads_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-            ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-            ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where(function($w) use ($req) {
-                $date = $req->get('date');
-                $start = null;
-                $end = null;
-                $exp = explode('|', $date);
-                $total = count($exp);
-                if ($total > 1) {
-                    if ($exp[0] != $exp[1]) {
-                        $start = $exp[0];
-                        $end = $exp[1];
+                ->selectRaw("ts_purchase_order_article_detail_statuses.created_at as created_at, po_invoice, br_name, p_name, p_color, sz_name, sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, sum(ts_purchase_order_article_detail_statuses.poads_total_price) as total, poads_purchase_price")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($req) {
+                    $date = $req->get('date');
+                    $start = null;
+                    $end = null;
+                    $exp = explode('|', $date);
+                    $total = count($exp);
+                    if ($total > 1) {
+                        if ($exp[0] != $exp[1]) {
+                            $start = $exp[0];
+                            $end = $exp[1];
+                        } else {
+                            $start = $exp[0];
+                        }
                     } else {
-                        $start = $exp[0];
+                        $start = $date;
                     }
-                } else {
-                    $start = $date;
-                }
-                $st_id = session()->get('st_id');
-                if (!empty($st_id)) {
-                    $w->whereIn('purchase_orders.st_id', $st_id);
-                } else {
-                    $w->where('purchase_orders.st_id', '!=', '4');
-                }
-                if (!empty($end)) {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
-                    ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
-                }
-            })
-            ->groupBy('purchase_order_article_details.pst_id'))
-            ->editColumn('created_at', function($data) {
-                return date('d/m/Y H:i:s', strtotime($data->created_at));
-            })
-            ->addIndexColumn()
-            ->make(true);
+                    $st_id = session()->get('st_id');
+                    if (!empty($st_id)) {
+                        $w->whereIn('purchase_orders.st_id', $st_id);
+                    } else {
+                        $w->where('purchase_orders.st_id', '!=', '4');
+                    }
+                    if (!empty($end)) {
+                        $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
+                            ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
+                    } else {
+                        $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
+                    }
+                })
+                ->groupBy('purchase_order_article_details.pst_id'))
+                ->editColumn('created_at', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -1154,48 +1216,48 @@ class UpdatedDashboardController extends Controller
             ->get()
             ->toArray();
 
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereNotIn('pl_code', $exception)
-            ->where(function($w) use ($req) {
-                $st_id = session()->get('st_id');
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['1', '3'])
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id'))
-            ->editColumn('purchase', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->ps_purchase_price);
-                } else {
-                    return number_format($data->p_purchase_price);
-                }
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->qty * $data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->qty * $data->ps_purchase_price);
-                } else {
-                    return number_format($data->qty * $data->p_purchase_price);
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereNotIn('pl_code', $exception)
+                ->where(function ($w) use ($req) {
+                    $st_id = session()->get('st_id');
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['1', '3'])
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id'))
+                ->editColumn('purchase', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->ps_purchase_price);
+                    } else {
+                        return number_format($data->p_purchase_price);
+                    }
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->qty * $data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->qty * $data->ps_purchase_price);
+                    } else {
+                        return number_format($data->qty * $data->p_purchase_price);
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -1206,48 +1268,48 @@ class UpdatedDashboardController extends Controller
             ->get()
             ->toArray();
 
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereNotIn('pl_code', $exception)
-            ->where(function($w) use ($req) {
-                $st_id = session()->get('st_id');
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['2']) //Stkt_id 2 adalah CONSIGNMENT
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id'))
-            ->editColumn('purchase', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->ps_purchase_price);
-                } else {
-                    return number_format($data->p_purchase_price);
-                }
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->qty * $data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->qty * $data->ps_purchase_price);
-                } else {
-                    return number_format($data->qty * $data->p_purchase_price);
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereNotIn('pl_code', $exception)
+                ->where(function ($w) use ($req) {
+                    $st_id = session()->get('st_id');
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['2']) //Stkt_id 2 adalah CONSIGNMENT
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id'))
+                ->editColumn('purchase', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->ps_purchase_price);
+                    } else {
+                        return number_format($data->p_purchase_price);
+                    }
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->qty * $data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->qty * $data->ps_purchase_price);
+                    } else {
+                        return number_format($data->qty * $data->p_purchase_price);
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -1258,48 +1320,48 @@ class UpdatedDashboardController extends Controller
             ->get()
             ->toArray();
 
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereIn('pl_code', $exception)
-            ->where(function($w) use ($req) {
-                $st_id = session()->get('st_id');
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['1', '3'])
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id'))
-            ->editColumn('purchase', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->ps_purchase_price);
-                } else {
-                    return number_format($data->p_purchase_price);
-                }
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->qty * $data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->qty * $data->ps_purchase_price);
-                } else {
-                    return number_format($data->qty * $data->p_purchase_price);
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereIn('pl_code', $exception)
+                ->where(function ($w) use ($req) {
+                    $st_id = session()->get('st_id');
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['1', '3'])
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id'))
+                ->editColumn('purchase', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->ps_purchase_price);
+                    } else {
+                        return number_format($data->p_purchase_price);
+                    }
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->qty * $data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->qty * $data->ps_purchase_price);
+                    } else {
+                        return number_format($data->qty * $data->p_purchase_price);
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -1310,48 +1372,48 @@ class UpdatedDashboardController extends Controller
             ->get()
             ->toArray();
 
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereIn('pl_code', $exception)
-            ->where(function($w) use ($req) {
-                $st_id = session()->get('st_id');
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['2'])
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id'))
-            ->editColumn('purchase', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->ps_purchase_price);
-                } else {
-                    return number_format($data->p_purchase_price);
-                }
-            })
-            ->editColumn('total', function($data) {
-                if (!empty($data->purchase)) {
-                    return number_format($data->qty * $data->purchase);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->qty * $data->ps_purchase_price);
-                } else {
-                    return number_format($data->qty * $data->p_purchase_price);
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, p_name, p_color, sz_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereIn('pl_code', $exception)
+                ->where(function ($w) use ($req) {
+                    $st_id = session()->get('st_id');
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['2'])
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id'))
+                ->editColumn('purchase', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->ps_purchase_price);
+                    } else {
+                        return number_format($data->p_purchase_price);
+                    }
+                })
+                ->editColumn('total', function ($data) {
+                    if (!empty($data->purchase)) {
+                        return number_format($data->qty * $data->purchase);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->qty * $data->ps_purchase_price);
+                    } else {
+                        return number_format($data->qty * $data->p_purchase_price);
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -1390,37 +1452,37 @@ class UpdatedDashboardController extends Controller
         }
 
         $admin_cost = DB::table('pos_transactions')->select('pos_admin_cost', 'pos_status')
-        ->where(function($w) use ($start, $end, $st_id, $label, $division) {
-            if ($label == 'sales' || $label == 'profits') {
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
+            ->where(function ($w) use ($start, $end, $st_id, $label, $division) {
+                if ($label == 'sales' || $label == 'profits') {
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id', $st_id);
+                    } else {
+                        $w->where('pos_transactions.st_id', '!=', '4');
+                    }
                 } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                    } else {
+                        $w->whereNotNull('pos_transactions.st_id_ref')
+                            ->where('pos_transactions.st_id_ref', '!=', '4');
+                    }
                 }
-            } else {
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                if ($division != 'all') {
+                    if ($division == 'online') {
+                        $w->where('pos_transactions.stt_id', '=', '1');
+                    } else {
+                        $w->where('pos_transactions.stt_id', '=', '2');
+                    }
+                }
+                if (!empty($end)) {
+                    $w->whereDate('pos_transactions.created_at', '>=', $start)
+                        ->whereDate('pos_transactions.created_at', '<=', $end);
                 } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                    ->where('pos_transactions.st_id_ref', '!=', '4');
+                    $w->whereDate('pos_transactions.created_at', '=', $start);
                 }
-            }
-            if ($division != 'all') {
-                if ($division == 'online') {
-                    $w->where('pos_transactions.stt_id', '=', '1');
-                } else {
-                    $w->where('pos_transactions.stt_id', '=', '2');
-                }
-            }
-            if (!empty($end)) {
-                $w->whereDate('pos_transactions.created_at', '>=', $start)
-                ->whereDate('pos_transactions.created_at', '<=', $end);
-            } else {
-                $w->whereDate('pos_transactions.created_at', '=', $start);
-            }
-        })
-        ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID'])
-        ->sum('pos_admin_cost');
+            })
+            ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
+            ->sum('pos_admin_cost');
 
         $r['status'] = '200';
         $r['admin_cost'] = number_format($admin_cost);
@@ -1446,35 +1508,35 @@ class UpdatedDashboardController extends Controller
 
         if ($label == 'sales') {
             $nett_sales = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
-                } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('br_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id', $st_id);
+                    } else {
+                        $w->where('pos_transactions.st_id', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('br_name')
+                ->get();
             $ns = array();
             if (!empty($nett_sales->first())) {
                 foreach ($nett_sales as $row) {
@@ -1506,37 +1568,37 @@ class UpdatedDashboardController extends Controller
         if ($label == 'profits') {
             $pf = array();
             $profit = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, br_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
-                } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, br_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('br_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id', $st_id);
+                    } else {
+                        $w->where('pos_transactions.st_id', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('br_name')
+                ->get();
             if (!empty($profit->first())) {
                 foreach ($profit as $row) {
                     $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
@@ -1547,7 +1609,7 @@ class UpdatedDashboardController extends Controller
                         $total = $row->pos_td_discount_price;
                     }
                     $purchase = 0;
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->poad_total_price)) {
@@ -1564,10 +1626,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $pf)) {
                         $pf[$key] = array(
                             'br_name' => $row->br_name,
-                            'profits' => $total-($row->pos_td_qty*$purchase),
+                            'profits' => $total - ($row->pos_td_qty * $purchase),
                         );
                     } else {
-                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total-($row->pos_td_qty*$purchase));
+                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total - ($row->pos_td_qty * $purchase));
                     }
                 }
             }
@@ -1580,36 +1642,36 @@ class UpdatedDashboardController extends Controller
 
         if ($label == 'cross_sales') {
             $cross_nett_sales = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                    ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('br_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                    } else {
+                        $w->whereNotNull('pos_transactions.st_id_ref')
+                            ->where('pos_transactions.st_id_ref', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('br_name')
+                ->get();
             $ns = array();
             if (!empty($cross_nett_sales->first())) {
                 foreach ($cross_nett_sales as $row) {
@@ -1641,38 +1703,38 @@ class UpdatedDashboardController extends Controller
         if ($label == 'cross_profits') {
             $pf = array();
             $cross_profit = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, br_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                    ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, br_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('br_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                    } else {
+                        $w->whereNotNull('pos_transactions.st_id_ref')
+                            ->where('pos_transactions.st_id_ref', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('br_name')
+                ->get();
             if (!empty($cross_profit->first())) {
                 foreach ($cross_profit as $row) {
                     $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
@@ -1683,7 +1745,7 @@ class UpdatedDashboardController extends Controller
                         $total = $row->pos_td_discount_price;
                     }
                     $purchase = 0;
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->poad_total_price)) {
@@ -1700,10 +1762,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $pf)) {
                         $pf[$key] = array(
                             'br_name' => $row->br_name,
-                            'profits' => $total-($row->pos_td_qty*$purchase),
+                            'profits' => $total - ($row->pos_td_qty * $purchase),
                         );
                     } else {
-                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total-($row->pos_td_qty*$purchase));
+                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total - ($row->pos_td_qty * $purchase));
                     }
                 }
             }
@@ -1717,29 +1779,29 @@ class UpdatedDashboardController extends Controller
         if ($label == 'purchases') {
             $pr = array();
             $purchases = DB::table('purchase_order_article_detail_statuses')
-            ->selectRaw("ts_purchase_order_article_detail_statuses.created_at as created_at, br_name, sum(ts_purchase_order_article_detail_statuses.poads_total_price) as total")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-            ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-            ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(function($w) use ($start, $end, $st_id) {
-                if (!empty($end)) {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
-                    ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('purchase_orders.st_id', $st_id);
-                } else {
-                    $w->where('purchase_orders.st_id', '!=', '4');
-                }
-            })
-            ->groupBy('purchase_order_article_details.pst_id')
-            ->orderBy('br_name')
-            ->get();
+                ->selectRaw("ts_purchase_order_article_detail_statuses.created_at as created_at, br_name, sum(ts_purchase_order_article_detail_statuses.poads_total_price) as total")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($w) use ($start, $end, $st_id) {
+                    if (!empty($end)) {
+                        $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
+                            ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
+                    } else {
+                        $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
+                    }
+                    if (!empty($st_id)) {
+                        $w->whereIn('purchase_orders.st_id', $st_id);
+                    } else {
+                        $w->where('purchase_orders.st_id', '!=', '4');
+                    }
+                })
+                ->groupBy('purchase_order_article_details.pst_id')
+                ->orderBy('br_name')
+                ->get();
             if (!empty($purchases->first())) {
                 foreach ($purchases as $row) {
                     $key = $row->br_name;
@@ -1768,30 +1830,30 @@ class UpdatedDashboardController extends Controller
         if ($label == 'cc_assets') {
             $cc = array();
             $cc_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereNotIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['1', '3'])
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('br_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereNotIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['1', '3'])
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('br_name')
+                ->get();
             if (!empty($cc_assets->first())) {
                 foreach ($cc_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -1804,10 +1866,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $cc)) {
                         $cc[$key] = array(
                             'br_name' => $row->br_name,
-                            'cc_assets' => ($row->qty*$purchase),
+                            'cc_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $cc[$key]['cc_assets'] = $cc[$key]['cc_assets'] + ($row->qty*$purchase);
+                        $cc[$key]['cc_assets'] = $cc[$key]['cc_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -1821,30 +1883,30 @@ class UpdatedDashboardController extends Controller
         if ($label == 'c_assets') {
             $c = array();
             $c_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereNotIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->where('stkt_id', '=', '2')
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('br_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereNotIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->where('stkt_id', '=', '2')
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('br_name')
+                ->get();
             if (!empty($c_assets->first())) {
                 foreach ($c_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -1857,10 +1919,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $c)) {
                         $c[$key] = array(
                             'br_name' => $row->br_name,
-                            'c_assets' => ($row->qty*$purchase),
+                            'c_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $c[$key]['c_assets'] = $c[$key]['c_assets'] + ($row->qty*$purchase);
+                        $c[$key]['c_assets'] = $c[$key]['c_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -1874,30 +1936,30 @@ class UpdatedDashboardController extends Controller
         if ($label == 'cc_exc_assets') {
             $exc_cc = array();
             $exc_cc_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['1', '3'])
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('br_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['1', '3'])
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('br_name')
+                ->get();
             if (!empty($exc_cc_assets->first())) {
                 foreach ($exc_cc_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -1910,10 +1972,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $exc_cc)) {
                         $exc_cc[$key] = array(
                             'br_name' => $row->br_name,
-                            'cc_assets' => ($row->qty*$purchase),
+                            'cc_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $exc_cc[$key]['cc_assets'] = $exc_cc[$key]['cc_assets'] + ($row->qty*$purchase);
+                        $exc_cc[$key]['cc_assets'] = $exc_cc[$key]['cc_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -1927,30 +1989,30 @@ class UpdatedDashboardController extends Controller
         if ($label == 'c_exc_assets') {
             $exc_c = array();
             $exc_c_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->where('stkt_id', '=', '2')
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('br_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, br_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->where('stkt_id', '=', '2')
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('br_name')
+                ->get();
             if (!empty($exc_c_assets->first())) {
                 foreach ($exc_c_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -1963,10 +2025,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $exc_c)) {
                         $exc_c[$key] = array(
                             'br_name' => $row->br_name,
-                            'c_assets' => ($row->qty*$purchase),
+                            'c_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $exc_c[$key]['c_assets'] = $exc_c[$key]['c_assets'] + ($row->qty*$purchase);
+                        $exc_c[$key]['c_assets'] = $exc_c[$key]['c_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -1983,21 +2045,21 @@ class UpdatedDashboardController extends Controller
             if (!empty($brands->first())) {
                 foreach ($brands as $row) {
                     $debt_list = DB::table('debt_lists')->select('dl_total', 'st_id', 'br_id')
-                    ->where('debt_lists.dl_delete', '!=', '1')
-                    ->where('br_id', '=', $row->id)
-                    ->where(function($w) use ($st_id) {
-                        if (!empty($st_id)) {
-                            $w->whereIn('st_id', $st_id);
-                        }
-                    })->sum('dl_total');
+                        ->where('debt_lists.dl_delete', '!=', '1')
+                        ->where('br_id', '=', $row->id)
+                        ->where(function ($w) use ($st_id) {
+                            if (!empty($st_id)) {
+                                $w->whereIn('st_id', $st_id);
+                            }
+                        })->sum('dl_total');
                     $debt_list_payment = DB::table('debt_list_payments')->select('dlp_value', 'st_id', 'br_id')
-                    ->leftJoin('debt_lists', 'debt_lists.id', '=', 'debt_list_payments.dl_id')
-                    ->where('br_id', '=', $row->id)
-                    ->where(function($w) use ($st_id) {
-                        if (!empty($st_id)) {
-                            $w->whereIn('st_id', $st_id);
-                        }
-                    })->where('debt_lists.dl_delete', '!=', '1')->sum('dlp_value');
+                        ->leftJoin('debt_lists', 'debt_lists.id', '=', 'debt_list_payments.dl_id')
+                        ->where('br_id', '=', $row->id)
+                        ->where(function ($w) use ($st_id) {
+                            if (!empty($st_id)) {
+                                $w->whereIn('st_id', $st_id);
+                            }
+                        })->where('debt_lists.dl_delete', '!=', '1')->sum('dlp_value');
                     $debts = $debt_list - $debt_list_payment;
 
                     if ($debts > 0) {
@@ -2041,34 +2103,34 @@ class UpdatedDashboardController extends Controller
 
         if ($label == 'sales') {
             $nett_sales = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, st_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
-                } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, st_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('st_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id', $st_id);
+                    } else {
+                        $w->where('pos_transactions.st_id', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('st_name')
+                ->get();
             $ns = array();
             if (!empty($nett_sales->first())) {
                 foreach ($nett_sales as $row) {
@@ -2099,37 +2161,37 @@ class UpdatedDashboardController extends Controller
         if ($label == 'profits') {
             $pf = array();
             $profit = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, st_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
-                } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, st_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('st_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id', $st_id);
+                    } else {
+                        $w->where('pos_transactions.st_id', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('st_name')
+                ->get();
             if (!empty($profit->first())) {
                 foreach ($profit as $row) {
                     $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
@@ -2140,7 +2202,7 @@ class UpdatedDashboardController extends Controller
                         $total = $row->pos_td_discount_price;
                     }
                     $purchase = 0;
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->poad_total_price)) {
@@ -2157,10 +2219,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $pf)) {
                         $pf[$key] = array(
                             'st_name' => $row->st_name,
-                            'profits' => $total-($row->pos_td_qty*$purchase),
+                            'profits' => $total - ($row->pos_td_qty * $purchase),
                         );
                     } else {
-                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total-($row->pos_td_qty*$purchase));
+                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total - ($row->pos_td_qty * $purchase));
                     }
                 }
             }
@@ -2173,35 +2235,35 @@ class UpdatedDashboardController extends Controller
 
         if ($label == 'cross_sales') {
             $cross_nett_sales = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, st_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                    ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, st_name, pos_td_nameset_price, pos_td_marketplace_price, pos_td_discount_price")
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('st_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                    } else {
+                        $w->whereNotNull('pos_transactions.st_id_ref')
+                            ->where('pos_transactions.st_id_ref', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('st_name')
+                ->get();
             $ns = array();
             if (!empty($cross_nett_sales->first())) {
                 foreach ($cross_nett_sales as $row) {
@@ -2232,38 +2294,38 @@ class UpdatedDashboardController extends Controller
         if ($label == 'cross_profits') {
             $pf = array();
             $cross_profit = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, st_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                    ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                    ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
+                ->selectRaw("ts_pos_transactions.created_at as created_at, st_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                ->where(function ($w) use ($start, $end, $st_id, $division) {
+                    if (!empty($end)) {
+                        $w->whereDate('pos_transactions.created_at', '>=', $start)
+                            ->whereDate('pos_transactions.created_at', '<=', $end);
                     } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
+                        $w->whereDate('pos_transactions.created_at', '=', $start);
                     }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION','CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->orderBy('st_name')
-            ->get();
+                    if (!empty($st_id)) {
+                        $w->whereIn('pos_transactions.st_id_ref', $st_id);
+                    } else {
+                        $w->whereNotNull('pos_transactions.st_id_ref')
+                            ->where('pos_transactions.st_id_ref', '!=', '4');
+                    }
+                    if ($division != 'all') {
+                        if ($division == 'online') {
+                            $w->where('pos_transactions.stt_id', '=', '1');
+                        } else {
+                            $w->where('pos_transactions.stt_id', '=', '2');
+                        }
+                    }
+                    $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+                })
+                ->groupBy('pos_transaction_details.id')
+                ->orderBy('st_name')
+                ->get();
             if (!empty($cross_profit->first())) {
                 foreach ($cross_profit as $row) {
                     $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
@@ -2274,7 +2336,7 @@ class UpdatedDashboardController extends Controller
                         $total = $row->pos_td_discount_price;
                     }
                     $purchase = 0;
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->poad_total_price)) {
@@ -2291,10 +2353,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $pf)) {
                         $pf[$key] = array(
                             'st_name' => $row->st_name,
-                            'profits' => $total-($row->pos_td_qty*$purchase),
+                            'profits' => $total - ($row->pos_td_qty * $purchase),
                         );
                     } else {
-                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total-($row->pos_td_qty*$purchase));
+                        $pf[$key]['profits'] = $pf[$key]['profits'] + ($total - ($row->pos_td_qty * $purchase));
                     }
                 }
             }
@@ -2308,28 +2370,28 @@ class UpdatedDashboardController extends Controller
         if ($label == 'purchases') {
             $pr = array();
             $purchases = DB::table('purchase_order_article_detail_statuses')
-            ->selectRaw("ts_purchase_order_article_detail_statuses.created_at as created_at, st_name, sum(ts_purchase_order_article_detail_statuses.poads_total_price) as total")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-            ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-            ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-            ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
-            ->where(function($w) use ($start, $end, $st_id) {
-                if (!empty($end)) {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
-                    ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('purchase_orders.st_id', $st_id);
-                } else {
-                    $w->where('purchase_orders.st_id', '!=', '4');
-                }
-            })
-            ->groupBy('purchase_order_article_details.pst_id')
-            ->orderBy('st_name')
-            ->get();
+                ->selectRaw("ts_purchase_order_article_detail_statuses.created_at as created_at, st_name, sum(ts_purchase_order_article_detail_statuses.poads_total_price) as total")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->where(function ($w) use ($start, $end, $st_id) {
+                    if (!empty($end)) {
+                        $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
+                            ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
+                    } else {
+                        $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
+                    }
+                    if (!empty($st_id)) {
+                        $w->whereIn('purchase_orders.st_id', $st_id);
+                    } else {
+                        $w->where('purchase_orders.st_id', '!=', '4');
+                    }
+                })
+                ->groupBy('purchase_order_article_details.pst_id')
+                ->orderBy('st_name')
+                ->get();
             if (!empty($purchases->first())) {
                 foreach ($purchases as $row) {
                     $key = $row->st_name;
@@ -2358,29 +2420,29 @@ class UpdatedDashboardController extends Controller
         if ($label == 'cc_assets') {
             $cc = array();
             $cc_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-            ->whereNotIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['1', '3'])
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('st_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->whereNotIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['1', '3'])
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('st_name')
+                ->get();
             if (!empty($cc_assets->first())) {
                 foreach ($cc_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -2393,10 +2455,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $cc)) {
                         $cc[$key] = array(
                             'st_name' => $row->st_name,
-                            'cc_assets' => ($row->qty*$purchase),
+                            'cc_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $cc[$key]['cc_assets'] = $cc[$key]['cc_assets'] + ($row->qty*$purchase);
+                        $cc[$key]['cc_assets'] = $cc[$key]['cc_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -2410,29 +2472,29 @@ class UpdatedDashboardController extends Controller
         if ($label == 'c_assets') {
             $c = array();
             $c_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereNotIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->where('stkt_id', '=', '2')
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('st_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereNotIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->where('stkt_id', '=', '2')
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('st_name')
+                ->get();
             if (!empty($c_assets->first())) {
                 foreach ($c_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -2445,10 +2507,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $c)) {
                         $c[$key] = array(
                             'st_name' => $row->st_name,
-                            'c_assets' => ($row->qty*$purchase),
+                            'c_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $c[$key]['c_assets'] = $c[$key]['c_assets'] + ($row->qty*$purchase);
+                        $c[$key]['c_assets'] = $c[$key]['c_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -2462,29 +2524,29 @@ class UpdatedDashboardController extends Controller
         if ($label == 'cc_exc_assets') {
             $exc_cc = array();
             $exc_cc_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->whereIn('stkt_id', ['1', '3'])
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('st_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->whereIn('stkt_id', ['1', '3'])
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('st_name')
+                ->get();
             if (!empty($exc_cc_assets->first())) {
                 foreach ($exc_cc_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -2497,10 +2559,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $exc_cc)) {
                         $exc_cc[$key] = array(
                             'st_name' => $row->st_name,
-                            'cc_assets' => ($row->qty*$purchase),
+                            'cc_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $exc_cc[$key]['cc_assets'] = $exc_cc[$key]['cc_assets'] + ($row->qty*$purchase);
+                        $exc_cc[$key]['cc_assets'] = $exc_cc[$key]['cc_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -2514,29 +2576,29 @@ class UpdatedDashboardController extends Controller
         if ($label == 'c_exc_assets') {
             $exc_c = array();
             $exc_c_assets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->where('stkt_id', '=', '2')
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->groupBy('product_location_setups.id')
-            ->orderBy('st_name')
-            ->get();
+                ->selectRaw("ts_product_location_setups.pls_qty as qty, st_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->whereIn('pl_code', $exception)
+                ->where(function ($w) use ($st_id) {
+                    if (!empty($st_id)) {
+                        $w->whereIn('product_locations.st_id', $st_id);
+                    } else {
+                        $w->where('product_locations.st_id', '!=', '4');
+                    }
+                })
+                ->where('stkt_id', '=', '2')
+                ->where('product_location_setups.pls_qty', '>', '0')
+                ->groupBy('product_location_setups.id')
+                ->orderBy('st_name')
+                ->get();
             if (!empty($exc_c_assets->first())) {
                 foreach ($exc_c_assets as $row) {
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->ps_purchase_price)) {
@@ -2549,10 +2611,10 @@ class UpdatedDashboardController extends Controller
                     if (!array_key_exists($key, $exc_c)) {
                         $exc_c[$key] = array(
                             'st_name' => $row->st_name,
-                            'c_assets' => ($row->qty*$purchase),
+                            'c_assets' => ($row->qty * $purchase),
                         );
                     } else {
-                        $exc_c[$key]['c_assets'] = $exc_c[$key]['c_assets'] + ($row->qty*$purchase);
+                        $exc_c[$key]['c_assets'] = $exc_c[$key]['c_assets'] + ($row->qty * $purchase);
                     }
                 }
             }
@@ -2569,12 +2631,12 @@ class UpdatedDashboardController extends Controller
             if (!empty($store->first())) {
                 foreach ($store as $row) {
                     $debt_list = DB::table('debt_lists')->select('dl_total', 'st_id')
-                    ->where('debt_lists.dl_delete', '!=', '1')
-                    ->where('st_id', '=', $row->id)->sum('dl_total');
+                        ->where('debt_lists.dl_delete', '!=', '1')
+                        ->where('st_id', '=', $row->id)->sum('dl_total');
                     $debt_list_payment = DB::table('debt_list_payments')->select('dlp_value', 'st_id')
-                    ->leftJoin('debt_lists', 'debt_lists.id', '=', 'debt_list_payments.dl_id')
-                    ->where('st_id', '=', $row->id)
-                    ->where('debt_lists.dl_delete', '!=', '1')->sum('dlp_value');
+                        ->leftJoin('debt_lists', 'debt_lists.id', '=', 'debt_list_payments.dl_id')
+                        ->where('st_id', '=', $row->id)
+                        ->where('debt_lists.dl_delete', '!=', '1')->sum('dlp_value');
                     $debts = $debt_list - $debt_list_payment;
 
                     if ($debts > 0) {

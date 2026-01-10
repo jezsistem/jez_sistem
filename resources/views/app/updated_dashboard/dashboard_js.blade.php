@@ -23,10 +23,10 @@
             enabled: false
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-            horizontal: true,
-        }
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+            }
         },
         grid: {
             row: {
@@ -36,7 +36,7 @@
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
+                formatter: function(val) {
                     return addCommas(val)
                 },
                 show: false
@@ -47,8 +47,7 @@
     var brChart_render = new ApexCharts(document.querySelector(brChart), brChart_options);
     brChart_render.render();
 
-    function addCommas(nStr)
-    {
+    function addCommas(nStr) {
         nStr += '';
         x = nStr.split('.');
         x1 = x[0];
@@ -63,7 +62,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -73,30 +72,48 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('user_activity_datatables') }}",
-                data : function (d) {
+                url: "{{ url('user_activity_datatables') }}",
+                data: function(d) {
                     d.search = $('#user_activity_search').val();
                     d.st_id = st_id;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'uaid', searchable: false},
-            { data: 'st_name', name: 'st_name' },
-            { data: 'u_name', name: 'u_name' },
-            { data: 'ua_description', name: 'ua_description' },
-            { data: 'ua_created_at_show', name: 'ua_created_at' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'uaid',
+                    searchable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'ua_description',
+                    name: 'ua_description'
+                },
+                {
+                    data: 'ua_created_at_show',
+                    name: 'ua_created_at'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#user_activity_search').on('keyup', function() {
@@ -148,18 +165,17 @@
             });
         });
 
-        function exportTable(label, date, store, division)
-        {
+        function exportTable(label, date, store, division) {
             var data = new FormData();
             data.append('label', label);
             data.append('date', date);
             data.append('store', store);
             data.append('division', division);
             $.ajax({
-                type:'POST',
+                type: 'POST',
                 url: "{{ url('export_table') }}",
                 data: data,
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 xhrFields: {
@@ -193,27 +209,38 @@
                         } else {
                             window.location.href = downloadUrl;
                         }
-                        setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 10000);
+                        setTimeout(function() {
+                            URL.revokeObjectURL(downloadUrl);
+                        }, 10000);
                     }
                 },
 
             });
         }
 
-        function getSummary(date, store, division)
-        {
+        function getSummary(date, store, division) {
+
+            $('#loader_dashboard').fadeIn(100);
+            $('body').addClass('loading-lock');
+
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+
             $.ajax({
                 type: "POST",
-                data: {date:date, store:store, division:division},
+                url: "{{ url('get_summaries') }}",
+                data: {
+                    date: date,
+                    store: store,
+                    division: division
+                },
                 dataType: 'json',
-                url: "{{ url('get_summaries')}}",
+
                 success: function(r) {
-                    if (r.status == 200){
+                    if (r.status === 200) {
                         $('#adm_cross_nett_sales_label').text(r.adm_cross_nett_sales);
                         $('#adm_cross_profits_label').text(r.adm_cross_profit);
                         $('#adm_nett_sales_label').text(r.adm_nett_sales);
@@ -230,28 +257,41 @@
                         $('#c_exc_assets_label').text(r.c_exc_assets);
                         $('#gid_label').text(r.gid);
                         $('#git_label').text(r.git);
-                        setTimeout(() => {
-                            $('#LoadingModal').modal('hide');
-                        }, 500);
                     } else {
                         swal('Gagal', 'Gagal menampilkan data', 'error');
                     }
+                },
+
+                error: function() {
+                    swal('Error', 'Terjadi kesalahan server', 'error');
+                },
+
+
+                complete: function() {
+                    $('#loader_dashboard').fadeOut(150);
+                    $('body').removeClass('loading-lock');
                 }
             });
+
             return false;
         }
 
-        function loadTable(label, date, store, division)
-        {
+
+        function loadTable(label, date, store, division) {
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                type:'POST',
+                type: 'POST',
                 url: "{{ url('load_table') }}",
-                data: {label:label, date:date, store:store, division:division},
+                data: {
+                    label: label,
+                    date: date,
+                    store: store,
+                    division: division
+                },
                 dataType: 'html',
                 success: function(r) {
                     $('#loadTable').html(r);
@@ -260,19 +300,23 @@
             });
         }
 
-        function loadGraph(label, date, store, division)
-        {
+        function loadGraph(label, date, store, division) {
 
             $('#graph_panel').removeClass('d-none');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                type:'POST',
+                type: 'POST',
                 url: "{{ url('load_graph') }}",
-                data: {label:label, date:date, store:store, division:division},
+                data: {
+                    label: label,
+                    date: date,
+                    store: store,
+                    division: division
+                },
                 dataType: 'html',
                 success: function(r) {
                     $('#chart').html(r);
@@ -283,19 +327,23 @@
             });
         }
 
-        function loadStore(label, date, store, division)
-        {
+        function loadStore(label, date, store, division) {
 
             $('#graph_panel').removeClass('d-none');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                type:'POST',
+                type: 'POST',
                 url: "{{ url('load_store') }}",
-                data: {label:label, date:date, store:store, division:division},
+                data: {
+                    label: label,
+                    date: date,
+                    store: store,
+                    division: division
+                },
                 dataType: 'html',
                 success: function(r) {
                     $('#chart').html(r);
@@ -306,29 +354,32 @@
             });
         }
 
-        function loadAdminCost(label, date, store, division)
-        {
+        function loadAdminCost(label, date, store, division) {
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                type:'POST',
+                type: 'POST',
                 url: "{{ url('load_admin_cost') }}",
-                data: {label:label, date:date, store:store, division:division},
+                data: {
+                    label: label,
+                    date: date,
+                    store: store,
+                    division: division
+                },
                 dataType: 'json',
                 success: function(r) {
                     if (r.status == '200') {
-                        $('#admin_cost_result').text("Rp. "+ r.admin_cost);
+                        $('#admin_cost_result').text("Rp. " + r.admin_cost);
                     }
                 },
 
             });
         }
 
-        function highlight(label , status)
-        {
+        function highlight(label, status) {
             $('#cross_nett_sales_btn').removeClass('btn-success');
             $('#cross_profits_btn').removeClass('btn-success');
             $('#nett_sales_btn').removeClass('btn-success');
@@ -354,8 +405,8 @@
             $('#detail_activity_btn').addClass('btn-inventory');
 
             if (status == 'y') {
-                $('#'+label).removeClass('btn-primary');
-                $('#'+label).addClass('btn-success');
+                $('#' + label).removeClass('btn-primary');
+                $('#' + label).addClass('btn-success');
             }
         }
 

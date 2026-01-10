@@ -117,6 +117,10 @@
                                             <option value="{{ $store->id }}">{{ $store->st_name }}</option>
                                         @endforeach
                                     </select>
+                                    <select class="form-control col-1" id="artikel_promo_status">
+                                        <option value="active">Active</option>
+                                        <option value="expired">Expired</option>
+                                    </select>
                                     <a href="#" class="btn btn-date-info font-weight-bold ml-2" id="kt_dashboard_daterangepicker" 
                                        data-toggle="tooltip" title="Article Promo Start Date" data-placement="left">
                                         <span class="font-size-base" id="kt_dashboard_daterangepicker_title">All Days</span>

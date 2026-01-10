@@ -135,6 +135,19 @@ class ArtikelPromoController extends Controller
                     if (!empty($request->get('artikel_promo_store'))) {
                         $instance->where('st_id', $request->get('artikel_promo_store'));
                     }
+                    if (!empty($request->get('artikel_promo_status'))) {
+                        $status = $request->get('artikel_promo_status');
+
+                        if ($status === 'active') {
+                            // masih aktif
+                            $instance->whereDate('date_end', '>', now()->toDateString());
+                        }
+
+                        if ($status === 'expired') {
+                            // sudah expired
+                            $instance->whereDate('date_end', '<', now()->toDateString());
+                        }
+                    }
                 })
                 ->addColumn('article_id', function ($row) {
                     return $row->article_id;
@@ -329,6 +342,7 @@ class ArtikelPromoController extends Controller
             $search = $request->get('search');
             $dateRange = $request->get('date_range');
             $store = $request->get('artikel_promo_store');
+            $status = $request->get('artikel_promo_status');
 
             $fileName = 'Export_Artikel_Promo_' . date('Y-m-d') . '.xlsx';
 
