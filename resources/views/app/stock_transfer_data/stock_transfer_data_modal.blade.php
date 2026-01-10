@@ -62,7 +62,18 @@
                         placeholder="Hasil Scan" /></center>
                 <center><input type="search" class="form-control col-6 mt-7" id="stock_transfer_receive_search"
                         placeholder="Cari artikel" /></center>
-                <a class="btn btn-primary float-right" style="margin-bottom:15px;" id="accept_qty_btn">Terima</a>
+                <div class="d-flex align-items-center justify-content-between my-5">
+                    <div class=" d-flex align-items-center">
+                        <label class='switch'>
+                            <input type='checkbox' id="show_not_receive_only_btn">
+                            <span class='slider round'></span>
+                        </label>
+                        <p style="margin-bottom: 3px; margin-left: 5px; font-weight: bold; font-size: 15px;">Belum Terima</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="accept_qty_btn">
+                        <i class="fa fa-check mr-1"></i>Terima
+                    </button>
+                </div>
                 <input type="hidden" id="stf_id" value="" />
                 <input type="hidden" id="stf_code_label" value="" />
                 <input type="hidden" id="st_id_end" value="" />
@@ -113,7 +124,7 @@
                             <label>Download Template
                                 <span class="text-danger">*</span></label>
                             <a href="{{ asset('upload/template/import_penerimaan_transfer_template.csv') }}"
-                               class="btn btn-xs btn-primary">Download</a>
+                                class="btn btn-xs btn-primary">Download</a>
                         </div>
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi data</label>

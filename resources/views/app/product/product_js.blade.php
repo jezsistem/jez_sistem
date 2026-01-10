@@ -1272,7 +1272,7 @@
                 $('#delete_product_btn').show();
             @endif
 
-                        // Only disable if not admin and not finance
+            // Only disable if not admin and not finance
             @if (!$is_admin && !$is_finance)
                 $('#is_everlast').prop('disabled', true);
                 $('#p_purchase_price').prop('disabled', true);
@@ -1287,7 +1287,15 @@
             @else
                 $('#p_price_tag').prop('disabled', false);
                 $('#p_sell_price').prop('disabled', false);
+                $('#for_offline').prop('disabled', false);
             @endif
+
+            @if (!$is_admin && !$is_mdcx && !$is_at_least_supervisor)
+                $('#for_offline').prop('disabled', true);
+            @else
+                $('#for_offline').prop('disabled', false);
+            @endif
+
             generateQR(article_id);
         })
 
@@ -1382,8 +1390,7 @@
                         serverSide: true,
                         searching: false,
                         ajax: `/product-history/${articleId}`,
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'DT_RowIndex',
                                 name: 'DT_RowIndex',
                                 orderable: false,
@@ -1922,7 +1929,7 @@
                                         .after(
                                             "<tr id='ProductStockDetailAppend'><td>" +
                                             value.sz_name +
-                                            
+
                                             "</td><td>" + value
                                             .ps_barcode + "</td><td>" +
                                             formatToRupiah(value

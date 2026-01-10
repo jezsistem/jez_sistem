@@ -856,6 +856,20 @@
         }
     }
 
+    function exportRequestToExcel() {
+        const params = new URLSearchParams({
+            start_date: $('#start_date').val(),
+            end_date: $('#end_date').val(),
+            date_filter: $('#date_filter').val(),
+            user_id: $('#user_id').val(),
+            leave_type_id: $('#leave_type_id').val(),
+            status: $('#status').val(),
+        });
+
+        const url = "{{ route('leave-requests.export-excel') }}" + '?' + params.toString();
+        window.location.href = url;
+    }
+
 
     
 </script> 
