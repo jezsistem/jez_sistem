@@ -221,6 +221,16 @@
                 </div>
             </a>
 
+            <a href="#" class="navi-item">
+                <div class="navi-link">
+                    <i class="ki-outline ki-calendar bg-icon-sm fs-2 mr-2"></i>
+                    <div class="navi-text">
+                        <div class="font-weight-bold">Sisa Cuti</div>
+                        <div class="text-muted">{{ optional(auth()->user()->remainingPhBalance)->lb_ph_remaining ?? 0 }} hari</div>
+                    </div>
+                </div>
+            </a>
+
             <a href="#" data-toggle="modal" data-target="#ChangePasswordModal" class="navi-item">
                 <div class="navi-link">
                     <i class="ki-outline ki-key bg-icon-sm fs-2 mr-2"></i>
