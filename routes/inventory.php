@@ -128,6 +128,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('start_scan_adjustment/{id}', [ScanAdjustmentController::class, 'scanPanel']);
     Route::get('start_scan_adjustment_datatables', [ScanAdjustmentController::class, 'getScanDatatables']);
     Route::get('scan_adjustment_product_datatables', [ScanAdjustmentController::class, 'getProductDatatables']);
+    Route::get('scan_adjustment_product_datatables_v2', [ScanAdjustmentController::class, 'getProductDatatablesV2']);
     Route::get('scan_adjustment_custom_datatables', [ScanAdjustmentController::class, 'getCustomDatatables']);
     Route::post('scan_adjustment_barcode_update', [ScanAdjustmentController::class, 'updateBarcode']);
     Route::post('sa_save', [ScanAdjustmentController::class, 'storeData']);

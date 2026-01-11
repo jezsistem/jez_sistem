@@ -692,6 +692,37 @@ class CustomerController extends Controller
             $r['cust_subdistrict'] = $cust->cust_subdistrict;
             $r['cust_address'] = $cust->cust_address;
             $r['cust_token_active'] = $cust->cust_token_active;
+            
+            // Get customer type name
+            if (!empty($cust->ct_id)) {
+                $customerType = DB::table('customer_types')->select('ct_name')->where('id', $cust->ct_id)->first();
+                $r['ct_name'] = $customerType ? $customerType->ct_name : 'Customer';
+            } else {
+                $r['ct_name'] = 'Customer';
+            }
+            
+            // Convert province/city/subdistrict code to name (sesuai POS lama)
+            if (!empty($cust->cust_province)) {
+                $province = DB::table('wilayah')->select('nama')->where('kode', $cust->cust_province)->get()->first();
+                $r['cust_province_name'] = $province ? $province->nama : $cust->cust_province;
+            } else {
+                $r['cust_province_name'] = '-';
+            }
+            
+            if (!empty($cust->cust_city)) {
+                $city = DB::table('wilayah')->select('nama')->where('kode', $cust->cust_city)->get()->first();
+                $r['cust_city_name'] = $city ? $city->nama : $cust->cust_city;
+            } else {
+                $r['cust_city_name'] = '-';
+            }
+            
+            if (!empty($cust->cust_subdistrict)) {
+                $subdistrict = DB::table('wilayah')->select('nama')->where('kode', $cust->cust_subdistrict)->get()->first();
+                $r['cust_subdistrict_name'] = $subdistrict ? $subdistrict->nama : $cust->cust_subdistrict;
+            } else {
+                $r['cust_subdistrict_name'] = '-';
+            }
+            
             $r['status'] = '200';
         } else {
             $r['status'] = '400';

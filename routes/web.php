@@ -126,7 +126,8 @@ use Illuminate\Support\Facades\DB;
 */
 
 // Validation
-Route::get('', [AuthController::class, 'index'])->name('login');
+Route::get('', [AuthController::class, 'indexV2'])->name('login');
+Route::get('login_old', [AuthController::class, 'index'])->name('login_old');
 Route::get('login_amel', [AuthController::class, 'index_two'])->name('login_amel');
 Route::post('user_login', [AuthController::class, 'login']);
 
@@ -181,9 +182,17 @@ Route::get('break-times-backup/export/excel', [BreakTimeBackupController::class,
 Route::get('attendance/summary-report/export/excel', [AttendanceController::class, 'exportSummaryToExcel'])->name('attendance.summary-report-export-excel');
 Route::get('attendance/summary-report/export/pdf', [AttendanceController::class, 'exportSummaryToPDF'])->name('attendance.summary-report-export-pdf');
 
+// TEST ROUTE - No Auth Required
+Route::get('test-offline-pos', function() {
+    return '<h1>✅ Route Works!</h1><p>Route offline_pos_v2 is registered correctly.</p><p>Problem: You must LOGIN first at <a href="/login">http://127.0.0.1:8000/login</a></p>';
+});
+
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
     Route::get('redirect', [RedirectController::class, 'index'])->name('redirect');
+    
+    // Dashboard New Layout (Flowbite)
+    Route::get('dashboard_new', [DashboardV2Controller::class, 'indexNew'])->name('dashboard.new');
 
     // Upcloud Balance
     Route::get('get_upcloud_balance', [UpcloudBalanceController::class, 'getBalance']);
@@ -246,6 +255,10 @@ Route::group(['middleware' => 'auth'], function () {
 
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
+    Route::get('point_of_sale_v2', [PointOfSaleController::class, 'indexV2'])->name('point_of_sale_v2');
+    Route::get('offline-pos_v2', [PointOfSaleController::class, 'indexOfflineV2'])->name('offline_pos_v2');
+    Route::post('search_product_v2', [PointOfSaleController::class, 'searchProductV2']);
+    Route::post('search_product_offline_v2', [PointOfSaleController::class, 'searchProductOfflineV2']);
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
     Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
@@ -265,9 +278,11 @@ Route::group(['middleware' => 'auth'], function () {
     //    Route::post('autocomplete_amp', [PointOfSaleController::class, 'fetchAmp']);
     Route::post('autocomplete_by_waiting', [PointOfSaleController::class, 'fetchWaiting']);
     Route::post('autocomplete_invoice', [PointOfSaleController::class, 'fetchInvoice']);
+    Route::post('reload_location_by_pst_id', [PointOfSaleController::class, 'reloadLocationByPstId']);
     Route::post('autocomplete_invoice_offline', [PointOfSaleController::class, 'fetchInvoiceOffline']);
     Route::post('change_waiting_status', [PointOfSaleController::class, 'changeWaitingStatus']);
     Route::post('check_waiting_for_checkout', [PointOfSaleController::class, 'checkWaitingForCheckout']);
+    Route::post('check_waiting_for_checkout_json', [PointOfSaleController::class, 'checkWaitingForCheckoutJson']);
     Route::post('check_complaint', [PointOfSaleController::class, 'checkComplaint']);
     Route::post('check_offline_complaint', [PointOfSaleController::class, 'checkOfflineComplaint']);
     Route::post('autocomplete_refund_invoice', [PointOfSaleController::class, 'fetchRefundInvoice']);
@@ -602,9 +617,15 @@ Route::group(['middleware' => 'auth'], function () {
     // Verify Voucher
     Route::post('verify_voucher', [PointOfSaleController::class, 'verifyVoucher']);
     Route::post('verify-vouchers', [PointOfSaleController::class, 'verifyVouchers']);
+        // New tolerant endpoint for POS v2 / offline_pos_v2 to avoid changing legacy behavior
+        Route::post('verify-vouchers-v2', [PointOfSaleController::class, 'verifyVouchersV2']);
 
     // total discount point of sale
     Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);
+    
+    // Retur / Exchange functionality for POS V2
+    Route::post('search_transaction_for_retur', [PointOfSaleController::class, 'searchTransactionForRetur']);
+    Route::post('get_transaction_items_for_retur', [PointOfSaleController::class, 'getTransactionItemsForRetur']);
 
     // Shopee
     /**

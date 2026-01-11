@@ -81,6 +81,20 @@ class AuthController extends Controller
         }
     }
 
+    public function indexV2()
+    {
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'segment' => request()->segment(1),
+        ];
+        if (Auth::check()) {
+            return redirect()->route('redirect');
+        } else {
+            return view('auth.login_v2', compact('data'));
+        }
+    }
+
     public function login(Request $request)
     {
         $user = new User;

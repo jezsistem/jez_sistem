@@ -800,6 +800,51 @@ class ScanAdjustmentController extends Controller
         }
     }
 
+    /**
+     * Get product datatables for offline POS V2 (JSON format with editable barcode input)
+     */
+    public function getProductDatatablesV2(Request $request)
+    {
+        if(request()->ajax()) {
+            try {
+                $query = DB::table('product_stocks')
+                    ->select('product_stocks.id as id', 'br_name', 'p_name', 'p_color', 'sz_name', 'ps_barcode')
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where('p_delete', '!=', '1');
+                
+                return datatables()->of($query)
+                    ->filter(function ($instance) use ($request) {
+                        if (!empty($request->get('search'))) {
+                            $instance->where(function($w) use($request){
+                                $search = $request->get('search');
+                                $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%")
+                                ->orWhere('ps_barcode', 'like', "%$search%");
+                            });
+                        }
+                    })
+                    ->editColumn('ps_barcode_show', function($d) {
+                        $barcode = $d->ps_barcode ? htmlspecialchars($d->ps_barcode, ENT_QUOTES, 'UTF-8') : '';
+                        $id = $d->id;
+                        return '<input type="text" data-id="'.$id.'" class="input_barcode_field w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500" value="'.$barcode.'"/>';
+                    })
+                    ->rawColumns(['ps_barcode_show'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } catch(\Exception $e) {
+                \Log::error('Error in getProductDatatablesV2: ' . $e->getMessage());
+                return response()->json([
+                    'draw' => intval($request->get('draw')),
+                    'recordsTotal' => 0,
+                    'recordsFiltered' => 0,
+                    'data' => [],
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+        }
+    }
+
     public function updateBarcode(Request $request)
     {
         $id = $request->post('id');
