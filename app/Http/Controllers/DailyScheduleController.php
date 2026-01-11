@@ -1307,7 +1307,6 @@ class DailyScheduleController extends Controller
                      * ========================= */
                     if ($existingSchedule) {
 
-                        // HANDLE PH DELTA
                         if ($oldShiftCode !== 'LPH' && $newShiftCode === 'LPH') {
                             $this->adjustPH($userId, $date, +1);
                         }
@@ -1330,7 +1329,6 @@ class DailyScheduleController extends Controller
                                     'updated_at' => now()
                                 ]);
                         } else {
-                            // DELETE schedule
                             if ($oldShiftCode === 'LPH') {
                                 $this->adjustPH($userId, $date, -1);
                             }
@@ -1340,9 +1338,6 @@ class DailyScheduleController extends Controller
                                 ->delete();
                         }
 
-                        /** =========================
-                         * INSERT BARU
-                         * ========================= */
                     } elseif ($shiftCodeId) {
 
                         $shiftCode = DB::table('shift_codes')->where('id', $shiftCodeId)->first();
