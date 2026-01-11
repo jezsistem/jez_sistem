@@ -267,7 +267,7 @@ class UpdatedDashboardController extends Controller
             ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
             ->sum('pos_admin_cost');
 
-
+        // ================= Net Sales =================
         $whereDate  = '';
         $whereStore = '';
         $bindings   = [];
@@ -368,188 +368,202 @@ ORDER BY ts_stores.st_name
         }
 
 
+        // ================= Gross Margin =================
+        $whereDate  = '';
+        $whereStore = '';
+        $bindings   = [];
 
-        $pf = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                        ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id', $st_id);
-                } else {
-                    $w->where('pos_transactions.st_id', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
-                    } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
-                    }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->get();
-        if (!empty($pf->first())) {
-            foreach ($pf as $row) {
-                $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
-                $total = 0;
-                if (!empty($row->pos_td_marketplace_price)) {
-                    $total = $row->pos_td_marketplace_price;
-                } else {
-                    $total = $row->pos_td_discount_price;
-                }
-                $purchase = 0;
-                if (!empty($row->purchase)) {
-                    $purchase = round($row->purchase);
-                } else {
-                    if (!empty($row->poad_total_price)) {
-                        $purchase = round($row->poad_total_price / $row->poad_qty);
-                    } else {
-                        if (!empty($row->ps_purchase_price)) {
-                            $purchase = $row->ps_purchase_price;
-                        } else {
-                            $purchase = $row->p_purchase_price;
-                        }
-                    }
-                }
-                $profit += $total - ($row->pos_td_qty * $purchase);
-            }
-            $adm_profit = $profit;
-            $profit = $profit - $admin_cost;
+        // ================= DATE FILTER =================
+        if (!empty($start) && !empty($end)) {
+            // RANGE
+            $whereDate = " AND ts_pos_transactions.created_at BETWEEN ? AND ? ";
+            $bindings[] = $start . ' 00:00:00';
+            $bindings[] = $end   . ' 23:59:59';
+        } else {
+            // SINGLE DATE
+            $whereDate = " AND DATE(ts_pos_transactions.created_at) = ? ";
+            $bindings[] = $start;
         }
 
-        $c_ns = DB::table('pos_transaction_details')->select('pos_transactions.id as pt_id', 'pos_td_discount_price', 'pos_td_marketplace_price', 'pos_status', 'pos_refund', 'pst_id')
-            ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                        ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
-                    } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
-                    }
-                }
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                        ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-            })
-            ->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
-            ->groupBy('pos_transaction_details.id')
-            ->get();
-        if (!empty($c_ns->first())) {
-            $pt_id = null;
-            $price = 0;
-            foreach ($c_ns as $row) {
-                if (!empty($row->pos_td_marketplace_price)) {
-                    $price = $row->pos_td_marketplace_price;
-                } else {
-                    $price = $row->pos_td_discount_price;
-                }
-                $cross_nett_sales += $price;
+        // ================= STORE FILTER =================
+        if (!empty($st_id)) {
+            // pastikan array (kalau dari request bisa string / array)
+            if (!is_array($st_id)) {
+                $st_id = [$st_id];
             }
-            $adm_cross_nett_sales = $cross_nett_sales;
-            $cross_nett_sales = $cross_nett_sales - $cross_admin_cost;
+
+            $placeholders = implode(',', array_fill(0, count($st_id), '?'));
+            $whereStore = " AND ts_pos_transactions.st_id IN ($placeholders) ";
+
+            foreach ($st_id as $sid) {
+                $bindings[] = $sid;
+            }
         }
 
-        $c_pf = DB::table('pos_transaction_details')
-            ->selectRaw("ts_pos_transactions.created_at as created_at, pos_invoice, br_name, p_name, p_color, sz_name, pos_td_qty, pos_td_sell_price, pos_td_marketplace_price, pos_td_discount_price, pos_td_total_price, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('pos_transactions', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where(function ($w) use ($start, $end, $st_id, $division) {
-                if (!empty($end)) {
-                    $w->whereDate('pos_transactions.created_at', '>=', $start)
-                        ->whereDate('pos_transactions.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('pos_transactions.created_at', '=', $start);
-                }
-                if (!empty($st_id)) {
-                    $w->whereIn('pos_transactions.st_id_ref', $st_id);
-                } else {
-                    $w->whereNotNull('pos_transactions.st_id_ref')
-                        ->where('pos_transactions.st_id_ref', '!=', '4');
-                }
-                if ($division != 'all') {
-                    if ($division == 'online') {
-                        $w->where('pos_transactions.stt_id', '=', '1');
-                    } else {
-                        $w->where('pos_transactions.stt_id', '=', '2');
-                    }
-                }
-                $w->whereNotIn('pos_transactions.pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
-            })
-            ->groupBy('pos_transaction_details.id')
-            ->get();
-        if (!empty($c_pf->first())) {
-            foreach ($c_pf as $row) {
-                $created_at = date('d/m/Y H:i:s', strtotime($row->created_at));
-                $total = 0;
-                if (!empty($row->pos_td_marketplace_price)) {
-                    $total = $row->pos_td_marketplace_price;
-                } else {
-                    $total = $row->pos_td_discount_price;
-                }
-                $purchase = 0;
-                if (!empty($row->purchase)) {
-                    $purchase = round($row->purchase);
-                } else {
-                    if (!empty($row->poad_total_price)) {
-                        $purchase = round($row->poad_total_price / $row->poad_qty);
-                    } else {
-                        if (!empty($row->ps_purchase_price)) {
-                            $purchase = $row->ps_purchase_price;
-                        } else {
-                            $purchase = $row->p_purchase_price;
-                        }
-                    }
-                }
-                $cross_profit += $total - ($row->pos_td_qty * $purchase);
-            }
-            $adm_cross_profit = $cross_profit;
-            $cross_profit = $cross_profit - $cross_admin_cost;
+        // ================= QUERY =================
+        $pf = "
+        SELECT
+            ts_stores.st_name AS Store,
+
+            SUM(
+                CASE
+                    WHEN ts_pos_transactions.pos_invoice NOT LIKE 'INV%'
+                        THEN ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+                    WHEN ts_pos_transaction_details.pos_td_discount_number > 0
+                        AND (
+                            CASE
+                                WHEN ts_products.article_id = 'CUS01' THEN 0
+                                ELSE ROUND(
+                                    (ts_product_stocks.ps_price_tag * ts_pos_transaction_details.pos_td_qty) -
+                                    ts_pos_transaction_details.pos_td_sell_price, 1
+                                ) + COALESCE(ts_pos_transaction_details.pos_td_nameset_price, 0)
+                            END
+                        ) = 0
+                        THEN ROUND(ts_pos_transaction_details.pos_td_sell_price, 1) - ts_pos_transaction_details.pos_td_discount_number
+                    ELSE ROUND(ts_pos_transaction_details.pos_td_sell_price, 1)
+                END
+            ) AS Total_Net_Sales,
+
+            SUM(ts_product_stocks.ps_purchase_price * ts_pos_transaction_details.pos_td_qty) AS Total_COGS
+        FROM ts_pos_transaction_details
+        LEFT JOIN ts_pos_transactions ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
+        LEFT JOIN ts_stores ON ts_pos_transactions.st_id = ts_stores.id
+        LEFT JOIN ts_product_stocks ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
+        LEFT JOIN ts_products ON ts_products.id = ts_product_stocks.p_id
+        WHERE ts_pos_transactions.pos_status NOT IN ('UNPAID')
+        $whereDate
+        $whereStore
+        GROUP BY Store
+        ORDER BY ts_stores.st_name";
+
+        // ================= EXECUTE =================
+        $result = DB::select($pf, $bindings);
+
+        // ================= HITUNG TOTAL =================
+        $profit = 0;
+
+        foreach ($result as $row) {
+            $net_sales = $row->Total_Net_Sales ?? 0;
+            $cogs = $row->Total_COGS ?? 0;
+
+            $profit = $net_sales > 0 ? round((($net_sales - $cogs) / $net_sales) * 100, 2) : 0;
         }
 
-        $purchases = DB::table('purchase_order_article_detail_statuses')->select('poads_total_price')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-            ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-            ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-            ->where(function ($w) use ($start, $end, $st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('purchase_orders.st_id', $st_id);
-                } else {
-                    $w->where('purchase_orders.st_id', '!=', '4');
-                }
-                if (!empty($end)) {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '>=', $start)
-                        ->whereDate('purchase_order_article_detail_statuses.created_at', '<=', $end);
-                } else {
-                    $w->whereDate('purchase_order_article_detail_statuses.created_at', '=', $start);
-                }
-            })->sum('poads_total_price');
+        // ================= Qty Sales =================        
+        $whereDate  = '';
+        $whereStore = '';
+        $bindings   = [];
+
+        // ================= DATE FILTER =================
+        if (!empty($start) && !empty($end)) {
+            // RANGE
+            $whereDate = " AND ts_pos_transactions.created_at BETWEEN ? AND ? ";
+            $bindings[] = $start . ' 00:00:00';
+            $bindings[] = $end   . ' 23:59:59';
+        } else {
+            // SINGLE DATE
+            $whereDate = " AND DATE(ts_pos_transactions.created_at) = ? ";
+            $bindings[] = $start;
+        }
+
+        // ================= STORE FILTER =================
+        if (!empty($st_id)) {
+            // pastikan array (kalau dari request bisa string / array)
+            if (!is_array($st_id)) {
+                $st_id = [$st_id];
+            }
+
+            $placeholders = implode(',', array_fill(0, count($st_id), '?'));
+            $whereStore = " AND ts_pos_transactions.st_id IN ($placeholders) ";
+
+            foreach ($st_id as $sid) {
+                $bindings[] = $sid;
+            }
+        }
+
+        // ================= QUERY =================
+        $pf = "
+        SELECT
+            ts_stores.st_name AS Store,
+            SUM(ts_pos_transaction_details.pos_td_qty) Total_Qty
+        FROM ts_pos_transaction_details
+        LEFT JOIN ts_pos_transactions ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
+        LEFT JOIN ts_stores ON ts_pos_transactions.st_id = ts_stores.id
+        LEFT JOIN ts_product_stocks ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
+        LEFT JOIN ts_products ON ts_products.id = ts_product_stocks.p_id
+        WHERE ts_pos_transactions.pos_status NOT IN ('UNPAID')
+        $whereDate
+        $whereStore
+        GROUP BY Store
+        ORDER BY ts_stores.st_name";
+
+        // ================= EXECUTE =================
+        $result = DB::select($pf, $bindings);
+
+        // ================= HITUNG TOTAL =================
+        $cross_nett_sales = 0;
+
+        foreach ($result as $row) {
+            $totalqty = $row->Total_Qty ?? 0;
+            $cross_nett_sales += $totalqty;
+        }
+
+
+
+        // ================= Purchases =================
+        $where   = [];
+        $bindings = [];
+
+        // ================= DATE FILTER =================
+        if (!empty($start)) {
+            if (!empty($end)) {
+                // RANGE
+                $where[] = "tpo.created_at BETWEEN ? AND ?";
+                $bindings[] = $start . ' 00:00:00';
+                $bindings[] = $end   . ' 23:59:59';
+            } else {
+                // SINGLE DATE
+                $where[] = "DATE(tpo.created_at) = ?";
+                $bindings[] = $start;
+            }
+        }
+
+        // ================= STORE FILTER =================
+        if (!empty($st_id)) {
+            $st_id = (array) $st_id;
+            $placeholders = implode(',', array_fill(0, count($st_id), '?'));
+            $where[] = "tpo.st_id IN ($placeholders)";
+            $bindings = array_merge($bindings, $st_id);
+        }
+
+        // ================= WHERE CLAUSE =================
+        $whereSql = $where ? 'AND ' . implode(' AND ', $where) : '';
+
+        $sql = "
+SELECT
+    SUM(
+        COALESCE(tpoad.poad_purchase_price, 0)
+        *
+        COALESCE(tpoads.poads_qty, tpoad.poad_qty, 0)
+    ) AS total_stockin
+FROM ts_purchase_orders tpo
+JOIN ts_purchase_order_articles tpoa
+    ON tpoa.po_id = tpo.id
+JOIN ts_purchase_order_article_details tpoad
+    ON tpoad.poa_id = tpoa.id
+LEFT JOIN ts_purchase_order_article_detail_statuses tpoads
+    ON tpoads.poad_id = tpoad.id
+WHERE
+    tpo.st_id IS NOT NULL
+    AND tpo.ps_id IS NOT NULL
+    $whereSql
+";
+
+        $result = DB::select($sql, $bindings);
+        $purchases = (float) ($result[0]->total_stockin ?? 0);
+
+
+
 
         $ccassets = DB::table('product_location_setups')
             ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
@@ -714,7 +728,7 @@ ORDER BY ts_stores.st_name
         $r['adm_cross_nett_sales'] = number_format($adm_cross_nett_sales);
         $r['adm_cross_profit'] = number_format($adm_cross_profit);
         $r['nett_sales'] = number_format($nett_sales);
-        $r['profit'] = number_format($profit);
+        $r['profit'] = round($profit);
         $r['cross_nett_sales'] = number_format($cross_nett_sales);
         $r['cross_profit'] = number_format($cross_profit);
         $r['purchase'] = number_format($purchases);

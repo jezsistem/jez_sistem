@@ -132,19 +132,6 @@
                             <div class="d-flex flex-column mt-5 mb-0">
                                 <!--begin::Number-->
                                 <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
-                                    id="adm_nett_sales_label"></span>
-                                <!--end::Number-->
-                                <!--begin::Follower-->
-                                <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">Non Admin</span>
-                                </div>
-                                <!--end::Follower-->
-                            </div>
-                            <!--end::Section-->
-                            <!--begin::Section-->
-                            <div class="d-flex flex-column mt-3">
-                                <!--begin::Number-->
-                                <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
                                     id="nett_sales_label"></span>
                                 <!--end::Number-->
                                 <!--begin::Follower-->
@@ -172,21 +159,6 @@
                             <div class="m-0">
                                 <i class="ki-outline ki-wallet bg-icon text-gray-600"></i>
                             </div>
-                            <!--end::Icon-->
-                            <!--begin::Section-->
-                            <!-- <div class="d-flex flex-column mt-5 mb-0"> -->
-                                <!--begin::Number-->
-                                <!-- <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
-                                    id="adm_profits_label"></span> -->
-                                <!--end::Number-->
-                                <!--begin::Follower-->
-                                <!-- <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">Non Admin</span>
-                                </div> -->
-                                <!--end::Follower-->
-                            <!-- </div> -->
-                            <!--end::Section-->
-                            <!--begin::Section-->
                             <div class="d-flex flex-column mt-5 mb-0">
                                 <!--begin::Number-->
                                 <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
@@ -194,7 +166,7 @@
                                 <!--end::Number-->
                                 <!--begin::Follower-->
                                 <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">Net Profit</span>
+                                    <span class="fw-semibold fs-7 text-gray-400">Gross Margin</span>
                                 </div>
                                 <!--end::Follower-->
                             </div>
@@ -220,26 +192,12 @@
                             <!--end::Icon-->
                             <!--begin::Section-->
                             <div class="d-flex flex-column mt-5 mb-0">
-                                <!--begin::Number-->
-                                <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
-                                    id="adm_cross_nett_sales_label"></span>
-                                <!--end::Number-->
-                                <!--begin::Follower-->
-                                <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">Non Admin</span>
-                                </div>
-                                <!--end::Follower-->
-                            </div>
-                            <!--end::Section-->
-                            <!--begin::Section-->
-                            <div class="d-flex flex-column mt-3">
-                                <!--begin::Number-->
                                 <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
                                     id="cross_nett_sales_label"></span>
                                 <!--end::Number-->
                                 <!--begin::Follower-->
                                 <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">Cross Order</span>
+                                    <span class="fw-semibold fs-7 text-gray-400">Qty Sales</span>
                                 </div>
                                 <!--end::Follower-->
                             </div>
@@ -265,26 +223,12 @@
                             <!--end::Icon-->
                             <!--begin::Section-->
                             <div class="d-flex flex-column mt-5 mb-0">
-                                <!--begin::Number-->
-                                <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
-                                    id="adm_cross_profits_label"></span>
-                                <!--end::Number-->
-                                <!--begin::Follower-->
-                                <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">Non Admin</span>
-                                </div>
-                                <!--end::Follower-->
-                            </div>
-                            <!--end::Section-->
-                            <!--begin::Section-->
-                            <div class="d-flex flex-column mt-3">
-                                <!--begin::Number-->
                                 <span class="font-weight-semibold sz-font text-gray-800 lh-1 ls-n2"
                                     id="cross_profits_label"></span>
                                 <!--end::Number-->
                                 <!--begin::Follower-->
                                 <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">Cross Order Profit</span>
+                                    <span class="fw-semibold fs-7 text-gray-400">Receipt</span>
                                 </div>
                                 <!--end::Follower-->
                             </div>

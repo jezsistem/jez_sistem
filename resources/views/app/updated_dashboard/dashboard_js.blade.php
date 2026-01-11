@@ -245,10 +245,10 @@
                         $('#adm_cross_profits_label').text(r.adm_cross_profit);
                         $('#adm_nett_sales_label').text(r.adm_nett_sales);
                         $('#adm_profits_label').text(r.adm_profit);
-                        $('#cross_nett_sales_label').text(r.cross_nett_sales);
+                        $('#cross_nett_sales_label').text(r.cross_nett_sales + ' ' +'pcs');
                         $('#cross_profits_label').text(r.cross_profit);
                         $('#nett_sales_label').text(r.nett_sales);
-                        $('#profits_label').text(r.profit);
+                        $('#profits_label').text(r.profit + '%');
                         $('#purchases_label').text(r.purchase);
                         $('#cc_assets_label').text(r.cc_assets);
                         $('#c_assets_label').text(r.c_assets);
