@@ -223,8 +223,8 @@ return [
     | [x] PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder::class
     |
     */
-    'value_binder'       => [
-        'default' => Maatwebsite\Excel\DefaultValueBinder::class,
+    'value_binder' => [
+        'default' => PhpOffice\PhpSpreadsheet\Cell\StringValueBinder::class
     ],
 
     'cache'        => [

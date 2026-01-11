@@ -20,4 +20,9 @@ class StockTransfer extends Model
         'created_at',
         'updated_at',
     ];
+
+    public const STATUS_HANGING = 0;
+    public const STATUS_IN_PROGRESS = 1;
+    public const STATUS_DONE = 2;
+    public const STATUS_DRAFT = 3;
 }

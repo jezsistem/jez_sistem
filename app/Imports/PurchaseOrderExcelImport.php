@@ -71,6 +71,7 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
             $ex_disc = ltrim($value[2]);
             $sub_disc = ltrim($value[3]);
             $qty = ltrim($value[4]);
+            $purchase_price = ltrim($value[5]);
 
             if (!$productStocks[$sku]) {
                 $this->data[] = [
@@ -79,7 +80,8 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
                     'disc' => $disc,
                     'ex_disc' => $ex_disc,
                     'sub_disc' => $sub_disc,
-                    'poad_qty' => $qty
+                    'poad_qty' => $qty,
+                    'purchase_price' => $purchase_price
                 ];
                 $this->rows++;
                 continue;
@@ -94,7 +96,8 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
                     'disc' => $disc,
                     'ex_disc' => $ex_disc,
                     'sub_disc' => $sub_disc,
-                    'poad_qty' => $qty
+                    'poad_qty' => $qty,
+                    'purchase_price' => $purchase_price
                 ];
                 $this->rows++;
                 continue;
@@ -108,7 +111,8 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
                 'sub_disc' => $sub_disc,
                 'poad_qty' => $qty,
                 'sku' => $sku,
-                'status' => 'Found'
+                'status' => 'Found',
+                'purchase_price' => $purchase_price
             ];
 
             $this->rows++;

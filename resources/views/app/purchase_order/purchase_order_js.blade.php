@@ -5,7 +5,7 @@
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 <script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 <script>
-    var financeAttachmentTable=null;
+    var financeAttachmentTable = null;
 
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
@@ -2359,6 +2359,8 @@
                     }
                 },
                 error: function(data) {
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
                     toastr.error('Terjadi kesalahan saat mengimport data', 'Error');
                 }
             });
