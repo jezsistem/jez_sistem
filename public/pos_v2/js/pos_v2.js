@@ -1532,7 +1532,7 @@ $(document).ready(function() {
         formData.append('_st_id', $('#st_id').val() || '');
         formData.append('_pt_id_complaint', $('#pt_id_complaint').val() || '');
         formData.append('_exchange', $('#exchange_flag').val() || '');
-        formData.append('_cross', $('#cross_order').val() || '0');
+        formData.append('_cross', 'true');
         formData.append('_unique_code', $('#unique_code').val() || '0');
         formData.append('_real_price', $('#real_price').val().replace(/[^\d]/g, '') || '0');
         formData.append('_admin_cost', $('#admin_cost').val() || '0');
@@ -1614,6 +1614,7 @@ $(document).ready(function() {
                             detailFormData.append('voc_pst_id', $('#_voc_pst_id').val() || '');
                             detailFormData.append('voc_value', $('#_voc_value').val() || '');
                             detailFormData.append('_price_item_discount', item.discRp || 0);
+                            detailFormData.append('_cross', 'true');
                             
                             const detailPromise = $.ajax({
                                 url: '/save_transaction_detail',
