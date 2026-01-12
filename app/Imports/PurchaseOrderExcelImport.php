@@ -89,6 +89,14 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
 
             $productStock = ProductStock::where('ps_barcode', $sku)->first();
 
+            //calc discount if purchase price is not zero
+
+            if ($purchase_price != 0) {
+                $disc = ($purchase_price/$productStock->ps_price_tag) * 100;
+
+                $disc = 100 - $disc;
+            }
+
             if (!$productStock) {
                 $this->data[] = [
                     'sku' => $sku,
