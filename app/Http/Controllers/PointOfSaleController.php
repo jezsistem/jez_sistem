@@ -1084,7 +1084,7 @@ class PointOfSaleController extends Controller
             $file->move(public_path('upload/resi'), $filename);
 
             DB::table('pos_transactions')->where('id', $insert_get_id)->update([
-                'pos_resi_file' =>  $filename
+                'pos_resi_file' => $filename
             ]);
         }
 
@@ -1263,6 +1263,66 @@ class PointOfSaleController extends Controller
                 }
 
                 $customer = Customer::where('id', '=', $cust_id)->first();
+
+                // get save coin
+                if ($cust_id != 1 && !empty($customer)) {
+
+                    $firstTrx = DB::table('crm_point_logs')
+                        ->where('cust_id', $cust_id)
+                        ->orderBy('id', 'ASC')
+                        ->first();
+
+                    $totalTrxYear = DB::table('pos_transactions')
+                        ->where('cust_id', $cust_id)
+                        ->where('created_at', '>=', $firstTrx->created_at)
+                        ->sum('pos_real_price') ?? 0;
+
+
+//                    dd($totalTrxYear, $firstTrx);
+
+
+                    // cek tier
+
+//                    dd($totalTrxYear);
+                    if ($totalTrxYear >= 5000000) {
+                        $tier = 'elite';
+                        $multiplier = 4;
+                    } elseif ($totalTrxYear >= 2500000) {
+                        $tier = 'pro';
+                        $multiplier = 2;
+                    } else {
+                        $tier = 'academy';
+                        $multiplier = 1;
+                    }
+
+                    $baseCoin = floor($real_price / 100);
+                    $earnedCoin = $baseCoin * $multiplier;
+
+//                    dd($earnedCoin);
+
+                    if ($earnedCoin > 0) {
+
+                        DB::table('crm_point_logs')->insert([
+                            'cust_id' => $cust_id,
+                            'pt_id' => $insert_get_id,
+                            'trx_value' => $real_price,
+                            'tier' => $tier,
+                            'base_coin' => $baseCoin,
+                            'multiplier' => $multiplier,
+                            'point_earned' => $earnedCoin,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        DB::table('customers')
+                            ->where('id', $cust_id)
+                            ->update([
+                                'cust_coin' => DB::raw('IFNULL(cust_coin,0) + ' . $earnedCoin),
+                                'cust_tier' => $tier,
+                            ]);
+                    }
+                }
+
 
                 $st_id = Auth::user()->st_id;
 
@@ -1830,7 +1890,7 @@ class PointOfSaleController extends Controller
             $date2_remain_po = date('Y-m-d H:i:s');
             $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
             if ($date1_remain_po > $date2_remain_po) {
-                $diff_remain_po = - ($diff_remain_po);
+                $diff_remain_po = -($diff_remain_po);
             }
             $days_remain_po = round($diff_remain_po / 86400);
         }
@@ -1839,7 +1899,7 @@ class PointOfSaleController extends Controller
             $date2_remain_tf = date('Y-m-d H:i:s');
             $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
             if ($date1_remain_tf > $date2_remain_tf) {
-                $diff_remain_tf = - ($diff_remain_tf);
+                $diff_remain_tf = -($diff_remain_tf);
             }
             $days_remain_tf = round($diff_remain_tf / 86400);
         }
@@ -2511,7 +2571,11 @@ class PointOfSaleController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
 
+<<<<<<< HEAD
         $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date_start', 'pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id', \DB::raw('COUNT(product_location_setup_transactions.id) as quantity'))
+=======
+        $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date_start', 'pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
+>>>>>>> feat/crm-management
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -3707,7 +3771,6 @@ class PointOfSaleController extends Controller
             $r['status'] = '200';
             $r['message'] = 'Sudah ada barang yang berstatus "WAITING OFFLINE". Yakin ambil dari display?';
         }
-
 
 
         return response()->json($r);
