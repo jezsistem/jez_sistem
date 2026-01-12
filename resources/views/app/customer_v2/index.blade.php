@@ -272,8 +272,8 @@
                                 </div>
 
                                 <div class="col-md-3 mb-3">
-                                    <label>Phone</label>
-                                    <input type="text" class="form-control" name="phone" placeholder="08xxxx">
+                                    <label>Cari Customer</label>
+                                    <input type="text" class="form-control" name="phone" placeholder="enter keyword customer ....">
                                 </div>
 
                                 <div class="col-md-3 mb-3 align-self-end">

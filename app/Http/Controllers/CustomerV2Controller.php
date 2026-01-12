@@ -106,7 +106,10 @@ class CustomerV2Controller extends Controller
         }
 
         if ($request->phone) {
-            $data->where('cust_phone', 'like', "%{$request->phone}%");
+            $data->where(function ($q) use ($request) {
+                $q->where('cust_phone', 'like', "%{$request->phone}%")
+                    ->orWhere('cust_name', 'like', "%{$request->phone}%");
+            });
         }
 
         return DataTables::of($data)
