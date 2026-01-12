@@ -259,6 +259,10 @@ class User extends Authenticatable
         return $this->hasOne(LeaveBalance::class, 'user_id')->select('user_id', 'lb_remaining_balance')->latest('created_at');
     }
 
+    public function remainingPhBalance() {
+        return $this->hasOne(LeaveBalance::class, 'user_id')->select('user_id', 'lb_ph_remaining')->latest('created_at');
+    }
+
     public function isFintech($user_id)
     {
         //get user division

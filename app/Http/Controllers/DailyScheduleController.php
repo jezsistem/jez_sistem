@@ -1260,8 +1260,6 @@ class DailyScheduleController extends Controller
      */
     public function saveWeeklySchedule(Request $request)
     {
-        // $this->validateAccess();
-        
         $request->validate([
             'start_date' => 'required|date',
             'schedules' => 'required|array',
@@ -1271,7 +1269,6 @@ class DailyScheduleController extends Controller
             'schedules.*.dates.*.shift_code_id' => 'nullable|exists:shift_codes,id'
         ]);
 
-        $startDate = $request->input('start_date');
         $schedules = $request->input('schedules');
 
         DB::beginTransaction();
@@ -1284,19 +1281,42 @@ class DailyScheduleController extends Controller
                     $date = $dateData['date'];
                     $shiftCodeId = $dateData['shift_code_id'] ?? null;
 
-                    // Check if schedule already exists for this user and date
                     $existingSchedule = DB::table('daily_schedules')
                         ->where('user_id', $userId)
                         ->where('ds_date', $date)
                         ->first();
 
+                    // Ambil shift lama & baru
+                    $oldShiftCode = null;
+                    $newShiftCode = null;
+
                     if ($existingSchedule) {
-                        // Update existing schedule
+                        $oldShiftCode = DB::table('shift_codes')
+                            ->where('id', $existingSchedule->sc_id)
+                            ->value('sc_code');
+                    }
+
+                    if ($shiftCodeId) {
+                        $newShiftCode = DB::table('shift_codes')
+                            ->where('id', $shiftCodeId)
+                            ->value('sc_code');
+                    }
+
+                    /** =========================
+                     * UPDATE / DELETE
+                     * ========================= */
+                    if ($existingSchedule) {
+
+                        if ($oldShiftCode !== 'LPH' && $newShiftCode === 'LPH') {
+                            $this->adjustPH($userId, $date, +1);
+                        }
+
+                        if ($oldShiftCode === 'LPH' && $newShiftCode !== 'LPH') {
+                            $this->adjustPH($userId, $date, -1);
+                        }
+
                         if ($shiftCodeId) {
-                            // Get shift code details
-                            $shiftCode = DB::table('shift_codes')
-                                ->where('id', $shiftCodeId)
-                                ->first();
+                            $shiftCode = DB::table('shift_codes')->where('id', $shiftCodeId)->first();
 
                             DB::table('daily_schedules')
                                 ->where('id', $existingSchedule->id)
@@ -1309,67 +1329,36 @@ class DailyScheduleController extends Controller
                                     'updated_at' => now()
                                 ]);
                         } else {
-                            // Delete schedule if no shift code selected
+                            if ($oldShiftCode === 'LPH') {
+                                $this->adjustPH($userId, $date, -1);
+                            }
+
                             DB::table('daily_schedules')
                                 ->where('id', $existingSchedule->id)
                                 ->delete();
                         }
-                    } else if ($shiftCodeId) {
-                        // Create new schedule
-                        $shiftCode = DB::table('shift_codes')
-                            ->where('id', $shiftCodeId)
-                            ->first();
 
-                        $user = DB::table('users')
-                            ->where('id', $userId)
-                            ->first();
+                    } elseif ($shiftCodeId) {
 
-                        try {
-                            // Try using Eloquent first
-                            $newSchedule = DailySchedule::create([
-                                'user_id' => $userId,
-                                'ud_id' => $user->ud_id,
-                                'sc_id' => $shiftCodeId,
-                                'ds_date' => $date,
-                                'ds_start_time' => $shiftCode->sc_start_time,
-                                'ds_end_time' => $shiftCode->sc_end_time,
-                                'ds_status' => 'scheduled',
-                                'created_by' => Auth::user()->id,
-                                'updated_by' => Auth::user()->id
-                            ]);
+                        $shiftCode = DB::table('shift_codes')->where('id', $shiftCodeId)->first();
+                        $user = DB::table('users')->where('id', $userId)->first();
 
-                            \Log::info('Schedule created successfully with Eloquent', [
-                                'schedule_id' => $newSchedule->id,
-                                'user_id' => $userId,
-                                'date' => $date
-                            ]);
-                        } catch (\Exception $eloquentError) {
-                            \Log::warning('Eloquent create failed, trying DB facade', [
-                                'error' => $eloquentError->getMessage(),
-                                'user_id' => $userId,
-                                'date' => $date
-                            ]);
+                        $scheduleId = DB::table('daily_schedules')->insertGetId([
+                            'user_id' => $userId,
+                            'ud_id' => $user->ud_id,
+                            'sc_id' => $shiftCodeId,
+                            'ds_date' => $date,
+                            'ds_start_time' => $shiftCode->sc_start_time,
+                            'ds_end_time' => $shiftCode->sc_end_time,
+                            'ds_status' => 'scheduled',
+                            'created_by' => Auth::user()->id,
+                            'updated_by' => Auth::user()->id,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
 
-                            // Fallback to DB facade with explicit ID handling
-                            $scheduleId = DB::table('daily_schedules')->insertGetId([
-                                'user_id' => $userId,
-                                'ud_id' => $user->ud_id,
-                                'sc_id' => $shiftCodeId,
-                                'ds_date' => $date,
-                                'ds_start_time' => $shiftCode->sc_start_time,
-                                'ds_end_time' => $shiftCode->sc_end_time,
-                                'ds_status' => 'scheduled',
-                                'created_by' => Auth::user()->id,
-                                'updated_by' => Auth::user()->id,
-                                'created_at' => now(),
-                                'updated_at' => now()
-                            ]);
-
-                            \Log::info('Schedule created successfully with DB facade', [
-                                'schedule_id' => $scheduleId,
-                                'user_id' => $userId,
-                                'date' => $date
-                            ]);
+                        if ($newShiftCode === 'LPH') {
+                            $this->adjustPH($userId, $date, +1);
                         }
                     }
                 }
@@ -1379,29 +1368,49 @@ class DailyScheduleController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Weekly schedule saved successfully!'
+                'message' => 'Weekly schedule saved & PH synced successfully'
             ]);
-        } catch (\Exception $e) {
-            DB::rollback();
 
-            \Log::error('Weekly schedule save error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all(),
-                'user_id' => Auth::user()->id
-            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error saving schedule: ' . $e->getMessage(),
-                'debug_info' => [
-                    'error_type' => get_class($e),
-                    'error_code' => $e->getCode(),
-                    'error_file' => $e->getFile(),
-                    'error_line' => $e->getLine()
-                ]
+                'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function adjustPH($userId, $date, $delta)
+    {
+        if ($delta === 0) return;
+
+        $year = \Carbon\Carbon::parse($date)->year;
+
+        DB::table('leave_balances')
+            ->where('user_id', $userId)
+            ->where('lb_year', $year)
+            ->update([
+                'lb_ph_used' => DB::raw("GREATEST(lb_ph_used + ($delta), 0)"),
+                'lb_ph_remaining' => DB::raw("GREATEST(lb_initial_ph - (lb_ph_used + ($delta)), 0)"),
+                'updated_at' => now(),
+            ]);
+    }
+
+    private function syncPHLeaveBalance($userId, $date, $delta)
+    {
+        if ($delta === 0) return;
+
+        $year = \Carbon\Carbon::parse($date)->year;
+
+        DB::table('leave_balances')
+            ->where('user_id', $userId)
+            ->where('lb_year', $year)
+            ->update([
+                'lb_ph_used' => DB::raw("GREATEST(lb_ph_used + ($delta), 0)"),
+                'lb_ph_remaining' => DB::raw("GREATEST(lb_initial_ph - (lb_ph_used + ($delta)), 0)"),
+                'updated_at' => now(),
+            ]);
     }
 
     /**
