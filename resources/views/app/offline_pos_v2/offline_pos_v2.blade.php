@@ -917,6 +917,7 @@
                     <input type="hidden" id="_mode" name="_mode" />
                     <input type="hidden" id="_id" name="_id" />
                     <div>
+{{--                        ini agak gila--}}
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipe Customer</label>
 {{--                        <select id="ct_id" name="ct_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>--}}
 {{--                            <option value="">- Pilih -</option>--}}
