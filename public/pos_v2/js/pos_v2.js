@@ -1532,7 +1532,7 @@ $(document).ready(function() {
         formData.append('_st_id', $('#st_id').val() || '');
         formData.append('_pt_id_complaint', $('#pt_id_complaint').val() || '');
         formData.append('_exchange', $('#exchange_flag').val() || '');
-        formData.append('cross_order', $('#cross_order').val() || '0');
+        formData.append('_cross', $('#cross_order').val() || '0');
         formData.append('_unique_code', $('#unique_code').val() || '0');
         formData.append('_real_price', $('#real_price').val().replace(/[^\d]/g, '') || '0');
         formData.append('_admin_cost', $('#admin_cost').val() || '0');
@@ -1560,8 +1560,8 @@ $(document).ready(function() {
         // Order items data
         const orderItemsData = orderItems.map((item, index) => {
             return {
-                pst_id: item.pstId,
-                pl_id: item.plId,
+                pst_id: item.id,
+                pl_id: item.pl_id,
                 quantity: item.quantity,
                 nameset: item.nameset || '',
                 marketplace: item.marketplace || '',
@@ -1598,8 +1598,8 @@ $(document).ready(function() {
                             detailFormData.append('_pt_id', result.pt_id);
                             detailFormData.append('_pt_id_complaint', $('#_pt_id_complaint').val() || '');
                             detailFormData.append('_exchange', $('#_exchange').val() || '');
-                            detailFormData.append('_pl_id', item.plId || '');
-                            detailFormData.append('_pst_id', item.pstId);
+                            detailFormData.append('_pl_id', item.pl_id || '');
+                            detailFormData.append('_pst_id', item.id || '');
                             detailFormData.append('_plst_id', '');
                             detailFormData.append('_price', item.price);
                             detailFormData.append('_item_qty', item.quantity);
