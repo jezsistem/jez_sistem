@@ -40,7 +40,7 @@ class PointOfSaleController extends Controller
     protected function validateAccess()
     {
         $segment = request()->segment(1);
-        
+
         // Allow V2 POS routes if user has access to point_of_sale
         $v2Variants = ['point_of_sale_v2', 'offline-pos_v2', 'offline_pos_v2'];
         if (in_array($segment, $v2Variants)) {
@@ -48,7 +48,7 @@ class PointOfSaleController extends Controller
         } else {
             $slugToCheck = $segment;
         }
-        
+
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')
             ->leftJoin('users', 'users.id', '=', 'user_menu_accesses.u_id')
@@ -260,7 +260,7 @@ class PointOfSaleController extends Controller
         if (empty($query) || strlen($query) < 2) {
             return response()->json([]);
         }
-        
+
         $exception = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
             ->get()
@@ -270,24 +270,24 @@ class PointOfSaleController extends Controller
         $type = $request->get('type', '');
         $std_id = $request->get('_std_id', ''); // Same as old version - use _std_id with underscore
         $st_id = $request->get('_st_id');
-        
+
         // Debug: Log request parameters
         \Log::info('Search Product V2 - Request params: query=' . $query . ', _std_id=' . $std_id . ', _st_id=' . $st_id . ', type=' . $type . ', user_id=' . Auth::id() . ', user_st_id=' . Auth::user()->st_id);
         $b1g1_id = null;
         $b1g1_price = null;
-        
+
         if (!empty($st_id)) {
             $st_id = $st_id;
         } else {
             $st_id = Auth::user()->st_id;
         }
-        
+
         if ($st_id != Auth::user()->st_id) {
             $cross = 'true';
         } else {
             $cross = 'false';
         }
-        
+
         $data = ProductStock::select('p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'products.psc_id', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'pls_qty', 'ps_qty', 'br_name', 'product_stocks.id as pst_id', 'products.p_image', 'products.article_id')
             ->join('products', 'products.id', '=', 'product_stocks.p_id')
             ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
@@ -302,12 +302,12 @@ class PointOfSaleController extends Controller
             ->groupBy('product_stocks.id')
             ->limit(20)
             ->get();
-        
+
         // Debug: Log query result
         \Log::info('Search Product V2 - Query result count: ' . $data->count() . ', st_id: ' . $st_id);
-        
+
         $results = [];
-        
+
         if (!empty($data)) {
             foreach ($data as $row) {
                 $check_setup = ProductLocationSetup::select('product_locations.id as pl_id', 'product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty')
@@ -317,19 +317,19 @@ class PointOfSaleController extends Controller
                     //                    ->where('pls_qty', '>', '0')
                     ->whereNotIn('pl_code', $exception)
                     ->get();
-                
+
                 $bin = '';
                 $bin_list = '';
                 $sell_price = 0;
                 $sell_price_discount = 0;
                 $bandrol = 0;
-                
+
                 if (!empty($row->ps_price_tag)) {
                     $bandrol = $row->ps_price_tag;
                 } else {
                     $bandrol = $row->p_price_tag;
                 }
-                
+
                 if ($type == 'RESELLER') {
                     if (!empty($row->ps_price_tag)) {
                         $sell_price = $row->ps_price_tag;
@@ -343,7 +343,7 @@ class PointOfSaleController extends Controller
                         $sell_price = $row->p_sell_price;
                     }
                 }
-                
+
                 $today = date('Y-m-d');
 
                 $set_discount = ProductDiscountDetail::select(
@@ -382,7 +382,7 @@ class PointOfSaleController extends Controller
                         }
                     }
                 }
-                
+
                 if (!empty($check_setup)) {
                     foreach ($check_setup as $brow) {
                         $bin .= '[' . strtoupper($brow->pl_code) . '] [' . $brow->pls_qty . '] ';
@@ -392,7 +392,7 @@ class PointOfSaleController extends Controller
                     $first_location = $check_setup->first();
                     $pl_id = $first_location ? $first_location->pl_id : null;
                 }
-                
+
                 // Only add product if it has bin (same as old version - line 1737: if ($bin != ''))
                 if ($bin != '') {
                     $disc_percent = 0;
@@ -403,12 +403,12 @@ class PointOfSaleController extends Controller
                     } elseif ($set_discount && $set_discount->pd_type == 'amount') {
                         $disc_rp = $set_discount->pd_value;
                     }
-                    
+
                     // Get product image path - use brand name for avatar
                     $productImage = '';
                     $brandName = $row->br_name ?? 'BRAND';
                     $productName = $row->p_name . ' ' . $row->p_color . ' ' . $row->sz_name;
-                    
+
                     if (!empty($row->p_image)) {
                         // Try different possible image paths
                         $imagePaths = [
@@ -417,7 +417,7 @@ class PointOfSaleController extends Controller
                             'upload/products/' . $row->p_image,
                             $row->p_image
                         ];
-                        
+
                         foreach ($imagePaths as $imagePath) {
                             if (file_exists(public_path($imagePath))) {
                                 $productImage = asset($imagePath);
@@ -425,12 +425,12 @@ class PointOfSaleController extends Controller
                             }
                         }
                     }
-                    
+
                     // If no image found, use brand name for UI Avatars
                     if (empty($productImage)) {
                         $productImage = 'https://ui-avatars.com/api/?name=' . urlencode($brandName) . '&background=F74040&color=fff&size=60';
                     }
-                    
+
                     $results[] = [
                         'id' => $row->pst_id,
                         'name' => $productName,
@@ -452,27 +452,27 @@ class PointOfSaleController extends Controller
                 }
             }
         }
-        
+
         // Debug: Log final results
         \Log::info('Search Product V2 - Final results count: ' . count($results) . ', Query: ' . $query . ', std_id: ' . $std_id);
-        
+
         return response()->json($results, 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
-    
+
     public function reloadLocationByPstId(Request $request)
     {
         $pst_id = $request->get('pst_id');
         $st_id = $request->get('st_id', Auth::user()->st_id);
-        
+
         if (empty($pst_id)) {
             return response()->json([]);
         }
-        
+
         $exception = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
             ->get()
             ->toArray();
-        
+
         $locations = ProductLocationSetup::select('product_locations.id as pl_id', 'product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty')
             ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->where('product_locations.st_id', '=', $st_id)
@@ -480,7 +480,7 @@ class PointOfSaleController extends Controller
             ->whereNotIn('pl_code', $exception)
             ->orderBy('pl_code')
             ->get();
-        
+
         $results = [];
         foreach ($locations as $loc) {
             $results[] = [
@@ -490,7 +490,7 @@ class PointOfSaleController extends Controller
                 'pls_qty' => $loc->pls_qty
             ];
         }
-        
+
         return response()->json($results);
     }
 
@@ -522,12 +522,12 @@ class PointOfSaleController extends Controller
             ->where('pos_transactions.st_id', $storeId)
             ->where('pos_transactions.created_at', '>=', $startTime)
             ->where('kasir_id', $user_id_login)
-            ->where(function($query) {
-            $query->where('pm_name', '!=', 'CASH')
-                  ->orWhere(function($subQuery) {
-                  $subQuery->where('pm_name', '=', 'CASH')
-                       ->whereNotNull('pm_id_partial');
-                  });
+            ->where(function ($query) {
+                $query->where('pm_name', '!=', 'CASH')
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('pm_name', '=', 'CASH')
+                            ->whereNotNull('pm_id_partial');
+                    });
             })
             ->groupBy('pm_name')
             ->get()
@@ -546,45 +546,45 @@ class PointOfSaleController extends Controller
             ->toArray();
 
         $cash = PosTransaction::select('pm_name', DB::raw('SUM(pos_real_price) as pos_payment'))
-        ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
-        ->where('pos_transactions.st_id', $storeId)
-        ->where('pos_transactions.created_at', '>=', $startTime)
-        ->where('kasir_id', $user_id_login)
-        ->where('pm_name', '=', 'CASH')
-        ->where('pm_id_partial', '=', null)
-        ->groupBy('pm_name')
-        ->get()
-        ->keyBy('pm_name')
-        ->toArray();
+            ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+            ->where('pos_transactions.st_id', $storeId)
+            ->where('pos_transactions.created_at', '>=', $startTime)
+            ->where('kasir_id', $user_id_login)
+            ->where('pm_name', '=', 'CASH')
+            ->where('pm_id_partial', '=', null)
+            ->groupBy('pm_name')
+            ->get()
+            ->keyBy('pm_name')
+            ->toArray();
 
         // Combine payments efficiently
         $combined = [];
         foreach ($main as $pmName => $mainPayment) {
             $combined[$pmName] = [
-            'pm_name' => $pmName,
-            'total_payment' => $mainPayment['pos_payment']
+                'pm_name' => $pmName,
+                'total_payment' => $mainPayment['pos_payment']
             ];
         }
 
         foreach ($partial as $pmName => $partialPayment) {
             if (isset($combined[$pmName])) {
-            $combined[$pmName]['total_payment'] += $partialPayment['pos_payment_partial'];
+                $combined[$pmName]['total_payment'] += $partialPayment['pos_payment_partial'];
             } else {
-            $combined[$pmName] = [
-                'pm_name' => $pmName,
-                'total_payment' => $partialPayment['pos_payment_partial']
-            ];
+                $combined[$pmName] = [
+                    'pm_name' => $pmName,
+                    'total_payment' => $partialPayment['pos_payment_partial']
+                ];
             }
         }
 
         foreach ($cash as $pmName => $cashPayment) {
             if (isset($combined[$pmName])) {
-            $combined[$pmName]['total_payment'] += $cashPayment['pos_payment'];
+                $combined[$pmName]['total_payment'] += $cashPayment['pos_payment'];
             } else {
-            $combined[$pmName] = [
-                'pm_name' => $pmName,
-                'total_payment' => $cashPayment['pos_payment']
-            ];
+                $combined[$pmName] = [
+                    'pm_name' => $pmName,
+                    'total_payment' => $cashPayment['pos_payment']
+                ];
             }
         }
 
@@ -1290,22 +1290,22 @@ class PointOfSaleController extends Controller
                 //     'status' => $response->status(),
                 //     'body' => $response->body()
                 // ]);
-//                try {
-//                    $response = Http::post('http://localhost:3000/send-message', [
-//                        'phone' => $nohp,
-//                        'message' => $pesan
-//                    ]);
-//
-//                    if ($response->successful()) {
-//                        \Log::info("WA berhasil dikirim ke $nohp");
-//                    } else {
-//                        \Log::error("Gagal kirim WA: " . $response->body());
-//                    }
-//                } catch (\Exception $e) {
-//                    \Log::error("Error kirim WhatsApp: " . $e->getMessage());
-//                }
+                //                try {
+                //                    $response = Http::post('http://localhost:3000/send-message', [
+                //                        'phone' => $nohp,
+                //                        'message' => $pesan
+                //                    ]);
+                //
+                //                    if ($response->successful()) {
+                //                        \Log::info("WA berhasil dikirim ke $nohp");
+                //                    } else {
+                //                        \Log::error("Gagal kirim WA: " . $response->body());
+                //                    }
+                //                } catch (\Exception $e) {
+                //                    \Log::error("Error kirim WhatsApp: " . $e->getMessage());
+                //                }
 
-// ---------------------------------------------
+                // ---------------------------------------------
 
                 $st_code = $store->st_code;
 
@@ -1373,7 +1373,7 @@ class PointOfSaleController extends Controller
                 $pos_td_discount_price = $item_qty * $price;
             }
         } else {
-            $pos_td_discount_price = $item_qty * $price ;
+            $pos_td_discount_price = $item_qty * $price;
         }
 
         $pos_td_description = ($count_b1g1 > 0) ? 'B1G1' : null;
@@ -1397,7 +1397,19 @@ class PointOfSaleController extends Controller
             'pos_td_item_price_tag' => $current_price->ps_price_tag,
             'created_at' => date('Y-m-d H:i:s')
         ]);
+
+        $current_products_information = DB::table('products')->where('id', '=', $current_price->p_id)->first();
+
         if (!empty($create)) {
+
+            PosTransactionDetailLogs::create([
+                'ptd_id'            => $create->id,
+                'ps_purchase_price' => $current_price->ps_purchase_price,
+                'ps_price_tag'      => $current_price->ps_price_tag,
+                'ps_sell_price'     => $pos_td_discount_price + $nameset_price,
+                'p_turnoverclass'   => $current_products_information->p_turnoverclass ?? null,
+                'created_at'        => now(),
+            ]);
             $sold = DB::table('products')->select('products.id as p_id', 'sold')
                 ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->where('product_stocks.id', '=', $pst_id)
@@ -2330,7 +2342,7 @@ class PointOfSaleController extends Controller
                             $sell_price = $row->p_sell_price;
                         }
                     }
-                    $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+                    $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                         ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                         ->where('pst_id', '=', $row->pst_id)
                         //                        ->where('std_id', '=', $std_id)
@@ -2341,7 +2353,7 @@ class PointOfSaleController extends Controller
                         ->orderByDesc('product_discount_details.created_at')
                         ->exists();
                     if ($set_discount_check) {
-                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                             ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                             ->where('pst_id', '=', $row->pst_id)
                             //                            ->where('std_id', '=', $std_id)
@@ -2351,7 +2363,7 @@ class PointOfSaleController extends Controller
                             ->orderByDesc('product_discount_details.created_at')
                             ->get()->first();
                     } else {
-                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                             ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                             ->where('pst_id', '=', $row->pst_id)
                             ->where('pd_date_start', '<=', date('Y-m-d'))
@@ -2361,7 +2373,7 @@ class PointOfSaleController extends Controller
                             ->where('pd_type', '!=', 'b1g1')
                             ->orderByDesc('product_discount_details.created_at')->get()->first();
                         if (empty($set_discount)) {
-                            $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+                            $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                                 ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                                 ->where('pst_id', '=', $row->pst_id)
                                 ->whereNull('product_discounts.st_id')
@@ -2375,7 +2387,7 @@ class PointOfSaleController extends Controller
                     if (!empty($set_discount)) {
                         // Ambil harga dasar
                         $price_tag = !empty($row->ps_price_tag) ? $row->ps_price_tag : $row->p_price_tag;
-                    
+
                         if ($set_discount->pd_type == 'percent') {
                             $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
                             $sell_price = $price_tag - $sell_price_discount;
@@ -2499,7 +2511,7 @@ class PointOfSaleController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
 
-        $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date_start','pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id', \DB::raw('COUNT(product_location_setup_transactions.id) as quantity'))
+        $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date_start', 'pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id', \DB::raw('COUNT(product_location_setup_transactions.id) as quantity'))
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -3550,7 +3562,7 @@ class PointOfSaleController extends Controller
                     $sell_price = $row->p_sell_price;
                 }
             }
-            $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+            $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                 ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                 ->where('pst_id', '=', $row->pst_id)
                 ->where('std_id', '=', $std_id)
@@ -3560,7 +3572,7 @@ class PointOfSaleController extends Controller
                 ->where('pd_date', '>=', date('Y-m-d'))
                 ->exists();
             if ($set_discount_check) {
-                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                     ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                     ->where('pst_id', '=', $row->pst_id)
                     ->where('std_id', '=', $std_id)
@@ -3569,7 +3581,7 @@ class PointOfSaleController extends Controller
                     ->where('product_discounts.st_id', '=', Auth::user()->st_id)->where('pd_type', '=', 'b1g1')
                     ->get()->first();
             } else {
-                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                     ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                     ->where('pst_id', '=', $row->pst_id)
                     ->where('pd_date_start', '<=', date('Y-m-d'))
@@ -3577,7 +3589,7 @@ class PointOfSaleController extends Controller
                     ->where('product_discounts.st_id', '=', Auth::user()->st_id)
                     ->where('std_id', '=', $std_id)->where('pd_type', '!=', 'b1g1')->get()->first();
                 if (empty($set_discount)) {
-                    $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
+                    $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start', 'pd_date')
                         ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                         ->where('pst_id', '=', $row->pst_id)
                         ->whereNull('product_discounts.st_id')
@@ -3587,20 +3599,20 @@ class PointOfSaleController extends Controller
                 }
             }
             if (!empty($set_discount)) {
-                    if (!empty($row->ps_price_tag)) {
-                        $price_tag = $row->ps_price_tag;
-                    } else {
-                        $price_tag = $row->p_price_tag;
-                    }
-                    if ($set_discount->pd_type == 'percent') {
-                        $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
-                    } else if ($set_discount->pd_type == 'amount') {
-                        $sell_price = $price_tag - $set_discount->pd_value;
-                    } else {
-                        $sell_price = $price_tag;
-                        $b1g1_id = $row->pst_id;
-                        $b1g1_price = $sell_price;
-                    }
+                if (!empty($row->ps_price_tag)) {
+                    $price_tag = $row->ps_price_tag;
+                } else {
+                    $price_tag = $row->p_price_tag;
+                }
+                if ($set_discount->pd_type == 'percent') {
+                    $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
+                } else if ($set_discount->pd_type == 'amount') {
+                    $sell_price = $price_tag - $set_discount->pd_value;
+                } else {
+                    $sell_price = $price_tag;
+                    $b1g1_id = $row->pst_id;
+                    $b1g1_price = $sell_price;
+                }
             }
             if (!empty($check_setup)) {
                 if ($item_type == 'waiting') {
@@ -3708,7 +3720,7 @@ class PointOfSaleController extends Controller
     public function searchTransactionForRetur(Request $request)
     {
         $search = $request->input('search');
-        
+
         if (empty($search) || strlen($search) < 5) {
             return response()->json([
                 'status' => 'error',
@@ -3733,14 +3745,14 @@ class PointOfSaleController extends Controller
                     'pos_transactions.std_id',
                     'customers.cust_name as customer_name'
                 )
-                ->where(function($query) use ($search) {
+                ->where(function ($query) use ($search) {
                     $query->where('pos_transactions.pos_invoice', 'like', '%' . $search . '%')
-                          ->orWhere('pos_transactions.pos_order_number', 'like', '%' . $search . '%');
+                        ->orWhere('pos_transactions.pos_order_number', 'like', '%' . $search . '%');
                 })
                 ->where('pos_transactions.st_id', Auth::user()->st_id) // Only from current store
-                ->where(function($query) {
+                ->where(function ($query) {
                     $query->where('pos_transactions.pos_refund', '!=', '1')
-                          ->orWhereNull('pos_transactions.pos_refund');
+                        ->orWhereNull('pos_transactions.pos_refund');
                 })
                 ->whereIn('pos_transactions.pos_status', ['DONE', 'WAITING FOR PACKING', 'WAITING ONLINE']) // Only completed transactions
                 ->orderBy('pos_transactions.created_at', 'desc')
@@ -3773,7 +3785,7 @@ class PointOfSaleController extends Controller
     public function getTransactionItemsForRetur(Request $request)
     {
         $ptId = $request->input('pt_id');
-        
+
         if (empty($ptId)) {
             return response()->json([
                 'status' => 'error',
@@ -3789,10 +3801,10 @@ class PointOfSaleController extends Controller
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->leftJoin('product_location_setup_transactions', function($join) {
+                ->leftJoin('product_location_setup_transactions', function ($join) {
                     $join->on('product_location_setup_transactions.pt_id', '=', 'pos_transaction_details.pt_id')
-                         ->on('product_location_setup_transactions.pst_id', '=', 'pos_transaction_details.pst_id')
-                         ->where('product_location_setup_transactions.plst_type', '=', 'OUT');
+                        ->on('product_location_setup_transactions.pst_id', '=', 'pos_transaction_details.pst_id')
+                        ->where('product_location_setup_transactions.plst_type', '=', 'OUT');
                 })
                 ->select(
                     'pos_transaction_details.id as ptd_id',
