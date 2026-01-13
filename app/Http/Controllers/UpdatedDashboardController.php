@@ -508,7 +508,69 @@ ORDER BY ts_stores.st_name
             $cross_nett_sales += $totalqty;
         }
 
+        // ================= Receipt =================        
+        $whereDate  = '';
+        $whereStore = '';
+        $bindings   = [];
 
+        // ================= DATE FILTER =================
+        if (!empty($start) && !empty($end)) {
+            // RANGE
+            $whereDate = " AND ts_pos_transactions.created_at BETWEEN ? AND ? ";
+            $bindings[] = $start . ' 00:00:00';
+            $bindings[] = $end   . ' 23:59:59';
+        } else {
+            // SINGLE DATE
+            $whereDate = " AND DATE(ts_pos_transactions.created_at) = ? ";
+            $bindings[] = $start;
+        }
+
+        // ================= STORE FILTER =================
+        if (!empty($st_id)) {
+            // pastikan array (kalau dari request bisa string / array)
+            if (!is_array($st_id)) {
+                $st_id = [$st_id];
+            }
+
+            $placeholders = implode(',', array_fill(0, count($st_id), '?'));
+            $whereStore = " AND ts_pos_transactions.st_id IN ($placeholders) ";
+
+            foreach ($st_id as $sid) {
+                $bindings[] = $sid;
+            }
+        }
+
+        // ================= QUERY =================
+        $receipt = "
+        SELECT
+        ts_stores.st_name AS Store,
+        COUNT(DISTINCT ts_pos_transactions.pos_invoice) AS Total_receipts
+        FROM ts_pos_transaction_details
+        LEFT JOIN ts_pos_transactions
+            ON ts_pos_transactions.id = ts_pos_transaction_details.pt_id
+        LEFT JOIN ts_stores
+            ON ts_pos_transactions.st_id = ts_stores.id
+        LEFT JOIN ts_product_stocks
+            ON ts_product_stocks.id = ts_pos_transaction_details.pst_id
+        LEFT JOIN ts_products
+            ON ts_products.id = ts_product_stocks.p_id
+        WHERE ts_pos_transactions.pos_status = 'DONE'
+        $whereDate
+        $whereStore
+        GROUP BY ts_stores.st_name
+        ORDER BY ts_stores.st_name;
+        ";
+
+        // ================= EXECUTE =================
+        $result = DB::select($receipt, $bindings);
+
+        // ================= HITUNG TOTAL =================
+        $cross_profit = 0;
+
+        foreach ($result as $row) {
+            $totalreceipt = $row->Total_receipts ?? 0;
+            $cross_profit += $totalreceipt;
+        }
 
         // ================= Purchases =================
         $where   = [];
