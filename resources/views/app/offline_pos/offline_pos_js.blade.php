@@ -2967,6 +2967,7 @@
             var final_total_admin = parseFloat(replaceComma(final_total)) + parseFloat(cost) -
                 parseFloat(admin) + parseFloat(unique) + parseFloat(shipping_cost);
             jQuery('#payment_total').text(addCommas(final_total_admin));
+            jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
         });
 
         jQuery('#admin_cost').on('change', function() {
