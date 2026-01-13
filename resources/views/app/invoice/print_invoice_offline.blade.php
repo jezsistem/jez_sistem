@@ -392,9 +392,9 @@
                                         @if (!empty($row->pos_payment))
                                             {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }} --}}
                                             @if (!empty($discount_invoice))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - ($total_price + $nameset - $discount_invoice)) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - $row->pos_another_cost - ($total_price + $nameset - $discount_invoice)) }}
                                             @else
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - ($total_final + $nameset)) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - $row->pos_another_cost - ($total_final + $nameset)) }}
                                             @endif
                                         @else
                                             0
