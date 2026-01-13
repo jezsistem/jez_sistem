@@ -1551,6 +1551,8 @@
         </div>
     </div>
 
+        @include('app.offline_pos_v2.offline_pos_v2_js')
+
     <!-- jQuery (CDN with local fallback) -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>    
     <!-- DataTables -->
