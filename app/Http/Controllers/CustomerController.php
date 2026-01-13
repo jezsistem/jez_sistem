@@ -642,8 +642,23 @@ class CustomerController extends Controller
             } else {
                 $this->UserActivity('mengubah data customer ' . strtoupper($request->input('cust_name')) . ' ' . $request->input('cust_phone'));
             }
+
+            //get new data
+            $data = Customer::where('id', $save)->get()->first();
+
+            if ($data->cust_active == '1') {
+                $cust_active = 'ACTIVE';
+            } else {
+                $cust_active = 'INACTIVE';
+            }
+
+            $cust_type = strtoupper('GOLD') . '-' . strtoupper($cust_active);
+
+            $data->cust_type = $cust_type;
+
             $r['status'] = '200';
             $r['new_id'] = $save;
+            $r['data'] = $data;
         } else {
             $r['status'] = '400';
             $r['data'] = $data;
@@ -692,7 +707,7 @@ class CustomerController extends Controller
             $r['cust_subdistrict'] = $cust->cust_subdistrict;
             $r['cust_address'] = $cust->cust_address;
             $r['cust_token_active'] = $cust->cust_token_active;
-            
+
             // Get customer type name
             if (!empty($cust->ct_id)) {
                 $customerType = DB::table('customer_types')->select('ct_name')->where('id', $cust->ct_id)->first();
@@ -700,7 +715,7 @@ class CustomerController extends Controller
             } else {
                 $r['ct_name'] = 'Customer';
             }
-            
+
             // Convert province/city/subdistrict code to name (sesuai POS lama)
             if (!empty($cust->cust_province)) {
                 $province = DB::table('wilayah')->select('nama')->where('kode', $cust->cust_province)->get()->first();
@@ -708,21 +723,21 @@ class CustomerController extends Controller
             } else {
                 $r['cust_province_name'] = '-';
             }
-            
+
             if (!empty($cust->cust_city)) {
                 $city = DB::table('wilayah')->select('nama')->where('kode', $cust->cust_city)->get()->first();
                 $r['cust_city_name'] = $city ? $city->nama : $cust->cust_city;
             } else {
                 $r['cust_city_name'] = '-';
             }
-            
+
             if (!empty($cust->cust_subdistrict)) {
                 $subdistrict = DB::table('wilayah')->select('nama')->where('kode', $cust->cust_subdistrict)->get()->first();
                 $r['cust_subdistrict_name'] = $subdistrict ? $subdistrict->nama : $cust->cust_subdistrict;
             } else {
                 $r['cust_subdistrict_name'] = '-';
             }
-            
+
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -810,7 +825,7 @@ class CustomerController extends Controller
             $data = Customer::select('customers.id as cust_id', 'cust_name', 'cust_phone', 'ct_name')
                 ->leftJoin('customer_types', 'customer_types.id', '=', 'customers.ct_id')
                 ->whereRaw('CONCAT(cust_name," ", ct_name) LIKE ?', "%$query%")
-//                ->whereRaw('CONCAT(cust_phone," ", ct_phone) LIKE ?', "%$query%")
+                //                ->whereRaw('CONCAT(cust_phone," ", ct_phone) LIKE ?', "%$query%")
                 ->orWhereRaw('CONCAT(cust_phone) LIKE ?', "%$query%")
                 ->limit(10)
                 ->get();
@@ -818,9 +833,9 @@ class CustomerController extends Controller
             $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
             if ($data->isNotEmpty()) {
                 foreach ($data as $row) {
-//                    $customer = Customer::find($row->cust_id);
-//
-//                    if
+                    //                    $customer = Customer::find($row->cust_id);
+                    //
+                    //                    if
 
                     if ($row->cust_token_active = 1) {
                         $cust_active = 'Active';
@@ -834,7 +849,7 @@ class CustomerController extends Controller
                       ';
                     } else {
                         $output .= '
-                      <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->cust_id . '" id="add_to_item_list_sub_cust">'. $cust_name .'</a></li>
+                      <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->cust_id . '" id="add_to_item_list_sub_cust">' . $cust_name . '</a></li>
                       ';
                     }
                 }
@@ -898,9 +913,11 @@ class CustomerController extends Controller
             ->groupBy('wilayah.nama')
             ->get();
 
-        $date_item = DB::table('customers')->select("id",
+        $date_item = DB::table('customers')->select(
+            "id",
             DB::raw("(count(id)) as total"),
-            DB::raw("(DATE_FORMAT(created_at, '%d-%m-%Y')) as date"))
+            DB::raw("(DATE_FORMAT(created_at, '%d-%m-%Y')) as date")
+        )
             ->where(function ($w) use ($stt_id, $ct_id, $start, $end) {
                 if (!empty($stt_id)) {
                     $w->where('customers.stt_id', '=', $stt_id);

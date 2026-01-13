@@ -241,7 +241,7 @@
                                             <i class="cft-standard-stroke cft-user text-gray-500 text-sm"></i>
                                         </div>
                                         <input type="text" id="customer-search" placeholder="Search Customer (min 4 chars)" autocomplete="off" class="block w-full p-3 ps-9 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"/>
-                                        <div id="customer-autocomplete" class="absolute z-50 w-full min-w-25vw mt-1 bg-white border border-gray-200 rounded-lg shadow-sm max-h-60 overflow-y-auto hidden"></div>
+                                        <div id="customer-autocomplete" class="absolute z-50 w-fit min-w-[20vw] mt-1 bg-white border border-gray-200 rounded-lg shadow-sm max-h-60 overflow-y-auto hidden"></div>
                                     </div>
                                     <button data-tooltip-target="tooltip-addcustomer" data-tooltip-style="light" class="px-3.5 py-2 bg-red-500 text-white border border-red-500 rounded-lg hover:bg-red-600 transition-colors" type="button" id="add-customer-btn" data-modal-target="modal-customer" data-modal-toggle="modal-customer">
                                         <i class="cft-standard-stroke cft-user-add text-white"></i>
@@ -520,7 +520,7 @@
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Customer Details</h3>
-                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-customer-detail">
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white close_customer_modal_btn" data-modal-hide="modal-customer-detail">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
@@ -572,9 +572,9 @@
                             <div class="text-sm text-gray-700 dark:text-gray-300" id="detail-cust_address">-</div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-end">
+                    {{-- <div class="flex items-center justify-end">
                         <button type="button" data-modal-hide="modal-customer-detail" class="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">Tutup</button>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
@@ -630,7 +630,7 @@
                 <form id="f_customer" class="p-4 md:p-5">
                     <input type="hidden" id="_mode" name="_mode" value="add">
                     <input type="hidden" id="_id" name="_id" value="">
-                    <div class="grid gap-4 mb-4 grid-cols-2">
+                    <div class="grid gap-4 mb-4 grid-cols-1">
                         <div class="col-span-1">
                             <label for="ct_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipe Customer *</label>
                             <select id="ct_id" name="ct_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
@@ -645,41 +645,8 @@
                             <input type="text" id="cust_name" name="cust_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Nama" required>
                         </div>
                         <div class="col-span-1">
-                            <label for="cust_store" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Toko</label>
-                            <input type="text" id="cust_store" name="cust_store" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Isi jika dropshipper">
-                        </div>
-                        <div class="col-span-1">
-                            <label for="cust_phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">No Telp</label>
+                            <label for="cust_phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">No HP *</label>
                             <input type="text" id="cust_phone" name="cust_phone" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="No HP">
-                        </div>
-                        <div class="col-span-1">
-                            <label for="cust_email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
-                            <input type="email" id="cust_email" name="cust_email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Email">
-                        </div>
-                        <div class="col-span-1">
-                            <label for="cust_province" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Provinsi *</label>
-                            <select id="cust_province" name="cust_province" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
-                                <option value="">- Pilih -</option>
-                                @foreach ($data['cust_province'] as $key => $value)
-                                    <option value="{{ $key }}">{{ $value }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-span-1">
-                            <label for="cust_city" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Kota *</label>
-                            <select id="cust_city" name="cust_city" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
-                                <option value="">- Pilih -</option>
-                            </select>
-                        </div>
-                        <div class="col-span-1">
-                            <label for="cust_subdistrict" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Kecamatan *</label>
-                            <select id="cust_subdistrict" name="cust_subdistrict" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" required>
-                                <option value="">- Pilih -</option>
-                            </select>
-                        </div>
-                        <div class="col-span-1">
-                            <label for="cust_address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat</label>
-                            <textarea id="cust_address" name="cust_address" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" placeholder="Alamat"></textarea>
                         </div>
                     </div>
                     <div class="flex items-center justify-end">
