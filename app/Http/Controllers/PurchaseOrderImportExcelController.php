@@ -104,6 +104,7 @@ class PurchaseOrderImportExcelController extends Controller
                 $check_poa = PurchaseOrderArticle::where([
                     'po_id' => $poid,
                     'p_id' => $value['p_id'],
+                    'poa_discount' => $value['disc'],
                 ])->exists();
                 if (!$check_poa) {
                     $poa_id = DB::table('purchase_order_articles')->insertGetId([
