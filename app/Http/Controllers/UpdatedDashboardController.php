@@ -662,75 +662,121 @@ WHERE
             }
         }
 
-        $cassets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereNotIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->where('stkt_id', '=', '2')
-            ->groupBy('product_location_setups.id')
-            ->get();
-        if (!empty($cassets->first())) {
-            foreach ($cassets as $row) {
-                $pp = 0;
-                if (!empty($row->purchase)) {
-                    $pp = round($row->purchase);
-                } else {
-                    if (!empty($row->ps_purchase_price)) {
-                        $pp = $row->ps_purchase_price;
-                    } else {
-                        $pp = $row->p_purchase_price;
-                    }
-                }
-                $c_assets += ($row->pls_qty * $pp);
+
+        // ================= Assets =================
+        $bindings = [];
+        $whereStore = '';
+
+        if (!empty($st_id)) {
+            if (!is_array($st_id)) {
+                $st_id = [$st_id];
+            }
+
+            $placeholders = implode(',', array_fill(0, count($st_id), '?'));
+            $whereStore = " AND ts.id IN ($placeholders) ";
+
+            foreach ($st_id as $sid) {
+                $bindings[] = $sid;
             }
         }
 
-        $ccexcassets = DB::table('product_location_setups')
-            ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->whereIn('pl_code', $exception)
-            ->where(function ($w) use ($st_id) {
-                if (!empty($st_id)) {
-                    $w->whereIn('product_locations.st_id', $st_id);
-                } else {
-                    $w->where('product_locations.st_id', '!=', '4');
-                }
-            })
-            ->where('product_location_setups.pls_qty', '>', '0')
-            ->whereIn('stkt_id', ['1', '3'])
-            ->groupBy('product_location_setups.id')
-            ->get();
-        if (!empty($ccexcassets->first())) {
-            foreach ($ccexcassets as $row) {
-                $pp = 0;
-                if (!empty($row->purchase)) {
-                    $pp = round($row->purchase);
-                } else {
-                    if (!empty($row->ps_purchase_price)) {
-                        $pp = $row->ps_purchase_price;
-                    } else {
-                        $pp = $row->p_purchase_price;
-                    }
-                }
-                $cc_exc_assets += ($row->pls_qty * $pp);
+        $cassetsSql = "
+    SELECT
+        ts.id   AS st_id,
+        ts.st_name,
+        ROUND(
+            SUM(tpls.pls_qty * tps.ps_purchase_price),
+            0
+        ) AS total
+    FROM ts_products tp
+    LEFT JOIN ts_product_stocks tps
+        ON tp.id = tps.p_id
+    LEFT JOIN ts_product_location_setups tpls
+        ON tpls.pst_id = tps.id
+    LEFT JOIN ts_product_locations tpl
+        ON tpl.id = tpls.pl_id
+    LEFT JOIN ts_stores ts
+        ON ts.id = tpl.st_id
+    WHERE tp.pc_id <> 11
+    $whereStore
+    GROUP BY ts.id, ts.st_name
+";
+
+        $result = DB::select($cassetsSql, $bindings);
+
+        /* ================= GRAND TOTAL ================= */
+        $c_assets = 0;
+        foreach ($result as $row) {
+            $c_assets += $row->total;
+        }
+
+
+
+        // === NORMALISASI KHUSUS TARGET (YYYY-MM) ===
+        $targetStart = !empty($start) ? substr($start, 0, 7) : null;
+        $targetEnd   = !empty($end)   ? substr($end, 0, 7)   : null;
+
+
+        $bindings   = [];
+        $whereStore = '';
+        $whereDate  = [];
+
+        // ================= STORE FILTER (DULU) =================
+        if (!empty($st_id)) {
+            $st_id = is_array($st_id) ? $st_id : [$st_id];
+            $whereStore = " AND ts.id IN (" . implode(',', array_fill(0, count($st_id), '?')) . ")";
+        }
+
+        // ================= PERIOD FILTER =================
+        if (!empty($targetStart)) {
+            if (!empty($targetEnd)) {
+                $whereDate[] = "tt.tr_date BETWEEN ? AND ?";
+            } else {
+                $whereDate[] = "tt.tr_date = ?";
             }
         }
+
+        // ================= WHERE DATE STRING =================
+        $whereDateSql = !empty($whereDate)
+            ? ' AND ' . implode(' AND ', $whereDate)
+            : '';
+
+        // ================= QUERY =================
+        $sql = "
+    SELECT 
+        ts.st_name,
+        SUM(tsst.sstr_amount) AS total
+    FROM ts_targets tt
+    LEFT JOIN ts_sub_targets tst ON tt.id = tst.tr_id
+    LEFT JOIN ts_sub_sub_targets tsst ON tst.id = tsst.str_id
+    LEFT JOIN ts_stores ts ON tst.st_id = ts.id
+    WHERE 1=1
+    $whereStore
+    $whereDateSql
+    GROUP BY ts.st_name
+";
+
+        // ================= BINDINGS (URUT SESUAI SQL) =================
+        if (!empty($st_id)) {
+            $bindings = array_merge($bindings, $st_id);
+        }
+
+        if (!empty($targetStart)) {
+            if (!empty($targetEnd)) {
+                $bindings[] = $targetStart;
+                $bindings[] = $targetEnd;
+            } else {
+                $bindings[] = $targetStart;
+            }
+        }
+
+        $result = DB::select($sql, $bindings);
+
+
+        /* ================= GRAND TOTAL ================= */
+        $cc_exc_assets = collect($result)->sum('total');
+
+
 
         $cexcassets = DB::table('product_location_setups')
             ->selectRaw("ts_product_location_setups.pls_qty as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, ps_purchase_price, p_purchase_price, stkt_id, pl_code")

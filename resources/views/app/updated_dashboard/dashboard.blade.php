@@ -290,7 +290,7 @@
                                 <!--end::Number-->
                                 <!--begin::Follower-->
                                 <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">C Assets</span>
+                                    <span class="fw-semibold fs-7 text-gray-400">Value Inventory</span>
                                 </div>
                                 <!--end::Follower-->
                             </div>
@@ -383,7 +383,7 @@
                                 <!--end::Number-->
                                 <!--begin::Follower-->
                                 <div class="m-0">
-                                    <span class="fw-semibold fs-7 text-gray-400">CC Exception Assets</span>
+                                    <span class="fw-semibold fs-7 text-gray-400">Target Sales</span>
                                 </div>
                                 <!--end::Follower-->
                             </div>
