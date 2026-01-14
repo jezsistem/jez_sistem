@@ -1464,9 +1464,9 @@ class PointOfSaleController extends Controller
 
             PosTransactionDetailLogs::create([
                 'ptd_id'            => $create->id,
-                'ps_purchase_price' => $current_price->ps_purchase_price,
-                'ps_price_tag'      => $current_price->ps_price_tag,
-                'ps_sell_price'     => $pos_td_discount_price + $nameset_price,
+                'ps_purchase_price' => $current_products_information->p_purchase_price,
+                'ps_price_tag'      => $current_products_information->p_price_tag,
+                'ps_sell_price'     => $current_products_information->p_sell_price,
                 'p_turnoverclass'   => $current_products_information->p_turnoverclass ?? null,
                 'created_at'        => now(),
             ]);

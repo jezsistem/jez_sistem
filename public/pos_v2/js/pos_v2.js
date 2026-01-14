@@ -776,6 +776,27 @@ $(document).ready(function () {
         });
     };
 
+    window.updatePriceTag = function (index, value) {
+        if (!orderItems[index]) return;
+
+        const newPrice = parseFloat(value) || 0;
+
+        if (newPrice < 0) {
+            showToast('Harga tidak boleh minus', 'warning');
+            $(`#price_tag${index}`).val(orderItems[index].price || 0);
+            return false;
+        }
+
+        orderItems[index].price = newPrice;
+
+        // Update subtotal item di table
+        updateItemSubtotal(index);
+
+        updateOrderDisplay();
+        updateSummary();
+        updateProductTable();
+    }
+
     function updateProductTable() {
         $('#product-tbody').empty();
         orderItems.forEach((item, index) => {
@@ -854,7 +875,9 @@ $(document).ready(function () {
                     <td class="px-4 py-3 text-center">
                         <input type="number" id="marketplace_price${index}" class="w-16 text-center text-sm border border-gray-300 rounded-lg px-2 py-1.5 ${inputBgClass} ${textClass} focus:ring-red-400 focus:border-red-400 marketplace-price-input" value="${item.marketplace || 0}" min="0" onchange="updateMarketplace(${index}, this.value)" disabled>
                     </td>
-                    <td class="px-4 py-3 text-right text-sm w-28"><strong class="${textClass}">Rp. ${formatNumber(item.price)}</strong></td>
+                    <td class="px-4 py-3 text-center">
+                        <input type="number" id="price_tag${index}" class="w-24 text-center text-sm border border-gray-300 rounded-lg px-2 py-1.5 ${inputBgClass} ${textClass} focus:ring-red-400 focus:border-red-400" value="${item.price || 0}" min="0" onchange="updatePriceTag(${index}, this.value)" ${disabledAttr}>
+                    </td>
                     <td class="px-4 py-3 text-right text-sm w-28"><strong class="text-red-600 font-bold" id="subtotal_item${index}">${displaySubtotal}</strong></td>
                     <td class="px-4 py-3 text-center">
                         <button type="button" onclick="deleteTableItem(${index})" class="w-8 h-8 flex items-center bg-red-50 justify-center text-red-500 hover:text-red-800 hover:bg-red-100 rounded transition-colors" title="Hapus">
