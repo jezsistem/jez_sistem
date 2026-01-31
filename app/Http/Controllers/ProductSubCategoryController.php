@@ -15,10 +15,15 @@ class ProductSubCategoryController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        
+        // Handle V2 routes - remove _v2 suffix for validation
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slugToCheck
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -71,7 +76,46 @@ class ProductSubCategoryController extends Controller
             'segment' => request()->segment(1),
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
         ];
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => $segment,
+            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+        ];
         return view('app.product_sub_category.product_sub_category', compact('data'));
+    }
+
+    /**
+     * Display product sub category management page (V2 - New Layout)
+     */
+    public function indexV2() 
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => $segment,
+            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+        ];
+        return view('app.updated_sub_kategori_produk.sub_kategori_produk', compact('data'));
     }
 
     public function getDatatables(Request $request)

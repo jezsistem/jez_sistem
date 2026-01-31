@@ -35,10 +35,15 @@ class ProductController extends Controller
 
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        
+        // Handle V2 routes - remove _v2 suffix for validation
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -127,7 +132,78 @@ class ProductController extends Controller
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id')
         ];
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => $segment,
+            'total_product' => Product::where('p_delete', '!=', '1')->get()->count(),
+            'total_footwear' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '1')->get()->count(),
+            'total_apparel' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '2')->get()->count(),
+            'total_accessories' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '3')->get()->count(),
+            'total_others' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '4')->get()->count(),
+            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderBy('br_name', 'asc')->pluck('br_name', 'id'),
+            'pu_id' => ProductUnit::where('pu_delete', '!=', '1')->orderByDesc('id')->pluck('pu_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderBy('mc_name', 'asc')->pluck('mc_name', 'id'),
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderBy('ps_name', 'asc')->pluck('ps_name', 'id'),
+            'gn_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
+            'p_name' => Product::where('p_delete', '!=', '1')->orderByDesc('id')->pluck('p_name', 'id'),
+            'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id')
+        ];
         return view('app.product.product', compact('data'));
+    }
+
+    /**
+     * Display product management page (V2 - New Layout)
+     */
+    public function indexV2() 
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => $segment,
+            'total_product' => Product::where('p_delete', '!=', '1')->get()->count(),
+            'total_footwear' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '1')->get()->count(),
+            'total_apparel' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '2')->get()->count(),
+            'total_accessories' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '3')->get()->count(),
+            'total_others' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '4')->get()->count(),
+            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderBy('br_name', 'asc')->pluck('br_name', 'id'),
+            'pu_id' => ProductUnit::where('pu_delete', '!=', '1')->orderByDesc('id')->pluck('pu_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderBy('mc_name', 'asc')->pluck('mc_name', 'id'),
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderBy('ps_name', 'asc')->pluck('ps_name', 'id'),
+            'gn_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
+            'p_name' => Product::where('p_delete', '!=', '1')->orderByDesc('id')->pluck('p_name', 'id'),
+            'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id')
+        ];
+        return view('app.updated_data_produk.data_produk', compact('data'));
     }
 
     public function updateFlag(Request $request, $id)

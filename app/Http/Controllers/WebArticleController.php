@@ -17,12 +17,13 @@ use File;
 
 class WebArticleController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -76,6 +77,138 @@ class WebArticleController extends Controller
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
         ];
         return view('app.web_article.web_article', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('web_artikel');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'web_artikel')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+        ];
+        return view('app.updated_web_article.web_article', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $pc_id = $request->get('pc_id', '');
+            $img_filter = $request->get('img_filter', '');
+
+            $exception = ExceptionLocation::select('pl_code')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
+                ->get()
+                ->pluck('pl_code')
+                ->toArray();
+
+            $ecommerce_url = DB::table('web_configs')->select('config_value')
+                ->where('config_name', 'ecommerce_url')->first()->config_value ?? '';
+
+            $query = Product::selectRaw('ts_products.id as pid, article_id, br_name, p_name, p_color, p_main_image, p_image, p_size_chart, p_slug, p_description, p_video, p_weight, sum(ts_product_location_setups.pls_qty) as stok')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->where('p_delete', '!=', '1')
+                ->whereNotIn('product_locations.pl_code', $exception)
+                ->groupBy('products.id');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereRaw('CONCAT(article_id," ",br_name," ", p_name," ", p_color) LIKE ?', "%$search%")
+                      ->orWhere('article_id', 'LIKE', "%$search%");
+                });
+            }
+
+            if (!empty($pc_id)) {
+                $query->where('pc_id', '=', $pc_id);
+            }
+
+            if ($img_filter !== '') {
+                if ($img_filter == '1') {
+                    $query->whereNotNull('products.p_main_image');
+                } else if ($img_filter == '0') {
+                    $query->whereNull('products.p_main_image');
+                }
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('products.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                // Description status
+                $hasDescription = !empty($row->p_description);
+                $hasVideo = !empty($row->p_video);
+                if ($hasDescription && $hasVideo) {
+                    $descClass = 'bg-blue-100 text-blue-800';
+                } else if ($hasDescription && !$hasVideo) {
+                    $descClass = 'bg-yellow-100 text-yellow-800';
+                } else {
+                    $descClass = 'bg-red-100 text-red-800';
+                }
+
+                $data[] = [
+                    'no' => $no++,
+                    'pid' => $row->pid,
+                    'article_id' => $row->article_id ?? '-',
+                    'br_name' => $row->br_name ?? '-',
+                    'p_name' => $row->p_name ?? '-',
+                    'p_color' => $row->p_color ?? '-',
+                    'p_weight' => $row->p_weight ?? 0,
+                    'p_main_image' => $row->p_main_image,
+                    'p_main_image_url' => $row->p_main_image ? asset('api/product/300') . '/' . $row->p_main_image : asset('api/noimage.png'),
+                    'p_size_chart' => $row->p_size_chart,
+                    'p_size_chart_url' => $row->p_size_chart ? asset('api/product/size_chart') . '/' . $row->p_size_chart : asset('api/noimage.png'),
+                    'p_slug' => $row->p_slug ?? '',
+                    'p_description' => $row->p_description ?? '',
+                    'p_video' => $row->p_video ?? '',
+                    'p_description_class' => $descClass,
+                    'stok' => $row->stok ?? 0,
+                    'p_slug_base' => strtolower(str_replace('/', '-', str_replace(' ', '-', ($row->br_name ?? '')))) . '-' . strtolower(str_replace('/', '-', str_replace(' ', '-', ($row->p_name ?? '')))) . '-' . strtolower(str_replace('/', '-', str_replace(' ', '-', ($row->p_color ?? '')))),
+                    'product_name' => ($row->br_name ?? '') . ' ' . ($row->p_name ?? '') . ' ' . ($row->p_color ?? ''),
+                    'ecommerce_url' => $ecommerce_url,
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage,
+                'ecommerce_url' => $ecommerce_url
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

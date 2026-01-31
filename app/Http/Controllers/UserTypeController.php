@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserType;
+use App\Models\User;
+use App\Models\WebConfig;
+use Illuminate\Support\Facades\Auth;
 
 class UserTypeController extends Controller
 {
@@ -297,6 +300,86 @@ class UserTypeController extends Controller
                 })
                 ->rawColumns(['ut_status', 'action'])
                 ->make(true);
+        }
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value ?? 'User Types';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'user-types')->first()->ma_title ?? 'User Types',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_user_type.user_type', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = DB::table('user_types')
+                ->select([
+                    'id',
+                    'ut_code',
+                    'ut_name',
+                    'ut_description',
+                    'ut_status'
+                ])
+                ->where('ut_status', '!=', 'deleted');
+
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('ut_code', 'LIKE', "%$search%")
+                      ->orWhere('ut_name', 'LIKE', "%$search%")
+                      ->orWhere('ut_description', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    $row->ut_status_display = $row->ut_status == 'active' 
+                        ? '<span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Active</span>'
+                        : '<span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactive</span>';
+                    $row->action = '<div class="flex gap-2 justify-center">
+                        <button type="button" class="btn-detail px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" data-id="' . $row->id . '">Detail</button>
+                        <button type="button" class="delete-user-type-btn px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-700" data-id="' . $row->id . '">Hapus</button>
+                    </div>';
+                    return $row;
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row->DT_RowIndex = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to load data: ' . $e->getMessage()], 500);
         }
     }
 }

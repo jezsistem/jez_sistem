@@ -42,7 +42,7 @@ class OnlineReportExport implements FromCollection, WithHeadings
             ->join('products', 'product_stocks.p_id', '=', 'products.id')
             ->select(
                 'stores.st_name',
-                'online_transaction_details.order_number',
+                'online_transactions.order_number', // use order number from parent table
                 'online_transactions.no_resi',
                 'online_transactions.platform_name',
                 'online_transaction_details.sku',
@@ -62,6 +62,9 @@ class OnlineReportExport implements FromCollection, WithHeadings
         // Apply Date Range Filter
         if ($this->start && $this->end) {
             $query->whereBetween('online_transactions.time_print', [$this->start, $this->end]);
+        } elseif ($this->start) {
+            // fallback: single date filter if only start provided
+            $query->whereDate('online_transactions.time_print', $this->start);
         }
 
         // Apply Platform Filter
@@ -75,7 +78,7 @@ class OnlineReportExport implements FromCollection, WithHeadings
         }
 
         // Apply Status Filter
-        if ($this->status !== null && $this->status != '2') {
+        if ($this->status !== null && $this->status !== '' && $this->status != '2') {
             $query->where('online_transactions.online_print', $this->status);
         }
 

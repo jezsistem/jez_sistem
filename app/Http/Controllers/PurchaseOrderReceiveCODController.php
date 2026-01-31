@@ -17,10 +17,13 @@ class PurchaseOrderReceiveCODController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // handle _v2 routes
         $validate = DB::table('user_menu_accesses')
-            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')
+            ->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -76,6 +79,31 @@ class PurchaseOrderReceiveCODController extends Controller
             'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
         ];
         return view('app.purchase_order_receive_cod.purchase_order_receive_cod', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User();
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $segmentSlug = str_replace('_v2', '', request()->segment(1));
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $segmentSlug)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'segment' => request()->segment(1),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
+        ];
+        return view('app.updated_purchase_order_receive_cod.purchase_order_receive_cod', compact('data'));
     }
 
     public function getDatatables(Request $request)
@@ -356,5 +384,147 @@ class PurchaseOrderReceiveCODController extends Controller
 
         $response = ['status' => $delete ? '200' : '400'];
         return response()->json($response);
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $search = $request->get('search');
+            $date = $request->get('date');
+
+            $query = DB::table('purchase_order_article_detail_statuses')
+                ->selectRaw("
+                    MAX(ts_purchase_order_article_detail_statuses.id) as id,
+                    MAX(st_name) as st_name,
+                    MAX(po_invoice) as po_invoice,
+                    poads_invoice,
+                    MAX(invoice_date) as invoice_date,
+                    MAX(ts_purchase_order_article_detail_statuses.created_at) as created_at,
+                    MAX(u_name) as u_name,
+                    MAX(u_id_approve) as u_id_approve,
+                    MAX(ts_purchase_order_article_detail_statuses.received_date) as received_date,
+                    SUM(ts_purchase_order_article_detail_statuses.poads_qty) as qty,
+                    MAX(acc_id) as acc_id,
+                    MAX(is_paid) as is_paid,
+                    MAX(ts_stores.id) as st_id,
+                    MAX(ts_purchase_orders.id) as po_id,
+                    MAX(ts_purchase_orders.bank_general) as bank_general,
+                    MAX(ps_name) as ps_name,
+                    MAX(po_description) as po_description,
+                    MAX(po_shipping_cost) as po_shipping_cost,
+                    MAX(pay_date) as pay_date,
+                    MAX(due_date) as due_date,
+                    MAX(ts_purchase_orders.stkt_id) as stkt_id,
+                    MAX(ts_purchase_orders.tax_id) as tax_id,
+                    MAX(ts_stock_types.stkt_name) as stkt_name,
+                    MAX(ts_taxes.tx_name) as tx_name
+                ")
+                ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id')
+                ->leftJoin('taxes', 'taxes.id', '=', 'purchase_orders.tax_id')
+                ->whereNotNull('purchase_order_article_detail_statuses.poads_invoice')
+                ->where('purchase_orders.acc_id', 93)
+                ->where('purchase_order_article_detail_statuses.is_paid', 0)
+                ->groupBy('purchase_order_article_detail_statuses.poads_invoice');
+
+            // Search filter
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('purchase_orders.po_invoice', 'LIKE', "%$search%")
+                        ->orWhere('stores.st_name', 'LIKE', "%$search%")
+                        ->orWhere('product_suppliers.ps_name', 'LIKE', "%$search%")
+                        ->orWhere('purchase_order_article_detail_statuses.poads_invoice', 'LIKE', "%$search%");
+                });
+            }
+
+            // Date filter
+            if (!empty($date)) {
+                $dateParts = explode('|', $date);
+                if (count($dateParts) == 2) {
+                    $query->whereBetween('purchase_order_article_detail_statuses.created_at', [$dateParts[0], $dateParts[1]]);
+                } elseif (count($dateParts) == 1) {
+                    $query->whereDate('purchase_order_article_detail_statuses.created_at', $dateParts[0]);
+                }
+            }
+
+            // Get total count before pagination
+            $baseQuery = clone $query;
+            $totalRecords = $baseQuery->get()->count();
+
+            // Pagination parameters
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $offset = ($page - 1) * $perPage;
+
+            // Apply pagination
+            $data = $query->orderByRaw('MAX(ts_purchase_order_article_detail_statuses.id) DESC')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get()
+                ->map(function ($item, $index) use ($offset) {
+                    // Check if invoice image COD exists
+                    $check_invoice_cod = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $item->po_id)
+                        ->where('invoice_image', 'LIKE', '%COD%')
+                        ->count();
+
+                    // Format u_receive status
+                    $u_receive = '';
+                    if (!empty($item->u_id_approve) && $item->acc_id == 93 && $item->is_paid == 0 && $check_invoice_cod > 0) {
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Diterima, Sudah Dibayar</span>';
+                    } elseif (!empty($item->u_id_approve) && $item->acc_id == 93 && $item->is_paid == 0) {
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Diterima, Belum Dibayar</span>';
+                    } elseif (!empty($item->u_id_approve)) {
+                        $name = DB::table('users')->where('id', '=', $item->u_id_approve)->first()->u_name ?? '';
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($item->created_at)) . '</span>';
+                    } else {
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Menunggu Approval</span>';
+                    }
+
+                    return [
+                        'no' => $offset + $index + 1,
+                        'st_name' => $item->st_name ?? '-',
+                        'po_invoice' => $item->po_invoice ?? '-',
+                        'ps_name' => $item->ps_name ?? '-',
+                        'poads_invoice' => $item->poads_invoice ?? '-',
+                        'invoice_date' => $item->invoice_date ? date('d/m/Y', strtotime($item->invoice_date)) : '-',
+                        'receive_date' => $item->received_date ? date('d/m/Y', strtotime($item->received_date)) : ($item->created_at ? date('d/m/Y', strtotime($item->created_at)) : '-'),
+                        'u_name' => $item->u_name ?? '-',
+                        'u_receive' => $u_receive,
+                        'qty' => number_format($item->qty ?? 0),
+                        'created_at' => $item->created_at ? date('d-m-Y H:i:s', strtotime($item->created_at)) : '-',
+                        'id' => $item->id ?? '',
+                        'po_id' => $item->po_id ?? '',
+                        'stkt_id' => $item->stkt_id ?? '',
+                        'tax_id' => $item->tax_id ?? '',
+                        'stkt_name' => $item->stkt_name ?? '',
+                        'tx_name' => $item->tx_name ?? '',
+                        'u_id_approve' => $item->u_id_approve ?? '',
+                        'po_description' => $item->po_description ?? '',
+                        'po_shipping_cost' => $item->po_shipping_cost ?? 0,
+                        'pay_date' => $item->pay_date ?? '',
+                        'due_date' => $item->due_date ?? '',
+                        'bank_general' => $item->bank_general ?? '',
+                        'acc_id' => $item->acc_id ?? ''
+                    ];
+                });
+
+            return response()->json([
+                'data' => $data,
+                'total' => $totalRecords,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => ceil($totalRecords / $perPage)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

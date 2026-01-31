@@ -13,12 +13,13 @@ use App\Models\Product;
 
 class TopdealController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -71,6 +72,196 @@ class TopdealController extends Controller
             'segment' => request()->segment(1),
         ];
         return view('app.topdeal.topdeal', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('topdeals');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'topdeals')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_topdeal.topdeal', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = Topdeal::selectRaw('ts_topdeals.id as id, td_name, td_due_date, td_status, count(ts_top_deal_details.td_id) as article')
+                ->leftJoin('top_deal_details', 'top_deal_details.td_id', '=', 'topdeals.id')
+                ->groupBy('topdeals.id');
+
+            if (!empty($search)) {
+                $query->where('td_name', 'LIKE', "%$search%");
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('topdeals.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $dueDateExp = explode(' ', $row->td_due_date);
+                $dueDate = $dueDateExp[0] ?? '';
+                $dueTime = $dueDateExp[1] ?? '';
+
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'td_name' => $row->td_name ?? '-',
+                    'article' => $row->article ?? 0,
+                    'td_due_date' => $row->td_due_date,
+                    'td_due_date_show' => date('d/m/Y H:i:s', strtotime($row->td_due_date)),
+                    'td_due_date_val' => $dueDate,
+                    'td_due_time' => $dueTime,
+                    'td_status' => $row->td_status,
+                    'td_status_label' => $row->td_status == '1' ? 'Aktif' : 'Nonaktif',
+                    'td_status_class' => $row->td_status == '1' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getTopdealsArticleDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $td_id = $request->get('td_id');
+
+            $query = TopdealDetail::select('top_deal_details.id as id', 'br_name', 'p_name', 'p_color')
+                ->leftJoin('products', 'products.id', '=', 'top_deal_details.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where('top_deal_details.td_id', '=', $td_id);
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('top_deal_details.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'br_name' => $row->br_name ?? '-',
+                    'p_name' => $row->p_name ?? '-',
+                    'p_color' => $row->p_color ?? '-',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getArticleDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = Product::select('products.id as id', 'br_name', 'p_name', 'p_color')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereRaw('CONCAT(br_name," ", p_name," ", p_color) LIKE ?', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('products.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'br_name' => $row->br_name ?? '-',
+                    'p_name' => $row->p_name ?? '-',
+                    'p_color' => $row->p_color ?? '-',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

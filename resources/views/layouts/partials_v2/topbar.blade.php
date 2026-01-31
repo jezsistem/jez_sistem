@@ -42,33 +42,32 @@
                             <ul class="py-2 text-sm text-gray-700">
                                 <!-- Purchase Order -->
                                 <li>
-                                    <a href="/purchase-order" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
-                                        <i class="cft-standard-stroke cft-receipt text-gray-500"></i>
+                                    <a href="#" data-category="purchase-order" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
                                         <span>Purchase Order</span>
                                     </a>
                                 </li>
                                 
                                 <!-- Reports -->
                                 <li>
-                                    <a href="/reports" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
-                                        <i class="cft-standard-stroke cft-chart text-gray-500"></i>
+                                    <a href="#" data-category="report" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
                                         <span>Reports</span>
                                     </a>
                                 </li>
                                 
                                 <!-- Finance -->
                                 <li>
-                                    <a href="/finance" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
-                                        <i class="cft-standard-stroke cft-wallet text-gray-500"></i>
+                                    <a href="#" data-category="finance" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
                                         <span>Finance</span>
                                     </a>
                                 </li>
                                 
-                                <!-- Warehouse -->
                                 <li>
-                                    <a href="/warehouse" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
-                                        <i class="cft-standard-stroke cft-package text-gray-500"></i>
-                                        <span>Warehouse</span>
+                                    <a href="#" data-category="user" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
+                                        <span>User</span>
+                                    </a>
+                                </li><li>
+                                    <a href="#" data-category="customer" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
+                                        <span>Customer</span>
                                     </a>
                                 </li>
                                 
@@ -76,19 +75,11 @@
                                 
                                 <!-- Settings -->
                                 <li>
-                                    <a href="/settings" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
-                                        <i class="cft-standard-stroke cft-settings text-gray-500"></i>
+                                    <a href="#" data-category="konfigurasi" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
                                         <span>Settings</span>
                                     </a>
                                 </li>
                                 
-                                <!-- Utilities -->
-                                <li>
-                                    <a href="/utilities" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-100">
-                                        <i class="cft-standard-stroke cft-tool text-gray-500"></i>
-                                        <span>Utilities</span>
-                                    </a>
-                                </li>
                             </ul>
                         </div>
                     </div>
@@ -110,7 +101,7 @@
                     <div id="notification_dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
                             <h6 class="font-semibold text-gray-900">Notifications</h6>
-                            <button id="mark_all_read" class="text-xs text-red-600 hover:text-red-800 font-medium">
+                            <button id="mark_all_read" class="text-xs text-red-500 hover:text-red-800 font-medium">
                                 Mark all as read
                             </button>
                         </div>
@@ -118,14 +109,14 @@
                             <p class="px-4 py-3 text-sm text-gray-500">Loading...</p>
                         </div>
                         <div class="border-t border-gray-200">
-                            <a href="#" class="block text-center py-3 text-sm text-red-600 hover:bg-gray-50">
+                            <a href="#" class="block text-center py-3 text-sm text-red-500 hover:bg-gray-50">
                                 View All Notifications
                             </a>
                         </div>
                     </div>
                 </div>
                 <!-- Store Button -->
-                <a href="{{ url('data_stok') }}" id="load_user_store" class="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
+                <a href="{{ url('data_stok') }}" id="load_user_store" class="px-4 py-2.5 bg-red-500 hover:bg-red-500 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
                 </a>
 
                 <!-- User Profile -->
@@ -162,7 +153,7 @@
                         </li>
                     </ul>
                     <div class="py-2">
-                        <a href="{{ route('logout') }}" class="flex items-center px-4 py-2 text-red-600 hover:bg-gray-100">
+                        <a href="{{ route('logout') }}" class="flex items-center px-4 py-2 text-red-500 hover:bg-gray-100">
                             <i class="fas fa-sign-out-alt mr-2"></i>
                             Logout
                         </a>
@@ -231,13 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                  data-id="${notif.id}" data-link="${notifLink}">
                                 <div class="flex items-start gap-3">
                                     <div class="flex-shrink-0">
-                                        <i class="${icon} text-red-600"></i>
+                                        <i class="${icon} text-red-500"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm text-gray-900 line-clamp-2">${notif.message}</p>
                                         <p class="text-xs text-gray-500 mt-1">${timeAgo}</p>
                                     </div>
-                                    ${!notif.is_read ? '<div class="flex-shrink-0"><span class="w-2 h-2 bg-red-600 rounded-full block"></span></div>' : ''}
+                                    ${!notif.is_read ? '<div class="flex-shrink-0"><span class="w-2 h-2 bg-red-500 rounded-full block"></span></div>' : ''}
                                 </div>
                             </div>
                         `;
@@ -400,6 +391,53 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial fetch
     fetchNotifications();
+    
+    // Handle Others dropdown items click
+    // Wait a bit for sidebar script to load
+    setTimeout(function() {
+        const othersDropdownItems = document.querySelectorAll('#others-dropdown a[data-category]');
+        const othersDropdownButton = document.getElementById('others-dropdown-button');
+        const othersDropdown = document.getElementById('others-dropdown');
+        const topbarTabs = document.querySelectorAll('.topbar-tab');
+        
+        othersDropdownItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Get category from data-category attribute
+                const category = this.getAttribute('data-category') || 'all';
+                
+                // Call filterSidebarMenu if available, otherwise dispatch event
+                if (typeof window.filterSidebarMenu === 'function') {
+                    window.filterSidebarMenu(category);
+                } else {
+                    // If function is not available, trigger it via event
+                    window.dispatchEvent(new CustomEvent('filterSidebar', { detail: { category: category } }));
+                }
+                
+                // Save selected category to localStorage
+                localStorage.setItem('selectedCategory', category);
+                
+                // Update active state for all tabs
+                topbarTabs.forEach(t => {
+                    t.classList.remove('bg-gray-900', 'text-white');
+                    t.classList.add('text-gray-700', 'hover:bg-gray-100');
+                });
+                
+                // Update active state for Others button
+                if (othersDropdownButton) {
+                    othersDropdownButton.setAttribute('data-category', category);
+                    othersDropdownButton.classList.add('bg-gray-900', 'text-white');
+                    othersDropdownButton.classList.remove('text-gray-700', 'hover:bg-gray-100');
+                }
+                
+                // Close dropdown
+                if (othersDropdown) {
+                    othersDropdown.classList.add('hidden');
+                }
+            });
+        });
+    }, 100);
 });
 </script>
 

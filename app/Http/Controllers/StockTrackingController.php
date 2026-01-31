@@ -92,6 +92,38 @@ class StockTrackingController extends Controller
         return view('app.stock_tracking.stock_tracking', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => 'stock_tracking'
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Stock Tracking',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderBy('dv_name')->pluck('dv_name', 'id'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'br_id' => DB::table('brands')->where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+        ];
+        return view('app.updated_stock_tracking.stock_tracking', compact('data'));
+    }
+
     public function deleteData(Request $request)
     {
         $id = $request->post('id');

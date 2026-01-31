@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\WebConfig;
 use App\Models\User;
@@ -19,10 +20,15 @@ class BrandController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        
+        // Handle V2 routes - remove _v2 suffix for validation
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -77,14 +83,113 @@ class BrandController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
-            'segment' => request()->segment(1),
+            'segment' => $segment,
         ];
         return view('app.brand.brand', compact('data'));
+    }
+
+    /**
+     * Display brand management page (V2 - New Layout)
+     */
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => $segment,
+        ];
+        return view('app.updated_brand.brand', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = Brand::select('id', 'br_image', 'br_banner', 'br_name', 'br_slug', 'br_description', 'is_local')
+                ->where('br_delete', '!=', '1');
+
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->where('br_name', 'LIKE', "%$search%")
+                        ->orWhere('br_description', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $br_image_url = !empty($row->br_image) ? asset('api/brand/thumbs/' . $row->br_image) : asset('upload/image/no_image.png');
+                $br_banner_url = !empty($row->br_banner) ? asset('api/brand/banner/' . $row->br_banner) : asset('upload/image/no_image.png');
+                
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'br_image' => $row->br_image ?? null,
+                    'br_image_url' => $br_image_url,
+                    'br_banner' => $row->br_banner ?? null,
+                    'br_banner_url' => $br_banner_url,
+                    'br_name' => $row->br_name ?? '-',
+                    'br_slug' => $row->br_slug ?? '-',
+                    'br_description' => $row->br_description ?? '-',
+                    'is_local' => $row->is_local ?? '0',
+                    'is_local_label' => ($row->is_local ?? '0') == '1' ? 'Ya' : 'Tidak',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in BrandController::getDatatablesForSimple', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

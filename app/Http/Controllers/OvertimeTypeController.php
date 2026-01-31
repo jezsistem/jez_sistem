@@ -15,12 +15,15 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class OvertimeTypeController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = $slug ?? request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -150,6 +153,113 @@ class OvertimeTypeController extends Controller
             return Excel::download(new DataPerusahaanExport($type), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
+        }
+    }
+
+    /**
+     * V2 - Updated version with Tailwind CSS
+     */
+    public function indexUpdated(Request $request)
+    {
+        $this->validateAccess();
+        
+        $title = 'Overtime Types';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'overtime_type')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'overtime_type'
+        ];
+
+        return view('app.updated_overtime_type.index', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        $search = $request->get('search', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+
+        $query = DB::table('overtime_types')
+            ->select('id', 'ot_name', 'ot_desc');
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('ot_name', 'LIKE', "%{$search}%")
+                  ->orWhere('ot_desc', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $total = $query->count();
+        $data = $query->orderBy('id', 'desc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function storeForSimple(Request $request)
+    {
+        $mode = $request->input('_mode');
+        $id = $request->input('_id');
+
+        $data = [
+            'ot_name' => ltrim($request->input('ot_name')),
+            'ot_desc' => $request->input('ot_desc'),
+        ];
+
+        $ot_type = new OvertimeType();
+        $save = $ot_type->storeData($mode, $id, $data);
+        
+        if ($save) {
+            return response()->json(['success' => true, 'message' => 'Data berhasil disimpan']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Data tidak tersimpan'], 400);
+        }
+    }
+
+    public function deleteForSimple(Request $request)
+    {
+        $id = $request->input('_id');
+        $ot_type = new OvertimeType();
+        $save = $ot_type->deleteData($id);
+        
+        if ($save) {
+            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal hapus data'], 400);
+        }
+    }
+
+    public function checkExistsForSimple(Request $request)
+    {
+        $ot_name = $request->input('_ot_name');
+        $check = OvertimeType::where('ot_name', strtoupper($ot_name))->exists();
+        
+        return response()->json(['exists' => $check]);
+    }
+
+    public function getForSimple($id)
+    {
+        $data = DB::table('overtime_types')
+            ->where('id', $id)
+            ->first();
+        
+        if ($data) {
+            return response()->json(['success' => true, 'data' => $data]);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
     }
 }

@@ -72,6 +72,109 @@ class NameSetDataController extends Controller
         return view('app.nameset_data.nameset_data', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => 'data_nameset'
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Data Nameset',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_data_nameset.data_nameset', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $query = PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name',
+                'sz_name', 'p_color', 'pos_invoice', 'stt_name',
+                'pos_transaction_details.created_at as pos_created', 'pos_transactions.pos_note as pos_note', 'pos_transactions.pos_status as pos_status')
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+                ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('pos_td_nameset', '=', '1')
+                ->where('pos_td_nameset_price', '!=', null);
+
+            // Apply search filter
+            if (!empty($request->get('search'))) {
+                $search = $request->get('search');
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('pos_invoice', 'LIKE', "%$search%")
+                        ->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                });
+            }
+
+            $data = $query->orderBy('pos_transaction_details.id', 'desc')->get()->map(function ($item, $index) {
+                // Format pos_invoice
+                $pos_invoice = '<span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">' . $item->pos_invoice . '</span>';
+                
+                // Format stt_name
+                if (strtolower($item->stt_name) == 'offline') {
+                    $stt_name = '<span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded whitespace-nowrap">' . $item->stt_name . '</span>';
+                } else {
+                    $stt_name = '<span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded whitespace-nowrap">' . $item->stt_name . '</span>';
+                }
+                
+                // Format article
+                $article = '<span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded whitespace-nowrap">[' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . '</span>';
+                
+                // Format pos_created
+                $pos_created = '<span class="whitespace-nowrap">' . $item->pos_created . '</span>';
+                
+                // Format pos_note
+                $pos_note = '';
+                if ($item->pos_status == 'NAMESET') {
+                    $pos_note = '<span class="whitespace-nowrap">' . $item->pos_note . '</span>';
+                }
+                
+                // Format action button
+                $action = '';
+                if ($item->pos_status == 'NAMESET') {
+                    $action = '<button data-ptd_id="' . $item->ptd_id . '" id="nameset_finish_btn" class="px-3 py-1 text-xs font-medium bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Selesai</button>';
+                } else {
+                    $action = '<span class="px-3 py-1 text-xs font-medium bg-gray-300 text-gray-700 rounded">Done Nameset</span>';
+                }
+
+                return [
+                    'no' => $index + 1,
+                    'pos_invoice' => $pos_invoice,
+                    'stt_name' => $stt_name,
+                    'article' => $article,
+                    'pos_created' => $pos_created,
+                    'pos_note' => $pos_note,
+                    'action' => $action
+                ];
+            });
+
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getDatatables(Request $request)
     {
         try {

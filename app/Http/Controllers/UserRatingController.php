@@ -56,6 +56,19 @@ class UserRatingController extends Controller
         return $sidebar;
     }
 
+    protected function validateAccess($slug = null)
+    {
+        $ma_slug = $slug ?? request()->segment(1);
+        $validate = DB::table('user_menu_accesses')
+        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+            'u_id' => Auth::user()->id,
+            'ma_slug' => $ma_slug
+        ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+    }
+
     public function index()
     {
         $this->validateAccess();
@@ -74,6 +87,26 @@ class UserRatingController extends Controller
             'segment' => request()->segment(1),
         ];
         return view('app.user_rating.user_rating', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('user_rating');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'user_rating')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_user_rating.user_rating', compact('data'));
     }
 
     public function getDatatables(Request $request)
@@ -228,6 +261,18 @@ class UserRatingController extends Controller
             'store_name' => Store::select('st_name')->where('id', '1')->get()->first()->st_name
         ];
         return view('app.rating_by_customer.rating_by_customer', compact('data'));
+    }
+
+    public function customerIndexUpdated()
+    {
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Rating By Customer',
+            'segment' => request()->segment(1),
+            'store_name' => Store::select('st_name')->where('id', '1')->get()->first()->st_name
+        ];
+        return view('app.updated_rating_by_customer.rating_by_customer', compact('data'));
     }
 
     function fetchSubdistrict(Request $request)
@@ -391,5 +436,198 @@ class UserRatingController extends Controller
           $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $rating_date = $request->get('rating_date', '');
+
+            // Build base query with date filter
+            $baseQuery = UserRating::query();
+            if ($rating_date) {
+                $exp = explode('|', $rating_date);
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $exp[0];
+                    $end = $exp[0];
+                }
+                if ($start != $end) {
+                    $baseQuery->whereBetween('user_ratings.created_at', [$start, $end]);
+                } else {
+                    $baseQuery->whereDate('user_ratings.created_at', $start);
+                }
+            }
+
+            $query = UserRating::selectRaw('ts_users.id as u_id, u_name, st_name, stt_name, sum(ur_value) as value, count(ts_user_ratings.id) as qty')
+                ->leftJoin('users', 'users.id', '=', 'user_ratings.user_id')
+                ->leftJoin('stores', 'stores.id', '=', 'user_ratings.st_id')
+                ->leftJoin('store_types', 'store_types.id', '=', 'user_ratings.stt_id');
+
+            // Apply date filter to main query
+            if ($rating_date) {
+                $exp = explode('|', $rating_date);
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $exp[0];
+                    $end = $exp[0];
+                }
+                if ($start != $end) {
+                    $query->whereBetween('user_ratings.created_at', [$start, $end]);
+                } else {
+                    $query->whereDate('user_ratings.created_at', $start);
+                }
+            }
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('u_name', 'LIKE', "%$search%");
+                });
+            }
+
+            $query->groupBy('users.id');
+
+            // Get all data first to handle pagination
+            $allData = $query->get();
+
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row) {
+                    // Calculate rating_total
+                    $rate = 5 * $row->qty;
+                    $total_rate = $rate > 0 ? ($row->value / $rate * 100) : 0;
+                    $rating_total = round($total_rate) . ' / 100';
+
+                    return [
+                        'ur_id' => $row->u_id, // Using u_id as identifier
+                        'u_id' => $row->u_id,
+                        'u_name' => $row->u_name ?? '-',
+                        'st_name' => $row->st_name ?? '-',
+                        'stt_name' => $row->stt_name ?? '-',
+                        'rating_qty' => $row->qty,
+                        'rating_total' => $rating_total,
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getHistoryDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $rating_date = $request->get('rating_date', '');
+
+            $query = UserRating::selectRaw('ts_user_ratings.id as ur_id, ts_pos_transactions.id as pt_id, u_name, st_name, stt_name, pos_invoice, cust_name, ur_value, ur_description, ts_user_ratings.created_at as ur_created')
+                ->leftJoin('users', 'users.id', '=', 'user_ratings.user_id')
+                ->leftJoin('stores', 'stores.id', '=', 'user_ratings.st_id')
+                ->leftJoin('store_types', 'store_types.id', '=', 'user_ratings.stt_id')
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'user_ratings.pt_id')
+                ->leftJoin('customers', 'customers.id', '=', 'user_ratings.cust_id');
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('u_name', 'LIKE', "%$search%");
+                });
+            }
+
+            if ($rating_date) {
+                $exp = explode('|', $rating_date);
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $exp[0];
+                    $end = $exp[0];
+                }
+                if ($start != $end) {
+                    $query->whereBetween('user_ratings.created_at', [$start, $end]);
+                } else {
+                    $query->whereDate('user_ratings.created_at', $start);
+                }
+            }
+
+            // Get all data first to handle pagination
+            $allData = $query->orderByDesc('user_ratings.id')->get();
+
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row) {
+                    return [
+                        'ur_id' => $row->ur_id,
+                        'pt_id' => $row->pt_id ?? null,
+                        'u_name' => $row->u_name ?? '-',
+                        'st_name' => $row->st_name ?? '-',
+                        'stt_name' => $row->stt_name ?? '-',
+                        'pos_invoice' => $row->pos_invoice ?? '-',
+                        'cust_name' => $row->cust_name ?? '-',
+                        'ur_value' => $row->ur_value ?? '-',
+                        'ur_description' => $row->ur_description ?? '-',
+                        'ur_created' => $row->ur_created ?? '-',
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

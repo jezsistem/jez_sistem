@@ -38,13 +38,13 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class CekDanaOnlineController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1),
-                'status' => CekDanaOnline::select('order_status')
+                'ma_slug' => $ma_slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -828,5 +828,166 @@ class CekDanaOnlineController extends Controller
         }
 
         return $results->sortBy('order_number')->values();
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('cek_dana_online');
+        $user = new User();
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Cek Dana Online',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->where('st_name', 'like', '%ONLINE%')->orderByDesc('id')->pluck('st_name', 'id'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+        ];
+        return view('app.updated_cek_dana_online.cek_dana_online', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $st_id = $request->get('st_id', '');
+            $platform = $request->get('platform', '');
+            $status = $request->get('status', 0);
+            $filter_trx_date = $request->get('filter_trx_date', '');
+            $filter_cash_out_date = $request->get('filter_cash_out_date', '');
+
+            if (!empty($st_id)) {
+                $filter_st_id = $st_id;
+            } else {
+                $filter_st_id = -1;
+            }
+
+            if (!$filter_trx_date) {
+                $request_filter_trx_date = date('Y-m-d') . '|' . date('Y-m-d');
+            } else {
+                $request_filter_trx_date = $filter_trx_date;
+            }
+
+            if (!$filter_cash_out_date) {
+                $request_filter_cash_out_date = date('Y-m-d') . '|' . date('Y-m-d');
+            } else {
+                $request_filter_cash_out_date = $filter_cash_out_date;
+            }
+
+            $filter_order_number = '%' . $search . '%' ?? '%%';
+            $filter_platform_name = '%' . $platform . '%' ?? '%%';
+            $filter_status = (int) $status;
+
+            if ($filter_trx_date == null) {
+                $filter_trx_date_start = null;
+                $filter_trx_date_end = null;
+            } else {
+                $exp_trx_date = explode('|', $request_filter_trx_date);
+                $filter_trx_date_start = $exp_trx_date[0];
+                $filter_trx_date_end = $exp_trx_date[1];
+            }
+
+            if ($filter_cash_out_date == null) {
+                $filter_cash_out_date_start = null;
+                $filter_cash_out_date_end = null;
+            } else {
+                $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+                $filter_cash_out_date_start = $exp_cash_out_date[0];
+                $filter_cash_out_date_end = $exp_cash_out_date[1];
+            }
+
+            $allData = $this->getAllCekDanaTransactions(
+                $filter_order_number,
+                $filter_st_id,
+                $filter_platform_name,
+                $filter_status,
+                $filter_trx_date_start,
+                $filter_trx_date_end,
+                $filter_cash_out_date_start,
+                $filter_cash_out_date_end
+            );
+
+            $collection = collect($allData);
+            $total = $collection->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $collection->skip(($page - 1) * $perPage)->take($perPage)->map(function ($item) {
+                $fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0 && $item->revenue != 0
+                    ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
+                    : '0.00%';
+                $seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0 && $item->revenue != 0
+                    ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
+                    : '0.00%';
+                $diff_jezpro_mp = isset($item->jezpro_price, $item->revenue)
+                    ? $item->jezpro_price - $item->revenue
+                    : null;
+                
+                $status = '';
+                if ($item->settle_date && $item->trx_date) {
+                    $status = 'Done';
+                } elseif (!$item->settle_date && $item->trx_date) {
+                    $status = 'Belum Cair';
+                } elseif (!$item->trx_date) {
+                    $status = 'Belum Trx';
+                } else {
+                    $status = 'Unknown';
+                }
+
+                $status_refund = $item->status_trx === 'REFUND' ? 'Refund' : 'Not Refund';
+                $is_settle = $item->is_settle ? 'SETTLED' : 'UNSETTLED';
+
+                return [
+                    'pos_id' => $item->pos_id ?? null,
+                    'st_name' => $item->st_name ?? '-',
+                    'platform_name' => $item->platform_name ?? '-',
+                    'order_number' => $item->order_number ?? '-',
+                    'settle_date' => $item->settle_date ? date('d/m/Y', strtotime($item->settle_date)) : '-',
+                    'revenue' => number_format($item->revenue ?? 0),
+                    'total_settle' => number_format($item->total_settle ?? 0),
+                    'seller_discount' => number_format($item->seller_discount ?? 0),
+                    'total_fee' => number_format($item->total_fee ?? 0),
+                    'fee_persentage' => $fee_persentage,
+                    'seller_voucher_persentage' => $seller_voucher_persentage,
+                    'trx_date' => $item->trx_date ? date('d/m/Y H:i', strtotime($item->trx_date)) : '-',
+                    'jezpro_price' => number_format($item->jezpro_price ?? 0),
+                    'diff_jezpro_mp' => number_format($diff_jezpro_mp ?? 0),
+                    'status' => $status,
+                    'status_refund' => $status_refund,
+                    'is_settle' => $is_settle,
+                    'st_id' => $item->st_id ?? null,
+                ];
+            })->values()->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

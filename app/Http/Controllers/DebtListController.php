@@ -19,12 +19,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class DebtListController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -298,4 +299,113 @@ class DebtListController extends Controller
 	{
 		return Excel::download(new DebtExport, 'daftar_hutang.xlsx');
 	}
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('daftar_hutang');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'daftar_hutang')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_debt_list.debt_list', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $st_id = $request->get('st_id', '');
+
+            $query = DebtList::select('debt_lists.id as dl_id', 'brands.id as br_id', 'st_id', 'product_suppliers.id as ps_id', 'ps_name', 'st_name', 'br_name', 'dl_invoice', 'dl_invoice_date', 'dl_invoice_due_date', 'dl_value', 'dl_total', 'dl_vat')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'debt_lists.ps_id')
+                ->leftJoin('brands', 'brands.id', '=', 'debt_lists.br_id')
+                ->leftJoin('stores', 'stores.id', '=', 'debt_lists.st_id')
+                ->where('dl_delete', '!=', '1');
+
+            if (!empty($st_id)) {
+                $query->where('st_id', $st_id);
+            }
+
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->where('ps_name', 'LIKE', "%$search%")
+                      ->orWhere('br_name', 'LIKE', "%$search%")
+                      ->orWhere('dl_invoice', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('debt_lists.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $date1_remain = $row->dl_invoice_date;
+                $date2_remain = $row->dl_invoice_due_date;
+                $diff_remain = abs(strtotime($date1_remain) - strtotime($date2_remain));
+                if ($date1_remain > $date2_remain) {
+                    $diff_remain = -($diff_remain);
+                }
+                $days_remain = round($diff_remain / 86400);
+                
+                $payment = DebtListPayment::select('dlp_value')->where('dlp_delete', '!=', '1')->where('dl_id', $row->dl_id)->sum('dlp_value');
+                
+                $data[] = [
+                    'no' => $no++,
+                    'dl_id' => $row->dl_id,
+                    'br_id' => $row->br_id,
+                    'st_id' => $row->st_id,
+                    'ps_id' => $row->ps_id,
+                    'st_name' => $row->st_name ?? '-',
+                    'ps_name' => $row->ps_name ?? '-',
+                    'br_name' => $row->br_name ?? '-',
+                    'dl_invoice' => $row->dl_invoice ?? '-',
+                    'dl_invoice_date' => $row->dl_invoice_date ? date('d/m/Y', strtotime($row->dl_invoice_date)) : '-',
+                    'dl_invoice_due_date' => $row->dl_invoice_due_date ? date('d/m/Y', strtotime($row->dl_invoice_due_date)) . ' [' . $days_remain . ' Hari]' : '-',
+                    'dl_value' => number_format($row->dl_value ?? 0),
+                    'dl_vat' => $row->dl_vat ?? '-',
+                    'dl_total' => number_format($row->dl_total ?? 0),
+                    'payment_value' => number_format($payment),
+                    'is_paid' => ($row->dl_total == $payment),
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
 }

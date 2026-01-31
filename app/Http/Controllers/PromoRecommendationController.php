@@ -20,10 +20,12 @@ class PromoRecommendationController extends Controller
 
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -92,6 +94,26 @@ class PromoRecommendationController extends Controller
         //        return 'aaaa';
     }
 
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_threshold_promo.threshold_promo', compact('data'));
+    }
+
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
@@ -129,6 +151,70 @@ class PromoRecommendationController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $query = PromoRecommendation::select('promo_recommendations.id as pr_id', 'pr_code', 'channel', 'promo_recommendations.created_at', 'promo_recommendations.updated_at')
+                ->join('promo_recommendation_details', 'promo_recommendation_details.pr_id', '=', 'promo_recommendations.id')
+                ->join('products', 'products.id', '=', 'promo_recommendation_details.p_id')
+                ->groupBy('promo_recommendations.id', 'pr_code', 'channel', 'promo_recommendations.created_at', 'promo_recommendations.updated_at')
+                ->orderBy('promo_recommendations.created_at', 'DESC');
+            
+            // Search filter
+            $search = $request->get('search');
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('pr_code', 'LIKE', "%$search%")
+                        ->orWhere('products.article_id', 'LIKE', "%$search%");
+                });
+            }
+            
+            // Channel filter
+            if ($request->has('channel') && $request->get('channel') != '') {
+                $query->where('channel', $request->get('channel'));
+            }
+            
+            // Date range filter
+            if ($request->has('date_start') && $request->has('date_end') &&
+                $request->get('date_start') != '' && $request->get('date_end') != '') {
+                $query->whereBetween(DB::raw('DATE(ts_promo_recommendations.created_at)'), [$request->get('date_start'), $request->get('date_end')]);
+            } elseif ($request->has('date_start') && $request->get('date_start') != '') {
+                $query->whereDate('promo_recommendations.created_at', '>=', $request->get('date_start'));
+            } elseif ($request->has('date_end') && $request->get('date_end') != '') {
+                $query->whereDate('promo_recommendations.created_at', '<=', $request->get('date_end'));
+            }
+            
+            $data = $query->get()->map(function ($item, $index) {
+                $date = new \DateTime($item->created_at);
+                $days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                $dayName = $days[$date->format('w')];
+                $day = $date->format('d');
+                $month = $months[$date->format('n') - 1];
+                $year = $date->format('Y');
+                $time = $date->format('H:i:s');
+                
+                $formattedDate = $dayName . ', ' . $day . ' ' . $month . ' ' . $year . ' ' . $time;
+                
+                return [
+                    'no' => $index + 1,
+                    'pr_id' => $item->pr_id,
+                    'pr_code' => $item->pr_code ?? '-',
+                    'channel' => $item->channel ?? '-',
+                    'created_at' => $formattedDate
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -172,6 +258,54 @@ class PromoRecommendationController extends Controller
                 ->rawColumns(['action'])
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    public function getPromoRecommendationDetailsForSimple(Request $request)
+    {
+        try {
+            $pr_id = $request->input('pr_id');
+            $query = PromoRecommendationDetail::select('promo_recommendation_details.id as prd_id', 'products.article_id', 'products.p_name', 'promo_recommendation_details.discount', 'promo_recommendation_details.notes', 'products.p_price_tag')
+                ->join('products', 'products.id', '=', 'promo_recommendation_details.p_id')
+                ->where('promo_recommendation_details.pr_id', $pr_id);
+            
+            // Search filter
+            $search = $request->get('search');
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('article_id', 'LIKE', "%$search%")
+                        ->orWhere('p_name', 'LIKE', "%$search%")
+                        ->orWhere('notes', 'LIKE', "%$search%");
+                });
+            }
+            
+            $data = $query->orderBy('promo_recommendation_details.id', 'desc')->get()->map(function ($item, $index) {
+                $originalPrice = $item->p_price_tag;
+                $discount = $item->discount;
+                $discountedPrice = $originalPrice - ($originalPrice * ($discount / 100));
+                
+                $deleteButton = '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $item->prd_id . '" id="delete_promo_detail_' . $item->prd_id . '"><i class="fas fa-trash"></i></button>';
+                $editButton = '<button class="btn btn-sm btn-warning edit-btn" data-id="' . $item->prd_id . '" data-discount="' . $item->discount . '" id="edit_promo_detail_' . $item->prd_id . '"><i class="fas fa-percent"></i></button>';
+                
+                return [
+                    'no' => $index + 1,
+                    'prd_id' => $item->prd_id,
+                    'article_id' => $item->article_id ?? '-',
+                    'p_name' => $item->p_name ?? '-',
+                    'promo_disc' => $item->discount ? $item->discount . '%' : '-',
+                    'p_price_tag' => $item->p_price_tag ? number_format($item->p_price_tag) : '-',
+                    'price_discount' => number_format($discountedPrice),
+                    'notes' => $item->notes ?? '-',
+                    'action' => $editButton . ' ' . $deleteButton
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 

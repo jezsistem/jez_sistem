@@ -22,12 +22,13 @@ use App\Models\Store;
 
 class DashboardV2Controller extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -730,6 +731,183 @@ class DashboardV2Controller extends Controller
             })
             ->addIndexColumn()
             ->make(true);
+        }
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('dashboard_v2');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'dashboard_v2')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+        return view('app.updated_dashboard_v2.dashboard_v2', compact('data'));
+    }
+
+    public function getStoreInfoDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $dashboard_date = $request->get('dashboard_date');
+            $search = $request->get('search', '');
+
+            $query = DB::table('dashboard_information')
+                ->select('dashboard_information.id as id', 'st_name', 'sales', 'profit', 'purchase', 'cc_asset', 'con_asset', 'debt', 'dashboard_information.created_at as created_at')
+                ->leftJoin('stores', 'stores.id', '=', 'dashboard_information.st_id');
+
+            if (!empty($dashboard_date)) {
+                $exp = explode('|', $dashboard_date);
+                $start = '';
+                $end = '';
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                    $query->whereDate('dashboard_information.created_at', '>=', $start)
+                        ->whereDate('dashboard_information.created_at', '<=', $end);
+                } else {
+                    $start = $dashboard_date;
+                    $query->whereDate('dashboard_information.created_at', '=', $start);
+                }
+            }
+
+            if (!empty($search)) {
+                $query->where('st_name', 'LIKE', "%$search%");
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->orderBy('dashboard_information.id', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'created_at_x' => date('d/m/Y H:i:s', strtotime($row->created_at)),
+                        'st_name' => $row->st_name ?? '-',
+                        'sales' => number_format($row->sales ?? 0),
+                        'profit' => number_format($row->profit ?? 0),
+                        'purchase' => number_format($row->purchase ?? 0),
+                        'cc_asset' => number_format($row->cc_asset ?? 0),
+                        'con_asset' => number_format($row->con_asset ?? 0),
+                        'debt' => number_format($row->debt ?? 0),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getBrandInfoDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $dashboard_date = $request->get('dashboard_date');
+            $search = $request->get('search', '');
+
+            $query = DB::table('brand_information')
+                ->select('brand_information.id as id', 'br_name', 'sales', 'profit', 'purchase', 'cc_asset', 'con_asset', 'debt', 'brand_information.created_at as created_at')
+                ->leftJoin('brands', 'brands.id', '=', 'brand_information.br_id');
+
+            if (!empty($dashboard_date)) {
+                $exp = explode('|', $dashboard_date);
+                $start = '';
+                $end = '';
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                    $query->whereDate('brand_information.created_at', '>=', $start)
+                        ->whereDate('brand_information.created_at', '<=', $end);
+                } else {
+                    $start = $dashboard_date;
+                    $query->whereDate('brand_information.created_at', '=', $start);
+                }
+            }
+
+            if (!empty($search)) {
+                $query->where('br_name', 'LIKE', "%$search%");
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->orderBy('brand_information.id', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'created_at_x' => date('d/m/Y H:i:s', strtotime($row->created_at)),
+                        'br_name' => $row->br_name ?? '-',
+                        'sales' => number_format($row->sales ?? 0),
+                        'profit' => number_format($row->profit ?? 0),
+                        'purchase' => number_format($row->purchase ?? 0),
+                        'cc_asset' => number_format($row->cc_asset ?? 0),
+                        'con_asset' => number_format($row->con_asset ?? 0),
+                        'debt' => number_format($row->debt ?? 0),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
         }
     }
 

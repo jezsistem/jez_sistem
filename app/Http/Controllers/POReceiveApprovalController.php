@@ -24,10 +24,12 @@ class POReceiveApprovalController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -550,5 +552,283 @@ class POReceiveApprovalController extends Controller
 
         $filename = "export_approval_{$no_po}_{$ps_name}.xlsx";
         return Excel::download(new ApprovalPOExport($result), $filename);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'segment' => request()->segment(1)
+        ];
+        return view('app.updated_po_approval.po_approval', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $search = $request->get('search');
+            $filter_status = $request->get('filter_status');
+            $filter_cabang = $request->get('filter_cabang');
+            $filter_dispute = $request->get('filter_dispute');
+            $filter_status_dispute = $request->get('filter_status_dispute');
+            $date = $request->get('date');
+
+            $query = DB::table('purchase_order_article_detail_statuses')
+                ->selectRaw("
+                    MAX(ts_purchase_order_article_detail_statuses.id) as id,
+                    st_name,
+                    po_invoice,
+                    poads_invoice,
+                    MAX(arrived_at) as arrived_at,
+                    MAX(invoice_date) as invoice_date,
+                    MAX(ts_purchase_order_article_detail_statuses.created_at) as created_at,
+                    MAX(ts_purchase_order_article_detail_statuses.updated_at) as updated_at,
+                    MAX(u_name) as u_name,
+                    MAX(u_id_approve) as u_id_approve,
+                    SUM(ts_purchase_order_article_detail_statuses.poads_qty) as qty,
+                    MAX(acc_id) as acc_id,
+                    MAX(a_name) as a_name,
+                    MAX(is_paid) as is_paid,
+                    MAX(ts_stores.id) as st_id,
+                    MAX(ts_purchase_orders.id) as po_id,
+                    MAX(ps_name) as ps_name,
+                    MAX(po_description) as po_description,
+                    MAX(po_shipping_cost) as po_shipping_cost,
+                    MAX(ts_purchase_orders.stkt_id) as stkt_id,
+                    MAX(ts_purchase_orders.tax_id) as tax_id,
+                    MAX(ts_stock_types.stkt_name) as stkt_name,
+                    MAX(ts_taxes.tx_name) as tx_name,
+                    MAX(ts_purchase_orders.dispute) as dispute,
+                    MAX(ts_purchase_orders.dispute_description) as dispute_description,
+                    MAX(ts_purchase_orders.pay_date) as pay_date,
+                    MAX(ts_purchase_orders.due_date) as due_date,
+                    MAX(ts_purchase_orders.putaway) as putaway,
+                    MAX(ts_purchase_orders.status_dispute) as status_dispute,
+                    MAX(received_date) as received_date
+                ")
+                ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id')
+                ->leftJoin('taxes', 'taxes.id', '=', 'purchase_orders.tax_id')
+                ->leftJoin('accounts', 'accounts.id', '=', 'purchase_orders.acc_id')
+                ->whereNotNull('poads_invoice')
+                ->groupBy('poads_invoice');
+
+            // Search filter
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('poads_invoice', 'LIKE', "%$search%")
+                        ->orWhere('po_invoice', 'LIKE', "%$search%")
+                        ->orWhere('po_description', 'LIKE', "%$search%")
+                        ->orWhere('article_id', 'LIKE', "%$search%")
+                        ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', ["%$search%"])
+                        ->orWhere('ps_name', 'LIKE', "%$search%");
+                });
+            }
+
+            // Filter status
+            if (!empty($filter_status)) {
+                if ($filter_status == 'approve') {
+                    $query->whereNotNull('u_id_approve');
+                } elseif ($filter_status == 'wait') {
+                    $query->whereNull('u_id_approve');
+                } elseif ($filter_status == 'wait_cod') {
+                    $query->where('acc_id', '=', 93)->where('is_paid', '=', 0);
+                }
+            }
+
+            // Filter cabang
+            if (!empty($filter_cabang)) {
+                if ($filter_cabang == 'SURABAYA') {
+                    $query->where('st_name', 'LIKE', '%SURABAYA%');
+                } elseif ($filter_cabang == 'MALANG') {
+                    $query->where('st_name', 'LIKE', '%MALANG%');
+                } elseif ($filter_cabang == 'KEDIRI') {
+                    $query->where('st_name', 'LIKE', '%KEDIRI%');
+                } elseif ($filter_cabang == 'JEMBER') {
+                    $query->where('st_name', 'LIKE', '%JEMBER%');
+                }
+            }
+
+            // Filter dispute
+            if ($request->has('filter_dispute')) {
+                if ($filter_dispute === '1') {
+                    $query->where('dispute', 1);
+                } elseif ($filter_dispute === '0') {
+                    $query->where('dispute', 0);
+                }
+            }
+
+            // Filter status dispute
+            if ($request->has('filter_status_dispute')) {
+                if ($filter_status_dispute === '1') {
+                    $query->where('status_dispute', 1);
+                } elseif ($filter_status_dispute === '0') {
+                    $query->where('status_dispute', 0);
+                }
+            }
+
+            // Date filter
+            if (!empty($date)) {
+                $dateParts = explode('|', $date);
+                if (count($dateParts) == 2) {
+                    $query->whereBetween('purchase_order_article_detail_statuses.created_at', [$dateParts[0], $dateParts[1]]);
+                } elseif (count($dateParts) == 1) {
+                    $query->whereDate('purchase_order_article_detail_statuses.created_at', $dateParts[0]);
+                }
+            }
+
+            // Get total count before pagination - count distinct poads_invoice
+            $baseQuery = DB::table('purchase_order_article_detail_statuses')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('accounts', 'accounts.id', '=', 'purchase_orders.acc_id')
+                ->whereNotNull('poads_invoice')
+                ->groupBy('poads_invoice');
+            
+            // Apply same filters to count query
+            if (!empty($search)) {
+                $baseQuery->where(function ($q) use ($search) {
+                    $q->orWhere('poads_invoice', 'LIKE', "%$search%")
+                        ->orWhere('po_invoice', 'LIKE', "%$search%")
+                        ->orWhere('po_description', 'LIKE', "%$search%")
+                        ->orWhere('ps_name', 'LIKE', "%$search%");
+                });
+            }
+            
+            if (!empty($filter_status)) {
+                if ($filter_status == 'approve') {
+                    $baseQuery->whereNotNull('u_id_approve');
+                } elseif ($filter_status == 'wait') {
+                    $baseQuery->whereNull('u_id_approve');
+                } elseif ($filter_status == 'wait_cod') {
+                    $baseQuery->where('acc_id', '=', 93)->where('is_paid', '=', 0);
+                }
+            }
+            
+            if (!empty($filter_cabang)) {
+                if ($filter_cabang == 'SURABAYA') {
+                    $baseQuery->where('st_name', 'LIKE', '%SURABAYA%');
+                } elseif ($filter_cabang == 'MALANG') {
+                    $baseQuery->where('st_name', 'LIKE', '%MALANG%');
+                } elseif ($filter_cabang == 'KEDIRI') {
+                    $baseQuery->where('st_name', 'LIKE', '%KEDIRI%');
+                } elseif ($filter_cabang == 'JEMBER') {
+                    $baseQuery->where('st_name', 'LIKE', '%JEMBER%');
+                }
+            }
+            
+            if ($request->has('filter_dispute')) {
+                if ($filter_dispute === '1') {
+                    $baseQuery->where('dispute', 1);
+                } elseif ($filter_dispute === '0') {
+                    $baseQuery->where('dispute', 0);
+                }
+            }
+            
+            if ($request->has('filter_status_dispute')) {
+                if ($filter_status_dispute === '1') {
+                    $baseQuery->where('status_dispute', 1);
+                } elseif ($filter_status_dispute === '0') {
+                    $baseQuery->where('status_dispute', 0);
+                }
+            }
+            
+            if (!empty($date)) {
+                $dateParts = explode('|', $date);
+                if (count($dateParts) == 2) {
+                    $baseQuery->whereBetween('purchase_order_article_detail_statuses.created_at', [$dateParts[0], $dateParts[1]]);
+                } elseif (count($dateParts) == 1) {
+                    $baseQuery->whereDate('purchase_order_article_detail_statuses.created_at', $dateParts[0]);
+                }
+            }
+            
+            $totalRecords = $baseQuery->get()->count();
+
+            // Pagination parameters
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $offset = ($page - 1) * $perPage;
+
+            // Apply pagination
+            $data = $query->orderByRaw('MAX(ts_purchase_order_article_detail_statuses.id) DESC')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get()
+                ->map(function ($item, $index) use ($offset) {
+                    // Format u_receive
+                    $u_receive = '';
+                    if (!empty($item->u_id_approve) && $item->acc_id == 93 && $item->is_paid == 0) {
+                        $name = DB::table('users')->where('id', '=', $item->u_id_approve)->first()->u_name ?? '';
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">' . $name . '<br/> Diterima, Belum Dibayar</span>';
+                    } elseif (!empty($item->u_id_approve)) {
+                        $name = DB::table('users')->where('id', '=', $item->u_id_approve)->first()->u_name ?? '';
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($item->updated_at)) . '</span>';
+                    } else {
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Menunggu Approval</span>';
+                    }
+
+                    return [
+                        'no' => $offset + $index + 1,
+                        'poads_invoice' => $item->poads_invoice ?? '-',
+                        'po_invoice' => $item->po_invoice ?? '-',
+                        'st_name' => $item->st_name ?? '-',
+                        'ps_name' => $item->ps_name ?? '-',
+                        'po_description' => $item->po_description ?? '-',
+                        'invoice_date' => $item->invoice_date ? date('d/m/Y', strtotime($item->invoice_date)) : '-',
+                        'arrived_at' => $item->arrived_at ? date('d/m/Y H:i', strtotime($item->arrived_at)) : '-',
+                        'receive_date' => $item->received_date ? date('d/m/Y', strtotime($item->received_date)) : ($item->created_at ? date('d/m/Y', strtotime($item->created_at)) : '-'),
+                        'u_receive' => $u_receive,
+                        'qty' => number_format($item->qty ?? 0),
+                        'created_at' => $item->created_at ? date('d-m-Y H:i:s', strtotime($item->created_at)) : '-',
+                        'action' => '<button class="btn btn-sm btn-primary detail-btn" data-id="' . ($item->id ?? '') . '" data-po-id="' . ($item->po_id ?? '') . '" data-poads-invoice="' . ($item->poads_invoice ?? '') . '"><i class="fas fa-eye"></i></button>',
+                        'id' => $item->id ?? '',
+                        'po_id' => $item->po_id ?? ''
+                    ];
+                });
+
+            return response()->json([
+                'data' => $data,
+                'total' => $totalRecords,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => ceil($totalRecords / $perPage)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

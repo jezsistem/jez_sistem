@@ -23,12 +23,16 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ExternalAssignmentRequestController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = $slug ?? request()->segment(1);
+        // For v2 pages, strip _v2 suffix to get the original slug (same as old page)
+        $slugToCheck = str_replace('_v2', '', $segment);
+
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -2644,6 +2648,176 @@ class ExternalAssignmentRequestController extends Controller
             'pending' => $leaveRequests->where('lr_status', 'pending')->count(),
             'approved' => $leaveRequests->where('lr_status', 'approved')->count(),
             'rejected' => $leaveRequests->where('lr_status', 'rejected')->count(),
+        ];
+
+        return response()->json($stats);
+    }
+
+    /**
+     * V2 - Updated version with Tailwind CSS
+     */
+    public function indexUpdated(Request $request)
+    {
+        $this->validateAccess();
+
+        $title = 'External Assignment Requests';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+
+        // Get filters
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $dateFilter = $request->get('date_filter', 'this_month');
+        $userId = $request->get('user_id');
+        $status = $request->get('status');
+        $eaId = $request->get('ea_id');
+
+        // Apply date filter if not custom
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+
+        $AssignmentRequest = new ExternalAssignmentRequest();
+        $leaveRequests = $AssignmentRequest->getAssignmentRequestsByFilters($startDate, $endDate, $userId, $status, $eaId);
+
+        // Get users for filter
+        $users = DB::table('users')->where('u_delete', '0')->orderBy('u_name')->get();
+
+        // Get external assignment types for filter
+        $assignmentTypes = DB::table('external_assignment_types')->orderBy('ea_name')->get();
+
+        // Calculate statistics
+        $summary = [
+            'total' => $leaveRequests->count(),
+            'pending' => $leaveRequests->where('ear_status', 'Pending Approval')->count(),
+            'approved' => $leaveRequests->where('ear_status', 'Approved')->count(),
+            'rejected' => $leaveRequests->where('ear_status', 'Rejected')->count(),
+        ];
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1) === 'external-assignment_v2' ? 'external-assignment' : request()->segment(1))->first()->ma_title ?? 'External Assignment Requests',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'external-assignment',
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter
+        ];
+
+        return view('app.updated_external_assignment_request.index', compact('users', 'assignmentTypes', 'startDate', 'endDate', 'dateFilter', 'userId', 'status', 'eaId', 'data', 'summary'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        $search = $request->get('search', '');
+        $startDate = $request->get('start_date', '');
+        $endDate = $request->get('end_date', '');
+        $userId = $request->get('user_id', '');
+        $status = $request->get('status', '');
+        $eaId = $request->get('ea_id', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+
+        $query = DB::table('external_assignment_requests as ear')
+            ->leftJoin('users', 'users.id', '=', 'ear.request_by')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->leftJoin('external_assignment_types as eat', 'eat.id', '=', 'ear.ea_id')
+            ->leftJoin('users as approvers', 'approvers.id', '=', 'ear.ear_approved_by')
+            ->select(
+                'ear.id',
+                'ear.created_at as request_date',
+                'users.u_name',
+                'users.u_nip',
+                'user_divisions.ud_name as division_name',
+                'eat.ea_name as assignment_type',
+                'ear.ear_locations as assignment_area',
+                'ear.ear_date_start',
+                'ear.ear_date_end',
+                'ear.ear_status',
+                'approvers.u_name as approver_name'
+            );
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('users.u_name', 'LIKE', "%{$search}%")
+                  ->orWhere('users.u_nip', 'LIKE', "%{$search}%")
+                  ->orWhere('eat.ea_name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if (!empty($startDate)) {
+            $query->where('ear.ear_date_start', '>=', $startDate);
+        }
+
+        if (!empty($endDate)) {
+            $query->where('ear.ear_date_start', '<=', $endDate);
+        }
+
+        if (!empty($userId)) {
+            $query->where('ear.request_by', $userId);
+        }
+
+        if (!empty($status)) {
+            $query->where('ear.ear_status', $status);
+        }
+
+        if (!empty($eaId)) {
+            $query->where('ear.ea_id', $eaId);
+        }
+
+        $total = $query->count();
+        $data = $query->orderByDesc('ear.created_at')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function getStatsForSimple(Request $request)
+    {
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $userId = $request->get('user_id', '');
+        $status = $request->get('status', '');
+        $eaId = $request->get('ea_id', '');
+
+        $query = DB::table('external_assignment_requests as ear');
+
+        if (!empty($startDate)) {
+            $query->where('ear.ear_date_start', '>=', $startDate);
+        }
+
+        if (!empty($endDate)) {
+            $query->where('ear.ear_date_start', '<=', $endDate);
+        }
+
+        if (!empty($userId)) {
+            $query->where('ear.request_by', $userId);
+        }
+
+        if (!empty($status)) {
+            $query->where('ear.ear_status', $status);
+        }
+
+        if (!empty($eaId)) {
+            $query->where('ear.ea_id', $eaId);
+        }
+
+        $stats = [
+            'total' => $query->count(),
+            'pending' => (clone $query)->where('ear.ear_status', 'Pending Approval')->count(),
+            'approved' => (clone $query)->where('ear.ear_status', 'Approved')->count(),
+            'rejected' => (clone $query)->where('ear.ear_status', 'Rejected')->count(),
         ];
 
         return response()->json($stats);

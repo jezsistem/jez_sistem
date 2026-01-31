@@ -123,6 +123,57 @@ class StockDataController extends Controller
         return view('app.stock_data.stock_data', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => 'data_stok'
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Data Stock',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'sizes' => collect(DB::select("
+                            SELECT DISTINCT
+                                ts_sizes.sz_name,
+                                ts_product_categories.pc_name
+                            FROM ts_sizes
+                            INNER JOIN ts_product_sub_categories
+                                ON ts_product_sub_categories.id = ts_sizes.psc_id
+                            JOIN ts_product_categories
+                                ON ts_product_categories.id = ts_product_sub_categories.pc_id
+                            WHERE ts_sizes.sz_delete != '1'
+                              AND sz_name != ''
+                              AND pc_name NOT IN ('UNKNOWN')
+                            ORDER BY FIELD(ts_product_categories.pc_name, 'FOOTWEAR', 'APPAREL', 'ACCESSORIES'),
+                                     ts_sizes.sz_name ASC
+                        ")),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
+            'p_name' => Product::where('p_delete', '!=', '1')->orderByDesc('id')->pluck('p_name', 'id'),
+            'main_color_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'segment' => request()->segment(1),
+        ];
+
+        return view('app.updated_data_stok.data_stok', compact('data'));
+    }
+
     public function index_two()
     {
         $this->validateAccess();

@@ -35,16 +35,20 @@ use App\Models\PurchaseOrderTransferImage;
 use App\Models\UserActivity;
 use App\Models\PurchaseOrderDisputeFile;
 use App\Models\PurchaseOrderFileDeliveryNote;
+use App\Exports\PoReceiveExport;
+use Carbon\Carbon;
 
 
 class PurchaseOrderReceiveController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -106,6 +110,36 @@ class PurchaseOrderReceiveController extends Controller
             'segment' => request()->segment(1),
         ];
         return view('app.purchase_order_receive.purchase_order_receive', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_code', 'id'),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_purchase_order_receive.purchase_order_receive', compact('data'));
     }
 
     public function getDatatables(Request $request)
@@ -1105,5 +1139,205 @@ class PurchaseOrderReceiveController extends Controller
         $file->delete();
 
         return response()->json(['status' => '200']);
+    }
+
+    /**
+     * SimpleDatatables (v2) endpoint with server-side pagination.
+     * Does NOT affect legacy DataTables endpoint.
+     */
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $st_id = $request->get('st_id');
+            $po_status = $request->get('po_status');
+            $filter_dispute = $request->get('filter_dispute');
+            $filter_delivery_note = $request->get('filter_delivery_note');
+            $search = $request->get('search');
+
+            $user = new User;
+            $select = ['u_name', 'u_email', 'u_phone', 'g_name'];
+            $where = [
+                'users.id' => Auth::user()->id
+            ];
+            $user_data = $user->checkJoinData($select, $where)->first();
+
+            // Aggregate: order qty and total price per PO
+            $orderAgg = DB::table('purchase_order_articles')
+                ->join('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                // Use prefixed table names inside RAW to avoid `ts_` prefix mismatch
+                ->selectRaw('ts_purchase_order_articles.po_id as po_id, SUM(ts_purchase_order_article_details.poad_qty) as order_qty, SUM(ts_purchase_order_article_details.poad_total_price) as total_price')
+                // Prevent double-prefixing (Laravel will prefix strings automatically)
+                ->groupBy(DB::raw('ts_purchase_order_articles.po_id'));
+
+            // Aggregate: received qty per PO (type IN)
+            $receiveAgg = DB::table('purchase_order_article_detail_statuses')
+                ->join('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                // Use prefixed table names inside RAW to avoid `ts_` prefix mismatch
+                ->selectRaw("ts_purchase_order_articles.po_id as po_id, SUM(CASE WHEN ts_purchase_order_article_detail_statuses.poads_type = 'IN' THEN ts_purchase_order_article_detail_statuses.poads_qty ELSE 0 END) as received_qty")
+                // Prevent double-prefixing (Laravel will prefix strings automatically)
+                ->groupBy(DB::raw('ts_purchase_order_articles.po_id'));
+
+            // Aggregate: delivery note exists per PO
+            $deliveryAgg = DB::table('purchase_order_file_delivery_note')
+                ->selectRaw('purchase_order_id, MAX(id) as delivery_note_id')
+                ->groupBy('purchase_order_id');
+
+            $query = PurchaseOrder::query()
+                ->selectRaw("
+                    ts_purchase_orders.id as po_id,
+                    ts_purchase_orders.po_invoice,
+                    ts_purchase_orders.po_description,
+                    ts_purchase_orders.po_draft,
+                    ts_purchase_orders.dispute,
+                    ts_purchase_orders.created_at as po_created_at,
+                    ts_stores.st_name,
+                    ts_product_suppliers.ps_name,
+                    COALESCE(ts_orderAgg.order_qty, 0) as order_qty,
+                    COALESCE(ts_receiveAgg.received_qty, 0) as received_qty,
+                    COALESCE(ts_orderAgg.total_price, 0) as total_price,
+                    ts_deliveryAgg.delivery_note_id as delivery_note_id
+                ")
+                ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoinSub($orderAgg, 'orderAgg', function ($join) {
+                    $join->on('orderAgg.po_id', '=', 'purchase_orders.id');
+                })
+                ->leftJoinSub($receiveAgg, 'receiveAgg', function ($join) {
+                    $join->on('receiveAgg.po_id', '=', 'purchase_orders.id');
+                })
+                ->leftJoinSub($deliveryAgg, 'deliveryAgg', function ($join) {
+                    $join->on('deliveryAgg.purchase_order_id', '=', 'purchase_orders.id');
+                })
+                ->where('purchase_orders.po_delete', '!=', '1')
+                ->where(function ($w) use ($user_data, $st_id) {
+                    if ($user_data && $user_data->g_name != 'administrator') {
+                        $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
+                    } else {
+                        if (!empty($st_id)) {
+                            $w->where('purchase_orders.st_id', '=', $st_id);
+                        }
+                    }
+                });
+
+            // Search filter (safe: only joined columns)
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('purchase_orders.po_invoice', 'LIKE', "%$search%")
+                        ->orWhere('stores.st_name', 'LIKE', "%$search%")
+                        ->orWhere('product_suppliers.ps_name', 'LIKE', "%$search%")
+                        ->orWhere('purchase_orders.po_description', 'LIKE', "%$search%");
+                });
+            }
+
+            // Filter: full / unfull based on aggregated received vs ordered qty
+            if ($request->filled('po_status')) {
+                if ($po_status === 'full') {
+                    $query->whereRaw('COALESCE(receiveAgg.received_qty, 0) >= COALESCE(orderAgg.order_qty, 0)')
+                        ->whereRaw('COALESCE(orderAgg.order_qty, 0) > 0')
+                        ->where('purchase_orders.po_draft', '!=', '1');
+                } elseif ($po_status === 'unfull') {
+                    $query->whereRaw('COALESCE(receiveAgg.received_qty, 0) < COALESCE(orderAgg.order_qty, 0)')
+                        ->whereRaw('COALESCE(orderAgg.order_qty, 0) > 0')
+                        ->where('purchase_orders.po_draft', '!=', '1');
+                }
+            }
+
+            // Filter: dispute
+            if ($request->has('filter_dispute')) {
+                if ($filter_dispute === "1") {
+                    $query->where('purchase_orders.dispute', 1);
+                } elseif ($filter_dispute === "0") {
+                    $query->where(function ($q) {
+                        $q->whereNull('purchase_orders.dispute')->orWhere('purchase_orders.dispute', '!=', '1');
+                    });
+                }
+            }
+
+            // Filter: delivery note uploaded
+            if ($request->has('filter_delivery_note')) {
+                if ($filter_delivery_note === "1") {
+                    $query->whereNotNull('deliveryAgg.delivery_note_id');
+                } elseif ($filter_delivery_note === "0") {
+                    $query->whereNull('deliveryAgg.delivery_note_id');
+                }
+            }
+
+            // Pagination params
+            $page = (int) $request->get('page', 1);
+            $perPage = (int) $request->get('per_page', 25);
+            $page = $page < 1 ? 1 : $page;
+            $perPage = $perPage < 1 ? 25 : $perPage;
+            $offset = ($page - 1) * $perPage;
+
+            // Total records (no duplicates since all heavy joins are subqueries)
+            $totalRecords = (clone $query)->count('purchase_orders.id');
+
+            $rows = $query->orderByDesc(DB::raw('ts_purchase_orders.id'))
+                ->offset($offset)
+                ->limit($perPage)
+                ->get();
+
+            $data = $rows->map(function ($item, $index) use ($offset) {
+                $orderQty = (int) ($item->order_qty ?? 0);
+                $receivedQty = (int) ($item->received_qty ?? 0);
+                $totalPrice = (float) ($item->total_price ?? 0);
+
+                if ($item->po_draft == '1') {
+                    $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Draft</span>';
+                } else {
+                    $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">' . $receivedQty . '/' . $orderQty . '</span>';
+                }
+
+                return [
+                    'no' => $offset + $index + 1,
+                    'po_id' => $item->po_id,
+                    'po_invoice' => $item->po_invoice ?? '-',
+                    'st_name' => $item->st_name ?? '-',
+                    'ps_name' => $item->ps_name ?? '-',
+                    'po_description' => $item->po_description ?? '-',
+                    'po_total' => number_format($totalPrice),
+                    'po_status' => $status,
+                    'po_created_at' => $item->po_created_at ? date('d-m-Y H:i:s', strtotime($item->po_created_at)) : '-',
+                    'action' => '<button type="button" class="btn btn-sm btn-primary detail-btn" data-id="' . e($item->po_id) . '"><i class="fas fa-eye"></i></button>',
+                ];
+            });
+
+            return response()->json([
+                'data' => $data,
+                'total' => $totalRecords,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => (int) ceil($totalRecords / $perPage),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function exportData(Request $request)
+    {
+        $st_id = $request->get('st_id');
+        $po_status = $request->get('po_status');
+        $filter_dispute = $request->get('filter_dispute');
+        $filter_delivery_note = $request->get('filter_delivery_note');
+        $search = $request->get('search');
+        
+        // For PoReceiveExport, we need date_filter and status_filter
+        // Since v2 doesn't have date picker, we'll use current date range or all
+        $date_filter = 0; // 0 = no date filter, 1 = with date filter
+        $status_filter = $po_status; // full or unfull
+        
+        // If no date provided, export all data
+        $start = null;
+        $end = null;
+        
+        return Excel::download(
+            new PoReceiveExport($st_id, $start, $end, $status_filter, $date_filter), 
+            'laporan_penerimaan_' . Carbon::now()->format('dmY_Hi') . '.xlsx'
+        );
     }
 }

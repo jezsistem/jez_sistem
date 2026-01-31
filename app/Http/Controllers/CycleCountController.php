@@ -91,6 +91,38 @@ class CycleCountController extends Controller
         return view('app.cycle_counts.cycle_count', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => 'cycle_counts'
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Cycle Counts',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderBy('st_name')->pluck('st_name', 'id'),
+            'psc_id' => DB::table('product_sub_categories')->where('psc_delete', '!=', '1')->orderBy('psc_name')->pluck('psc_name', 'id'),
+            'br_id' => DB::table('brands')->where('br_delete', '!=', '1')->orderBy('br_name')->pluck('br_name', 'id'),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_cycle_counts.cycle_count', compact('data'));
+    }
+
     public function getItemDetails(Request $request)
     {
         $plsId = $request->input('pls_id');
@@ -130,25 +162,206 @@ class CycleCountController extends Controller
 
 
     public function createCycleCount(Request $request){
-        dd('ini cycelcount Create');
-
-        $_check_id = 'hehehehe';
-
-
-        if(empty($_check_id)){
-            //insert new header cycle count
+        $ccn_number = $request->input('ccn_number');
+        $st_id = $request->input('st_id');
+        $pl_id = $request->input('pl_id');
+        
+        try {
+            // Check if cycle count header already exists
+            $existing = DB::table('cycle_counts')->where('ccn_number', $ccn_number)->first();
+            
+            if (!$existing) {
+                // Insert new cycle count header
+                $cycleCountId = DB::table('cycle_counts')->insertGetId([
+                    'ccn_number' => $ccn_number,
+                    'st_id' => $st_id,
+                    'pl_id' => !empty($pl_id) ? (is_array($pl_id) ? json_encode($pl_id) : $pl_id) : null,
+                    'u_id' => Auth::user()->id,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+                
+                return response()->json([
+                    'status' => '200',
+                    'data' => [
+                        'ccn_number' => $ccn_number,
+                        'id' => $cycleCountId
+                    ],
+                    'message' => 'Cycle count header berhasil dibuat'
+                ]);
+            } else {
+                return response()->json([
+                    'status' => '200',
+                    'data' => [
+                        'ccn_number' => $ccn_number,
+                        'id' => $existing->id
+                    ],
+                    'message' => 'Cycle count header sudah ada'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => '500',
+                'message' => 'Gagal membuat cycle count header: ' . $e->getMessage()
+            ]);
         }
+    }
 
-
+    public function storeCycleCountDetail(Request $request)
+    {
+        $ccn_number = $request->input('ccn_number');
+        $pl_id = $request->input('pls_id'); // Note: this is actually pl_id from bin_filter, not pls_id
+        $sku = $request->input('sku');
+        
+        try {
+            // Get cycle count header
+            $cycleCount = DB::table('cycle_counts')->where('ccn_number', $ccn_number)->first();
+            
+            if (!$cycleCount) {
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Cycle count header tidak ditemukan'
+                ]);
+            }
+            
+            // Get product location setup data - use pl_id to find pls_id
+            $pls = DB::table('product_location_setups as T1')
+                ->leftJoin('product_locations as T2', 'T2.id', '=', 'T1.pl_id')
+                ->leftJoin('product_stocks as T3', 'T3.id', '=', 'T1.pst_id')
+                ->leftJoin('products as T5', 'T5.id', '=', 'T3.p_id')
+                ->where('T3.ps_barcode', $sku)
+                ->where('T1.pl_id', $pl_id) // Use pl_id from bin_filter
+                ->select('T1.id as pls_id', 'T1.pls_qty', 'T3.ps_barcode', 'T5.id as p_id')
+                ->first();
+            
+            if (!$pls) {
+                return response()->json([
+                    'status' => '404',
+                    'message' => 'Item tidak ditemukan'
+                ]);
+            }
+            
+            // Check if detail already exists
+            $existing = DB::table('cycle_count_details')
+                ->where('ccn_id', $cycleCount->id)
+                ->where('pls_id', $pls->pls_id)
+                ->where('ps_barcode', $sku)
+                ->first();
+            
+            if ($existing) {
+                return response()->json([
+                    'status' => '200',
+                    'message' => 'Item sudah ada dalam cycle count detail'
+                ]);
+            }
+            
+            // Insert cycle count detail
+            DB::table('cycle_count_details')->insert([
+                'ccn_id' => $cycleCount->id,
+                'pls_id' => $pls->pls_id,
+                'ps_barcode' => $sku,
+                'qty_system' => $pls->pls_qty,
+                'qty_count' => $pls->pls_qty,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+            
+            $this->UserActivity('Menambahkan item ke cycle count detail: ' . $sku);
+            
+            return response()->json([
+                'status' => '200',
+                'message' => 'Item berhasil disimpan ke cycle_count_details'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => '500',
+                'message' => 'Gagal menyimpan item: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function stockDatatables(Request $request)
     {
         $exception = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
+        
+        // Check if this is for Simple-DataTables (client-side) by checking if length=-1
+        if ($request->has('length') && $request->get('length') == -1) {
+            // Return JSON for Simple-DataTables
+            $query = DB::table('product_location_setups')
+                ->selectRaw("ts_product_location_setups.id as id, pl_code, br_name, p_name, p_color, sz_name, psc_name,
+                pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_purchase_price as purchase_3, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($exception, $request) {
+                    $st_id = $request->get('st_id');
+                    $psc_id = $request->get('psc_id');
+                    $br_id = $request->get('br_id');
+                    $pl_id = $request->get('pl_id');
+                    $qty_filter = $request->get('qty_filter');
+                    $w->whereNotIn('product_locations.pl_code', $exception);
+                    if ($st_id && $st_id != 'all') {
+                        $w->where('product_locations.st_id', $st_id);
+                    }
+                    if ($psc_id && $psc_id != 'all') {
+                        $w->where('products.psc_id', $psc_id);
+                    }
+                    if ($br_id && $br_id != 'all') {
+                        $w->where('products.br_id', $br_id);
+                    }
+                    if (!empty($pl_id) && is_array($pl_id)) {
+                        $w->whereIn('product_locations.id', $pl_id);
+                    } elseif (!empty($pl_id)) {
+                        $w->where('product_locations.id', $pl_id);
+                    }
+                    if ($qty_filter == '1') {
+                        $w->where('product_location_setups.pls_qty', '>', '0');
+                    }
+                });
+            
+            // Apply search filter
+            if (!empty($request->get('search'))) {
+                $search = $request->get('search');
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('pl_code', 'LIKE', "%$search%")
+                      ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', ["%$search%"]);
+                });
+            }
+            
+            $data = $query->groupBy('product_location_setups.id')->get();
+            
+            // Format data for Simple-DataTables
+            $formattedData = $data->map(function ($row) {
+                $purchase = $row->ps_purchase_price ?? 0;
+                $sell = !empty($row->ps_sell_price) ? $row->ps_sell_price : ($row->p_sell_price ?? 0);
+                
+                return [
+                    'id' => $row->id,
+                    'pl_code' => $row->pl_code,
+                    'br_name' => $row->br_name,
+                    'p_name' => $row->p_name,
+                    'p_color' => $row->p_color,
+                    'sz_name' => $row->sz_name,
+                    'psc_name' => $row->psc_name,
+                    'pls_qty' => $row->pls_qty,
+                    'purchase' => number_format($purchase),
+                    'sell' => number_format($sell),
+                ];
+            });
+            
+            return response()->json(['data' => $formattedData]);
+        }
+        
+        // Original DataTables server-side format
         if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setups')->selectRaw("ts_product_location_setups.id as id, pl_code, br_name, p_name, p_color, sz_name, psc_name,
-            pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_arzticle_detail_statuses.poads_purchase_price) as purchase_1, ps_purchase_price as purchase_3, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
+            pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_purchase_price as purchase_3, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
@@ -182,15 +395,6 @@ class CycleCountController extends Controller
                 })
                 ->groupBy('product_location_setups.id'))
                 ->editColumn('purchase', function ($data) {
-                    //                    if (!empty($data->purchase_1)) {
-                    //                        return number_format($data->purchase_1);
-                    //                    } else if (!empty($data->purchase_2)) {
-                    //                        return number_format($data->purchase_2);
-                    //                    } else if (!empty($data->ps_purchase_price)) {
-                    //                        return number_format($data->ps_purchase_price);
-                    //                    } else {
-                    //                        return number_format($data->p_purchase_price);
-                    //                    }
                     return number_format($data->ps_purchase_price);
                 })
                 ->editColumn('sell', function ($data) {

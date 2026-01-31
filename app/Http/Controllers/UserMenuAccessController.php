@@ -116,4 +116,78 @@ class UserMenuAccessController extends Controller
         }
         return json_encode($r);
     }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $u_id = $request->get('u_id');
+            $search = $request->get('search', '');
+
+            if (!$u_id) {
+                return response()->json([
+                    'error' => 'User ID is required',
+                    'data' => [],
+                    'total' => 0,
+                    'total_pages' => 0,
+                    'current_page' => 1,
+                    'per_page' => 25
+                ], 400);
+            }
+
+            $query = DB::table('user_menu_accesses')
+                ->select('user_menu_accesses.id as id', 'ma_id', 'ma_title', 'uma_default', 'ma_sort')
+                ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')
+                ->where('u_id', '=', $u_id)
+                ->orderBy('ma_sort');
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('ma_title', 'LIKE', "%$search%");
+                });
+            }
+
+            // Get all data first to handle pagination
+            $allData = $query->get();
+
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'ma_id' => $row->ma_id,
+                        'ma_title' => $row->ma_title ?? '-',
+                        'uma_default' => $row->uma_default ?? '0',
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
 }

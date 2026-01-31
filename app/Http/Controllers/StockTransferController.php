@@ -94,6 +94,41 @@ class StockTransferController extends Controller
         return view('app.stock_transfer.stock_transfer', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => 'transfer_stok'
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Transfer Stock',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'pl_id' => ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
+                ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('pl_delete', '!=', '1')
+                ->orderByDesc('pl_code')->pluck('location', 'pl_id'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+        ];
+        return view('app.updated_transfer_stok.transfer_stok', compact('data'));
+    }
+
     public function transferBinDatatables(Request $request)
     {
         if (request()->ajax()) {

@@ -20,12 +20,13 @@ use File;
 
 class WebBannerController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -91,6 +92,219 @@ class WebBannerController extends Controller
             ->orderBy('pssc_name')->pluck('name', 'id')
         ];
         return view('app.web_banner.web_banner', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('web_banner');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'web_banner')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'pssc_id' => ProductSubSubCategory::selectRaw('id, CONCAT(pssc_name) as name')
+            ->where('pssc_delete', '!=', '1')
+            ->orderBy('pssc_name')->pluck('name', 'id')
+        ];
+        return view('app.updated_web_banner.web_banner', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = Banner::select('id', 'bn_image', 'bn_name', 'bn_slug', 'bn_sort', 'bn_filter', 'is_child');
+
+            if (!empty($search)) {
+                $query->where('bn_name', 'LIKE', "%$search%");
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                // Count brand
+                $brandCount = DB::table('banner_brands')
+                    ->where('bn_id', '=', $row->id)
+                    ->count();
+
+                // Filter label
+                $filterLabels = [
+                    '0' => 'Terbaru',
+                    '1' => 'Terlaris',
+                    '2' => 'Termurah',
+                    '3' => 'Termahal',
+                    '4' => 'Brand Lokal',
+                    '5' => 'Topdeals'
+                ];
+                $filterLabel = $filterLabels[$row->bn_filter] ?? '-';
+
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'bn_image' => $row->bn_image,
+                    'bn_image_url' => $row->bn_image ? asset('api/banner/1905x914') . '/' . $row->bn_image : asset('upload/image/no_image.png'),
+                    'bn_name' => $row->bn_name ?? '-',
+                    'bn_slug' => $row->bn_slug ?? '-',
+                    'is_child' => $row->is_child,
+                    'is_child_label' => $row->is_child == '1' ? 'Ya' : 'Tidak',
+                    'bn_sort' => $row->bn_sort ?? 0,
+                    'bn_filter' => $row->bn_filter,
+                    'bn_filter_label' => $filterLabel,
+                    'brand_count' => $brandCount,
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getBrandDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $bn_id = $request->get('bn_id');
+
+            $query = BannerBrand::select('banner_brands.id as id', 'br_id', 'br_name')
+                ->leftJoin('brands', 'brands.id', '=', 'banner_brands.br_id')
+                ->where('banner_brands.bn_id', '=', $bn_id);
+
+            if (!empty($search)) {
+                $query->where('br_name', 'LIKE', "%$search%");
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('banner_brands.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                // Count article
+                $articleCount = DB::table('banner_brand_details')
+                    ->where('bnb_id', '=', $row->id)
+                    ->count();
+
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'br_id' => $row->br_id,
+                    'br_name' => $row->br_name ?? '-',
+                    'article_count' => $articleCount,
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getArticleDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $bnb_id = $request->get('bnb_id');
+
+            $query = BannerBrandDetail::select('banner_brand_details.id as id', 'pssc_id', 'pssc_name')
+                ->leftJoin('product_sub_sub_categories', 'product_sub_sub_categories.id', '=', 'banner_brand_details.pssc_id')
+                ->where('banner_brand_details.bnb_id', '=', $bnb_id);
+
+            if (!empty($search)) {
+                $query->where('pssc_name', 'LIKE', "%$search%");
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('banner_brand_details.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'pssc_id' => $row->pssc_id,
+                    'pssc_name' => $row->pssc_name ?? '-',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

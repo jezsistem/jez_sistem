@@ -26,10 +26,12 @@ class CrossOrderController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -103,6 +105,191 @@ class CrossOrderController extends Controller
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
         ];
         return view('app.cross_order.cross_order', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+        ];
+        return view('app.updated_cross_order.cross_order', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            if (!empty($request->st_id)) {
+                $st_id = $request->st_id;
+            } else {
+                $st_id = Auth::user()->st_id;
+            }
+            
+            $query = PosTransaction::select('pos_transactions.id as pt_id', 'u_name', 'u_id_cross', 'cust_name', 'pos_invoice', 'cust_id', 'st_id_ref', 'std_id', 'stt_name', 'dv_name', 'cr_id', 'pt_id_ref', 'pos_shipping_number', 'psi_description', 'pos_resi', 'pos_resi_file','pos_transactions.created_at as pos_created', 'pos_status')
+                ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
+                ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+                ->leftJoin('pos_shipping_information', 'pos_shipping_information.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
+                ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->where('pos_transactions.cross_order', '=', '1')
+                ->where(function($w) use ($st_id) {
+                    $w->where('pos_transactions.st_id_ref', '=', $st_id);
+                })
+                ->groupBy('pos_invoice');
+            
+            // Apply filters
+            if (!empty($request->get('status'))) {
+                $query->where('pos_status', $request->get('status'));
+            }
+            if (!empty($request->get('division'))) {
+                $query->where('std_id', $request->get('division'));
+            }
+            if (!empty($request->get('search'))) {
+                $search = $request->get('search');
+                $query->where(function($w) use($search){
+                    $w->orWhere('pos_invoice', 'LIKE', "%$search%")
+                    ->orWhere('pos_shipping_number', 'LIKE', "%$search%")
+                    ->orWhere('cust_name', 'LIKE', "%$search%")
+                    ->orWhere('ps_barcode', 'LIKE', "%$search%");
+                });
+            }
+            
+            $data = $query->orderBy('pos_transactions.id', 'desc')->get()->map(function ($item, $index) {
+                // Format pos_invoice
+                $pos_invoice = '';
+                if (!empty($item->pt_id_ref)) {
+                    $invoice = TransaksiOnline::select('pos_invoice')->where('id', $item->pt_id_ref)->get()->first();
+                    $invoice_text = $invoice ? $invoice->pos_invoice : '';
+                    if (strtoupper($item->stt_name) == 'ONLINE') {
+                        $pos_invoice = '<a class="text-white" href="#" data-pt_id="'.$item->pt_id.'" id="detail_btn"><span class="btn btn-sm btn-warning" title="'.$invoice_text.'">'.$item->pos_invoice.'</span></a>';
+                    } else {
+                        $pos_invoice = '<a class="text-white" href="#" data-pt_id="'.$item->pt_id.'" id="detail_btn"><span class="btn btn-sm btn-warning" title="'.$invoice_text.'">'.$item->pos_invoice.'</span></a>';
+                    }
+                } else {
+                    if (strtoupper($item->stt_name) == 'ONLINE') {
+                        $pos_invoice = '<a class="text-white" href="#" data-pt_id="'.$item->pt_id.'" id="detail_btn"><span class="btn btn-sm btn-primary">'.$item->pos_invoice.'</span></a>';
+                    } else {
+                        $pos_invoice = '<a class="text-white" href="#" data-pt_id="'.$item->pt_id.'" id="detail_btn"><span class="btn btn-sm btn-primary">'.$item->pos_invoice.'</span></a>';
+                    }
+                }
+                
+                // Format st_name_end
+                $store = Store::select('st_name')->where('id', '=', $item->st_id_ref)->get()->first();
+                $st_name_end = $store ? $store->st_name : '-';
+                
+                // Format u_name_end
+                $u_name_end = '-';
+                if (!empty($item->u_id_cross)) {
+                    $user = User::select('u_name')->where('id', '=', $item->u_id_cross)->get()->first();
+                    $u_name_end = $user ? $user->u_name : '-';
+                }
+                
+                // Calculate total_item_reject
+                $total_item_reject = PosTransactionDetail::where('pt_id', $item->pt_id)->where('pos_td_reject', '=', '1')->sum('pos_td_qty');
+                
+                // Format pos_created
+                $pos_created = '<span style="white-space: nowrap;">'.date('d-m-Y H:i:s', strtotime($item->pos_created)).'</span>';
+                
+                // Calculate total_item
+                $total_item = PosTransactionDetail::where('pt_id', $item->pt_id)->sum('pos_td_qty');
+                $total_item = !empty($total_item) ? $total_item : '-';
+                
+                // Calculate total_price
+                $total_price = PosTransactionDetail::where('pt_id', $item->pt_id)->sum('pos_td_total_price');
+                $total_price = !empty($total_price) ? number_format($total_price) : '-';
+                
+                // Format pos_status
+                $ref_invoice = '';
+                $pos_status = '';
+                if ($item->pos_status == 'DONE' || $item->pos_status == 'DP') {
+                    if (!empty($item->pt_id_ref)) {
+                        $ref_transaction = PosTransaction::select('pos_invoice')->where('id', $item->pt_id_ref)->get()->first();
+                        $ref_invoice = $ref_transaction ? $ref_transaction->pos_invoice : '';
+                        $btn = 'btn-warning';
+                    } else {
+                        $btn = 'btn-success';
+                    }
+                    $pos_status = '<span style="white-space: nowrap;" class="btn btn-sm '.$btn.'">'.$item->pos_status.' '.$ref_invoice.'</span>
+                    <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$item->pt_id.'" id="print_btn">Print Nota</span>
+                    <span style="white-space: nowrap;" class="btn btn-sm btn-info" data-pt_id="'.$item->pt_id.'" id="print_resi_btn">Print Resi</span>';
+                } else {
+                    $btn = 'btn-primary';
+                    if ($item->pos_status == 'REFUND' || $item->pos_status == 'EXCHANGE' || $item->pos_status == 'CANCEL' || $item->pos_status == 'REJECTED') {
+                        $btn = 'btn-danger';
+                    } else if ($item->pos_status == 'NAMESET') {
+                        $btn = 'btn-info';
+                    } else if ($item->pos_status == 'SHIPPING NUMBER' || $item->pos_status == 'WAITING FOR CONFIRMATION') {
+                        $btn = 'btn-warning';
+                    } else if ($item->pos_status == 'IN DELIVERY') {
+                        $btn = 'btn-info';
+                    } else if ($item->pos_status == 'IN PROGRESS') {
+                        $btn = 'btn-primary';
+                    }
+                    
+                    if ($item->pos_status == 'SHIPPING NUMBER' || $item->pos_status == 'IN DELIVERY') {
+                        $pos_status = '<span style="white-space: nowrap;" data-pt_id="'.$item->pt_id.'" data-cust_id="'.$item->cust_id.'" class="btn btn-sm '.$btn.'" id="shipping_number_btn">'.$item->pos_status.' '.$ref_invoice.'</span>
+                        <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$item->pt_id.'" id="print_btn">Print Nota</span>
+                        <span style="white-space: nowrap;" class="btn btn-sm btn-info" data-pt_id="'.$item->pt_id.'" id="print_resi_btn">Print Resi</span>';
+                    } else if ($item->pos_status == 'WAITING FOR CONFIRMATION') {
+                        if ($item->st_id_ref != Auth::user()->st_id) {
+                            if (strtolower(Auth::user()->u_name) == 'aufa kenshi') {
+                                $pos_status = '<span style="white-space: nowrap;" data-pt_id="'.$item->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$item->pos_status.'</span>';
+                            } else {
+                                $pos_status = '<span style="white-space: nowrap;" data-pt_id="'.$item->pt_id.'" class="btn btn-sm '.$btn.'">'.$item->pos_status.'</span>';
+                            }
+                        } else {
+                            $pos_status = '<span style="white-space: nowrap;" data-pt_id="'.$item->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$item->pos_status.'</span>';
+                        }
+                    } else if ($item->pos_status == 'REJECTED' || $item->pos_status == 'CANCEL') {
+                        $pos_status = '<span style="white-space: nowrap;" data-pt_id="'.$item->pt_id.'" data-cust_id="'.$item->cust_id.'" class="btn btn-sm '.$btn.'">'.$item->pos_status.' '.$ref_invoice.'</span>';
+                    } else {
+                        if ($item->st_id_ref == Auth::user()->st_id) {
+                            $pos_status = '<span style="white-space: nowrap;" title="'.$ref_invoice.'" class="btn btn-sm '.$btn.'">'.$item->pos_status.'</span>
+                            <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$item->pt_id.'" id="print_btn">Print Nota</span>';
+                        } else {
+                            $pos_status = '<span style="white-space: nowrap;" title="'.$ref_invoice.'" class="btn btn-sm '.$btn.'">'.$item->pos_status.'</span>';
+                        }
+                    }
+                }
+                
+                return [
+                    'DT_RowIndex' => $index + 1,
+                    'pt_id' => $item->pt_id,
+                    'pos_invoice' => $pos_invoice,
+                    'u_name' => $item->u_name,
+                    'cust_name' => $item->cust_name,
+                    'st_name_end' => $st_name_end,
+                    'u_name_end' => $u_name_end,
+                    'pos_created' => $pos_created,
+                    'total_item' => $total_item,
+                    'total_price' => $total_price,
+                    'total_item_reject' => $total_item_reject,
+                    'pos_status' => $pos_status
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

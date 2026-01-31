@@ -20,10 +20,12 @@ class ArtikelPromoController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -92,6 +94,30 @@ class ArtikelPromoController extends Controller
         //        return 'aaaa';
     }
 
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_artikel_promo.artikel_promo', compact('data'));
+    }
+
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
@@ -148,6 +174,90 @@ class ArtikelPromoController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $query = ArtikelPromo::select('articles_promo.id as a_id', 'article_id', 'p_name','st_id','stores.st_code as st_code', 'promo_name', 'date_start', 'date_end', 'promo_disc', 'p_price_tag', 'promo_note')
+                ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
+                ->join('products', 'products.id', '=', 'articles_promo.p_id');
+            
+            // Search filter
+            $search = $request->get('search');
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('p_id', 'LIKE', "%$search%")
+                        ->orWhere('article_id', 'LIKE', "%$search%")
+                        ->orWhere('p_name', 'LIKE', "%$search%")
+                        ->orWhere('st_code', 'LIKE', "%$search%")
+                        ->orWhere('promo_name', 'LIKE', "%$search%")
+                        ->orWhere('date_start', 'LIKE', "%$search%")
+                        ->orWhere('date_end', 'LIKE', "%$search%")
+                        ->orWhere('promo_disc', 'LIKE', "%$search%")
+                        ->orWhere('promo_note', 'LIKE', "%$search%");
+                });
+            }
+            
+            // Date range filter
+            $dateRange = $request->get('date_start');
+            if (!empty($dateRange)) {
+                $dates = explode('|', $dateRange);
+                if (count($dates) === 2) {
+                    $query->whereBetween('date_start', [$dates[0], $dates[1]]);
+                } else {
+                    $query->whereDate('date_start', $dates[0]);
+                }
+            }
+            
+            // Get total count before pagination
+            $totalRecords = $query->count();
+            
+            // Pagination parameters
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $offset = ($page - 1) * $perPage;
+            
+            // Apply pagination
+            $data = $query->orderBy('articles_promo.id', 'desc')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get()
+                ->map(function ($item, $index) use ($offset) {
+                    $originalPrice = $item->p_price_tag;
+                    $discount = $item->promo_disc;
+                    $discountedPrice = $originalPrice - ($originalPrice * ($discount / 100));
+                    
+                    return [
+                        'no' => $offset + $index + 1,
+                        'a_id' => $item->a_id,
+                        'article_id' => $item->article_id ?? '-',
+                        'p_name' => $item->p_name ?? '-',
+                        'st_id' => $item->st_id,
+                        'st_code' => $item->st_code ?? '-',
+                        'promo_name' => $item->promo_name ?? '-',
+                        'date_start' => $item->date_start ? date('d-m-Y', strtotime($item->date_start)) : '-',
+                        'date_end' => $item->date_end ? date('d-m-Y', strtotime($item->date_end)) : '-',
+                        'promo_disc' => $item->promo_disc ? $item->promo_disc . '%' : '-',
+                        'p_price_tag' => $item->p_price_tag ? number_format($item->p_price_tag) : '-',
+                        'price_discount' => number_format($discountedPrice),
+                        'promo_note' => $item->promo_note ?? '-'
+                    ];
+                });
+            
+            return response()->json([
+                'data' => $data,
+                'total' => $totalRecords,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => ceil($totalRecords / $perPage)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 

@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\DB;
 use App\Models\UserPosition;
 use App\Models\UserType;
 use App\Models\LeaveBalance;
+use App\Models\User;
+use App\Models\WebConfig;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
 class StaffController extends Controller
@@ -434,6 +437,126 @@ class StaffController extends Controller
             ]);
 
             return $result;
+        }
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value ?? 'Staff Management';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+        
+        // Get positions, divisions, and user types for dropdowns
+        $userPosition = new UserPosition();
+        $positions = $userPosition->getActivePositions();
+        $divisions = DB::table('user_divisions')
+            ->where('ud_status', 'active')
+            ->orderBy('ud_name')
+            ->get();
+        $userType = new UserType();
+        $userTypes = $userType->getActiveUserTypes();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'staff')->first()->ma_title ?? 'Staff Management',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'positions' => $positions,
+            'divisions' => $divisions,
+            'userTypes' => $userTypes
+        ];
+
+        return view('app.updated_staff.staff', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $position_filter = $request->get('position_filter', '');
+            $division_filter = $request->get('division_filter', '');
+
+            $query = DB::table('users')
+                ->select([
+                    'users.id',
+                    'users.u_name',
+                    'users.u_nip',
+                    'users.up_id',
+                    'users.ud_id',
+                    'users.ut_id',
+                    'user_positions.up_name',
+                    'user_divisions.ud_name',
+                    'user_types.ut_name',
+                    'leave_balances.lb_remaining_balance'
+                ])
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->leftJoin('leave_balances', function($join) {
+                    $join->on('leave_balances.user_id', '=', 'users.id')
+                         ->where('leave_balances.lb_year', '=', date('Y'))
+                         ->where('leave_balances.leave_type_id', '=', function($query) {
+                             $query->select('id')
+                                   ->from('leave_types')
+                                   ->where('lt_code', 'ANNUAL')
+                                   ->limit(1);
+                         });
+                })
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip');
+
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('users.u_name', 'LIKE', "%$search%")
+                      ->orWhere('users.u_nip', 'LIKE', "%$search%");
+                });
+            }
+
+            if ($position_filter) {
+                $query->where('users.up_id', $position_filter);
+            }
+
+            if ($division_filter) {
+                $query->where('users.ud_id', $division_filter);
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    $row->action = '<div class="flex gap-2 justify-center">
+                        <button type="button" class="edit-position-btn px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700" data-id="' . $row->id . '" data-up_id="' . ($row->up_id ?? '') . '">Position</button>
+                        <button type="button" class="edit-division-btn px-2 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700" data-id="' . $row->id . '" data-ud_id="' . ($row->ud_id ?? '') . '">Division</button>
+                        <button type="button" class="edit-user-type-btn px-2 py-1 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700" data-id="' . $row->id . '" data-ut_id="' . ($row->ut_id ?? '') . '">Type</button>
+                        <button type="button" class="edit-leave-balance-btn px-2 py-1 text-xs font-medium text-white bg-orange-600 rounded hover:bg-orange-700" data-id="' . $row->id . '" data-balance="' . ($row->lb_remaining_balance ?? 0) . '">Leave</button>
+                    </div>';
+                    return $row;
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row->DT_RowIndex = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to load data: ' . $e->getMessage()], 500);
         }
     }
 }

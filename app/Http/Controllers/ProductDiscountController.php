@@ -22,10 +22,14 @@ class ProductDiscountController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        // Samakan akses antara halaman lama dan versi _v2
+        $slug = str_replace('_v2', '', $segment);
+
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -69,9 +73,13 @@ class ProductDiscountController extends Controller
         ]);
     }
 
+    /**
+     * Halaman Setup Diskon versi lama (layout lama)
+     */
     public function index()
     {
         $this->validateAccess();
+        $slug = str_replace('_v2', '', request()->segment(1));
         $user = new User;
         $select = ['*'];
         $where = [
@@ -81,7 +89,7 @@ class ProductDiscountController extends Controller
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slug)->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
@@ -91,6 +99,34 @@ class ProductDiscountController extends Controller
             'segment' => request()->segment(1),
         ];
         return view('app.product_discount.product_discount', compact('data'));
+    }
+
+    /**
+     * Halaman Setup Diskon versi baru (layout app_v2, SimpleDatatables)
+     */
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $slug = str_replace('_v2', '', request()->segment(1));
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slug)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_setup_diskon.setup_diskon', compact('data'));
     }
 
     public function getDatatables(Request $request)

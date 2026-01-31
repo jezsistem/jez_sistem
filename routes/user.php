@@ -9,7 +9,9 @@ Route::middleware(['auth'])->group(function () {
     // UserController
     Route::get('load_user_store', [UserController::class, 'loadStore']);
     Route::get('data_user', [UserController::class, 'index']);
+    Route::get('data_user_v2', [UserController::class, 'indexUpdated'])->name('data_user_v2');
     Route::get('user_datatables', [UserController::class, 'getDatatables']);
+    Route::get('user_datatables_simple', [UserController::class, 'getDatatablesForSimple']);
     Route::post('u_save', [UserController::class, 'storeData']);
     Route::post('u_delete', [UserController::class, 'deleteData']);
     Route::post('check_exists_secret_code', [UserController::class, 'checkExistsSecretCode']);
@@ -26,7 +28,9 @@ Route::middleware(['auth'])->group(function () {
 
     // UserManagementController
     Route::get('user_management', [UserManagementController::class, 'index']);
+    Route::get('user_management_v2', [UserManagementController::class, 'indexUpdated'])->name('user_management_v2');
     Route::get('um_datatables', [UserManagementController::class, 'getDatatables']);
+    Route::get('um_datatables_simple', [UserManagementController::class, 'getDatatablesForSimple']);
     Route::post('um_save', [UserManagementController::class, 'storeData']);
     Route::post(
         'um_delete',
@@ -35,7 +39,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Investor
     Route::get('investor', [InvestorController::class, 'index']);
+    Route::get('investor_v2', [InvestorController::class, 'indexUpdated'])->name('investor_v2');
     Route::get('i_datatables', [InvestorController::class, 'getDatatables']);
+    Route::get('i_datatables_simple', [InvestorController::class, 'getDatatablesForSimple']);
     Route::post('i_save', [InvestorController::class, 'storeData']);
     Route::post('i_delete',
         [InvestorController::class, 'deleteData']

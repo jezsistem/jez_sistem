@@ -117,6 +117,42 @@ class InvoiceEditorController extends Controller
         return view('app.invoice_editor.invoice_editor', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => 'invoice_editor'
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Invoice Editor',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')
+                ->orderBy('st_name')->pluck('st_name', 'id'),
+            'stt_id' => DB::table('store_types')->where('stt_delete', '!=', '1')
+                ->orderBy('stt_name')->pluck('stt_name', 'id'),
+            'u_id' => DB::table('users')->where('u_delete', '!=', '1')
+                ->selectRaw("CONCAT(u_name,' [',st_name,']') as u_name, ts_users.id as id")
+                ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
+                ->orderBy('u_name')->pluck('u_name', 'id'),
+        ];
+        return view('app.updated_invoice_editor.invoice_editor', compact('data'));
+    }
+
     public function getPermissionDatatables(Request $request)
     {
         if (request()->ajax()) {
@@ -643,6 +679,285 @@ class InvoiceEditorController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    // SimpleDatatables methods for v2
+    public function getPermissionDatatablesSimple(Request $request)
+    {
+        try {
+            $query = DB::table('invoice_editor_permissions')
+                ->select('invoice_editor_permissions.id', 'invoice_editor_permissions.st_id', 'invoice_editor_permissions.stt_id', 'u_id', 'st_name', 'stt_name', 'u_name')
+                ->leftJoin('stores', 'stores.id', '=', 'invoice_editor_permissions.st_id')
+                ->leftJoin('store_types', 'store_types.id', '=', 'invoice_editor_permissions.stt_id')
+                ->leftJoin('users', 'users.id', '=', 'invoice_editor_permissions.u_id');
+
+            if (!empty($request->get('search'))) {
+                $search = $request->get('search');
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('st_name', 'LIKE', "%$search%")
+                        ->orWhere('u_name', 'LIKE', "%$search%");
+                });
+            }
+
+            $data = $query->orderBy('invoice_editor_permissions.id', 'desc')->get()->map(function ($item, $index) {
+                return [
+                    'no' => $index + 1,
+                    'st_name' => $item->st_name ?? '-',
+                    'stt_name' => $item->stt_name ?? '-',
+                    'u_name' => $item->u_name ?? '-',
+                    'action' => '<button data-id="' . $item->id . '" id="delete_btn" class="px-3 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-700 transition-colors"><i class="fas fa-trash"></i></button>'
+                ];
+            });
+
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getInvoiceDatatablesSimple(Request $request)
+    {
+        try {
+            $pt_id = $request->get('pt_id');
+            $query = DB::table('pos_transactions')
+                ->select('pos_transactions.id', 'pos_invoice', 'u_id', 'stt_id', 'std_id', 'pm_id', 'pos_payment', 'pm_id_partial', 'pos_payment_partial', 'pos_admin_cost', 'pos_real_price', 'pos_status', 'created_at')
+                ->where(function ($w) use ($pt_id) {
+                    if (!empty($pt_id)) {
+                        $w->where('pos_transactions.id', '=', $pt_id);
+                    } else {
+                        $w->where('pos_transactions.id', '=', '!@@#$%');
+                    }
+                });
+
+            $data = $query->orderBy('pos_transactions.id', 'desc')->get()->map(function ($item, $index) {
+                // Cashier select
+                $user = DB::table('users')->select('id', 'u_name')
+                    ->where('u_delete', '!=', '1')->where('stt_id', '=', Auth::user()->stt_id)->get();
+                $cash = '<select data-pt_id="' . $item->id . '" id="cashier" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">';
+                foreach ($user as $row) {
+                    $selected = ($item->u_id == $row->id) ? 'selected' : '';
+                    $cash .= '<option value="' . $row->id . '" ' . $selected . '>' . $row->u_name . '</option>';
+                }
+                $cash .= '</select>';
+
+                // Division select
+                $div = '<select data-pt_id="' . $item->id . '" id="division" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">';
+                if ($item->stt_id == '1') {
+                    $div .= '<option value="1" selected>ONLINE</option><option value="2">OFFLINE</option>';
+                } else {
+                    $div .= '<option value="2" selected>OFFLINE</option><option value="1">ONLINE</option>';
+                }
+                $div .= '</select>';
+
+                // Subdivision select
+                $sd = DB::table('store_type_divisions')->select('id', 'dv_name')
+                    ->where('dv_delete', '!=', '1')->get();
+                $subdiv = '<select data-pt_id="' . $item->id . '" id="subdivision" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">';
+                foreach ($sd as $row) {
+                    $selected = ($row->id == $item->std_id) ? 'selected' : '';
+                    $subdiv .= '<option value="' . $row->id . '" ' . $selected . '>' . $row->dv_name . '</option>';
+                }
+                $subdiv .= '</select>';
+
+                // Method select
+                $mtd = DB::table('payment_methods')->select('id', 'pm_name')
+                    ->where('pm_delete', '!=', '1')->get();
+                $method = '<select data-pt_id="' . $item->id . '" id="method" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">';
+                foreach ($mtd as $row) {
+                    $selected = ($item->pm_id == $row->id) ? 'selected' : '';
+                    $method .= '<option value="' . $row->id . '" ' . $selected . '>' . $row->pm_name . '</option>';
+                }
+                $method .= '</select>';
+
+                // Payment input
+                $pos_payment = '<input type="number" data-pt_id="' . $item->id . '" id="pos_payment" class="pos_payment w-full px-2 py-1 border border-gray-300 rounded text-sm" value="' . $item->pos_payment . '"/>';
+
+                // Method two select
+                $method_two = '<select data-pt_id="' . $item->id . '" id="method" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">';
+                foreach ($mtd as $row) {
+                    $selected = ($item->pm_id_partial == $row->id) ? 'selected' : '';
+                    $method_two .= '<option value="' . $row->id . '" ' . $selected . '>' . $row->pm_name . '</option>';
+                }
+                $method_two .= '</select>';
+
+                // Payment partial input
+                $pos_payment_partial = '<input type="number" data-pt_id="' . $item->id . '" id="pos_payment_partial" class="pos_payment_partial w-full px-2 py-1 border border-gray-300 rounded text-sm" value="' . ($item->pos_payment_partial ?? 0) . '"/>';
+
+                // Admin input
+                $admin = '<input type="number" data-pt_id="' . $item->id . '" id="admin" class="w-full px-2 py-1 border border-gray-300 rounded text-sm" value="' . ($item->pos_admin_cost ?? 0) . '"/>';
+
+                // Status select
+                $disabled = ($item->pos_status == 'REFUND' || $item->pos_status == 'CANCEL') ? 'disabled' : '';
+                $pos_status = '<select name="pos_status_change" id="pos_status_change" data-pt_id="' . $item->id . '" class="w-full px-2 py-1 border border-gray-300 rounded text-sm" ' . $disabled . '>
+                    <option value="DP" ' . ($item->pos_status == 'DP' ? 'selected' : '') . '>DP</option>
+                    <option value="DONE" ' . ($item->pos_status == 'DONE' ? 'selected' : '') . '>DONE</option>
+                    <option value="CANCEL" ' . ($item->pos_status == 'CANCEL' ? 'selected' : '') . '>CANCEL</option>
+                    <option value="REFUND" ' . ($item->pos_status == 'REFUND' ? 'selected' : '') . '>REFUND</option>
+                </select>';
+
+                // Date input
+                $date = '<input type="text" value="' . $item->created_at . '" data-pt_id="' . $item->id . '" id="date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm"/>';
+
+                // Action button
+                $action = '<button data-pt_id="' . $item->id . '" id="cancel_btn" class="px-3 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-700 transition-colors">Hapus Trx</button>';
+
+                return [
+                    'no' => $index + 1,
+                    'pos_invoice' => $item->pos_invoice,
+                    'cashier' => $cash,
+                    'division' => $div,
+                    'subdivision' => $subdiv,
+                    'method' => $method,
+                    'pos_payment' => $pos_payment,
+                    'method_two' => $method_two,
+                    'pos_payment_partial' => $pos_payment_partial,
+                    'admin' => $admin,
+                    'pos_real_price' => number_format($item->pos_real_price ?? 0),
+                    'pos_status' => $pos_status,
+                    'created_at' => $date,
+                    'action' => $action
+                ];
+            });
+
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getDetailDatatablesSimple(Request $request)
+    {
+        try {
+            $pt_id = $request->get('pt_id');
+            $query = DB::table('pos_transaction_details')
+                ->selectRaw("ts_pos_transaction_details.id as id, CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) as article,
+            pt_id, pos_td_qty, pst_id, pl_id, pos_td_discount_price, pos_td_marketplace_price, pos_td_nameset_price, pos_td_total_price")
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($pt_id) {
+                    if (!empty($pt_id)) {
+                        $w->where('pos_transaction_details.pt_id', '=', $pt_id);
+                    } else {
+                        $w->where('pos_transaction_details.pt_id', '=', '!@@#$%');
+                    }
+                });
+
+            $data = $query->orderBy('pos_transaction_details.id', 'desc')->get()->map(function ($item, $index) use ($pt_id) {
+                $price = 0;
+                if (!empty($item->pos_td_marketplace_price)) {
+                    $price = $item->pos_td_marketplace_price;
+                } else {
+                    $price = $item->pos_td_discount_price;
+                }
+
+                $price_input = '<input type="number" data-pt_id="' . $item->pt_id . '" data-qty="' . $item->pos_td_qty . '" data-ptd_id="' . $item->id . '" data-nameset="' . $item->pos_td_nameset_price . '" value="' . $price . '" id="price" class="w-full px-2 py-1 border border-gray-300 rounded text-sm"/>';
+
+                $nameset_input = '<input type="number" data-pt_id="' . $item->pt_id . '" data-qty="' . $item->pos_td_qty . '" data-ptd_id="' . $item->id . '" data-price="' . $price . '" value="' . ($item->pos_td_nameset_price ?? 0) . '" id="nameset" class="w-full px-2 py-1 border border-gray-300 rounded text-sm"/>';
+
+                $action = '';
+                if (!empty($pt_id)) {
+                    $status = DB::table('pos_transactions')->select('pos_status')->where('id', '=', $pt_id)->first();
+                    if ($status && $status->pos_status != 'WAITING FOR CONFIRMATION') {
+                        $action = '<button data-pst_id="' . $item->pst_id . '" data-pl_id="' . $item->pl_id . '" data-pt_id="' . $item->pt_id . '" data-ptd_id="' . $item->id . '" id="cancel_item_btn" class="px-3 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-700 transition-colors">Batalkan</button>';
+                    }
+                }
+
+                return [
+                    'no' => $index + 1,
+                    'article' => $item->article ?? '-',
+                    'pos_td_qty' => $item->pos_td_qty,
+                    'price' => $price_input,
+                    'nameset' => $nameset_input,
+                    'pos_td_total_price' => number_format($item->pos_td_total_price ?? 0),
+                    'action' => $action
+                ];
+            });
+
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getTrackingDatatablesSimple(Request $request)
+    {
+        try {
+            $pt_id = $request->get('pt_id');
+            $query = DB::table('product_location_setup_transactions')
+                ->selectRaw("ts_product_location_setup_transactions.id as id, CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) as article,
+            pl_code, plst_qty, plst_status")
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($pt_id) {
+                    if (!empty($pt_id)) {
+                        $w->where('product_location_setup_transactions.pt_id', '=', $pt_id);
+                    } else {
+                        $w->where('product_location_setup_transactions.pt_id', '=', '!@@#$%');
+                    }
+                });
+
+            $data = $query->orderBy('product_location_setup_transactions.id', 'desc')->get()->map(function ($item, $index) {
+                $status = ['DONE', 'REFUND', 'EXCHANGE', 'WAITING FOR PACKING', 'WAITING OFFLINE', 'WAITING ONLINE', 'COMPLAINT'];
+                $stts = '<select data-id="' . $item->id . '" id="status" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">';
+                foreach ($status as $s) {
+                    $selected = ($item->plst_status == $s) ? 'selected' : '';
+                    $stts .= '<option value="' . $s . '" ' . $selected . '>' . $s . '</option>';
+                }
+                $stts .= '</select>';
+
+                return [
+                    'no' => $index + 1,
+                    'pl_code' => $item->pl_code ?? '-',
+                    'article' => $item->article ?? '-',
+                    'plst_qty' => $item->plst_qty,
+                    'status' => $stts
+                ];
+            });
+
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getHistoryDatatablesSimple(Request $request)
+    {
+        try {
+            $query = DB::table('invoice_editors')
+                ->select("invoice_editors.id", "pos_invoice", "u_name", "activity", "note", "invoice_editors.created_at", "invoice_editors.updated_at")
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'invoice_editors.pt_id')
+                ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id');
+
+            if (!empty($request->get('search'))) {
+                $search = $request->get('search');
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('u_name', 'LIKE', "%$search%")
+                        ->orWhere('pos_invoice', 'LIKE', "%$search%");
+                });
+            }
+
+            $data = $query->orderBy('invoice_editors.id', 'desc')->get()->map(function ($item, $index) {
+                return [
+                    'no' => $index + 1,
+                    'pos_invoice' => $item->pos_invoice ?? '-',
+                    'u_name' => $item->u_name ?? '-',
+                    'activity' => $item->activity ?? '-',
+                    'note' => $item->note ?? '-',
+                    'created_at' => date('d/m/Y H:i:s', strtotime($item->created_at)),
+                    'updated_at' => date('d/m/Y H:i:s', strtotime($item->updated_at))
+                ];
+            });
+
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 

@@ -17,12 +17,13 @@ use Illuminate\Support\Str;
 
 class ReportShiftController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $ma_slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -275,7 +276,7 @@ class ReportShiftController extends Controller
         try {
             $data['name'] = $request->u_name;
             $data['start_time'] = $request->start_time_original;
-//            $data['end_time'] = $request->end_time_original;
+            $data['end_time'] = $request->end_time ?? $request->end_time_original ?? date('Y-m-d H:i:s');
             $data['store'] = $request->st_name;
             $data['total_pos_real_price'] = $request->total_pos_real_price;
 //            $data['total_pos_payment_price'] = $request->total_pos_payment_price;
@@ -361,6 +362,15 @@ class ReportShiftController extends Controller
                 $total_payment_two  += $paymentMethod->total_pos_partials;
             }
 
+            // Check if request is from v2 page
+            $isV2 = request()->header('X-Requested-With') === 'XMLHttpRequest' && strpos(request()->header('Referer', ''), '_v2') !== false;
+            
+            if ($isV2) {
+                return view('app.updated_current_shift._current_shift_detail',
+                    compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri',
+                        'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
+            }
+            
             return view('app.report.shift._shift_detail',
                 compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri',
                     'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
@@ -465,6 +475,24 @@ class ReportShiftController extends Controller
                 $total_payment_two  += $paymentMethod->total_pos_partials;
             }
 
+            // Check if request is from v2 page
+            $isV2 = request()->header('X-Requested-With') === 'XMLHttpRequest' && strpos(request()->header('Referer', ''), '_v2') !== false;
+            
+            if ($isV2) {
+                return view('app.updated_report_shift._shift_detail',
+                    compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri', 'qris',
+                        'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
+            }
+            
+            // Check if request is from v2 page
+            $isV2 = request()->header('X-Requested-With') === 'XMLHttpRequest' && strpos(request()->header('Referer', ''), '_v2') !== false;
+            
+            if ($isV2) {
+                return view('app.updated_report_shift._shift_detail',
+                    compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri', 'qris',
+                        'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
+            }
+            
             return view('app.report.shift._shift_detail',
                 compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri', 'qris',
                     'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
@@ -587,5 +615,262 @@ class ReportShiftController extends Controller
             ->where('pos_transactions.st_id', $data['st_id'])
             ->where('pos_transactions.pos_refund', $pos_status)
             ->get();
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('report_shift');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'report_shift')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'segment' => request()->segment(1),
+        ];
+
+        return view('app.updated_report_shift.shift', compact('data'));
+    }
+
+    public function currentShiftUpdated()
+    {
+        $this->validateAccess('current_shift');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'current_shift')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'segment' => request()->segment(1),
+        ];
+
+        return view('app.updated_current_shift.current_shift', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $st_id = $request->get('st_id');
+            $search = $request->get('search', '');
+
+            $query = User::select(
+                'users.id',
+                'stores.id as st_id',
+                'users.u_name',
+                'user_shifts.start_time',
+                'user_shifts.end_time',
+                'user_shifts.date',
+                'stores.st_name',
+                'user_shifts.laba_shift',
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_price')
+            )
+                ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
+                ->leftJoin('user_shifts', 'users.id', '=', 'user_shifts.user_id')
+                ->leftJoin('pos_transactions', function ($join) {
+                    $join->on('users.id', '=', 'pos_transactions.kasir_id')
+                        ->where('pos_transactions.pos_refund', '=', '0')
+                        ->whereBetween('pos_transactions.created_at', [
+                            DB::raw('ts_user_shifts.start_time'),
+                            DB::raw('ts_user_shifts.end_time')
+                        ]);
+                })
+                ->groupBy(
+                    'users.id',
+                    'stores.id',
+                    'user_shifts.start_time',
+                    'user_shifts.end_time',
+                    'user_shifts.date',
+                    'user_shifts.laba_shift'
+                )
+                ->havingRaw('total_pos_real_price IS NOT NULL AND total_pos_real_price != 0')
+                ->orderByDesc('user_shifts.id');
+
+            if ($st_id) {
+                $query->where('users.st_id', $st_id);
+            }
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('users.u_name', 'LIKE', "%{$search}%")
+                        ->orWhere('stores.st_name', 'LIKE', "%{$search}%");
+                });
+            }
+
+            // Get all data first to handle pagination and havingRaw filter
+            $allData = $query->get()->filter(function ($row) {
+                return $row->total_pos_real_price !== null && $row->total_pos_real_price != 0;
+            });
+
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row) {
+                    $difference = $row->total_pos_real_price - $row->total_pos_payment_price;
+                    return [
+                        'id' => $row->id,
+                        'st_id' => $row->st_id,
+                        'u_name' => $row->u_name ?? '-',
+                        'st_name' => $row->st_name ?? '-',
+                        'date' => $row->date ?? '-',
+                        'start_time' => date('H:i:s', strtotime($row->start_time)),
+                        'end_time' => $row->end_time ? date('H:i:s', strtotime($row->end_time)) : '-',
+                        'start_time_original' => $row->start_time,
+                        'end_time_original' => $row->end_time,
+                        'total_pos_real_price' => 'Rp. ' . number_format($row->total_pos_real_price ?? 0, 0, ',', '.'),
+                        'total_pos_payment_price' => 'Rp. ' . number_format($row->total_pos_payment_price ?? 0, 0, ',', '.'),
+                        'laba_shift' => $row->laba_shift ? 'Rp. ' . number_format($row->laba_shift, 0, ',', '.') : '-',
+                        'difference' => 'Rp. ' . number_format($difference, 0, ',', '.'),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getDatatablesCurrentShiftForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $st_id = $request->get('st_id');
+            $search = $request->get('search', '');
+
+            $u_id = Auth::user()->id;
+            $date_now = date('Y-m-d');
+
+            $query = User::select(
+                'users.id',
+                'stores.id as st_id',
+                'users.u_name',
+                'user_shifts.start_time',
+                'user_shifts.date',
+                'stores.st_name',
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.u_id = ' . $u_id . ' AND DATE(ts_pos_transactions.created_at) = "' . $date_now . '" AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.u_id = ' . $u_id . ' AND DATE(ts_pos_transactions.created_at) = "' . $date_now . '" AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_price')
+            )
+                ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
+                ->join('user_shifts', 'users.id', '=', 'user_shifts.user_id')
+                ->leftJoin('pos_transactions', function ($join) use ($u_id, $date_now) {
+                    $join->on('users.id', '=', 'pos_transactions.u_id')
+                        ->where(DB::raw('DATE(ts_pos_transactions.created_at)'), '=', $date_now)
+                        ->where('pos_transactions.pos_refund', '=', '0');
+                })
+                ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', $date_now)
+                ->where('user_shifts.user_id', '=', $u_id)
+                ->groupBy(
+                    'users.id',
+                    'users.u_name',
+                    'user_shifts.start_time',
+                    'user_shifts.date',
+                    'stores.st_name',
+                    'stores.id'
+                );
+
+            if ($st_id) {
+                $query->where('users.st_id', $st_id);
+            }
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('users.u_name', 'LIKE', "%{$search}%")
+                        ->orWhere('stores.st_name', 'LIKE', "%{$search}%");
+                });
+            }
+
+            // Get all data first to handle pagination
+            $allData = $query->get();
+
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'st_id' => $row->st_id,
+                        'u_name' => $row->u_name ?? '-',
+                        'st_name' => $row->st_name ?? '-',
+                        'date' => $row->date ?? '-',
+                        'start_time' => date('H:i:s', strtotime($row->start_time)),
+                        'start_time_original' => $row->start_time,
+                        'total_pos_payment_price' => 'Rp. ' . number_format($row->total_pos_payment_price ?? 0, 0, ',', '.'),
+                        'total_pos_real_price' => 'Rp. ' . number_format($row->total_pos_real_price ?? 0, 0, ',', '.'),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

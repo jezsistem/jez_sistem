@@ -11,12 +11,17 @@ use App\Models\UserActivity;
 
 class MenuAccessController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = request()->segment(1);
+        
+        // Use provided slug or remove _v2 suffix for validation
+        $slugToCheck = $slug ? $slug : str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slugToCheck
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -80,15 +85,117 @@ class MenuAccessController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'user' => $user_data,
+            'segment' => $segment,
+            'mt_id' => DB::table('menu_titles')->orderBy('mt_sort')->pluck('mt_title', 'id'),
+            'sidebar' => $this->sidebar()
+        ];
+        return view('app.menu_access.menu_access', compact('data'));
+    }
+
+    /**
+     * Display menu access management page (V2 - New Layout)
+     */
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'user' => $user_data,
+            'segment' => $segment,
+            'mt_id' => DB::table('menu_titles')->orderBy('mt_sort')->pluck('mt_title', 'id'),
+            'sidebar' => $this->sidebar()
+        ];
+        return view('app.updated_menu_access.menu_access', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('menu_access'); // Use original slug for access validation
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'menu_access')->first()->ma_title,
             'user' => $user_data,
             'segment' => request()->segment(1),
             'mt_id' => DB::table('menu_titles')->orderBy('mt_sort')->pluck('mt_title', 'id'),
             'sidebar' => $this->sidebar()
         ];
-        return view('app.menu_access.menu_access', compact('data'));
+        return view('app.updated_menu_access.menu_access', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $mt_id_filter = $request->get('mt_id', '');
+
+            $query = DB::table('menu_accesses')->select('menu_accesses.id as id', 'mt_id', 'mt_title', 'ma_title', 'ma_slug', 'ma_sort')
+                ->leftJoin('menu_titles', 'menu_titles.id', '=', 'menu_accesses.mt_id')
+                ->orderBy('ma_sort');
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('mt_title', 'LIKE', "%$search%")
+                        ->orWhere('ma_title', 'LIKE', "%$search%");
+                });
+            }
+
+            if ($mt_id_filter) {
+                $query->where('mt_id', '=', $mt_id_filter);
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row->DT_RowIndex = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to load data: ' . $e->getMessage()], 500);
+        }
     }
 
     public function getDatatables(Request $request)

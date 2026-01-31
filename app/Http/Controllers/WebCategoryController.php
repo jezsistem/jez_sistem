@@ -14,12 +14,13 @@ use File;
 
 class WebCategoryController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -73,6 +74,92 @@ class WebCategoryController extends Controller
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
         ];
         return view('app.web_category.web_category', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('kategori_slug');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'kategori_slug')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+        ];
+        return view('app.updated_web_category.web_category', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = CategorySlug::selectRaw('ts_category_slugs.id as id, psc_id, cs_slug, cs_title, psc_name, cs_image, cs_banner, cs_sub_category')
+                ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'category_slugs.psc_id')
+                ->where('psc_delete', '!=', '1');
+
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->where('cs_title', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('category_slugs.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $cs_image_url = !empty($row->cs_image) ? asset('api/category_slug/100/' . $row->cs_image) : asset('api/noimage.png');
+                $cs_banner_url = !empty($row->cs_banner) ? asset('api/category_slug/banner/' . $row->cs_banner) : asset('api/noimage.png');
+
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'cs_title' => $row->cs_title ?? '-',
+                    'psc_name' => $row->psc_name ?? '-',
+                    'cs_slug' => $row->cs_slug ?? '-',
+                    'cs_image' => $row->cs_image,
+                    'cs_image_url' => $cs_image_url,
+                    'cs_banner' => $row->cs_banner,
+                    'cs_banner_url' => $cs_banner_url,
+                    'cs_sub_category' => $row->cs_sub_category ?? '-',
+                    'psc_id' => $row->psc_id,
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

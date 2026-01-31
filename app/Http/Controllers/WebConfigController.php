@@ -10,12 +10,17 @@ use App\Models\User;
 
 class WebConfigController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = request()->segment(1);
+        
+        // Use provided slug or remove _v2 suffix for validation
+        $slugToCheck = $slug ? $slug : str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slugToCheck
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -60,14 +65,106 @@ class WebConfigController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => $segment,
+        ];
+        return view('app.web_config.web_config', compact('data'));
+    }
+
+    /**
+     * Display web config management page (V2 - New Layout)
+     */
+    public function indexV2() 
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => $segment,
+        ];
+        return view('app.updated_web_config.web_config', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('pengaturan_erp'); // Use original slug for access validation
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'pengaturan_erp')->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
         ];
-        return view('app.web_config.web_config', compact('data'));
+        return view('app.updated_web_config.web_config', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = DB::table('web_configs')->select('*');
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('config_name', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row->DT_RowIndex = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to load data: ' . $e->getMessage()], 500);
+        }
     }
 
     public function getDatatables(Request $request)

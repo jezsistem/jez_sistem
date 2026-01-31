@@ -1,0 +1,101 @@
+<style>
+/* Simple DataTables styling */
+.datatable-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.datatable-wrapper {
+    padding: 1rem 0;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+}
+.datatable-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.datatable-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.datatable-search {
+    position: relative;
+}
+.datatable-search input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    width: 250px;
+}
+.datatable-search input:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+    border-color: #3b82f6;
+}
+.datatable-selector {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+}
+.datatable-table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+.datatable-table thead {
+    background-color: #f9fafb;
+}
+.datatable-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+.datatable-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+    word-wrap: break-word;
+}
+.datatable-table tbody tr:hover {
+    background-color: #f9fafb;
+    cursor: pointer;
+}
+.datatable-sorter {
+    cursor: pointer;
+    user-select: none;
+}
+.datatable-sorter:hover {
+    color: #3b82f6;
+}
+
+/* Column widths */
+#Vouchertb th:nth-child(1), #Vouchertb td:nth-child(1) { width: 5%; }
+#Vouchertb th:nth-child(2), #Vouchertb td:nth-child(2) { width: 10%; }
+#Vouchertb th:nth-child(3), #Vouchertb td:nth-child(3) { width: 8%; }
+#Vouchertb th:nth-child(4), #Vouchertb td:nth-child(4) { width: 8%; }
+#Vouchertb th:nth-child(5), #Vouchertb td:nth-child(5) { width: 8%; }
+#Vouchertb th:nth-child(6), #Vouchertb td:nth-child(6) { width: 10%; }
+#Vouchertb th:nth-child(7), #Vouchertb td:nth-child(7) { width: 8%; }
+#Vouchertb th:nth-child(8), #Vouchertb td:nth-child(8) { width: 8%; }
+#Vouchertb th:nth-child(9), #Vouchertb td:nth-child(9) { width: 8%; }
+#Vouchertb th:nth-child(10), #Vouchertb td:nth-child(10) { width: 12%; }
+#Vouchertb th:nth-child(11), #Vouchertb td:nth-child(11) { width: 15%; }
+</style>

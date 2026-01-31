@@ -14,12 +14,13 @@ use App\Models\UserActivity;
 
 class WebTransactionController extends Controller
 {
-  protected function validateAccess()
+  protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -84,6 +85,155 @@ class WebTransactionController extends Controller
             'segment' => request()->segment(1),
         ];
         return view('app.web_transaction.web_transaction', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('website_transaction');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $ecommerce_url = DB::table('web_configs')->select('config_value')
+        ->where('config_name', 'ecommerce_url')->first()->config_value;
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'website_transaction')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'ecommerce_url' => $ecommerce_url,
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_web_transaction.web_transaction', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $filter = $request->get('filter', '');
+            $payment = $request->get('payment', '');
+
+            $ecommerce_url = DB::table('web_configs')->select('config_value')
+                ->where('config_name', 'ecommerce_url')->first()->config_value;
+
+            $query = PosTransaction::select(
+                'pos_transactions.id as id', 
+                'pos_web_notif', 
+                'cust_first', 
+                'cust_second', 
+                'cust_third', 
+                'cust_name', 
+                'pos_note', 
+                'pos_real_price', 
+                'pos_web_payment', 
+                'pos_unique_code', 
+                'pos_invoice', 
+                'pos_shipping', 
+                'pos_shipping_number', 
+                'pos_courier', 
+                'pos_status', 
+                'pos_transactions.created_at'
+            )
+            ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
+            ->where('is_website', '=', '1');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'LIKE', "%$search%")
+                      ->orWhere('cust_name', 'LIKE', "%$search%");
+                });
+            }
+
+            if (!empty($filter)) {
+                $query->where('pos_status', '=', $filter);
+            }
+
+            if (!empty($payment)) {
+                $query->where('pos_web_payment', '=', $payment);
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('pos_transactions.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                // Calculate item count
+                $item = PosTransactionDetail::where('pt_id', '=', $row->id)->sum('pos_td_qty');
+
+                // Calculate diff time
+                $t1 = strtotime(date('Y-m-d H:i:s'));
+                $t2 = strtotime($row->created_at);
+                $diff = $t1 - $t2;
+                $hours = round($diff / 3600);
+                $diffTimeClass = $hours < 12 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
+
+                // Status classes
+                $danger = ['UNPAID', 'CANCEL', 'REFUND', 'EXCHANGE'];
+                $success = ['DONE', 'PAID'];
+                if (in_array($row->pos_status, $danger)) {
+                    $statusClass = 'bg-red-100 text-red-800';
+                } else if (in_array($row->pos_status, $success)) {
+                    $statusClass = 'bg-green-100 text-green-800';
+                } else {
+                    $statusClass = 'bg-blue-100 text-blue-800';
+                }
+
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'created_at_show' => date('d/m/Y H:i:s', strtotime($row->created_at)),
+                    'diff_time' => $hours,
+                    'diff_time_class' => $diffTimeClass,
+                    'pos_invoice' => $row->pos_invoice,
+                    'pos_invoice_link' => $ecommerce_url . '/customer/order/detail/id/data/' . $row->id,
+                    'cust_name' => $row->cust_name ?? '-',
+                    'pos_real_price' => number_format($row->pos_real_price, 0, ',', '.'),
+                    'pos_unique_code' => $row->pos_unique_code ?? '-',
+                    'pos_courier' => $row->pos_courier ?? '-',
+                    'pos_shipping' => number_format($row->pos_shipping ?? 0, 0, ',', '.'),
+                    'pos_shipping_number' => $row->pos_shipping_number ?? '-',
+                    'item' => $item,
+                    'pos_web_payment' => $row->pos_web_payment ?? '-',
+                    'pos_status' => $row->pos_status,
+                    'pos_status_class' => $statusClass,
+                    'pos_note' => $row->pos_note ?? '',
+                    'pos_web_notif' => $row->pos_web_notif == '1',
+                    'cust_first' => $row->cust_first == '1',
+                    'cust_second' => $row->cust_second == '1',
+                    'cust_third' => $row->cust_third == '1',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage,
+                'ecommerce_url' => $ecommerce_url
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

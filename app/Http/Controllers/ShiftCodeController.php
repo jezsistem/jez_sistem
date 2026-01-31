@@ -14,12 +14,15 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ShiftCodeController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = $slug ?? request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -502,5 +505,293 @@ class ShiftCodeController extends Controller
 
         \Log::info('ShiftCodeController getDatatables - not AJAX request');
         return response()->json(['error' => 'Not an AJAX request']);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('shift-codes');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        // Get user types from database for multiple selection
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->orderBy('ut_name')
+            ->get();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'shift-codes')->first()->ma_title ?? 'Shift Codes',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_shift_code.shift_code', compact('data', 'userTypes'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = DB::select('
+                SELECT 
+                    sc.id,
+                    sc.sc_code,
+                    sc.sc_description,
+                    sc.sc_shift_name,
+                    sc.sc_start_time,
+                    sc.sc_end_time,
+                    sc.sc_type,
+                    sc.sc_status,
+                    GROUP_CONCAT(ut.ut_name ORDER BY ut.ut_name SEPARATOR ", ") as compatible_user_types
+                FROM ts_shift_codes sc
+                LEFT JOIN ts_shift_code_user_types scut ON sc.id = scut.shift_code_id
+                LEFT JOIN ts_user_types ut ON scut.user_type_id = ut.id
+                WHERE sc.sc_status != "deleted"
+                ' . ($search ? 'AND (
+                    sc.sc_code LIKE ? OR 
+                    sc.sc_description LIKE ? OR 
+                    sc.sc_shift_name LIKE ? OR 
+                    sc.sc_type LIKE ? OR 
+                    ut.ut_name LIKE ?
+                )' : '') . '
+                GROUP BY sc.id, sc.sc_code, sc.sc_description, sc.sc_shift_name, sc.sc_start_time, sc.sc_end_time, sc.sc_type, sc.sc_status
+                ORDER BY sc.sc_code
+            ', $search ? ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%', '%' . $search . '%', '%' . $search . '%'] : []);
+
+            $allData = collect($query);
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row, $index) use ($page, $perPage) {
+                    $row->DT_RowIndex = ($page - 1) * $perPage + $index + 1;
+                    $row->sc_start_time_display = $row->sc_start_time ? date('H:i', strtotime($row->sc_start_time)) : '-';
+                    $row->sc_end_time_display = $row->sc_end_time ? date('H:i', strtotime($row->sc_end_time)) : '-';
+                    $row->sc_status_display = $row->sc_status === 'active' 
+                        ? '<span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Active</span>' 
+                        : '<span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactive</span>';
+                    
+                    $canRead = function_exists('hasAccess') && hasAccess(auth()->user()->up_id ?? 0, 'read');
+                    $canUpdate = function_exists('hasAccess') && hasAccess(auth()->user()->up_id ?? 0, 'update');
+                    $canDelete = function_exists('hasAccess') && hasAccess(auth()->user()->up_id ?? 0, 'delete');
+                    
+                    $actionBtns = '<div class="flex items-center space-x-2">';
+                    if ($canRead) {
+                        $actionBtns .= '<button type="button" class="btn-view px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200" data-id="' . $row->id . '">View</button>';
+                    }
+                    if ($canUpdate) {
+                        $actionBtns .= '<button type="button" class="btn-edit px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" data-id="' . $row->id . '">Edit</button>';
+                    }
+                    if ($canDelete) {
+                        $actionBtns .= '<button type="button" class="btn-delete px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-700" data-id="' . $row->id . '">Delete</button>';
+                    }
+                    $actionBtns .= '</div>';
+                    
+                    $row->action = $actionBtns;
+                    return $row;
+                })
+                ->values()
+                ->all();
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to load data: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function showForSimple($id)
+    {
+        $this->validateAccess('shift-codes');
+        $shiftCode = ShiftCode::with('userTypes')->findOrFail($id);
+        
+        // Format the response
+        $data = [
+            'id' => $shiftCode->id,
+            'sc_code' => $shiftCode->sc_code,
+            'sc_description' => $shiftCode->sc_description,
+            'sc_shift_name' => $shiftCode->sc_shift_name,
+            'sc_start_time' => $shiftCode->sc_start_time ? $shiftCode->sc_start_time->format('H:i') : null,
+            'sc_end_time' => $shiftCode->sc_end_time ? $shiftCode->sc_end_time->format('H:i') : null,
+            'sc_type' => $shiftCode->sc_type,
+            'sc_status' => $shiftCode->sc_status,
+            'user_types' => $shiftCode->userTypes->map(function($ut) {
+                return ['id' => $ut->id, 'ut_name' => $ut->ut_name];
+            })->toArray()
+        ];
+        
+        return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    public function storeForSimple(Request $request)
+    {
+        $this->validateAccess('shift-codes');
+
+        // Get valid user types for validation
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->pluck('id')
+            ->toArray();
+
+        // Handle user_type_ids - can be array or JSON string
+        $userTypeIds = $request->input('user_type_ids', []);
+        if (is_string($userTypeIds)) {
+            $userTypeIds = json_decode($userTypeIds, true) ?: [];
+        }
+        if (!is_array($userTypeIds)) {
+            $userTypeIds = [];
+        }
+
+        try {
+            $request->merge(['user_type_ids' => $userTypeIds]);
+            $request->validate([
+                'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code',
+                'sc_description' => 'required|string|max:255',
+                'sc_shift_name' => 'required|string|max:100',
+                'sc_start_time' => 'nullable|date_format:H:i',
+                'sc_end_time' => 'nullable|date_format:H:i',
+                'user_type_ids' => 'required|array|min:1',
+                'user_type_ids.*' => 'exists:user_types,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
+
+        $data = [
+            'sc_code' => strtoupper($request->sc_code),
+            'sc_description' => $request->sc_description,
+            'sc_shift_name' => $request->sc_shift_name,
+            'sc_start_time' => $request->sc_start_time,
+            'sc_end_time' => $request->sc_end_time,
+            'sc_type' => 'MULTIPLE',
+            'sc_status' => 'active',
+            'created_by' => auth()->user()->u_name ?? 'system',
+        ];
+
+        $shiftCode = new ShiftCode();
+        $result = $shiftCode->storeData('add', null, $data);
+
+        if ($result) {
+            $shiftCodeModel = ShiftCode::find($result);
+            if ($shiftCodeModel) {
+                $shiftCodeModel->userTypes()->attach($userTypeIds);
+            }
+            return response()->json(['success' => true, 'message' => 'Shift code berhasil ditambahkan']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal menambahkan shift code'], 500);
+        }
+    }
+
+    public function updateForSimple(Request $request, $id)
+    {
+        $this->validateAccess('shift-codes');
+
+        // Get valid user types for validation
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->pluck('id')
+            ->toArray();
+
+        // Handle user_type_ids - can be array or JSON string
+        $userTypeIds = $request->input('user_type_ids', []);
+        if (is_string($userTypeIds)) {
+            $userTypeIds = json_decode($userTypeIds, true) ?: [];
+        }
+        if (!is_array($userTypeIds)) {
+            $userTypeIds = [];
+        }
+
+        try {
+            $request->merge(['user_type_ids' => $userTypeIds]);
+            $request->validate([
+                'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code,' . $id,
+                'sc_description' => 'required|string|max:255',
+                'sc_shift_name' => 'required|string|max:100',
+                'sc_start_time' => 'nullable|date_format:H:i',
+                'sc_end_time' => 'nullable|date_format:H:i',
+                'user_type_ids' => 'required|array|min:1',
+                'user_type_ids.*' => 'exists:user_types,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
+
+        $data = [
+            'sc_code' => strtoupper($request->sc_code),
+            'sc_description' => $request->sc_description,
+            'sc_shift_name' => $request->sc_shift_name,
+            'sc_start_time' => $request->sc_start_time,
+            'sc_end_time' => $request->sc_end_time,
+            'sc_type' => 'MULTIPLE',
+            'updated_by' => auth()->user()->u_name ?? 'system',
+        ];
+
+        $shiftCode = new ShiftCode();
+        $result = $shiftCode->storeData('edit', $id, $data);
+
+        if ($result) {
+            $shiftCodeModel = ShiftCode::find($id);
+            if ($shiftCodeModel) {
+                $userTypeIds = array_filter($userTypeIds, function ($id) {
+                    return !empty($id) && is_numeric($id);
+                });
+                if (!empty($userTypeIds)) {
+                    $shiftCodeModel->userTypes()->sync($userTypeIds);
+                }
+            }
+            return response()->json(['success' => true, 'message' => 'Shift code berhasil diperbarui']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal memperbarui shift code'], 500);
+        }
+    }
+
+    public function destroyForSimple($id)
+    {
+        $this->validateAccess('shift-codes');
+        try {
+            $shiftCode = new ShiftCode();
+            $result = $shiftCode->deleteData($id);
+
+            if ($result) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Shift code berhasil dihapus'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus shift code'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 } 

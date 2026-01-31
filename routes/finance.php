@@ -15,14 +15,18 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth'])->group(function () {
     // Account Type
     Route::get('jenis_akun', [AccountTypeController::class, 'index'])->name('account_type');
+    Route::get('jenis_akun_v2', [AccountTypeController::class, 'indexUpdated']);
     Route::get('account_type_datatables', [AccountTypeController::class, 'getDatatables']);
+    Route::get('account_type_datatables_simple', [AccountTypeController::class, 'getDatatablesForSimple']);
     Route::post('at_save', [AccountTypeController::class, 'storeData']);
     Route::post('at_delete', [AccountTypeController::class, 'deleteData']);
     Route::post('check_exists_account_type', [AccountTypeController::class, 'checkExistsAccountType']);
 
     // Account Klasifikasi
     Route::get('klasifikasi_akun', [AccountClassificationController::class, 'index'])->name('account_classification');
+    Route::get('klasifikasi_akun_v2', [AccountClassificationController::class, 'indexUpdated']);
     Route::get('account_classification_datatables', [AccountClassificationController::class, 'getDatatables']);
+    Route::get('account_classification_datatables_simple', [AccountClassificationController::class, 'getDatatablesForSimple']);
     Route::post(
         'ac_save',
         [AccountClassificationController::class, 'storeData']
@@ -32,7 +36,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Account
     Route::get('data_akun', [AccountController::class, 'index'])->name('account');
+    Route::get('data_akun_v2', [AccountController::class, 'indexUpdated']);
     Route::get('account_datatables', [AccountController::class, 'getDatatables']);
+    Route::get('account_datatables_simple', [AccountController::class, 'getDatatablesForSimple']);
     Route::post(
         'a_save',
         [AccountController::class, 'storeData']
@@ -43,7 +49,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Tax
     Route::get('data_pajak', [TaxController::class, 'index'])->name('tax');
+    Route::get('data_pajak_v2', [TaxController::class, 'indexUpdated']);
     Route::get('tax_datatables', [TaxController::class, 'getDatatables']);
+    Route::get('tax_datatables_simple', [TaxController::class, 'getDatatablesForSimple']);
     Route::post(
         'tx_save',
         [TaxController::class, 'storeData']
@@ -54,7 +62,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Stock Type
     Route::get('tipe_stok', [StockTypeController::class, 'index'])->name('stock_type');
+    Route::get('tipe_stok_v2', [StockTypeController::class, 'indexUpdated']);
     Route::get('stock_type_datatables', [StockTypeController::class, 'getDatatables']);
+    Route::get('stock_type_datatables_simple', [StockTypeController::class, 'getDatatablesForSimple']);
     Route::post('stkt_save', [StockTypeController::class, 'storeData']);
     Route::post('stkt_delete', [StockTypeController::class, 'deleteData']);
     Route::post('stkt_import', [StockTypeController::class, 'importData']);
@@ -62,7 +72,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Payment Method
     Route::get('metode_pembayaran', [PaymentMethodController::class, 'index'])->name('payment_method');
+    Route::get('metode_pembayaran_v2', [PaymentMethodController::class, 'indexUpdated']);
     Route::get('payment_method_datatables', [PaymentMethodController::class, 'getDatatables']);
+    Route::get('payment_method_datatables_simple', [PaymentMethodController::class, 'getDatatablesForSimple']);
     Route::post(
         'pm_save',
         [PaymentMethodController::class, 'storeData']
@@ -73,7 +85,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Product Main Color
     Route::get('kurir_pengiriman', [CourierController::class, 'index'])->name('courier');
+    Route::get('kurir_pengiriman_v2', [CourierController::class, 'indexUpdated']);
     Route::get('courier_datatables', [CourierController::class, 'getDatatables']);
+    Route::get('courier_datatables_simple', [CourierController::class, 'getDatatablesForSimple']);
     Route::post(
         'cr_save',
         [CourierController::class, 'storeData']
@@ -82,7 +96,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Debt List
     Route::get('daftar_hutang', [DebtListController::class, 'index'])->name('debt_list');
+    Route::get('daftar_hutang_v2', [DebtListController::class, 'indexUpdated']);
     Route::get('debt_list_datatables', [DebtListController::class, 'getDatatables']);
+    Route::get('debt_list_datatables_simple', [DebtListController::class, 'getDatatablesForSimple']);
     Route::get('payment_datatables', [DebtListController::class, 'paymentDatatables']);
     Route::post('dl_save',
         [DebtListController::class, 'storeData']
@@ -94,7 +110,9 @@ Route::middleware(['auth'])->group(function () {
 
     //Cek Dana Online Finance
     Route::get('cek_dana_online', [CekDanaOnlineController::class, 'index'])->name('cek_dana_online');
+    Route::get('cek_dana_online_v2', [CekDanaOnlineController::class, 'indexUpdated']);
     Route::get('cek_dana_online_datatables', [CekDanaOnlineController::class, 'getDatatables'])->name('cek_dana_online_datatables');
+    Route::get('cek_dana_online_datatables_simple', [CekDanaOnlineController::class, 'getDatatablesForSimple']);
     Route::get('cek_dana_detail/{order_number}/{store_id}', [CekDanaOnlineController::class, 'getDetail'])->name('cek_dana_detail');
 //    Route::get('cek_dana_detail_datatables', [CekDanaOnlineController::class, 'getDetailDatatables']);
     Route::post('cek_dana_online_import', [CekDanaOnlineController::class, 'importData']);
@@ -102,8 +120,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('export_transaction_settle', [CekDanaOnlineController::class, 'exportExcel'])->name('export_transaction_settle');
 
     Route::get('settlement', [SettlementController::class, 'index'])->name('settlement');
+    Route::get('settlement_v2', [SettlementController::class, 'indexUpdated']);
     Route::get('settlement_reload_payment_method', [SettlementController::class, 'reloadPaymentMethod'])->name('settlement.reload_payment_method');
     Route::get('settlement_datatables', [SettlementController::class, 'getDatatables'])->name('settlement_datatables');
+    Route::get('settlement_datatables_simple', [SettlementController::class, 'getDatatablesForSimple']);
     Route::get('settlement_netsales_per_payment_method', [SettlementController::class, 'getNetsalesPerPaymentMethod'])->name('settlement.netsales_per_payment_method');
     Route::get('settlement_total_netsales', [SettlementController::class, 'getTotalNetsales'])->name('settlement.total_netsales');
     Route::post('settlement_bulk_status', [SettlementController::class, 'bulkUpdateStatus'])->name('settlement.bulk_status');

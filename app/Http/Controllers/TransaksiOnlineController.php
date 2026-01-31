@@ -37,11 +37,12 @@ class TransaksiOnlineController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1),
-                'status' => TransaksiOnline::select('order_status')
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -95,6 +96,28 @@ class TransaksiOnlineController extends Controller
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User();
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Transaksi Online',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->where('st_name', 'like', '%ONLINE%')->orderByDesc('id')->pluck('st_name', 'id'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
+        ];
+        return view('app.updated_transaksi_online.transaksi_online', compact('data'));
     }
 
     public function getDatatables(Request $request)
@@ -167,6 +190,86 @@ class TransaksiOnlineController extends Controller
         }
     }
 
+    // SimpleDatatables endpoint for transaksi_online_v2 (does not affect old DataTables page)
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $st_id = !empty($request->st_id) ? $request->st_id : Auth::user()->st_id;
+
+            $query = OnlineTransactions::select([
+                'online_transactions.id as to_id',
+                'online_transactions.order_number as to_order_number',
+                'no_resi',
+                'platform_name',
+                'order_date_created',
+                'shipping_fee',
+                'total_payment',
+                'order_status',
+                'online_print',
+            ])
+                ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+                ->where('no_resi', '!=', '')
+                ->where('st_id', '=', $st_id)
+                ->orderBy('online_transactions.created_at', 'DESC')
+                ->groupBy('to_id');
+
+            // Search filter
+            $search = $request->get('search');
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('no_resi', 'LIKE', "%$search%")
+                        ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
+                });
+            }
+
+            // Status filter (allow '0')
+            if ($request->has('status') && $request->get('status') !== '' && $request->get('status') !== null) {
+                $status = $request->get('status');
+                if ((string)$status === '0') {
+                    $query->where('online_print', '=', '0');
+                } elseif ((string)$status === '1') {
+                    $query->where('online_print', '=', '1');
+                }
+            }
+
+            $data = $query->get()->map(function ($item, $index) {
+                $order_number = '<a class="text-white" href="#" data-to_id="' . $item->to_id . '" data-status="' . $item->order_status . '" data-num_order="' . $item->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $item->to_order_number . '</span></a><br>';
+
+                $no_resi = $item->no_resi;
+                if (!empty($item->online_print)) {
+                    $no_resi .= '<br><span style="color: red;" class="text-center">SUDAH CETAK</span>';
+                }
+
+                $total_item = OnlineTransactionDetails::where('to_id', $item->to_id)->count();
+                $total_item = $total_item ? $total_item : '-';
+
+                $shipping_fee = is_numeric($item->shipping_fee) ? number_format((float)$item->shipping_fee) : '-';
+                $total_payment = is_numeric($item->total_payment) ? number_format((float)$item->total_payment) : '-';
+
+                $order_status = '<a class="text-white" href="#" data-pt_id="' . $item->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $item->order_status . '</span></a>';
+
+                return [
+                    'DT_RowIndex' => $index + 1,
+                    'order_number' => $order_number,
+                    'no_resi' => $no_resi,
+                    'platform_name' => $item->platform_name ?? '-',
+                    'order_date_created' => $item->order_date_created ?? '-',
+                    'total_item' => $total_item,
+                    'shipping_fee' => $shipping_fee,
+                    'total_payment' => $total_payment,
+                    'order_status' => $order_status,
+                ];
+            });
+
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function exportDataOnline(Request $request)
     {
         try {
@@ -174,15 +277,32 @@ class TransaksiOnlineController extends Controller
             $status = $request->get('status');
             $date = $request->get('date');
             $changeplatform = $request->get('changeplatform');
-            $exp = explode('|', $date);
+
+            // Default branch to user store if not provided
+            if (empty($branch)) {
+                $branch = Auth::user()->st_id;
+            }
+
+            // Normalize date range
             $start = null;
             $end = null;
-            if (!empty($exp[1])) {
-                $start = $exp[0];
-                $end = $exp[1];
-            } else {
-                $start = $request->get('date');
+            if (!empty($date)) {
+                $exp = explode('|', $date);
+                if (!empty($exp[1])) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    // Single date: use same date for start & end
+                    $start = $date;
+                    $end = $date;
+                }
             }
+
+            // Normalize status: treat empty as "all" (same as 2)
+            if ($status === null || $status === '') {
+                $status = '2';
+            }
+
             // Mendapatkan tanggal dan waktu saat ini
             $now = new \DateTime();
             $timestamp = $now->format('d-m-Y_H.i.s');
@@ -236,6 +356,71 @@ class TransaksiOnlineController extends Controller
                 ->rawColumns(['article', 'status_pick'])
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    public function detailDatatablesForSimple(Request $request)
+    {
+        try {
+            $to_id = $request->get('to_id');
+            $query = OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_price_tag as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller', 'platform_name')
+                ->Join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                ->Join('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+                ->Join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->Join('brands', 'brands.id', '=', 'products.br_id')
+                ->Join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('online_transactions.id', '=', $to_id);
+            
+            $st_id = Auth::user()->st_id;
+            
+            $data = $query->orderBy('online_transaction_details.id', 'desc')->get()->map(function ($item, $index) use ($st_id) {
+                $article = '<span class="btn btn-primary">[' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' [' . $item->sz_name . ']</span>';
+                
+                $gap_price = $item->jez_price - $item->shopee_price;
+                $ns_before_admin = $item->shopee_price - $item->discount_seller;
+                
+                $requiredQty = $item->to_qty;
+                $cek_pick = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                    ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->where('product_stocks.ps_barcode', '=', $item->ps_barcode)
+                    ->where('product_location_setup_transactions.st_id', '=', $st_id)
+                    ->where('product_location_setup_transactions.plst_status', '=', 'WAITING ONLINE')
+                    ->limit($requiredQty)
+                    ->count();
+                
+                $status_pick = '';
+                if ($cek_pick > $requiredQty) {
+                    $status_pick = '<span class="btn btn-sm btn-success">Done Pick</span>';
+                } else {
+                    $show_status = ($cek_pick == $requiredQty) ? 'Done Pick' : $cek_pick . ' / ' . $requiredQty;
+                    $btnClass = ($show_status == 'Done Pick') ? 'btn-success' : 'btn-primary';
+                    $status_pick = '<span class="btn btn-sm ' . $btnClass . '">' . $show_status . '</span>';
+                }
+                
+                $final_price_calc = $ns_before_admin * $item->to_qty;
+                
+                return [
+                    'DT_RowIndex' => $index + 1,
+                    'article' => $article,
+                    'ps_barcode' => $item->ps_barcode ?? '-',
+                    'sku' => $item->sku ?? '-',
+                    'to_qty' => $item->to_qty ? number_format($item->to_qty) : '-',
+                    'shopee_price' => $item->shopee_price ? number_format($item->shopee_price) : '-',
+                    'jez_price' => $item->jez_price ? number_format($item->jez_price) : '-',
+                    'gap_price' => number_format($gap_price),
+                    'total_discount' => $item->total_discount ? number_format($item->total_discount) : '-',
+                    'ns_before_admin' => number_format($ns_before_admin),
+                    'final_price' => number_format($final_price_calc),
+                    'status_pick' => $status_pick
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 

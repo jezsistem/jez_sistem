@@ -42,6 +42,7 @@ Route::get('stock_data_datatables_two', [StockDataTwoController::class, 'getData
 Route::middleware(['auth'])->group(function () {
     // Product Location
     Route::get('lokasi_simpan', [ProductLocationController::class, 'index'])->name('product_location');
+    Route::get('lokasi_simpan_v2', [ProductLocationController::class, 'indexV2'])->name('product_location_v2');
     Route::get('product_location_datatables', [ProductLocationController::class, 'getDatatables']);
     Route::post('pl_save', [ProductLocationController::class, 'storeData']);
     Route::post('pl_delete', [ProductLocationController::class, 'deleteData']);
@@ -54,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
         'store_aging',
         [StoreAgingController::class, 'index']
     );
+    Route::get('store_aging_v2', [StoreAgingController::class, 'indexV2'])->name('store_aging_v2');
     Route::get('sta_datatables', [StoreAgingController::class, 'getDatatables']);
     Route::get('sta_detail_datatables', [StoreAgingController::class, 'getDetailDatatables']);
     Route::get('oca_datatables', [StoreAgingController::class, 'getOCADatatables']);
@@ -79,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
 
     // InstockApprovalController
     Route::get('instock_approval', [InstockApprovalController::class, 'index']);
+    Route::get('instock_approval_v2', [InstockApprovalController::class, 'indexV2'])->name('instock_approval_v2');
     Route::get('ia_datatables', [InstockApprovalController::class, 'getDatatables']);
     Route::post('ia_save', [InstockApprovalController::class, 'storeData']);
     Route::post('ia_delete', [InstockApprovalController::class, 'deleteData']);
@@ -88,12 +91,14 @@ Route::middleware(['auth'])->group(function () {
         'instock_list',
         [InstockListController::class, 'index']
     );
+    Route::get('instock_list_v2', [InstockListController::class, 'indexV2'])->name('instock_list_v2');
     Route::get('il_datatables', [InstockListController::class, 'getDatatables']);
     Route::get('il_history_datatables', [InstockListController::class, 'getHistoryDatatables']);
     Route::post('il_save', [InstockListController::class, 'storeData']);
 
     // mass adjusmtnet
     Route::get('mass_adjustment', [MassAdjustmentController::class, 'index']);
+    Route::get('mass_adjustment_v2', [MassAdjustmentController::class, 'indexV2'])->name('mass_adjustment_v2');
     Route::get('mass_stock_datatables', [MassAdjustmentController::class, 'stockDatatables']);
     Route::get('mass_adjustment_datatables', [MassAdjustmentController::class, 'adjustmentDatatables']);
     Route::get('mass_adjustment_detail_datatables', [MassAdjustmentController::class, 'adjustmentDetailDatatables']);
@@ -113,14 +118,18 @@ Route::middleware(['auth'])->group(function () {
 
     //cycle count
     Route::get('cycle_counts', [CycleCountController::class, 'index']);
+    Route::get('cycle_counts_v2', [CycleCountController::class, 'indexUpdated'])->name('cycle_counts_v2');
     Route::get('scan_get_item_details', [CycleCountController::class, 'getItemDetails']);
-    Route::get('cycle_counts_insert', [CycleCountController::class, 'createCycleCount']);
+    Route::post('cycle_counts_insert', [CycleCountController::class, 'createCycleCount']);
+    Route::get('cycle_count_stock_datatables', [CycleCountController::class, 'stockDatatables']);
+    Route::post('cycle_count_detail_store', [CycleCountController::class, 'storeCycleCountDetail']);
 
 
     Route::post('mass_stock_datatables_filter', [MassAdjustmentController::class, 'adjustmentDatatablesFilter']);
 
     // ScanAdjustmentController
     Route::get('scan_adjustment', [ScanAdjustmentController::class, 'index']);
+    Route::get('scan_adjustment_v2', [ScanAdjustmentController::class, 'indexV2'])->name('scan_adjustment_v2');
     Route::get('scan_adjustment_datatables', [ScanAdjustmentController::class, 'getDatatables']);
     Route::get('start_scan_adjustment/{id}', [ScanAdjustmentController::class, 'scanPanel']);
     Route::get('start_scan_adjustment_datatables', [ScanAdjustmentController::class, 'getScanDatatables']);
@@ -156,6 +165,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Adjustment
     Route::get('adjustment', [AdjustmentController::class, 'index'])->name('adjustment');
+    Route::get('adjustment_v2', [AdjustmentController::class, 'indexV2'])->name('adjustment_v2');
     Route::get(
         '_datatables',
         [AdjustmentController::class, 'historyDatatables']
@@ -177,6 +187,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Exception Location
     Route::get('exception_location', [ExceptionLocationController::class, 'index']);
+    Route::get('exception_location_v2', [ExceptionLocationController::class, 'indexV2'])->name('exception_location_v2');
     Route::get('exception_location_datatables', [ExceptionLocationController::class, 'getDatatables']);
     Route::post('el_save', [ExceptionLocationController::class, 'storeData']);
     Route::post('el_delete', [ExceptionLocationController::class, 'deleteData']);
@@ -184,6 +195,7 @@ Route::middleware(['auth'])->group(function () {
 
     // B1G1 Location
     Route::get('b1g1_location', [B1g1Controller::class, 'index']);
+    Route::get('b1g1_location_v2', [B1g1Controller::class, 'indexV2'])->name('b1g1_location_v2');
     Route::get('b1g1_location_datatables', [B1g1Controller::class, 'getDatatables']);
     Route::post('b1g1_save', [B1g1Controller::class, 'storeData']);
     Route::post(
@@ -197,6 +209,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Qty Exception
     Route::get('qty_exception', [QtyExceptionController::class, 'index']);
+    Route::get('qty_exception_v2', [QtyExceptionController::class, 'indexV2'])->name('qty_exception_v2');
     Route::get('qe_datatables', [QtyExceptionController::class, 'getDatatables']);
     Route::post('qe_save', [QtyExceptionController::class, 'storeData']);
     Route::post('qe_delete', [QtyExceptionController::class, 'deleteData']);
@@ -220,7 +233,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('sv_setup', [ProductLocationSetupController::class, 'productSetup']);
     Route::post('bin_reset_exec', [ProductLocationSetupController::class, 'binResetExec']);
 
-    // Product Location Setup V2
+    // Product Location Setup V2 (New Layout)
+    Route::get('setup_lokasi_stok_v2', [ProductLocationSetupController::class, 'indexV2'])->name('setup_lokasi_stok_v2_old');
+
+    // Product Location Setup V2 (Old Layout - Multibin)
     /**
      * TODO:
      * 1. Import Excel V
@@ -228,13 +244,17 @@ Route::middleware(['auth'])->group(function () {
      * 3. Validation not found
      * 4. Validation QTY Stock
      */
-    Route::get('setup_lokasi_stok_v2', [ProductLocationSetupV2Controller::class, 'index'])->name('product_location_setup_v2');
+    Route::get('setup_lokasi_stok_v2_multibin', [ProductLocationSetupV2Controller::class, 'index'])->name('product_location_setup_v2');
+    // Updated V2 Layout - Mutasi Stock
+    Route::get('updated_setup_lokasi_stok_v2', [ProductLocationSetupV2Controller::class, 'indexUpdated'])->name('updated_setup_lokasi_stok_v2');
     Route::get('start_bin_datatables', [ProductLocationSetupV2Controller::class, 'startBinDatatables']);
     Route::get('check_total_qty_in_bin', [ProductLocationSetupV2Controller::class, 'totalQtyInBin']);
     Route::get('end_bin_datatables', [ProductLocationSetupV2Controller::class, 'endBinDatatables']);
     Route::get('bin_history_datatables', [ProductLocationSetupV2Controller::class, 'binHistoryDatatables']);
     Route::get('reload_start_bin', [ProductLocationSetupV2Controller::class, 'reloadStartBin']);
     Route::get('reload_end_bin', [ProductLocationSetupV2Controller::class, 'reloadEndBin']);
+    Route::get('reload_history_start_bin', [ProductLocationSetupV2Controller::class, 'reloadHistoryStartBin']);
+    Route::get('reload_history_end_bin', [ProductLocationSetupV2Controller::class, 'reloadHistoryEndBin']);
     Route::get('history_setup_export', [ProductLocationSetupV2Controller::class, 'exportData']);
     Route::delete('cancel_import', [ProductLocationSetupV2Controller::class, 'cancelImportData']);
     Route::post('sv_mutation_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
@@ -245,6 +265,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Stock Transfer
     Route::get('transfer_stok', [StockTransferController::class, 'index'])->name('stock_transfer');
+    Route::get('transfer_stok_v2', [StockTransferController::class, 'indexUpdated'])->name('updated_transfer_stok');
     Route::get('start_transfer_datatables', [StockTransferController::class, 'startTransferDatatables']);
     Route::get('end_transfer_datatables', [StockTransferController::class, 'endTransferDatatables']);
     Route::get('transfer_history_datatables', [StockTransferController::class, 'transferHistoryDatatables']);
@@ -274,6 +295,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
+    Route::get('data_transfer_stok_v2', [StockTransferDataController::class, 'indexUpdated'])->name('updated_data_transfer_stok');
     Route::get('transfer_data_datatables', [StockTransferDataController::class, 'getDatatables']);
     Route::get('transfer_data_accept_datatables', [StockTransferDataController::class, 'getAcceptDatatables']);
     Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
@@ -304,6 +326,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Stock Data
     Route::get('data_stok', [StockDataController::class, 'index'])->name('stock_data');
+    Route::get('data_stok_v2', [StockDataController::class, 'indexUpdated'])->name('data_stok_v2');
     Route::get('get_articles_promo/{article_id}', [StockDataController::class, 'getArticlesPromo']);
     Route::get('stock_data_datatables', [StockDataController::class, 'getDatatables']);
     Route::get('aging_datatables', [StockDataController::class, 'getAgingDatatables']);
@@ -333,6 +356,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Stock Tracking
     Route::get('stock_tracking', [StockTrackingController::class, 'index'])->name('stock_tracking');
+    Route::get('stock_tracking_v2', [StockTrackingController::class, 'indexUpdated'])->name('stock_tracking_v2');
     Route::get('stock_tracking_datatables', [StockTrackingController::class, 'getDatatables']);
     Route::get('pickup_list_datatables', [StockTrackingController::class, 'getPickupDatatables']);
     Route::get('waiting_list_datatables', [StockTrackingController::class, 'getWaitingOfflineDatatables']);
@@ -368,6 +392,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Storage AreaAdd commentMore actions
     Route::get('storage_area', [StorageAreaController::class, 'index'])->name('storage_area');
+    Route::get('storage_area_v2', [StorageAreaController::class, 'indexUpdated'])->name('storage_area_v2');
     Route::get('storage_area/{id}', [StorageAreaController::class, 'show']);
     Route::get('storage_area_datatable', [StorageAreaController::class, 'storageAreaDatatables']);
     Route::post('storage_area_create', [StorageAreaController::class, 'createData']);

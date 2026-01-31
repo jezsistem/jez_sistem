@@ -30,6 +30,26 @@ class AnnouncementCategoryController extends Controller
     }
 
     /**
+     * Display category management page (V2 - New Layout)
+     */
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $categories = AnnouncementCategory::withCount('announcements')->orderBy('name')->paginate(20);
+        
+        $user = Auth::user();
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Announcement Categories',
+            'sidebar' => $this->sidebar(),
+            'user' => $user,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_announcement.categories', compact('categories', 'data'));
+    }
+
+    /**
      * Store new category
      */
     public function store(Request $request)
@@ -128,11 +148,14 @@ class AnnouncementCategoryController extends Controller
      */
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        // Strip _v2 suffix for access validation
+        $slug = str_replace('_v2', '', $segment);
         $validate = DB::table('user_menu_accesses')
-            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-                'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
-            ])->exists();
+        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+            'u_id' => Auth::user()->id,
+            'ma_slug' => $slug
+        ])->exists();   
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }

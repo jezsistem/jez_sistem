@@ -14,10 +14,12 @@ class InvoiceEditorOnlineController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -110,6 +112,35 @@ class InvoiceEditorOnlineController extends Controller
                 ->orderBy('u_name')->pluck('u_name', 'id'),
         ];
         return view('app.invoice_editor_online.invoice_editor_online', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')
+                ->orderBy('st_name')->pluck('st_name', 'id'),
+            'stt_id' => DB::table('store_types')->where('stt_delete', '!=', '1')
+                ->orderBy('stt_name')->pluck('stt_name', 'id'),
+            'u_id' => DB::table('users')->where('u_delete', '!=', '1')
+                ->selectRaw("CONCAT(u_name,' [',st_name,']') as u_name, ts_users.id as id")
+                ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
+                ->orderBy('u_name')->pluck('u_name', 'id'),
+        ];
+        return view('app.updated_invoice_editor_online.invoice_editor_online', compact('data'));
     }
 
     public function getPermissionDatatables(Request $request)
@@ -325,6 +356,204 @@ class InvoiceEditorOnlineController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    // Methods for SimpleDatatables (v2)
+    public function getInvoiceDatatablesSimple(Request $request)
+    {
+        try {
+            $pt_id = $request->get('pt_id');
+            $query = DB::table('online_transactions')
+                ->select('online_transactions.id', 'order_number', 'no_resi', 'stores.st_name', 'users.u_name', 'order_status', 'platform_name', 'order_date_created', 'shipping_method', 'shipping_fee', 'payment_method', 'total_payment', 'time_print')
+                ->leftJoin('stores', 'stores.id', '=', 'online_transactions.st_id')
+                ->leftJoin('users', 'users.id', '=', 'online_transactions.u_print')
+                ->where(function ($w) use ($pt_id) {
+                    if (!empty($pt_id)) {
+                        $w->where('online_transactions.id', '=', $pt_id);
+                    } else {
+                        $w->where('online_transactions.id', '=', '!@@#$%');
+                    }
+                });
+            
+            $data = $query->orderBy('online_transactions.id', 'desc')->get()->map(function ($item, $index) {
+                $action = "<a class='btn btn-sm btn-danger' data-pt_id='" . $item->id . "' id='cancel_btn'>Batalkan</a>";
+                
+                return [
+                    'DT_RowIndex' => $index + 1,
+                    'order_number' => $item->order_number,
+                    'no_resi' => $item->no_resi ?? '-',
+                    'st_name' => $item->st_name ?? '-',
+                    'u_name' => $item->u_name ?? '-',
+                    'order_status' => $item->order_status ?? '-',
+                    'platform_name' => $item->platform_name ?? '-',
+                    'order_date_created' => $item->order_date_created ?? '-',
+                    'shipping_method' => $item->shipping_method ?? '-',
+                    'shipping_fee' => $item->shipping_fee ? number_format($item->shipping_fee) : '-',
+                    'payment_method' => $item->payment_method ?? '-',
+                    'total_payment' => $item->total_payment ? number_format($item->total_payment) : '-',
+                    'time_print' => $item->time_print ? date('d-m-Y H:i:s', strtotime($item->time_print)) : '-',
+                    'action' => $action
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getDetailDatatablesSimple(Request $request)
+    {
+        try {
+            $pt_id = $request->get('pt_id');
+            $query = DB::table('online_transaction_details')
+                ->selectRaw("ts_online_transaction_details.id as id, CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) as article, to_id, sku,qty, original_price, discount_seller, total_discount, price_after_discount as final_price")
+                ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($pt_id) {
+                    if (!empty($pt_id)) {
+                        $w->where('online_transaction_details.to_id', '=', $pt_id);
+                    } else {
+                        $w->where('online_transaction_details.to_id', '=', '!@@#$%');
+                    }
+                });
+            
+            $status = null;
+            if (!empty($pt_id)) {
+                $status_result = DB::table('online_transactions')->select('order_status')->where('id', '=', $pt_id)->first();
+                $status = $status_result ? $status_result->order_status : null;
+            }
+            
+            $data = $query->orderBy('online_transaction_details.id', 'desc')->get()->map(function ($item, $index) use ($status) {
+                $sku_input = "<input type='text' data-tod_id='" . $item->id . "' data-sku='" . ($item->sku ?? '') . "' value='" . ($item->sku ?? '') . "' id='sku' class='w-full px-2 py-1 border border-gray-300 rounded'/>";
+                
+                $action = '';
+                if ($status != '0') {
+                    $action = "<a class='btn btn-sm btn-danger' data-tod_id='" . $item->id . "' data-to_id='" . $item->to_id . "' id='cancel_item_btn'>Batalkan</a>";
+                }
+                
+                return [
+                    'DT_RowIndex' => $index + 1,
+                    'article' => $item->article ?? '-',
+                    'sku' => $sku_input,
+                    'qty' => $item->qty ?? '0',
+                    'original_price' => $item->original_price ? number_format($item->original_price) : '0',
+                    'discount_seller' => $item->discount_seller ? number_format($item->discount_seller) : '0',
+                    'total_discount' => $item->total_discount ? number_format($item->total_discount) : '0',
+                    'final_price' => $item->final_price ? number_format($item->final_price) : '0',
+                    'action' => $action
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getTrackingDatatablesSimple(Request $request)
+    {
+        try {
+            $pt_id = $request->get('pt_id');
+            $query = DB::table('product_location_setup_transactions')
+                ->selectRaw("ts_product_location_setup_transactions.id as id, CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) as article, pl_code, plst_qty, plst_status")
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) use ($pt_id) {
+                    if (!empty($pt_id)) {
+                        $w->where('product_location_setup_transactions.pt_id', '=', $pt_id);
+                    } else {
+                        $w->where('product_location_setup_transactions.pt_id', '=', '!@@#$%');
+                    }
+                });
+            
+            $status_options = ['DONE', 'REFUND', 'EXCHANGE', 'WAITING FOR PACKING', 'WAITING OFFLINE', 'WAITING ONLINE', 'COMPLAINT'];
+            
+            $data = $query->orderBy('product_location_setup_transactions.id', 'desc')->get()->map(function ($item, $index) use ($status_options) {
+                $status_select = "<select data-id='" . $item->id . "' id='status' class='w-full px-2 py-1 border border-gray-300 rounded'>";
+                foreach ($status_options as $opt) {
+                    $selected = ($item->plst_status == $opt) ? 'selected' : '';
+                    $status_select .= "<option value='" . $opt . "' " . $selected . ">" . $opt . "</option>";
+                }
+                $status_select .= "</select>";
+                
+                return [
+                    'DT_RowIndex' => $index + 1,
+                    'pl_code' => $item->pl_code ?? '-',
+                    'article' => $item->article ?? '-',
+                    'plst_qty' => $item->plst_qty ?? '0',
+                    'status' => $status_select
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getHistoryDatatablesSimple(Request $request)
+    {
+        try {
+            $user = new User;
+            $select = ['g_name'];
+            $where = [
+                'users.id' => Auth::user()->id
+            ];
+            $user_data = $user->checkJoinData($select, $where)->first();
+            
+            $query = DB::table('invoice_editor_onlines')
+                ->select("invoice_editor_onlines.id", "order_number", "u_name", "activity", "note", "invoice_editor_onlines.created_at", "invoice_editor_onlines.updated_at")
+                ->leftJoin('online_transactions', 'online_transactions.id', '=', 'invoice_editor_onlines.to_id')
+                ->leftJoin('users', 'users.id', '=', 'invoice_editor_onlines.u_id')
+                ->where(function ($w) use ($user_data) {
+                    if ($user_data->g_name != 'administrator') {
+                        $w->where('invoice_editor_onlines.u_id', '=', Auth::user()->id);
+                    }
+                });
+            
+            if (!empty($request->get('search'))) {
+                $search = $request->get('search');
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('u_name', 'LIKE', "%$search%")
+                        ->orWhere('order_number', 'LIKE', "%$search%");
+                });
+            }
+            
+            $data = $query->orderBy('invoice_editor_onlines.id', 'desc')->get()->map(function ($item, $index) {
+                return [
+                    'DT_RowIndex' => $index + 1,
+                    'order_number' => $item->order_number ?? '-',
+                    'u_name' => $item->u_name ?? '-',
+                    'activity' => $item->activity ?? '-',
+                    'note' => $item->note ?? '-',
+                    'created_at' => $item->created_at ? date('d/m/Y H:i:s', strtotime($item->created_at)) : '-',
+                    'updated_at' => $item->updated_at ? date('d/m/Y H:i:s', strtotime($item->updated_at)) : '-'
+                ];
+            });
+            
+            return response()->json(['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 

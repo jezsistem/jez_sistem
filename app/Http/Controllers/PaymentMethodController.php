@@ -15,12 +15,13 @@ use App\Models\Account;
 
 class PaymentMethodController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -170,5 +171,96 @@ class PaymentMethodController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('metode_pembayaran');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'metode_pembayaran')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'stt_id' => StoreType::where('stt_delete', '!=', '1')->orderByDesc('id')->pluck('stt_name', 'id'),
+            'a_id' => Account::selectRaw('id, CONCAT(a_name," (",a_code,")") as account_name')
+            ->where('a_delete', '!=', '1')
+            ->orderBy('a_code')->pluck('account_name', 'id'),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id')
+        ];
+        return view('app.updated_payment_method.payment_method', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = PaymentMethod::select('payment_methods.id as pm_id', 'store_types.id as stt_id', 'accounts.id as a_id', 'stores.st_name as st_name','pm_name', 'pm_description', 'stt_name', 'a_name', 'a_code')
+                ->join('store_types', 'store_types.id', '=', 'payment_methods.stt_id')
+                ->join('accounts', 'accounts.id', '=', 'payment_methods.a_id')
+                ->leftJoin('stores', 'stores.id', '=', 'payment_methods.st_id')
+                ->where('pm_delete', '!=', '1');
+
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->where('pm_name', 'LIKE', "%$search%")
+                      ->orWhere('stt_name', 'LIKE', "%$search%")
+                      ->orWhere('a_name', 'LIKE', "%$search%")
+                      ->orWhere('pm_description', 'LIKE', "%$search%")
+                      ->orWhere('stores.st_name', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('payment_methods.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'pm_id' => $row->pm_id,
+                    'stt_id' => $row->stt_id,
+                    'a_id' => $row->a_id,
+                    'st_name' => $row->st_name ?? '-',
+                    'pm_name' => $row->pm_name ?? '-',
+                    'stt_name' => $row->stt_name ?? '-',
+                    'a_name' => '['.$row->a_code.'] '.$row->a_name,
+                    'pm_description' => $row->pm_description ?? '-',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

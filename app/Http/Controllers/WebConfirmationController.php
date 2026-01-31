@@ -12,12 +12,13 @@ use App\Models\UserActivity;
 
 class WebConfirmationController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -82,6 +83,137 @@ class WebConfirmationController extends Controller
             'segment' => request()->segment(1),
         ];
         return view('app.web_confirmation.web_confirmation', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('konfirmasi');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $ecommerce_url = DB::table('web_configs')->select('config_value')
+        ->where('config_name', 'ecommerce_url')->first()->config_value;
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'konfirmasi')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'ecommerce_url' => $ecommerce_url,
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_web_confirmation.web_confirmation', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $filter = $request->get('filter', '');
+
+            $ecommerce_url = DB::table('web_configs')->select('config_value')
+                ->where('config_name', 'ecommerce_url')->first()->config_value;
+
+            $query = DB::table('confirmations')
+                ->select(
+                    'confirmations.id as id', 
+                    'pos_transactions.id as pt_id', 
+                    'pos_invoice', 
+                    'cf_name', 
+                    'cf_transfer', 
+                    'cf_bank_transfer', 
+                    'cf_ip', 
+                    'cf_read', 
+                    'cf_status', 
+                    'u_name', 
+                    'confirmations.created_at as created_at'
+                )
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'confirmations.pt_id')
+                ->leftJoin('users', 'users.id', '=', 'confirmations.u_id');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'LIKE', "%$search%")
+                      ->orWhere('cf_name', 'LIKE', "%$search%");
+                });
+            }
+
+            if ($filter !== '') {
+                $query->where('cf_status', '=', $filter);
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('confirmations.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                // Status label and class
+                if ($row->cf_status == '0') {
+                    $statusLabel = 'Menunggu Konfirmasi';
+                    $statusClass = 'bg-yellow-100 text-yellow-800';
+                } else if ($row->cf_status == '1') {
+                    $statusLabel = 'Diterima';
+                    $statusClass = 'bg-green-100 text-green-800';
+                } else {
+                    $statusLabel = 'Ditolak';
+                    $statusClass = 'bg-red-100 text-red-800';
+                }
+
+                // Read status
+                $readLabel = $row->cf_read == '0' ? 'Belum' : 'Sudah';
+                $readClass = $row->cf_read == '0' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'pt_id' => $row->pt_id,
+                    'created_at_show' => date('d/m/Y', strtotime($row->created_at)),
+                    'pos_invoice' => $row->pos_invoice ?? '-',
+                    'pos_invoice_link' => $ecommerce_url . '/customer/order/detail/id/data/' . $row->pt_id,
+                    'cf_name' => $row->cf_name ?? '-',
+                    'cf_transfer' => $row->cf_transfer,
+                    'cf_transfer_url' => $row->cf_transfer ? $ecommerce_url . '/api/confirmation/600/' . $row->cf_transfer : null,
+                    'cf_bank_transfer' => $row->cf_bank_transfer ?? '-',
+                    'cf_ip' => $row->cf_ip ?? '-',
+                    'cf_read' => $row->cf_read,
+                    'cf_read_label' => $readLabel,
+                    'cf_read_class' => $readClass,
+                    'u_name' => $row->u_name ?? '-',
+                    'cf_status' => $row->cf_status,
+                    'cf_status_label' => $statusLabel,
+                    'cf_status_class' => $statusClass,
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage,
+                'ecommerce_url' => $ecommerce_url
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function getDatatables(Request $request)

@@ -36,10 +36,12 @@ class PreOrderController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -869,5 +871,196 @@ class PreOrderController extends Controller
             return response()->json(['status' => '200', 'message' => 'Status updated successfully']);
         }
         return response()->json(['status' => '404', 'message' => 'Pre Order Article not found']);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'br_po_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_code', 'id'),
+            'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_pre_order.pre_order', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $st_id = $request->get('st_id');
+            $po_type = $request->get('po_type');
+            $search = $request->get('search');
+
+            $user = new User;
+            $select = ['u_name', 'u_email', 'u_phone', 'g_name'];
+            $where = [
+                'users.id' => Auth::user()->id
+            ];
+            $user_data = $user->checkJoinData($select, $where)->first();
+
+            $query = PreOrder::select('pre_orders.id as po_id', 'st_name', 'ps_name', 'pre_order_code', 'po_draft', 'po_type', 'preorder_description', 'pre_orders.created_at as po_created_at')
+                ->leftJoin('pre_order_articles', 'pre_order_articles.po_id', '=', 'pre_orders.id')
+                ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
+                ->join('stores', 'stores.id', '=', 'pre_orders.st_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'pre_orders.ps_id')
+                ->where('po_delete', '!=', '1')
+                ->where(function ($w) use ($user_data, $st_id) {
+                    if ($user_data->g_name != 'administrator') {
+                        $w->where('pre_orders.st_id', '=', Auth::user()->st_id);
+                    } else {
+                        if (!empty($st_id)) {
+                            $w->where('pre_orders.st_id', '=', $st_id);
+                        }
+                    }
+                })
+                ->groupBy('po_id');
+
+            // Search filter
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('pre_order_code', 'LIKE', "%$search%")
+                        ->orWhere('st_name', 'LIKE', "%$search%")
+                        ->orWhere('ps_name', 'LIKE', "%$search%")
+                        ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', ["%$search%"]);
+                });
+            }
+
+            // Filter po_type
+            if ($request->filled('po_type')) {
+                $query->where('po_type', $po_type);
+            }
+
+            // Get total count before pagination - count distinct po_id
+            // Get the base query without groupBy and select, then count distinct
+            $baseQuery = PreOrder::query()
+                ->leftJoin('pre_order_articles', 'pre_order_articles.po_id', '=', 'pre_orders.id')
+                ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
+                ->join('stores', 'stores.id', '=', 'pre_orders.st_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'pre_orders.ps_id')
+                ->where('pre_orders.po_delete', '!=', '1')
+                ->where(function ($w) use ($user_data, $st_id) {
+                    if ($user_data->g_name != 'administrator') {
+                        $w->where('pre_orders.st_id', '=', Auth::user()->st_id);
+                    } else {
+                        if (!empty($st_id)) {
+                            $w->where('pre_orders.st_id', '=', $st_id);
+                        }
+                    }
+                });
+            
+            // Apply same filters to count query
+            if (!empty($search)) {
+                $baseQuery->where(function ($q) use ($search) {
+                    $q->orWhere('pre_orders.pre_order_code', 'LIKE', "%$search%")
+                        ->orWhere('stores.st_name', 'LIKE', "%$search%")
+                        ->orWhere('product_suppliers.ps_name', 'LIKE', "%$search%")
+                        ->orWhereRaw('CONCAT(products.p_name," ",products.p_color) LIKE ?', ["%$search%"]);
+                });
+            }
+            
+            if ($request->filled('po_type')) {
+                $baseQuery->where('pre_orders.po_type', $po_type);
+            }
+            
+            // Count distinct pre_orders.id using groupBy
+            $totalRecords = $baseQuery->groupBy('pre_orders.id')->get()->count();
+
+            // Pagination parameters
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $offset = ($page - 1) * $perPage;
+
+            // Apply pagination
+            $data = $query->orderBy('pre_orders.id', 'desc')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get()
+                ->map(function ($item, $index) use ($offset) {
+                    // Calculate total price
+                    $poa = PreOrderArticle::where(['po_id' => $item->po_id])->get();
+                    $total_price = 0;
+                    $total_qty = 0;
+                    $total_qty_receive = 0;
+                    
+                    if (!empty($poa)) {
+                        foreach ($poa as $poa_row) {
+                            $poad = PreOrderArticleDetails::where(['poa_id' => $poa_row->id])->get();
+                            if (!empty($poad)) {
+                                foreach ($poad as $poad_row) {
+                                    $total_price += $poad_row->poad_total_price;
+                                    $total_qty += $poad_row->poad_qty;
+                                    $poads = PurchaseOrderArticleDetailStatus::where(['poad_id' => $poad_row->id, 'poads_type' => 'IN'])->get();
+                                    if (!empty($poads)) {
+                                        foreach ($poads as $poads_row) {
+                                            $total_qty_receive += $poads_row->poads_qty;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Status
+                    $status = '';
+                    if ($item->po_draft == '1') {
+                        $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Draft</span>';
+                    } else {
+                        if ($total_qty == 0) {
+                            $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Done</span>';
+                        } else {
+                            $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">' . $total_qty . ' Artikel</span>';
+                        }
+                    }
+
+                    return [
+                        'no' => $offset + $index + 1,
+                        'po_id' => $item->po_id,
+                        'pre_order_code' => $item->pre_order_code ?? '-',
+                        'st_name' => $item->st_name ?? '-',
+                        'ps_name' => $item->ps_name ?? '-',
+                        'po_type' => $item->po_type == '0' ? 'REPEAT' : 'LAUNCHING',
+                        'preorder_description' => $item->preorder_description ?? '-',
+                        'po_total' => number_format($total_price),
+                        'po_status' => $status,
+                        'po_created_at' => $item->po_created_at ? date('d-m-Y H:i:s', strtotime($item->po_created_at)) : '-',
+                        'action' => '<button class="btn btn-sm btn-primary detail-btn" data-id="' . $item->po_id . '"><i class="fas fa-eye"></i></button>'
+                    ];
+                });
+
+            return response()->json([
+                'data' => $data,
+                'total' => $totalRecords,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => ceil($totalRecords / $perPage)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

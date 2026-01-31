@@ -41,10 +41,12 @@ class PurchaseOrderController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slug = str_replace('_v2', '', $segment); // Strip _v2 suffix
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -1038,5 +1040,294 @@ class PurchaseOrderController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', str_replace('_v2', '', request()->segment(1)))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')->where('st_name', 'NOT LIKE', '%ONLINE%')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'dp_id' => DataPerusahaan::orderByDesc('id')->pluck('dp_name', 'id'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
+            'pro_id' => PreOrder::getAllDataPO(),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_purchase_order.purchase_order', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $st_id = $request->get('st_id');
+            $search = $request->get('search');
+            $filter_dispute = $request->get('filter_dispute');
+            $filter_delivery_note = $request->get('filter_delivery_note');
+
+            $user = new User;
+            $select = ['u_name', 'u_email', 'u_phone', 'g_name'];
+            $where = [
+                'users.id' => Auth::user()->id
+            ];
+            $user_data = $user->checkJoinData($select, $where)->first();
+
+            $query = PurchaseOrder::select(
+                'purchase_orders.id as po_id',
+                'st_name',
+                'ps_name',
+                'po_invoice',
+                'po_description',
+                'status_dispute',
+                'po_draft',
+                'purchase_orders.acc_id',
+                'purchase_order_article_detail_statuses.u_id_approve',
+                'purchase_order_article_detail_statuses.created_at as status_created_at',
+                'purchase_order_article_detail_statuses.updated_at as status_updated_at',
+                'purchase_orders.created_at as po_created_at',
+                'po_total_purchase',
+                'po_payment_amount',
+                'po_total_qty',
+            )
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('purchase_order_file_delivery_note', 'purchase_order_file_delivery_note.purchase_order_id', '=', 'purchase_orders.id')
+                ->where('po_delete', '!=', '1')
+                ->where(function ($w) use ($user_data, $st_id) {
+                    if ($user_data->g_name != 'administrator') {
+                        $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
+                    } else {
+                        if (!empty($st_id)) {
+                            $w->where('purchase_orders.st_id', '=', $st_id);
+                        }
+                    }
+                })
+                ->when($filter_delivery_note === "1", function ($q) {
+                    $q->whereNotNull('purchase_order_file_delivery_note.id')
+                      ->where('purchase_order_file_delivery_note.id', '!=', '')
+                      ->whereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) > 0');
+                }, function ($q) use ($filter_delivery_note) {
+                    if ($filter_delivery_note === "0") {
+                        $q->where(function ($subq) {
+                            $subq->whereNull('purchase_order_file_delivery_note.id')
+                                ->orWhere('purchase_order_file_delivery_note.id', '')
+                                ->orWhereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) = 0');
+                        });
+                    }
+                })
+                ->groupBy('po_id');
+
+            // Search filter
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->orWhere('po_invoice', 'LIKE', "%$search%")
+                        ->orWhere('st_name', 'LIKE', "%$search%")
+                        ->orWhere('ps_name', 'LIKE', "%$search%")
+                        ->orWhere('po_description', 'LIKE', "%$search%")
+                        ->orWhere('article_id', 'LIKE', "%$search%")
+                        ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', ["%$search%"]);
+                });
+            }
+
+            // Filter dispute
+            if ($request->has('filter_dispute')) {
+                if ($filter_dispute === "1") {
+                    $query->where('status_dispute', '1');
+                } elseif ($filter_dispute === "0") {
+                    $query->where(function ($q) {
+                        $q->whereNull('status_dispute')->orWhere('status_dispute', '!=', '1');
+                    });
+                }
+            }
+
+            // Get total count before pagination - count distinct po_id
+            // Get the base query without groupBy and select, then count distinct
+            $baseQuery = PurchaseOrder::query()
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('purchase_order_file_delivery_note', 'purchase_order_file_delivery_note.purchase_order_id', '=', 'purchase_orders.id')
+                ->where('purchase_orders.po_delete', '!=', '1')
+                ->where(function ($w) use ($user_data, $st_id) {
+                    if ($user_data->g_name != 'administrator') {
+                        $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
+                    } else {
+                        if (!empty($st_id)) {
+                            $w->where('purchase_orders.st_id', '=', $st_id);
+                        }
+                    }
+                });
+            
+            // Apply same filters to count query
+            if ($filter_delivery_note === "1") {
+                $baseQuery->whereNotNull('purchase_order_file_delivery_note.id')
+                    ->where('purchase_order_file_delivery_note.id', '!=', '')
+                    ->whereRaw('CAST(purchase_order_file_delivery_note.id AS UNSIGNED) > 0');
+            } elseif ($filter_delivery_note === "0") {
+                $baseQuery->where(function ($subq) {
+                    $subq->whereNull('purchase_order_file_delivery_note.id')
+                        ->orWhere('purchase_order_file_delivery_note.id', '')
+                        ->orWhereRaw('CAST(purchase_order_file_delivery_note.id AS UNSIGNED) = 0');
+                });
+            }
+            
+            if (!empty($search)) {
+                $baseQuery->where(function ($q) use ($search) {
+                    $q->orWhere('purchase_orders.po_invoice', 'LIKE', "%$search%")
+                        ->orWhere('stores.st_name', 'LIKE', "%$search%")
+                        ->orWhere('product_suppliers.ps_name', 'LIKE', "%$search%")
+                        ->orWhere('purchase_orders.po_description', 'LIKE', "%$search%")
+                        ->orWhere('products.article_id', 'LIKE', "%$search%")
+                        ->orWhereRaw('CONCAT(products.p_name," ",products.p_color) LIKE ?', ["%$search%"]);
+                });
+            }
+            
+            if ($request->has('filter_dispute')) {
+                if ($filter_dispute === "1") {
+                    $baseQuery->where('purchase_orders.status_dispute', '1');
+                } elseif ($filter_dispute === "0") {
+                    $baseQuery->where(function ($q) {
+                        $q->whereNull('purchase_orders.status_dispute')->orWhere('purchase_orders.status_dispute', '!=', '1');
+                    });
+                }
+            }
+            
+            // Count distinct purchase_orders.id using groupBy
+            $totalRecords = $baseQuery->groupBy('purchase_orders.id')->get()->count();
+
+            // Pagination parameters
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $offset = ($page - 1) * $perPage;
+
+            // Get custom SKU PO
+            $custom_sku_po = ProductStock::where('ps_barcode', 'CUSTOMPO')->first();
+
+            // Apply pagination
+            $data = $query->orderBy('purchase_orders.id', 'desc')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get()
+                ->map(function ($item, $index) use ($offset, $custom_sku_po) {
+                    $poa = PurchaseOrderArticle::where(['po_id' => $item->po_id])->get();
+                    $has_custom_po_item = false;
+                    $total_price = 0;
+                    $total_qty = 0;
+                    $total_qty_receive = 0;
+
+                    if ($custom_sku_po && !empty($poa)) {
+                        $poa_ids = $poa->pluck('id');
+                        $has_custom_po_item = PurchaseOrderArticleDetail::whereIn('poa_id', $poa_ids)
+                            ->where('pst_id', $custom_sku_po->id)
+                            ->exists();
+                    }
+
+                    if ($has_custom_po_item) {
+                        $total_price = $item->po_total_purchase ?? 0;
+                    } else {
+                        if (!empty($poa)) {
+                            foreach ($poa as $poa_row) {
+                                $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
+                                if (!empty($poad)) {
+                                    foreach ($poad as $poad_row) {
+                                        $total_price += $poad_row->poad_total_price;
+                                        $total_qty += $poad_row->poad_qty;
+                                        $poads = PurchaseOrderArticleDetailStatus::where(['poad_id' => $poad_row->id, 'poads_type' => 'IN'])->get();
+                                        if (!empty($poads)) {
+                                            foreach ($poads as $poads_row) {
+                                                $total_qty_receive += $poads_row->poads_qty;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Status
+                    $status = '';
+                    if ($has_custom_po_item) {
+                        $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">' . $total_qty_receive . '/' . ($item->po_total_qty ?? 0) . '</span>';
+                    } elseif ($item->po_draft == '1') {
+                        $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Draft</span>';
+                    } else {
+                        if ($total_qty_receive == $total_qty) {
+                            $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">' . $total_qty_receive . '/' . $total_qty . '</span>';
+                        } else {
+                            $status = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">' . $total_qty_receive . '/' . $total_qty . '</span>';
+                        }
+                    }
+
+                    // User receive
+                    $u_receive = '';
+                    if (!empty($item->u_id_approve)) {
+                        $user = DB::table('users')->where('id', '=', $item->u_id_approve)->first();
+                        $name = $user->u_name ?? '';
+                        
+                        // Check if acc_id is 93 (account code for payment) - means "Diterima, Belum Dibayar"
+                        // Note: is_paid column doesn't exist, so we only check acc_id
+                        if ($item->acc_id == 93) {
+                            $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">' . $name . '<br/> Diterima, Belum Dibayar</span>';
+                        } else {
+                            $date = $item->status_updated_at ? date('d/m/Y H:i:s', strtotime($item->status_updated_at)) : '';
+                            $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">' . $name . '<br/>' . $date . '</span>';
+                        }
+                    } else {
+                        $u_receive = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Menunggu Approval</span>';
+                    }
+
+                    return [
+                        'no' => $offset + $index + 1,
+                        'po_id' => $item->po_id,
+                        'po_invoice' => $item->po_invoice ?? '-',
+                        'st_name' => $item->st_name ?? '-',
+                        'ps_name' => $item->ps_name ?? '-',
+                        'po_description' => $item->po_description ?? '-',
+                        'po_total' => number_format($total_price),
+                        'po_status' => $status,
+                        'u_receive' => $u_receive,
+                        'po_created_at' => $item->po_created_at ? date('d-m-Y H:i:s', strtotime($item->po_created_at)) : '-',
+                        'action' => '<button class="btn btn-sm btn-primary detail-btn" data-id="' . $item->po_id . '"><i class="fas fa-eye"></i></button>'
+                    ];
+                });
+
+            return response()->json([
+                'data' => $data,
+                'total' => $totalRecords,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => ceil($totalRecords / $perPage)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

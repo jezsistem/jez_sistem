@@ -15,10 +15,13 @@ class HelperBackupController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment); // Remove _v2 suffix
+        
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slugToCheck // Use the slug without _v2
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -78,5 +81,38 @@ class HelperBackupController extends Controller
         ];
 //        dd($this->sidebar());
         return view('app.dashboard.helper.dashboard', compact('data'));
+    }
+
+    /**
+     * Display helper backup page (V2 - New Layout)
+     */
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $user_activity = new UserActivity;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $select_activity = ['user_activities.id as uaid', 'u_name', 'ua_description', 'user_activities.created_at as ua_created_at'];
+        $activity = $user_activity->getAllJoinData($select_activity);
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $storage_areas = StorageArea::query()->select('name', 'id')->where('st_id', Auth::user()->st_id)->orderBy('name')->get();
+        
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'invoice' => PosTransaction::select('pos_invoice', 'plst_status'),
+            'user' => $user_data,
+            'segment' => $segment,
+            'storage_areas' => $storage_areas,
+        ];
+        return view('app.updated_helper_backup.helper_backup', compact('data'));
     }
 }

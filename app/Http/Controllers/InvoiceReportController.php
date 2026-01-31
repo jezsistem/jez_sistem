@@ -253,6 +253,278 @@ class InvoiceReportController extends Controller
         return view('app.customer._detail', compact('customer'));
     }
 
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $stt_id = $request->get('stt_id');
+            $st_id = $request->get('st_id');
+            $dp_id = $request->get('dp_id');
+            $sales_date = $request->get('sales_date');
+            $search = $request->get('search');
+
+            $query = PosTransaction::select(
+                'pos_transactions.id as pt_id',
+                'pos_transactions.created_at as pos_created',
+                'pos_invoice',
+                'pos_shipping',
+                'pos_unique_code',
+                'pos_admin_cost',
+                'pos_discount_seller',
+                'pos_another_cost',
+                'dv_name',
+                'cross_order',
+                'u_name',
+                'pos_payment',
+                'pos_payment_partial',
+                'pos_note',
+                'pm_id',
+                'pm_id_partial',
+                'cp_id',
+                'cp_id_partial',
+                'cust_name',
+                'pos_refund',
+                'pos_status',
+                'pos_card_number',
+                'pos_ref_number',
+                'pos_card_number_two',
+                'pos_ref_number_two',
+                'st_name',
+                'pos_paid_dp',
+                'pos_paid_dp_date',
+                'sub_payment',
+                'pos_order_number',
+                'pos_transactions.cust_id'
+            )
+                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
+                ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+                ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+                ->whereNotIn('pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL']);
+
+            if (!empty($dp_id)) {
+                $query->where('pos_transactions.pos_status', $dp_id);
+            }
+            if (!empty($stt_id)) {
+                $query->where('pos_transactions.stt_id', $stt_id);
+            }
+            if (!empty($sales_date)) {
+                $range = $sales_date;
+                $exp = explode('|', $range);
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $sales_date;
+                    $end = $sales_date;
+                }
+                if ($start != $end) {
+                    $query->whereDate('pos_transactions.created_at', '>=', $exp[0])
+                        ->whereDate('pos_transactions.created_at', '<=', $exp[1]);
+                } else {
+                    $query->whereDate('pos_transactions.created_at', $start);
+                }
+            }
+            if (!empty($st_id)) {
+                $query->where('pos_transactions.st_id', '=', $st_id);
+            }
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('pos_invoice', 'LIKE', "%$search%")
+                        ->orWhere('u_name', 'LIKE', "%$search%")
+                        ->orWhere('dv_name', 'LIKE', "%$search%")
+                        ->orWhere('cust_name', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->orderBy('pos_transactions.id', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    // Calculate item_qty
+                    $qty = 0;
+                    $item = PosTransactionDetail::select('pos_transaction_details.pt_id', 'pos_td_qty', 'plst_status')
+                        ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transaction_details.pt_id')
+                        ->where('pos_transaction_details.pt_id', '=', $row->pt_id)
+                        ->groupBy('pos_transaction_details.id')->get();
+                    foreach ($item as $itemRow) {
+                        if ($row->pos_refund == '0' and $itemRow->plst_status == 'INSTOCK') {
+                            continue;
+                        } else {
+                            $qty += $itemRow->pos_td_qty;
+                        }
+                    }
+
+                    // Calculate item_value
+                    $total = 0;
+                    $ptd = PosTransactionDetail::select('pos_td_qty', 'pos_td_discount_price', 'pos_td_marketplace_price', 'pos_td_nameset_price', 'plst_status')
+                        ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transaction_details.pt_id')
+                        ->where('pos_transaction_details.pt_id', '=', $row->pt_id)
+                        ->groupBy('pos_transaction_details.id')->get();
+                    if (!empty($ptd)) {
+                        foreach ($ptd as $ptdRow) {
+                            if ($row->pos_refund == '0' and $ptdRow->plst_status == 'INSTOCK') {
+                                continue;
+                            }
+                            if (!empty($ptdRow->pos_td_marketplace_price)) {
+                                $total += $ptdRow->pos_td_marketplace_price;
+                            } else {
+                                $total += $ptdRow->pos_td_discount_price;
+                            }
+                        }
+                    }
+
+                    // Calculate nameset
+                    $nameset = PosTransactionDetail::select('pos_td_nameset_price')->where('pt_id', '=', $row->pt_id)->sum('pos_td_nameset_price');
+
+                    // Calculate value_admin
+                    $value_admin = 0;
+                    if (!empty($ptd)) {
+                        $ptd_total = 0;
+                        foreach ($ptd as $ptdRow) {
+                            if ($row->pos_refund == '0' and $ptdRow->plst_status == 'INSTOCK') {
+                                continue;
+                            }
+                            if (!empty($ptdRow->pos_td_marketplace_price)) {
+                                $ptd_total += $ptdRow->pos_td_marketplace_price;
+                            } else {
+                                $ptd_total += $ptdRow->pos_td_discount_price;
+                            }
+                        }
+                        if ($ptd_total > 0) {
+                            $value_admin = $ptd_total - $row->pos_admin_cost;
+                        } else {
+                            $value_admin = $ptd_total;
+                        }
+                    }
+
+                    // Calculate total
+                    $total_all = 0;
+                    if (!empty($ptd)) {
+                        $ptd_total = 0;
+                        foreach ($ptd as $ptdRow) {
+                            if ($row->pos_refund == '0' and $ptdRow->plst_status == 'INSTOCK') {
+                                continue;
+                            }
+                            if (!empty($ptdRow->pos_td_marketplace_price)) {
+                                $ptd_total += $ptdRow->pos_td_marketplace_price + $ptdRow->pos_td_nameset_price;
+                            } else {
+                                $ptd_total += $ptdRow->pos_td_discount_price + $ptdRow->pos_td_nameset_price;
+                            }
+                        }
+                        if ($ptd_total > 0) {
+                            $total_all = $ptd_total - $row->pos_admin_cost + $row->pos_another_cost + $row->pos_shipping + $row->pos_unique_code;
+                        } else {
+                            $total_all = $ptd_total - $row->pos_admin_cost + $row->pos_another_cost + $row->pos_shipping + $row->pos_unique_code;
+                        }
+                    }
+
+                    // Get payment methods
+                    $payment_one = '';
+                    if (!empty($row->pm_id)) {
+                        $pm = PaymentMethod::select('pm_name')->where('id', '=', $row->pm_id)->first();
+                        if ($pm) {
+                            $payment_one = $pm->pm_name;
+                        }
+                    }
+
+                    $payment_two = '';
+                    if (!empty($row->pm_id_partial)) {
+                        $pm = PaymentMethod::select('pm_name')->where('id', '=', $row->pm_id_partial)->first();
+                        if ($pm) {
+                            $payment_two = $pm->pm_name;
+                        }
+                    } else if (!empty($row->pos_payment_partial)) {
+                        $payment_two = 'CASH';
+                    }
+
+                    // Sub payment
+                    $sub_payment_text = '';
+                    switch ($row->sub_payment) {
+                        case 1:
+                            $sub_payment_text = 'CASH';
+                            break;
+                        case 2:
+                            $sub_payment_text = 'COD';
+                            break;
+                        case 3:
+                            $sub_payment_text = 'ON US';
+                            break;
+                        case 4:
+                            $sub_payment_text = 'OFF US';
+                            break;
+                        default:
+                            $sub_payment_text = '';
+                    }
+
+                    return [
+                        'pt_id' => $row->pt_id,
+                        'pos_created' => date('d/m/Y H:i:s', strtotime($row->pos_created)),
+                        'st_name' => $row->st_name ?? '-',
+                        'pos_invoice' => $row->pos_invoice ?? '-',
+                        'cust_name' => $row->cust_name ?? '-',
+                        'cust_id' => $row->cust_id ?? null,
+                        'cross' => $row->cross_order == '1' ? 'Ya' : '-',
+                        'u_name' => $row->u_name ?? '-',
+                        'dv_name' => $row->dv_name ?? '-',
+                        'item_qty' => $qty,
+                        'item_value' => number_format($total),
+                        'pos_shipping' => number_format($row->pos_shipping ?? 0),
+                        'pos_unique_code' => $row->pos_unique_code ?? '-',
+                        'pos_admin_cost' => number_format($row->pos_admin_cost ?? 0),
+                        'pos_discount_seller' => number_format($row->pos_discount_seller ?? 0),
+                        'pos_another_cost' => number_format($row->pos_another_cost ?? 0),
+                        'nameset' => number_format($nameset),
+                        'value_admin' => number_format($value_admin),
+                        'total' => number_format($total_all),
+                        'payment_one' => $payment_one,
+                        'pos_payment' => number_format($row->pos_payment ?? 0),
+                        'pos_card_number' => $row->pos_card_number ?? '-',
+                        'pos_ref_number' => $row->pos_ref_number ?? '-',
+                        'payment_two' => $payment_two,
+                        'pos_payment_partial' => number_format($row->pos_payment_partial ?? 0),
+                        'pos_card_number_two' => $row->pos_card_number_two ?? '-',
+                        'pos_ref_number_two' => $row->pos_ref_number_two ?? '-',
+                        'pos_paid_dp' => $row->pos_paid_dp ? 'Ya' : 'Tidak',
+                        'sub_payment' => $sub_payment_text,
+                        'pos_paid_dp_date' => $row->pos_paid_dp_date ? date('d/m/Y H:i', strtotime($row->pos_paid_dp_date)) : '',
+                        'pos_order_number' => $row->pos_order_number ?? '-',
+                        'pos_status' => $row->pos_status ?? '-',
+                        'pos_note' => $row->pos_note ?? '-',
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
     public function bandungGlobalSummary(Request $request)
     {
         $st_id = $request->_st_id;

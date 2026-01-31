@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\WebConfig;
 use App\Models\User;
@@ -22,10 +23,14 @@ class ProductLocationSetupController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        // Strip _v2 suffix if present for access validation
+        $slug = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -86,6 +91,34 @@ class ProductLocationSetupController extends Controller
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
         ];
         return view('app.product_location_setup.product_location_setup', compact('data'));
+    }
+
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'setup_lokasi_stok')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'setup_lokasi_stok',
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'pl_id' => ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
+                ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('pl_delete', '!=', '1')
+                ->orderByDesc('pl_code')->pluck('location', 'pl_id'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+        ];
+        return view('app.updated_setup_lokasi_stok.setup_lokasi_stok', compact('data'));
     }
 
     public function getDatatables(Request $request)
@@ -270,23 +303,59 @@ class ProductLocationSetupController extends Controller
 
     public function checkProductInLocation(Request $request)
     {
-        $pl_id = $request->_pl_id;
-        $check = ProductLocationSetup::select('product_location_setups.id as pls_id', 'p_name', 'p_color', 'p_image', 'sz_name', 'mc_name', 'pls_qty', 'ps_barcode')
-            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->join('products', 'products.id', '=', 'product_stocks.p_id')
-            ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
-            ->where('pl_id', '=', $pl_id)->get();
-        if (!empty($check)) {
-            $get_product = $check;
-        } else {
-            $get_product = null;
+        try {
+            $pl_id = $request->input('_pl_id') ?? $request->_pl_id;
+            
+            if (!$pl_id) {
+                return response()->json(['error' => 'pl_id is required'], 400);
+            }
+            
+            $check = ProductLocationSetup::select(
+                    'product_location_setups.id as pls_id', 
+                    'products.p_name', 
+                    'products.p_color', 
+                    'products.p_image', 
+                    'sizes.sz_name', 
+                    'main_colors.mc_name', 
+                    'product_location_setups.pls_qty', 
+                    'product_stocks.ps_barcode'
+                )
+                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
+                ->where('product_location_setups.pl_id', '=', $pl_id)
+                ->get();
+            
+            if (!empty($check)) {
+                $get_product = $check;
+            } else {
+                $get_product = null;
+            }
+            
+            // Limit pl_id to avoid memory issues - only get locations from same store as the selected location
+            $selected_location = ProductLocation::find($pl_id);
+            $store_id = $selected_location ? $selected_location->st_id : null;
+            
+            $pl_id_query = ProductLocation::where('pl_delete', '!=', '1');
+            if ($store_id) {
+                // Only get locations from the same store to reduce memory usage
+                $pl_id_query->where('st_id', $store_id);
+            }
+            $pl_id_list = $pl_id_query->orderByDesc('id')->pluck('pl_name', 'id');
+            
+            $data = [
+                'product' => $get_product,
+                'pl_id' => $pl_id_list,
+            ];
+            
+            return view('app.product_location_setup._product_location_setup_detail', compact('data'));
+        } catch (\Exception $e) {
+            Log::error('Error in checkProductInLocation: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Request data: ' . json_encode($request->all()));
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-        $data = [
-            'product' => $get_product,
-            'pl_id' => ProductLocation::where('pl_delete', '!=', '1')->orderByDesc('id')->pluck('pl_name', 'id'),
-        ];
-        return view('app.product_location_setup._product_location_setup_detail', compact('data'));
     }
 
     public function productMutation(Request $request)

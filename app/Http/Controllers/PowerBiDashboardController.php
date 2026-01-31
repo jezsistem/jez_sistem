@@ -81,4 +81,62 @@ class PowerBiDashboardController extends Controller
         return view('app.power_bi.power_bi_dashboard', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        // Strip _v2 suffix for access validation
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => $slugToCheck
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        // Get sidebar data
+        $ma_id = DB::table('user_menu_accesses')->select('ma_id')
+            ->where('u_id', Auth::user()->id)->get();
+        $ma_id_arr = array();
+        if (!empty($ma_id)) {
+            foreach ($ma_id as $row) {
+                array_push($ma_id_arr, $row->ma_id);
+            }
+        }
+
+        $sidebar = array();
+        $mt = DB::table('menu_titles')->orderBy('mt_sort')->get();
+        if (!empty($mt->first())) {
+            foreach ($mt as $row) {
+                $ma = DB::table('menu_accesses')
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
+                if (!empty($ma->first())) {
+                    $row->ma = $ma;
+                    array_push($sidebar, $row);
+                }
+            }
+        }
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $sidebar,
+            'user' => $user_data,
+            'segment' => $segment,
+        ];
+        return view('app.updated_power_bi.power_bi_dashboard', compact('data'));
+    }
+
 }

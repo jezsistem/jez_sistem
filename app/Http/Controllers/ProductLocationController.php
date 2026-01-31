@@ -16,10 +16,14 @@ class ProductLocationController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        // Strip _v2 suffix if present for access validation
+        $slug = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -84,6 +88,29 @@ class ProductLocationController extends Controller
                 ->orderByDesc('sid')->pluck('store', 'sid'),
         ];
         return view('app.product_location.product_location', compact('data'));
+    }
+
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'lokasi_simpan')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'lokasi_simpan',
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+        ];
+        return view('app.updated_lokasi_simpan.lokasi_simpan', compact('data'));
     }
 
     public function getDatatables(Request $request)

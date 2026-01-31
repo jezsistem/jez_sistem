@@ -84,6 +84,65 @@ class AssetDetailController extends Controller
         return view('app.asset_detail.asset_detail', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        // Strip _v2 suffix for access validation
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => $slugToCheck
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        // Get sidebar data
+        $ma_id = DB::table('user_menu_accesses')->select('ma_id')
+            ->where('u_id', Auth::user()->id)->get();
+        $ma_id_arr = array();
+        if (!empty($ma_id)) {
+            foreach ($ma_id as $row) {
+                array_push($ma_id_arr, $row->ma_id);
+            }
+        }
+
+        $sidebar = array();
+        $mt = DB::table('menu_titles')->orderBy('mt_sort')->get();
+        if (!empty($mt->first())) {
+            foreach ($mt as $row) {
+                $ma = DB::table('menu_accesses')
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
+                if (!empty($ma->first())) {
+                    $row->ma = $ma;
+                    array_push($sidebar, $row);
+                }
+            }
+        }
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'sidebar' => $sidebar,
+            'user' => $user_data,
+            'segment' => $segment,
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+        ];
+        return view('app.updated_asset_detail.asset_detail', compact('data'));
+    }
+
     public function loadData(Request $request) {
         $st_id = $request->post('st_id');
         $data = $request->post('data_filter');
@@ -110,13 +169,31 @@ class AssetDetailController extends Controller
             'st_id' => $st_id, 
         ];
 
-        if ($data == 'brand') {
-            return view('app.asset_detail._load_brand', compact('dt'));
-        } else {
-            if ($article == 'color') {
-                return view('app.asset_detail._load_color', compact('dt'));
+        // Check if request is from v2 page by checking referer
+        $referer = $request->header('Referer') ?? '';
+        $isV2 = strpos($referer, '_v2') !== false;
+
+        if ($isV2) {
+            // Return v2 views
+            if ($data == 'brand') {
+                return view('app.updated_asset_detail._load_brand', compact('dt'));
             } else {
-                return view('app.asset_detail._load_size', compact('dt'));
+                if ($article == 'color') {
+                    return view('app.updated_asset_detail._load_color', compact('dt'));
+                } else {
+                    return view('app.updated_asset_detail._load_size', compact('dt'));
+                }
+            }
+        } else {
+            // Return original views
+            if ($data == 'brand') {
+                return view('app.asset_detail._load_brand', compact('dt'));
+            } else {
+                if ($article == 'color') {
+                    return view('app.asset_detail._load_color', compact('dt'));
+                } else {
+                    return view('app.asset_detail._load_size', compact('dt'));
+                }
             }
         }
     }
@@ -1242,6 +1319,255 @@ class AssetDetailController extends Controller
             })
             ->addIndexColumn()
             ->make(true);
+        }
+    }
+
+    public function getBrandDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $st_id = $request->get('st_id');
+            $start = $request->get('starts');
+            $end = $request->get('ends');
+            $type = 'brand';
+
+            $query = DB::table('brands')
+                ->select('brands.id', 'br_name')
+                ->leftJoin('products', 'products.br_id', '=', 'brands.id')
+                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->where('product_locations.st_id', '=', $st_id)
+                ->groupBy('brands.id');
+
+            if (!empty($search)) {
+                $query->where(function($w) use($search){
+                    $w->whereRaw("CONCAT(br_name) LIKE ?", "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $results = $query->orderBy('brands.id', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'br_name' => $row->br_name ?? '-',
+                    'beginning' => $this->getBeginningQty($type, $start, $end, $row->id, $st_id, 'n'),
+                    'beginning_value' => $this->getBeginningValue($type, $start, $end, $row->id, $st_id, 'n'),
+                    'purchase_qty' => $this->getPurchase('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'purchase' => $this->getPurchase('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transin_qty' => $this->getTransIn('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transin' => $this->getTransIn('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transout_qty' => $this->getTransOut('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transout' => $this->getTransOut('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'gid_qty' => $this->getGID('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'gid' => $this->getGID('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'git_qty' => $this->getGIT('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'git' => $this->getGIT('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'sales_qty' => $this->getSales('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'sales' => $this->getSales('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'profit' => $this->getProfit($type, $start, $end, $row->id, $st_id, 'n'),
+                    'cogs' => $this->getSales('value', $type, $start, $end, $row->id, $st_id, 'n') - $this->getProfit($type, $start, $end, $row->id, $st_id, 'n'),
+                    'ending_qty' => $this->getEndingQty($type, $start, $end, $row->id, $st_id, 'n'),
+                    'ending' => $this->getEndingValue($type, $start, $end, $row->id, $st_id, 'n'),
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getColorDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $st_id = $request->get('st_id');
+            $start = $request->get('starts');
+            $end = $request->get('ends');
+            $type = 'color';
+
+            $query = DB::table('products')
+                ->select('products.id', 'br_name', 'p_name', 'p_color')
+                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where('product_locations.st_id', '=', $st_id)
+                ->groupBy('products.id');
+
+            if (!empty($search)) {
+                $query->where(function($w) use($search){
+                    $w->whereRaw("CONCAT(br_name,' ',p_name,' ',p_color) LIKE ?", "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $results = $query->orderBy('products.id', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'br_name' => $row->br_name ?? '-',
+                    'p_name' => $row->p_name ?? '-',
+                    'p_color' => $row->p_color ?? '-',
+                    'beginning' => $this->getBeginningQty($type, $start, $end, $row->id, $st_id, 'n'),
+                    'beginning_value' => $this->getBeginningValue($type, $start, $end, $row->id, $st_id, 'n'),
+                    'purchase_qty' => $this->getPurchase('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'purchase' => $this->getPurchase('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transin_qty' => $this->getTransIn('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transin' => $this->getTransIn('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transout_qty' => $this->getTransOut('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transout' => $this->getTransOut('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'gid_qty' => $this->getGID('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'gid' => $this->getGID('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'git_qty' => $this->getGIT('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'git' => $this->getGIT('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'sales_qty' => $this->getSales('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'sales' => $this->getSales('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'profit' => $this->getProfit($type, $start, $end, $row->id, $st_id, 'n'),
+                    'cogs' => $this->getSales('value', $type, $start, $end, $row->id, $st_id, 'n') - $this->getProfit($type, $start, $end, $row->id, $st_id, 'n'),
+                    'ending_qty' => $this->getEndingQty($type, $start, $end, $row->id, $st_id, 'n'),
+                    'ending' => $this->getEndingValue($type, $start, $end, $row->id, $st_id, 'n'),
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function getSizeDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $st_id = $request->get('st_id');
+            $start = $request->get('starts');
+            $end = $request->get('ends');
+            $type = 'size';
+
+            $query = DB::table('product_stocks')
+                ->select('product_stocks.id', 'br_name', 'p_name', 'p_color', 'sz_name')
+                ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('product_locations.st_id', '=', $st_id)
+                ->groupBy('product_stocks.id');
+
+            if (!empty($search)) {
+                $query->where(function($w) use($search){
+                    $w->whereRaw("CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) LIKE ?", "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $results = $query->orderBy('product_stocks.id', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'br_name' => $row->br_name ?? '-',
+                    'p_name' => $row->p_name ?? '-',
+                    'p_color' => $row->p_color ?? '-',
+                    'sz_name' => $row->sz_name ?? '-',
+                    'beginning' => $this->getBeginningQty($type, $start, $end, $row->id, $st_id, 'n'),
+                    'beginning_value' => $this->getBeginningValue($type, $start, $end, $row->id, $st_id, 'n'),
+                    'purchase_qty' => $this->getPurchase('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'purchase' => $this->getPurchase('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transin_qty' => $this->getTransIn('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transin' => $this->getTransIn('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transout_qty' => $this->getTransOut('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'transout' => $this->getTransOut('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'gid_qty' => $this->getGID('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'gid' => $this->getGID('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'git_qty' => $this->getGIT('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'git' => $this->getGIT('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'sales_qty' => $this->getSales('qty', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'sales' => $this->getSales('value', $type, $start, $end, $row->id, $st_id, 'n'),
+                    'profit' => $this->getProfit($type, $start, $end, $row->id, $st_id, 'n'),
+                    'cogs' => $this->getSales('value', $type, $start, $end, $row->id, $st_id, 'n') - $this->getProfit($type, $start, $end, $row->id, $st_id, 'n'),
+                    'ending_qty' => $this->getEndingQty($type, $start, $end, $row->id, $st_id, 'n'),
+                    'ending' => $this->getEndingValue($type, $start, $end, $row->id, $st_id, 'n'),
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
         }
     }
 }

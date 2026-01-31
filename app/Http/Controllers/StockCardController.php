@@ -16,12 +16,13 @@ use Yajra\DataTables\DataTables;
 
 class StockCardController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -885,5 +886,158 @@ class StockCardController extends Controller
     public function exportData()
     {
         return Excel::download(new StockCardExport(), 'Stock_Report.xlsx');
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('stock_card');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'stock_card')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'br_id' => DB::table('brands')->where('br_delete', '!=', '1')->orderBy('br_name')->pluck('br_name', 'id'),
+            'pc_id' => DB::table('product_categories')->where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_stock_card.stock_card', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $date = $request->get('date');
+            $brand = $request->get('br_id', '');
+            $store = $request->get('st_id', '');
+            $search = $request->get('search', '');
+
+            if (empty($date)) {
+                return response()->json([
+                    'error' => 'Tanggal harus diisi',
+                    'data' => [],
+                    'total' => 0,
+                    'total_pages' => 0,
+                    'current_page' => 1,
+                    'per_page' => 25
+                ], 400);
+            }
+
+            if (empty($store)) {
+                return response()->json([
+                    'error' => 'Store harus dipilih',
+                    'data' => [],
+                    'total' => 0,
+                    'total_pages' => 0,
+                    'current_page' => 1,
+                    'per_page' => 25
+                ], 400);
+            }
+
+            $start = null;
+            $end = null;
+            $exp = explode('|', $date);
+            if (count($exp) > 1) {
+                if ($exp[0] != $exp[1]) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $exp[0];
+                }
+            } else {
+                $start = $date;
+            }
+
+            $startDate = $start;
+            $endDate = $end ?? $start;
+            $article_id = $search ?: '';
+
+            // Convert empty strings to null for stored procedure
+            $storeParam = $store ?: null;
+            $brandParam = $brand ?: null;
+            $articleParam = $article_id ?: null;
+
+            // Call stored procedure
+            // Note: If you get definer error, the stored procedure needs to be fixed in database:
+            // ALTER DEFINER=CURRENT_USER PROCEDURE sumary_stocks(...)
+            $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?)", [
+                $storeParam,
+                $brandParam,
+                $articleParam,
+                $startDate,
+                $endDate,
+            ]);
+
+            if (empty($data)) {
+                return response()->json([
+                    'data' => [],
+                    'total' => 0,
+                    'total_pages' => 0,
+                    'current_page' => (int) $page,
+                    'per_page' => (int) $perPage
+                ]);
+            }
+
+            $collection = collect(array_slice($data, 0, -1));
+
+            $total = $collection->count();
+            $totalPages = ceil($total / $perPage);
+
+            $paginatedData = $collection->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row, $index) use ($page, $perPage) {
+                    return [
+                        'no' => ($page - 1) * $perPage + $index + 1,
+                        'article_id' => $row->article_id ?? '-',
+                        'item_name' => $row->item_name ?? '-',
+                        'ps_barcode' => $row->ps_barcode ?? '-',
+                        'size' => $row->size ?? '-',
+                        'brand' => $row->brand ?? '-',
+                        'begin_stocks' => number_format($row->begin_stocks ?? 0),
+                        'purchase' => number_format($row->purchase ?? 0),
+                        'tf_in' => number_format($row->tf_in ?? 0),
+                        'tf_out' => number_format($row->tf_out ?? 0),
+                        'sales' => number_format($row->sales ?? 0),
+                        'SO_adjustment_plus' => number_format($row->SO_adjustment_plus ?? 0),
+                        'SO_adjustment_minus' => number_format($row->SO_adjustment_minus ?? 0),
+                        'SO_adjustment_diff' => number_format($row->SO_adjustment_diff ?? 0),
+                        'ending_stocks' => number_format($row->ending_stocks ?? 0),
+                        'today_stocks' => number_format($row->today_stocks ?? 0),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return response()->json([
+                'data' => $paginatedData,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('StockCard getDatatablesForSimple error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

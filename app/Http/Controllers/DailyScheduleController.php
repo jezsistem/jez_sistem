@@ -18,12 +18,15 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class DailyScheduleController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = $slug ?? request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -934,7 +937,170 @@ class DailyScheduleController extends Controller
         ));
     }
 
+    public function weeklyScheduleUpdated(Request $request)
+    {
+        $this->validateAccess('daily-schedules');
+        Log::info('Weekly Schedule V2');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
 
+        // Get current user's position and division
+        $currentUser = DB::table('users')
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->select('users.*', 'user_positions.up_code', 'user_positions.up_level', 'user_divisions.ud_name as current_division_name')
+            ->where('users.id', Auth::user()->id)
+            ->first();
+
+        // Get parameters from request
+        $divisionId = $request->get('division_id');
+
+        // If no division filter specified, default to current user's division for non-DIRECTOR/MANAGER
+        if (!$divisionId && !in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER'])) {
+            $divisionId = $currentUser->ud_id;
+        }
+
+        $search = $request->get('search');
+        $dateFilter = $request->get('date_filter', 'this_week');
+        $startDate = $request->get('start_date');
+
+        // Calculate date range for weekly input with two-way synchronization
+        $originalStartDate = $request->get('start_date');
+
+        if ($originalStartDate && $originalStartDate !== '') {
+            $selectedDate = Carbon::parse($originalStartDate);
+            $dayOfWeek = $selectedDate->dayOfWeek;
+            $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1;
+
+            $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+            $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+
+            $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+            if ($detectedFilter !== 'custom') {
+                $dateFilter = $detectedFilter;
+            } else {
+                $dateFilter = 'custom';
+            }
+        } elseif ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        } else {
+            $dateRange = $this->getDateRangeFromFilter('this_week');
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+            $dateFilter = 'this_week';
+        }
+
+        // Get divisions based on user role
+        $divisions = collect();
+        if (in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER'])) {
+            $divisions = DB::table('user_divisions')
+                ->where('ud_status', 'active')
+                ->orderBy('ud_name')
+                ->get();
+        } elseif ($currentUser->up_code === 'SUPERVISOR') {
+            $divisions = DB::table('user_divisions')
+                ->where('ud_status', 'active')
+                ->where('id', $currentUser->ud_id)
+                ->orderBy('ud_name')
+                ->get();
+        }
+
+        // Get shift codes
+        $shiftCodes = DB::table('shift_codes')
+            ->where('sc_status', 'active')
+            ->orderBy('sc_code')
+            ->get();
+
+        // Get users with their divisions and user types
+        $users = DB::table('users')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->select('users.id', 'users.u_nip', 'users.u_name', 'user_divisions.ud_name', 'user_types.ut_name', 'user_positions.up_level')
+            ->where('users.u_delete', '0')
+            ->whereNotNull('users.u_nip');
+
+        // Apply division filter based on user position
+        if (in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER'])) {
+            if ($divisionId) {
+                $users->where('users.ud_id', $divisionId);
+            }
+        } else {
+            $users->where('users.ud_id', $currentUser->ud_id);
+
+            if ($currentUser->up_code === 'SUPERVISOR') {
+                $users->where('user_positions.up_level', '<=', 2);
+            } elseif ($currentUser->up_code === 'STAFF') {
+                $users->where('user_positions.up_level', '=', 1);
+            }
+        }
+
+        // Apply search filter if provided
+        if ($search) {
+            $users->where(function ($query) use ($search) {
+                $query->where('users.u_name', 'like', '%' . $search . '%')
+                    ->orWhere('users.u_nip', 'like', '%' . $search . '%');
+            });
+        }
+
+        $users = $users->orderBy('user_divisions.ud_name')
+            ->orderBy('users.u_name')
+            ->get();
+
+        // Group shift codes by user type
+        $shiftCodesByType = [];
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->orderBy('ut_name')
+            ->get();
+
+        $shiftCodesByType['ALL'] = DB::table('shift_codes')
+            ->where('sc_status', 'active')
+            ->orderBy('sc_code')
+            ->get();
+
+        foreach ($userTypes as $userType) {
+            $shiftCodesByType[$userType->ut_name] = \App\Models\ShiftCode::getCompatibleShiftCodes($userType->ut_name);
+        }
+
+        // Get existing schedules for this week
+        $existingSchedules = DB::table('daily_schedules')
+            ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+            ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+            ->select('daily_schedules.user_id', 'daily_schedules.ds_date', 'daily_schedules.sc_id', 'shift_codes.sc_code', 'shift_codes.sc_type')
+            ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
+            ->get();
+
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Weekly Schedule Input',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_daily_schedule.weekly_schedule', compact(
+            'divisions',
+            'shiftCodes',
+            'shiftCodesByType',
+            'existingSchedules',
+            'users',
+            'data',
+            'currentUser',
+            'search',
+            'startDate',
+            'endDate',
+            'dateFilter',
+            'divisionId'
+        ));
+    }
 
     /**
      * Menampilkan laporan jadwal mingguan
@@ -1202,6 +1368,255 @@ class DailyScheduleController extends Controller
         ];
 
         return view('app.daily_schedule.weekly_report', compact(
+            'groupedSchedules',
+            'weekDates',
+            'startDate',
+            'endDate',
+            'divisions',
+            'userPositions',
+            'shiftCodes',
+            'data',
+            'divisionId',
+            'positionId',
+            'shiftId',
+            'userName',
+            'dateFilter'
+        ));
+    }
+
+    /**
+     * Weekly Report V2 - Updated version with Tailwind CSS
+     */
+    public function weeklyReportUpdated(Request $request)
+    {
+        $this->validateAccess('daily-schedules');
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+
+        // Get parameters from request
+        $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
+        $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
+        $divisionId = $request->get('division_id');
+        $positionId = $request->get('position_id');
+        $shiftId = $request->get('shift_id');
+        $userName = $request->get('user_name');
+        $dateFilter = $request->get('date_filter', 'this_week');
+
+        // Process date filter and start_date with two-way synchronization
+        $originalStartDate = $request->get('start_date');
+
+        if ($originalStartDate && $originalStartDate !== '' && $dateFilter !== 'now') {
+            // User manually selected a week range - PRIORITY HIGH
+            // Skip auto-detection for 'now' filter to preserve the selection
+            $selectedDate = Carbon::parse($originalStartDate);
+            $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+
+            $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+            $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+
+            // Auto-detect if this matches any predefined filter
+            $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+            if ($detectedFilter !== 'custom') {
+                $dateFilter = $detectedFilter;
+            } else {
+                $dateFilter = 'custom';
+            }
+        } elseif ($dateFilter && $dateFilter !== 'custom') {
+            // User selected a predefined date filter - PRIORITY MEDIUM
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        } else {
+            // Default: this week - PRIORITY LOW
+            $dateRange = $this->getDateRangeFromFilter('this_week');
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+            $dateFilter = 'this_week';
+        }
+
+        // Get divisions for filter
+        $divisions = DB::table('user_divisions')
+            ->where('ud_status', 'active')
+            ->orderBy('ud_name')
+            ->get();
+
+        // Get user positions for filter based on current user's level
+        $userPositions = $this->getUserPositionsForFilter();
+
+        // Get shift codes for filter
+        $shiftCodes = DB::table('shift_codes')
+            ->where('sc_status', 'active')
+            ->orderBy('sc_code')
+            ->get();
+
+        // Get schedule data grouped by division
+        $scheduleQuery = DB::table('daily_schedules')
+            ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+            ->select([
+                'daily_schedules.*',
+                'users.u_nip',
+                'users.u_name',
+                'user_divisions.ud_name',
+                'shift_codes.sc_code',
+                'shift_codes.sc_shift_name',
+                'shift_codes.sc_start_time',
+                'shift_codes.sc_end_time'
+            ])
+            ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
+            ->where('users.u_delete', '0')
+            ->whereNotNull('users.u_nip');
+
+        // Special handling for NOW filter - only show staff who are currently working
+        if ($dateFilter === 'now') {
+            $currentTime = Carbon::now()->format('H:i:s');
+            $currentDate = Carbon::now()->format('Y-m-d');
+
+            // Get all schedules for today first, then filter in PHP for night shifts
+            $allTodaySchedules = DB::table('daily_schedules')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+                ->select([
+                    'daily_schedules.*',
+                    'users.u_nip',
+                    'users.u_name',
+                    'user_divisions.ud_name',
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_shift_name',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time'
+                ])
+                ->where('daily_schedules.ds_date', $currentDate)
+                ->where('users.u_delete', '0')
+                ->whereNotNull('users.u_nip');
+
+            // Apply other filters
+            if ($divisionId) {
+                $allTodaySchedules->where('users.ud_id', $divisionId);
+            }
+            if ($shiftId) {
+                $allTodaySchedules->where('daily_schedules.sc_id', $shiftId);
+            }
+            if ($positionId) {
+                $allTodaySchedules->where('users.up_id', $positionId);
+            }
+            if ($userName) {
+                $allTodaySchedules->where('users.u_name', 'like', '%' . $userName . '%');
+            }
+
+            $todaySchedules = $allTodaySchedules->get();
+
+            // Filter for currently working staff
+            $activeSchedules = $todaySchedules->filter(function ($schedule) use ($currentTime) {
+                $startTime = $schedule->sc_start_time ?: $schedule->ds_start_time;
+                $endTime = $schedule->sc_end_time ?: $schedule->ds_end_time;
+
+                if (!$startTime || !$endTime) {
+                    return false;
+                }
+
+                // Convert times to Carbon for comparison
+                $start = Carbon::createFromFormat('H:i:s', $startTime);
+                $end = Carbon::createFromFormat('H:i:s', $endTime);
+                $current = Carbon::createFromFormat('H:i:s', $currentTime);
+
+                // Check if it's a night shift (end time is next day)
+                if ($start->greaterThan($end)) {
+                    // Night shift: current >= start OR current <= end
+                    return $current->greaterThanOrEqualTo($start) || $current->lessThanOrEqualTo($end);
+                } else {
+                    // Regular shift: start <= current <= end
+                    return $current->greaterThanOrEqualTo($start) && $current->lessThanOrEqualTo($end);
+                }
+            });
+
+            // Convert back to query builder compatible format
+            $activeScheduleIds = $activeSchedules->pluck('id')->toArray();
+
+            if (empty($activeScheduleIds)) {
+                // No active schedules, return empty result
+                $scheduleQuery->whereRaw('1 = 0');
+            } else {
+                // Filter to only active schedules
+                $scheduleQuery->whereIn('daily_schedules.id', $activeScheduleIds);
+            }
+        } else {
+            // Apply filters for non-NOW cases
+            if ($divisionId) {
+                $scheduleQuery->where('users.ud_id', $divisionId);
+            }
+
+            if ($shiftId) {
+                $scheduleQuery->where('daily_schedules.sc_id', $shiftId);
+            }
+
+            if ($positionId) {
+                $scheduleQuery->where('users.up_id', $positionId);
+            }
+            if ($userName) {
+                $scheduleQuery->where('users.u_name', 'like', '%' . $userName . '%');
+            }
+        }
+
+        $schedules = $scheduleQuery->orderBy('user_divisions.ud_name')
+            ->orderBy('users.u_name')
+            ->orderBy('daily_schedules.ds_date')
+            ->get();
+
+        // Group schedules by division and user
+        $groupedSchedules = [];
+        foreach ($schedules as $schedule) {
+            $divisionName = $schedule->ud_name ?: 'No Division';
+            $userId = $schedule->user_id;
+            $date = $schedule->ds_date;
+
+            if (!isset($groupedSchedules[$divisionName])) {
+                $groupedSchedules[$divisionName] = [];
+            }
+
+            if (!isset($groupedSchedules[$divisionName][$userId])) {
+                $groupedSchedules[$divisionName][$userId] = [
+                    'user_id' => $userId,
+                    'u_nip' => $schedule->u_nip,
+                    'u_name' => $schedule->u_name,
+                    'ud_name' => $schedule->ud_name,
+                    'schedules' => []
+                ];
+            }
+
+            $groupedSchedules[$divisionName][$userId]['schedules'][$date] = [
+                'sc_code' => $schedule->sc_code,
+                'sc_shift_name' => $schedule->sc_shift_name,
+                'sc_start_time' => $schedule->sc_start_time,
+                'sc_end_time' => $schedule->sc_end_time,
+                'ds_start_time' => $schedule->ds_start_time,
+                'ds_end_time' => $schedule->ds_end_time
+            ];
+        }
+
+        // Generate dates for the week
+        $weekDates = [];
+        for ($i = 0; $i < 7; $i++) {
+            $weekDates[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
+        }
+
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Weekly Schedule Report',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_daily_schedule.weekly_report', compact(
             'groupedSchedules',
             'weekDates',
             'startDate',
@@ -2543,6 +2958,228 @@ class DailyScheduleController extends Controller
         ];
 
         return view('app.daily_schedule.monthly_report', compact(
+            'groupedSchedules',
+            'calendarDates',
+            'startDate',
+            'endDate',
+            'month',
+            'divisions',
+            'userPositions',
+            'shiftCodes',
+            'data',
+            'divisionId',
+            'positionId',
+            'shiftId',
+            'userName',
+            'users'
+        ));
+    }
+
+    /**
+     * Monthly Report V2 - Updated version with Tailwind CSS
+     */
+    public function monthlyReportUpdated(Request $request)
+    {
+        $this->validateAccess('daily-schedules');
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+
+        // Get parameters from request
+        $month = $request->get('month', date('Y-m'));
+        $divisionId = $request->get('division_id');
+        $positionId = $request->get('position_id');
+        $shiftId = $request->get('shift_id');
+        $userName = $request->get('user_name');
+        $monthFilter = $request->get('month_filter', 'this_month');
+
+        // Process month filter if provided AND month is not explicitly set
+        if ($monthFilter && $monthFilter !== 'custom' && !$request->has('month')) {
+            $month = $this->getMonthFromFilter($monthFilter);
+        }
+
+        // Parse month to get start and end dates
+        $startDate = date('Y-m-01', strtotime($month . '-01'));
+        $endDate = date('Y-m-t', strtotime($month . '-01'));
+
+        // Get divisions for filter
+        $divisions = DB::table('user_divisions')
+            ->where('ud_status', 'active')
+            ->orderBy('ud_name')
+            ->get();
+
+        // Get user positions for filter based on current user's level
+        $userPositions = $this->getUserPositionsForFilter();
+
+        // Get shift codes for filter
+        $shiftCodes = DB::table('shift_codes')
+            ->where('sc_status', '!=', 'deleted')
+            ->orderBy('sc_code')
+            ->get();
+
+        // Get users based on filters (only users with NIP)
+        $usersQuery = DB::table('users as u')
+            ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+            ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->select([
+                'u.id as user_id',
+                'u.u_nip',
+                'u.u_name',
+                'ud.ud_name',
+                'up.up_name as position_name'
+            ])
+            ->where('u.u_delete', '!=', '1')
+            ->whereNotNull('u.u_nip'); // ✅ Hanya user dengan NIP
+
+        if ($divisionId) {
+            $usersQuery->where('u.ud_id', $divisionId);
+        }
+
+        if ($positionId) {
+            $usersQuery->where('u.up_id', $positionId);
+        }
+        if ($userName) {
+            $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
+        }
+
+        $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+
+        // Get schedules for the month with user and division info
+        $schedulesQuery = DB::table('daily_schedules as ds')
+            ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+            ->leftJoin('users as u', 'ds.user_id', '=', 'u.id')
+            ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+            ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->select([
+                'ds.user_id',
+                'ds.ds_date',
+                'ds.sc_id',
+                'sc.sc_code',
+                'sc.sc_shift_name',
+                'sc.sc_start_time',
+                'sc.sc_end_time',
+                'u.u_nip',
+                'u.u_name',
+                'ud.ud_name',
+                'up.up_name as position_name'
+            ])
+            ->whereBetween('ds.ds_date', [$startDate, $endDate])
+            ->where('u.u_delete', '!=', '1');
+
+        // Apply division filter to schedules query
+        if ($divisionId) {
+            $schedulesQuery->where('u.ud_id', $divisionId);
+        }
+
+        // Apply position filter to schedules query
+        if ($positionId) {
+            $schedulesQuery->where('u.up_id', $positionId);
+        }
+
+        // Apply shift filter to schedules query
+        if ($shiftId) {
+            $schedulesQuery->where('ds.sc_id', $shiftId);
+        }
+
+        // Apply user name filter to schedules query
+        if ($userName) {
+            $schedulesQuery->where('u.u_name', 'like', '%' . $userName . '%');
+        }
+
+        $schedules = $schedulesQuery->orderBy('ud.ud_name')
+            ->orderBy('u.u_name')
+            ->orderBy('ds.ds_date')
+            ->get();
+
+        // Get only users that have schedules in the month (filtered by existing filters)
+        $usersWithSchedulesQuery = DB::table('users as u')
+            ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+            ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->join('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
+            ->select([
+                'u.id as user_id',
+                'u.u_nip',
+                'u.u_name',
+                'ud.ud_name',
+                'up.up_name as position_name'
+            ])
+            ->where('u.u_delete', '!=', '1')
+            ->whereNotNull('u.u_nip') // Only users with NIP
+            ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Only users with schedules in the month
+
+        // Apply the same filters to users query
+        if ($divisionId) {
+            $usersWithSchedulesQuery->where('u.ud_id', $divisionId);
+        }
+
+        if ($positionId) {
+            $usersWithSchedulesQuery->where('u.up_id', $positionId);
+        }
+
+        if ($userName) {
+            $usersWithSchedulesQuery->where('u.u_name', 'like', '%' . $userName . '%');
+        }
+
+        if ($shiftId) {
+            $usersWithSchedulesQuery->where('ds.sc_id', $shiftId);
+        }
+
+        $allUsers = $usersWithSchedulesQuery->distinct()->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+
+        // Group schedules by division and user (same logic as weekly report)
+        $groupedSchedules = [];
+
+        // First, create structure for all users
+        foreach ($allUsers as $user) {
+            $divisionName = $user->ud_name ?: 'No Division';
+            $userId = $user->user_id;
+
+            if (!isset($groupedSchedules[$divisionName])) {
+                $groupedSchedules[$divisionName] = [];
+            }
+
+            $groupedSchedules[$divisionName][$userId] = [
+                'user_id' => $userId,
+                'u_nip' => $user->u_nip,
+                'u_name' => $user->u_name,
+                'ud_name' => $user->ud_name,
+                'position_name' => $user->position_name,
+                'schedules' => []
+            ];
+        }
+
+        // Then, add schedules for users who have them
+        foreach ($schedules as $schedule) {
+            $divisionName = $schedule->ud_name ?: 'No Division';
+            $userId = $schedule->user_id;
+            $date = $schedule->ds_date;
+
+            if (isset($groupedSchedules[$divisionName][$userId])) {
+                $groupedSchedules[$divisionName][$userId]['schedules'][$date] = [
+                    'sc_code' => $schedule->sc_code,
+                    'sc_shift_name' => $schedule->sc_shift_name,
+                    'sc_start_time' => $schedule->sc_start_time,
+                    'sc_end_time' => $schedule->sc_end_time
+                ];
+            }
+        }
+
+        // Generate calendar dates for the month
+        $calendarDates = $this->generateCalendarDates($startDate, $endDate);
+
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Monthly Schedule Report',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_daily_schedule.monthly_report', compact(
             'groupedSchedules',
             'calendarDates',
             'startDate',

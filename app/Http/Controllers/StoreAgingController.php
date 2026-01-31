@@ -13,10 +13,14 @@ class StoreAgingController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        // Strip _v2 suffix if present for access validation
+        $slug = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -95,6 +99,28 @@ class StoreAgingController extends Controller
             'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderByDesc('st_name')->pluck('st_name', 'id'),
         ];
         return view('app.store_aging.store_aging', compact('data'));
+    }
+
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'store_aging')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'store_aging',
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderByDesc('st_name')->pluck('st_name', 'id'),
+        ];
+        return view('app.updated_store_aging.store_aging', compact('data'));
     }
 
     public function getDatatables(Request $request)

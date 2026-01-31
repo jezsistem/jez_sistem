@@ -98,6 +98,140 @@ class ArticleReportController extends Controller
             ->make(true);
         }
     }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $stt_id = $request->get('stt_id');
+            $st_id = $request->get('st_id');
+            $sales_date = $request->get('sales_date');
+            $pt_id = $request->get('pt_id');
+            $search = $request->get('search');
+
+            $query = PosTransactionDetail::select(
+                'pos_transaction_details.id as ptd_id',
+                'pos_transaction_details.created_at as ptd_created',
+                'pos_transaction_details.pst_id as pst_id',
+                'pos_invoice',
+                'br_name',
+                'pc_name',
+                'psc_name',
+                'pssc_name',
+                'p_name',
+                'p_color',
+                'sz_name',
+                'pos_td_qty',
+                'ps_price_tag',
+                'p_price_tag',
+                'ps_sell_price',
+                'p_sell_price',
+                'pos_td_discount_price',
+                'pos_td_marketplace_price',
+                'pos_status',
+                'pos_refund'
+            )
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_categories', 'products.pc_id', '=', 'product_categories.id')
+                ->leftJoin('product_sub_categories', 'products.psc_id', '=', 'product_sub_categories.id')
+                ->leftJoin('product_sub_sub_categories', 'products.pssc_id', '=', 'product_sub_sub_categories.id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->whereNotIn('pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID']);
+
+            if (!empty($sales_date)) {
+                $range = $sales_date;
+                $exp = explode('|', $range);
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $sales_date;
+                    $end = $sales_date;
+                }
+                if ($start != $end) {
+                    $query->whereDate('pos_transactions.created_at', '>=', $exp[0])
+                        ->whereDate('pos_transactions.created_at', '<=', $exp[1]);
+                } else {
+                    $query->whereDate('pos_transactions.created_at', $start);
+                }
+            }
+            if (!empty($stt_id)) {
+                $query->where('pos_transactions.stt_id', $stt_id);
+            }
+            if (!empty($st_id)) {
+                $query->where('pos_transactions.st_id', '=', $st_id);
+            }
+            if (!empty($pt_id)) {
+                $query->where('pos_transaction_details.pt_id', '=', $pt_id);
+            }
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', ["%$search%"])
+                        ->orWhere('pos_invoice', 'LIKE', "%$search%");
+                });
+            }
+
+            $query->groupBy('pos_transaction_details.id');
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->orderBy('pos_transaction_details.id', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    $price_tag = !empty($row->ps_price_tag) ? $row->ps_price_tag : $row->p_price_tag;
+                    $sell_price = !empty($row->ps_sell_price) ? $row->ps_sell_price : $row->p_sell_price;
+                    $total_price = !empty($row->pos_td_marketplace_price) ? $row->pos_td_marketplace_price : $row->pos_td_discount_price;
+
+                    return [
+                        'ptd_id' => $row->ptd_id,
+                        'ptd_created' => date('d/m/Y H:i:s', strtotime($row->ptd_created)),
+                        'pos_invoice' => $row->pos_invoice ?? '-',
+                        'br_name' => $row->br_name ?? '-',
+                        'p_name' => $row->p_name ?? '-',
+                        'pc_name' => $row->pc_name ?? '-',
+                        'psc_name' => $row->psc_name ?? '-',
+                        'pssc_name' => $row->pssc_name ?? '-',
+                        'p_color' => $row->p_color ?? '-',
+                        'sz_name' => $row->sz_name ?? '-',
+                        'pos_td_qty' => $row->pos_td_qty ?? 0,
+                        'price_tag' => number_format($price_tag),
+                        'sell_price' => number_format($sell_price),
+                        'total_price' => number_format($total_price),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
     
     public function getCrossDatatables(Request $request)
     {

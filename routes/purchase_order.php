@@ -33,7 +33,9 @@ use Maatwebsite\Excel\Facades\Excel;
 Route::middleware(['auth'])->group(function () {
     // Purchase Order
     Route::get('pembelian', [PurchaseOrderController::class, 'index'])->name('purchase_order');
+    Route::get('pembelian_v2', [PurchaseOrderController::class, 'indexUpdated']);
     Route::get('purchase_order_datatables', [PurchaseOrderController::class, 'getDatatables']);
+    Route::get('purchase_order_datatables_simple', [PurchaseOrderController::class, 'getDatatablesForSimple']);
     Route::get('product_item_datatables', [ProductController::class, 'getDatatablesItem']);
     Route::post('create_po', [PurchaseOrderController::class, 'createPo']);
     Route::post('create_po_detail', [PurchaseOrderController::class, 'createPoDetail']);
@@ -68,6 +70,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
+    Route::get('penerimaan_v2', [PurchaseOrderReceiveController::class, 'indexUpdated']);
+    Route::get('penerimaan_datatables_simple', [PurchaseOrderReceiveController::class, 'getDatatablesForSimple']);
     Route::post('check_po_receive_detail', [PurchaseOrderReceiveController::class, 'checkPoReceiveDetail']);
     Route::post('po_receive_detail', [PurchaseOrderReceiveController::class, 'poReceiveDetail']);
     Route::post('po_export', [PurchaseOrderReceiveController::class, 'poExport']);
@@ -122,6 +126,8 @@ Route::middleware(['auth'])->group(function () {
 
     // POReceiveApprovalController
     Route::get('approval_penerimaan', [POReceiveApprovalController::class, 'index']);
+    Route::get('approval_penerimaan_v2', [POReceiveApprovalController::class, 'indexUpdated']);
+    Route::get('approval_penerimaan_datatables_simple', [POReceiveApprovalController::class, 'getDatatablesForSimple']);
     Route::get('ap_datatables', [POReceiveApprovalController::class, 'getDatatables']);
     Route::get('apd_datatables', [POReceiveApprovalController::class, 'getDetailDatatables']);
     Route::post('ap_save', [POReceiveApprovalController::class, 'saveData']);
@@ -133,7 +139,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Pre Order
     Route::get('pre_order', [PreOrderController::class, 'index']);
+    Route::get('pre_order_v2', [PreOrderController::class, 'indexUpdated']);
     Route::get('pre_order_datatables', [PreOrderController::class, 'getDatatables']);
+    Route::get('pre_order_datatables_simple', [PreOrderController::class, 'getDatatablesForSimple']);
     Route::post('create_pre_order', [PreOrderController::class, 'createPreOrder']);
     Route::post('create_pre_order_detail', [PreOrderController::class, 'createPreOrderDetail']);
     Route::post('check_pre_order_detail', [PreOrderController::class, 'checkPreOrderDetail']);
@@ -168,7 +176,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Penerimaan COD
     Route::get('penerimaan_cod', [PurchaseOrderReceiveCODController::class, 'index']);
+    Route::get('penerimaan_cod_v2', [PurchaseOrderReceiveCODController::class, 'indexUpdated']);
     Route::get('poc_datatables', [PurchaseOrderReceiveCODController::class, 'getDatatables']);
+    Route::get('penerimaan_cod_datatables_simple', [PurchaseOrderReceiveCODController::class, 'getDatatablesForSimple']);
     Route::post('poc_update_is_paid', [PurchaseOrderReceiveCODController::class, 'updateIsPaid']);
     Route::get('pocdetail_datatables', [PurchaseOrderReceiveCODController::class, 'getDetailDatatables']);
     Route::get('po_pembayaran_image', [PurchaseOrderReceiveCODController::class, 'uploadImageInvoice']);

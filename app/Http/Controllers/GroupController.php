@@ -70,4 +70,63 @@ class GroupController extends Controller
 		];
         return view('app.user._reload_group', compact('data'));
     }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = Group::select('id', 'g_name', 'g_description', 'g_delete', 'created_at', 'updated_at')
+                ->where('g_delete', '!=', '1');
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('g_name', 'LIKE', "%$search%")
+                        ->orWhere('g_description', 'LIKE', "%$search%");
+                });
+            }
+
+            // Get all data first to handle pagination
+            $allData = $query->orderByDesc('id')->get();
+
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'g_name' => $row->g_name ?? '-',
+                        'g_description' => $row->g_description ?? '-',
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
 }

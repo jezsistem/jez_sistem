@@ -23,12 +23,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $ma_slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -102,6 +103,189 @@ class CustomerController extends Controller
             'cust_province' => DB::table('wilayah')->select('kode', 'nama')->whereRaw('length(kode) = 2')->orderBy('nama')->pluck('nama', 'kode'),
         ];
         return view('app.customer.customer', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('customer'); // Gunakan akses yang sama dengan halaman lama
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'customer')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'ct_id' => CustomerType::where('ct_delete', '!=', '1')->orderByDesc('id')->pluck('ct_name', 'id'),
+            'cust_province' => DB::table('wilayah')->select('kode', 'nama')->whereRaw('length(kode) = 2')->orderBy('nama')->pluck('nama', 'kode'),
+        ];
+        return view('app.updated_customer.customer', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $date = $request->get('po_date', '');
+            $stt_filter = $request->get('stt_filter', '');
+            $cust_type_filter = $request->get('cust_type_filter', '');
+            $date_filter = $request->get('date_filter', '0');
+
+            $start = null;
+            $end = null;
+            if (!empty($date)) {
+                $exp = explode('|', $date);
+                if (count($exp) > 1) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $exp[0];
+                }
+            }
+
+            // Base query builder for counting and data
+            $baseQuery = function () use ($search, $stt_filter, $cust_type_filter, $date_filter, $start, $end) {
+                $query = Customer::query()
+                    ->leftJoin('customer_types', 'customer_types.id', '=', 'customers.ct_id')
+                    ->where('cust_delete', '!=', '1');
+
+                // Date filter
+                if ($date_filter == '1' && !empty($start)) {
+                    if (!empty($end) && $start != $end) {
+                        $query->whereDate('customers.created_at', '>=', $start)
+                            ->whereDate('customers.created_at', '<=', $end);
+                    } else {
+                        $query->whereDate('customers.created_at', '=', $start);
+                    }
+                }
+
+                // Search filter
+                if (!empty($search)) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('cust_name', 'LIKE', "%$search%")
+                            ->orWhere('ct_name', 'LIKE', "%$search%")
+                            ->orWhere('cust_store', 'LIKE', "%$search%")
+                            ->orWhere('cust_phone', 'LIKE', "%$search%")
+                            ->orWhere('cust_email', 'LIKE', "%$search%")
+                            ->orWhere('cust_address', 'LIKE', "%$search%");
+                    });
+                }
+
+                // Division filter
+                if (!empty($stt_filter)) {
+                    if ($stt_filter == 'offline') {
+                        $query->where('customers.stt_id', '=', '2');
+                    } else {
+                        $query->where('customers.stt_id', '!=', '2');
+                    }
+                }
+
+                // Customer type filter
+                if (!empty($cust_type_filter)) {
+                    $query->where('customers.ct_id', '=', $cust_type_filter);
+                }
+
+                return $query;
+            };
+
+            // Get total count
+            $total = $baseQuery()->count('customers.id');
+            $totalPages = ceil($total / $perPage);
+
+            // Get paginated data
+            $results = $baseQuery()
+                ->select(
+                    'customers.id as cid',
+                    'ct_name',
+                    'ct_id',
+                    'cust_name',
+                    'cust_store',
+                    'cust_province',
+                    'cust_city',
+                    'cust_username',
+                    'cust_subdistrict',
+                    'cust_phone',
+                    'cust_email',
+                    'cust_address',
+                    'customers.created_at as cust_created'
+                )
+                ->orderBy('customers.created_at', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                // Get address info
+                $address = $row->cust_address;
+                if (!empty($row->cust_province) && !empty($row->cust_city) && !empty($row->cust_subdistrict)) {
+                    $province = DB::table('wilayah')->select('nama')->where('kode', $row->cust_province)->first();
+                    $city = DB::table('wilayah')->select('nama')->where('kode', $row->cust_city)->first();
+                    $subdistrict = DB::table('wilayah')->select('nama')->where('kode', $row->cust_subdistrict)->first();
+                    if ($province && $city && $subdistrict) {
+                        $address = $row->cust_address . ', ' . $subdistrict->nama . ', ' . $city->nama . ', ' . $province->nama;
+                    }
+                }
+
+                // Get shopping count
+                $cust_shopping = DB::table('pos_transactions')
+                    ->where('cust_id', $row->cid)
+                    ->count();
+
+                // Get total spending
+                $total_payment = DB::table('pos_transactions')
+                    ->where('cust_id', $row->cid)
+                    ->sum('pos_payment') ?? 0;
+                $total_partial = DB::table('pos_transactions')
+                    ->where('cust_id', $row->cid)
+                    ->sum('pos_payment_partial') ?? 0;
+                $total_trx = $total_payment + $total_partial;
+
+                $data[] = [
+                    'no' => $no++,
+                    'cid' => $row->cid,
+                    'ct_id' => $row->ct_id,
+                    'cust_name' => $row->cust_name,
+                    'ct_name' => $row->ct_name ?? '-',
+                    'cust_store' => $row->cust_store ?? '-',
+                    'cust_phone' => $row->cust_phone ?? '-',
+                    'cust_email' => $row->cust_email ?? '-',
+                    'cust_address' => $address ?? '-',
+                    'cust_province' => $row->cust_province,
+                    'cust_city' => $row->cust_city,
+                    'cust_subdistrict' => $row->cust_subdistrict,
+                    'cust_username' => $row->cust_username,
+                    'cust_shopping' => $cust_shopping,
+                    'cust_created' => date('d/m/Y H:i', strtotime($row->cust_created)),
+                    'total_pembelian' => number_format($total_trx, 0, ',', '.'),
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data customer: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 
     public function reloadCity(Request $request)
@@ -958,6 +1142,44 @@ class CustomerController extends Controller
             ->get();
 
         return view('app.customer.customer_traffic', [
+            'data' => $data,
+            'male' => $counts['male'] ?? 0,
+            'female' => $counts['female'] ?? 0,
+            'child' => $counts['child'] ?? 0,
+            'countsTotal' => $countsTotal[0]->total ?? 0,
+        ]);
+    }
+
+    public function storeTrafficUpdated()
+    {
+        $this->validateAccess('store_traffic');
+
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'store_traffic')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+        ];
+
+        $counts = CustomerTraffic::select('type', DB::raw('count(*) as total'))
+            ->whereDate('created_at', Carbon::today())
+            ->groupBy('type')
+            ->pluck('total', 'type')
+            ->toArray();
+        $countsTotal = CustomerTraffic::select(DB::raw('count(*) as total'))
+            ->whereDate('created_at', Carbon::today())
+            ->get();
+
+        return view('app.updated_store_traffic.store_traffic', [
             'data' => $data,
             'male' => $counts['male'] ?? 0,
             'female' => $counts['female'] ?? 0,

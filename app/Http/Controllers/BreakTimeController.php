@@ -19,10 +19,14 @@ class BreakTimeController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        // Strip _v2 suffix for access validation
+        $slug = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -3244,5 +3248,540 @@ class BreakTimeController extends Controller
                 'message' => 'Error cancelling break time: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    // V2 Methods
+    public function indexUpdated(Request $request)
+    {
+        $this->validateAccess();
+        
+        $title = 'Break Times';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'break-times')->first()->ma_title ?? 'Break Times',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'break-times'
+        ];
+
+        return view('app.updated_break_time.index', compact('data'));
+    }
+
+    public function reportUpdated(Request $request)
+    {
+        $this->validateAccess();
+        
+        $title = 'Break Time Report';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+
+        $startDate = $request->get('start_date', date('Y-m-d'));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+        $dateFilter = $request->get('date_filter', 'this_week');
+        
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+
+        // Get stats for the report
+        $stats = DB::table('break_times')
+            ->select('bt_status', DB::raw('count(*) as total'))
+            ->where('bt_date', '>=', $startDate)
+            ->where('bt_date', '<=', $endDate)
+            ->groupBy('bt_status')
+            ->get();
+
+        $users = DB::table('users')->where('u_delete', '!=', '1')->get();
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->get();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Break Time Report',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'break-times',
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter
+        ];
+
+        return view('app.updated_break_time.report', compact('users', 'divisions', 'data', 'stats'));
+    }
+
+    public function getBreakTimeStatsForSimple(Request $request)
+    {
+        $this->validateAccess();
+        
+        $startDate = $request->get('start_date', date('Y-m-d'));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+        $dateFilter = $request->get('date_filter', 'this_week');
+        $userId = $request->get('user_id', '');
+        $divisionId = $request->get('division_id', '');
+        $status = $request->get('status', '');
+        
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+        
+        $statsQuery = DB::table('break_times')
+            ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+            ->where('bt_date', '>=', $startDate)
+            ->where('bt_date', '<=', $endDate);
+        
+        if (!empty($userId)) {
+            $statsQuery->where('break_times.user_id', $userId);
+        }
+        if (!empty($divisionId)) {
+            $statsQuery->where('users.ud_id', $divisionId);
+        }
+        if (!empty($status)) {
+            $statsQuery->where('break_times.bt_status', $status);
+        }
+        
+        $statusStats = $statsQuery->select('bt_status', DB::raw('count(*) as total'))
+            ->groupBy('bt_status')
+            ->get();
+        
+        $typeStats = (clone $statsQuery)->select('bt_type', DB::raw('count(*) as total'))
+            ->groupBy('bt_type')
+            ->get();
+        
+        $totalBreakTimes = (clone $statsQuery)->count();
+        
+        $break1Count = $typeStats->where('bt_type', 'break_1')->first()->total ?? 0;
+        $break2Count = $typeStats->where('bt_type', 'break_2')->first()->total ?? 0;
+        
+        return response()->json([
+            'status_stats' => $statusStats,
+            'total' => $totalBreakTimes,
+            'break_1' => $break1Count,
+            'break_2' => $break2Count
+        ]);
+    }
+
+    public function summaryReportUpdated(Request $request)
+    {
+        $this->validateAccess();
+        
+        $title = 'Break Time Summary Report';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+        
+        $dateFilter = $request->get('date_filter', 'this_week');
+        
+        if ($dateFilter === 'custom') {
+            $startDate = $request->get('start_date', date('Y-m-01'));
+            $endDate = $request->get('end_date', date('Y-m-t'));
+        } else {
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+            
+            if (empty($startDate) || empty($endDate)) {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+        }
+        
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->get();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Break Time Summary Report',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'break-times',
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter
+        ];
+
+        return view('app.updated_break_time.summary_report', compact('divisions', 'data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        $this->validateAccess();
+        
+        $search = $request->get('search', '');
+        $startDate = $request->get('start_date', date('Y-m-d'));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+        $dateFilter = $request->get('date_filter', 'this_week');
+        $userId = $request->get('user_id', '');
+        $divisionId = $request->get('division_id', '');
+        $status = $request->get('status', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+        
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+        
+        $query = DB::table('break_times')
+            ->select([
+                'break_times.*',
+                'users.u_name',
+                'users.u_nip',
+                'user_divisions.ud_name'
+            ])
+            ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id');
+
+        if (!empty($startDate)) {
+            $query->where('break_times.bt_date', '>=', $startDate);
+        }
+        if (!empty($endDate)) {
+            $query->where('break_times.bt_date', '<=', $endDate);
+        }
+        if (!empty($userId)) {
+            $query->where('break_times.user_id', $userId);
+        }
+        if (!empty($divisionId)) {
+            $query->where('users.ud_id', $divisionId);
+        }
+        if (!empty($status)) {
+            $query->where('break_times.bt_status', $status);
+        }
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('users.u_name', 'LIKE', "%{$search}%")
+                  ->orWhere('users.u_nip', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $total = $query->count();
+        $data = $query->orderByDesc('break_times.bt_date')
+            ->orderByDesc('break_times.bt_start_time')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function getSummaryReportDatatablesForSimple(Request $request)
+    {
+        $this->validateAccess();
+        
+        $search = $request->get('search', '');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $dateFilter = $request->get('date_filter', 'this_week');
+        $divisionId = $request->get('division_id', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+        
+        if ($dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+        
+        $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
+        
+        if (!empty($search)) {
+            $summaryData = $summaryData->filter(function($item) use ($search) {
+                return stripos($item->u_name, $search) !== false || 
+                       stripos($item->u_nip, $search) !== false;
+            });
+        }
+        
+        $total = $summaryData->count();
+        $data = $summaryData->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function getSummaryReportStatsForSimple(Request $request)
+    {
+        $this->validateAccess();
+        
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $dateFilter = $request->get('date_filter', 'this_week');
+        $divisionId = $request->get('division_id', '');
+        $search = $request->get('search', '');
+        
+        if ($dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+        
+        $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
+        
+        if (!empty($search)) {
+            $summaryData = $summaryData->filter(function($item) use ($search) {
+                return stripos($item->u_name, $search) !== false || 
+                       stripos($item->u_nip, $search) !== false;
+            });
+        }
+        
+        $totalStaff = $summaryData->count();
+        $totalShifts = $summaryData->sum('total_shifts');
+        $totalBreaks = $summaryData->sum('total_breaks');
+        $noBreakShifts = $summaryData->sum('no_break_shifts');
+        $exceededBreakTime = $summaryData->sum('exceeded_break_time');
+        $avgBreaksPerStaff = $totalStaff > 0 ? round($totalBreaks / $totalStaff, 1) : 0;
+        
+        return response()->json([
+            'total_staff' => $totalStaff,
+            'total_shifts' => $totalShifts,
+            'total_breaks' => $totalBreaks,
+            'no_break_shifts' => $noBreakShifts,
+            'exceeded_break_time' => $exceededBreakTime,
+            'avg_breaks_per_staff' => $avgBreaksPerStaff
+        ]);
+    }
+
+    public function showUpdated($id)
+    {
+        $this->validateAccess();
+        
+        $title = 'Break Times';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+        
+        $breakTime = DB::table('break_times')
+            ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->select('break_times.*', 'users.u_name', 'users.u_nip', 'user_divisions.ud_name')
+            ->where('break_times.id', $id)
+            ->first();
+
+        if (!$breakTime) {
+            return redirect()->route('break-times_v2')->with('error', 'Break time not found');
+        }
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Break Time Detail',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'break-times'
+        ];
+
+        return view('app.updated_break_time.show', compact('breakTime', 'data'));
+    }
+
+    public function staffDetailUpdated($user_id, Request $request)
+    {
+        $this->validateAccess();
+        
+        $title = 'Staff Break Time Detail';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+        
+        $staff = DB::table('users as u')
+            ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+            ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->leftJoin('user_types as ut', 'u.ut_id', '=', 'ut.id')
+            ->select([
+                'u.id',
+                'u.u_nip',
+                'u.u_name',
+                'u.u_email',
+                'up.up_name as position_name',
+                'ud.ud_name as division_name',
+                'ut.ut_name as work_type'
+            ])
+            ->where('u.id', $user_id)
+            ->where('u.u_delete', '!=', '1')
+            ->first();
+        
+        if (!$staff) {
+            abort(404, 'Staff not found');
+        }
+        
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Staff Break Time Detail',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'break-times',
+            'staff' => $staff,
+            'startDate' => $startDate,
+            'endDate' => $endDate
+        ];
+        
+        return view('app.updated_break_time.staff_detail', compact('data'));
+    }
+
+    public function getStaffDatatablesForSimple($user_id, Request $request)
+    {
+        $this->validateAccess();
+        
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $status = $request->get('status', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+        
+        $query = DB::table('break_times as bt')
+            ->leftJoin('daily_schedules as ds', function($join) use ($user_id) {
+                $join->on('bt.user_id', '=', 'ds.user_id')
+                     ->where('ds.user_id', $user_id)
+                     ->whereColumn('ds.ds_date', 'bt.bt_date');
+            })
+            ->where('bt.user_id', $user_id)
+            ->whereBetween('bt.bt_date', [$startDate, $endDate])
+            ->select([
+                'bt.id',
+                'bt.bt_date',
+                'bt.bt_type',
+                'bt.bt_start_time',
+                'bt.bt_end_time',
+                'bt.bt_duration_minutes',
+                'bt.bt_status',
+                'bt.bt_notes',
+                'ds.ds_start_time as shift_start',
+                'ds.ds_end_time as shift_end',
+                'ds.ds_status as shift_status'
+            ]);
+        
+        if (!empty($status)) {
+            $query->where('bt.bt_status', $status);
+        }
+        
+        $total = $query->count();
+        $data = $query->orderByDesc('bt.bt_date')
+            ->orderByDesc('bt.bt_start_time')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+        
+        // Calculate duration for each item
+        $data = $data->map(function($item) {
+            if ((!$item->bt_duration_minutes || $item->bt_duration_minutes == 0) && $item->bt_start_time && $item->bt_end_time) {
+                try {
+                    $start = \Carbon\Carbon::parse($item->bt_start_time);
+                    $end = \Carbon\Carbon::parse($item->bt_end_time);
+                    $item->bt_duration_minutes = $end->diffInMinutes($start);
+                } catch (\Exception $e) {
+                    $item->bt_duration_minutes = 0;
+                }
+            }
+            return $item;
+        });
+        
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function getStaffStatsForSimple($user_id, Request $request)
+    {
+        $this->validateAccess();
+        
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        
+        $query = DB::table('break_times')
+            ->where('user_id', $user_id)
+            ->whereBetween('bt_date', [$startDate, $endDate]);
+        
+        $stats = [
+            'total_breaks' => (clone $query)->count(),
+            'active_breaks' => (clone $query)->where('bt_status', 'active')->count(),
+            'completed_breaks' => (clone $query)->where('bt_status', 'completed')->count(),
+            'cancelled_breaks' => (clone $query)->where('bt_status', 'cancelled')->count(),
+            'break_1_count' => (clone $query)->where('bt_type', 'break_1')->count(),
+            'break_2_count' => (clone $query)->where('bt_type', 'break_2')->count()
+        ];
+        
+        return response()->json($stats);
+    }
+
+    public function editUpdated($id)
+    {
+        $this->validateAccess();
+        
+        $title = 'Break Times';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+        
+        $breakTime = DB::table('break_times')->where('id', $id)->first();
+        
+        if (!$breakTime) {
+            return redirect()->route('break-times_v2')->with('error', 'Break time not found');
+        }
+
+        $users = DB::table('users')->where('u_delete', '!=', '1')->get();
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->get();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Edit Break Time',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'break-times'
+        ];
+
+        return view('app.updated_break_time.edit', compact('breakTime', 'users', 'divisions', 'data'));
+    }
+
+    public function updateUpdated(Request $request, $id)
+    {
+        $this->validateAccess();
+        
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'bt_date' => 'required|date',
+            'bt_start_time' => 'required',
+            'bt_end_time' => 'required|after:bt_start_time',
+            'bt_type' => 'required|in:break_1,break_2',
+            'bt_status' => 'required|in:active,completed,cancelled',
+            'bt_notes' => 'nullable|string'
+        ]);
+
+        $breakTime = DB::table('break_times')->where('id', $id)->first();
+        
+        if (!$breakTime) {
+            return redirect()->route('break-times_v2')->with('error', 'Break time not found');
+        }
+
+        DB::table('break_times')->where('id', $id)->update([
+            'user_id' => $request->user_id,
+            'bt_date' => $request->bt_date,
+            'bt_start_time' => $request->bt_start_time,
+            'bt_end_time' => $request->bt_end_time,
+            'bt_type' => $request->bt_type,
+            'bt_status' => $request->bt_status,
+            'bt_notes' => $request->bt_notes,
+            'bt_duration_minutes' => $this->calculateDuration($request->bt_start_time, $request->bt_end_time),
+            'updated_by' => auth()->user()->u_name,
+            'updated_at' => now()
+        ]);
+
+        return redirect()->route('break-times.show_v2', $id)->with('success', 'Break time updated successfully');
     }
 } 

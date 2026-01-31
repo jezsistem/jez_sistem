@@ -11,12 +11,17 @@ use App\Models\UserActivity;
 
 class MainMenuController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = request()->segment(1);
+        
+        // Use provided slug or remove _v2 suffix for validation
+        $slugToCheck = $slug ? $slug : str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $slugToCheck
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -80,14 +85,111 @@ class MainMenuController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'user' => $user_data,
+            'segment' => $segment,
+            'sidebar' => $this->sidebar()
+        ];
+        return view('app.main_menu.main_menu', compact('data'));
+    }
+
+    /**
+     * Display main menu management page (V2 - New Layout)
+     */
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $segment = request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', $slugToCheck)->first()->ma_title,
+            'user' => $user_data,
+            'segment' => $segment,
+            'sidebar' => $this->sidebar()
+        ];
+        return view('app.updated_main_menu.main_menu', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('main_menu'); // Use original slug for access validation
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'main_menu')->first()->ma_title,
             'user' => $user_data,
             'segment' => request()->segment(1),
             'sidebar' => $this->sidebar()
         ];
-        return view('app.main_menu.main_menu', compact('data'));
+        return view('app.updated_main_menu.main_menu', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = DB::table('menu_titles')->select('id', 'mt_title', 'mt_sort')
+                ->orderBy('mt_sort');
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('mt_title', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    $row->mt_sort_input = "<input type='text' class='w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 sort-input' data-id='".$row->id."' value='".$row->mt_sort."'/>";
+                    return $row;
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row->DT_RowIndex = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to load data: ' . $e->getMessage()], 500);
+        }
     }
 
     public function getDatatables(Request $request)

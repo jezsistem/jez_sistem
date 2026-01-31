@@ -18,10 +18,14 @@ class AdjustmentController extends Controller
 {
     protected function validateAccess()
     {
+        $segment = request()->segment(1);
+        // Strip _v2 suffix if present for access validation
+        $slug = str_replace('_v2', '', $segment);
+        
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -104,6 +108,37 @@ class AdjustmentController extends Controller
                 ->orderByDesc('pl_code')->pluck('location', 'id')
         ];
         return view('app.adjustment.adjustment', compact('data'));
+    }
+
+    public function indexV2()
+    {
+        $this->validateAccess();
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'adjustment')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'adjustment',
+            'pst_id' => ProductStock::selectRaw('ts_product_stocks.id as pst_id, CONCAT("[",br_name,"] ", p_name," ",p_color," ",sz_name) as p_name')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where('p_delete', '!=', '1')
+                ->orderBy('p_name')->pluck('p_name', 'pst_id'),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'pl_id' => ProductLocation::selectRaw('ts_product_locations.id as id, CONCAT(pl_code," (",st_name,")") as location')
+                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('pl_delete', '!=', '1')
+                ->orderBy('location')->pluck('location', 'id'),
+        ];
+        return view('app.updated_adjustment.adjustment', compact('data'));
     }
 
     public function reloadLocation()

@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LeaveSummaryExport;
@@ -18,12 +19,15 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class LeaveRequestController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = $slug ?? request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -1310,6 +1314,18 @@ class LeaveRequestController extends Controller
 
         // Calculate statistics for the date range
         $stats = $this->getLeaveStatistics($startDate, $endDate);
+        
+        // Ensure stats is always an array
+        if (!is_array($stats)) {
+            $stats = is_object($stats) ? (array)$stats : [];
+        }
+        
+        // Convert to array of objects if needed
+        if (!empty($stats) && is_array($stats)) {
+            $stats = array_map(function($stat) {
+                return is_object($stat) ? $stat : (object)$stat;
+            }, $stats);
+        }
 
         $data = [
             'title' => $title,
@@ -1379,7 +1395,9 @@ class LeaveRequestController extends Controller
             foreach ($typeStats as $stat) {
                 $stats[] = (object)[
                     'lr_status' => 'leave_' . strtolower($stat->lt_code),
-                    'total' => $stat->total
+                    'total' => $stat->total,
+                    'lt_name' => $stat->lt_name,
+                    'lt_code' => $stat->lt_code
                 ];
             }
 
@@ -1954,6 +1972,70 @@ class LeaveRequestController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Error loading staff detail');
+        }
+    }
+
+    /**
+     * Staff Detail V2 - Updated version with Tailwind CSS
+     */
+    public function staffDetailUpdated(Request $request, $userId)
+    {
+        $this->validateAccess('leave-requests');
+
+        try {
+            // Get user information
+            $user = DB::table('users as u')
+                ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+                ->leftJoin('user_types as ut', 'u.ut_id', '=', 'ut.id')
+                ->select(
+                    'u.*',
+                    'up.up_name as position_name',
+                    'ud.ud_name as division_name',
+                    'ut.ut_name as work_type'
+                )
+                ->where('u.id', $userId)
+                ->where('u.u_delete', '!=', '1')
+                ->first();
+
+            if (!$user) {
+                return redirect()->route('leave-requests_v2.summary-report')->with('error', 'Staff not found');
+            }
+
+            // Get date range from request
+            $startDate = $request->get('start_date', date('Y-m-01'));
+            $endDate = $request->get('end_date', date('Y-m-t'));
+            $dateFilter = $request->get('date_filter', 'this_month');
+
+            if ($dateFilter && $dateFilter !== 'custom') {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+
+            $title = 'Staff Leave Detail';
+            $user_data = DB::table('users')->where('id', auth()->user()->id)->first();
+
+            $data = [
+                'title' => $title,
+                'subtitle' => 'Staff Leave Detail',
+                'sidebar' => $this->sidebar(),
+                'user' => $user_data,
+                'segment' => 'leave-requests',
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'dateFilter' => $dateFilter,
+                'staffUser' => $user
+            ];
+
+            return view('app.updated_leave_request.staff_detail', compact('data'));
+        } catch (\Exception $e) {
+            \Log::error('Staff Detail V2 Error', [
+                'userId' => $userId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->route('leave-requests_v2.summary-report')->with('error', 'Error loading staff detail');
         }
     }
 
@@ -2571,5 +2653,1078 @@ class LeaveRequestController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Leave Requests V2 - Updated version with Tailwind CSS
+     */
+    public function indexUpdated(Request $request)
+    {
+        $this->validateAccess('leave-requests');
+
+        $title = 'Leave Requests';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+
+        // Get filters
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $dateFilter = $request->get('date_filter', 'this_month');
+        $userId = $request->get('user_id');
+        $status = $request->get('status');
+        $leaveTypeId = $request->get('leave_type_id');
+
+        // Apply date filter if not custom
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+
+        // Get users for filter
+        $users = DB::table('users')->where('u_delete', '0')->orderBy('u_name')->get();
+
+        // Get leave types for filter
+        $leaveType = new LeaveType();
+        $leaveTypes = $leaveType->getActiveLeaveTypes();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'leave-requests')->first()->ma_title ?? 'Leave Requests',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'leave-requests',
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter
+        ];
+
+        return view('app.updated_leave_request.index', compact('users', 'leaveTypes', 'startDate', 'endDate', 'dateFilter', 'userId', 'status', 'leaveTypeId', 'data'));
+    }
+
+    /**
+     * Summary Report V2 - Updated version with Tailwind CSS
+     */
+    public function summaryReportUpdated(Request $request)
+    {
+        $this->validateAccess('leave-requests');
+
+        $title = 'Leave Summary Report';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+
+        // Get date range from request or default to current month
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $dateFilter = $request->get('date_filter', 'this_month');
+
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+
+        // Get divisions for filter
+        $divisions = DB::table('user_divisions')
+            ->where('ud_status', 'active')
+            ->orderBy('ud_name')
+            ->get();
+
+        // Get leave types for dynamic columns
+        $leaveTypes = DB::table('leave_types')
+            ->where('lt_is_active', true)
+            ->orderBy('lt_name')
+            ->get();
+
+        // Calculate statistics for the date range
+        $stats = $this->getLeaveStatistics($startDate, $endDate);
+        
+        // Ensure stats is always an array (getLeaveStatistics already returns array of objects)
+        if (!is_array($stats)) {
+            $stats = [];
+        }
+        
+        // Debug: Log stats to see what we're getting
+        \Log::info('Summary Report V2 - Stats data', [
+            'stats_count' => count($stats),
+            'stats' => $stats
+        ]);
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Leave Summary Report',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'leave-requests',
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter,
+            'divisions' => $divisions,
+            'leaveTypes' => $leaveTypes,
+            'stats' => $stats
+        ];
+
+        return view('app.updated_leave_request.summary_report', compact('data'));
+    }
+
+    /**
+     * Store leave request for V2
+     */
+    public function storeForSimple(Request $request)
+    {
+        $request->validate([
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'lr_start_date' => 'required|date',
+            'lr_end_date' => 'nullable|date|after_or_equal:lr_start_date',
+            'lr_start_time' => 'nullable|date_format:H:i',
+            'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
+            'lr_unit' => 'required|in:days,hours',
+            'lr_reason' => 'required|string',
+            'lr_attachments.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240'
+        ]);
+
+        $userId = auth()->user()->id;
+        $startDate = $request->lr_start_date;
+        $endDate = $request->lr_end_date ?: $startDate;
+
+        // Check if user can request leave for this period
+        $leaveRequest = new LeaveRequest();
+        if (!$leaveRequest->canRequestLeave($userId, $startDate, $endDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You already have a leave request for this period'
+            ], 400);
+        }
+
+        // Calculate total days/hours
+        $startDateObj = Carbon::parse($startDate);
+        $endDateObj = Carbon::parse($endDate);
+
+        if ($request->lr_unit == 'hours') {
+            $startTime = $request->lr_start_time ? Carbon::parse($request->lr_start_time) : Carbon::parse('00:00:00');
+            $endTime = $request->lr_end_time ? Carbon::parse($request->lr_end_time) : Carbon::parse('23:59:59');
+
+            $totalHours = $startDateObj->diffInDays($endDateObj) * 24;
+            $totalHours += $startTime->diffInHours($endTime);
+            $totalDays = 0;
+        } else {
+            $totalDays = $startDateObj->diffInDays($endDateObj) + 1;
+            $totalHours = 0;
+        }
+
+        // Handle multiple file uploads
+        $attachmentData = null;
+        if ($request->hasFile('lr_attachments')) {
+            $files = $request->file('lr_attachments');
+            $attachmentData = [];
+
+            foreach ($files as $file) {
+                $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
+
+                $attachmentData[] = [
+                    'file_path' => $filePath,
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $file->getSize()
+                ];
+            }
+        }
+
+        $data = [
+            'user_id' => $userId,
+            'leave_type_id' => $request->leave_type_id,
+            'lr_start_date' => $startDate,
+            'lr_end_date' => $endDate,
+            'lr_start_time' => $request->lr_start_time,
+            'lr_end_time' => $request->lr_end_time,
+            'lr_total_days' => $totalDays,
+            'lr_total_hours' => $totalHours,
+            'lr_unit' => $request->lr_unit,
+            'lr_reason' => $request->lr_reason,
+            'lr_status' => 'pending'
+        ];
+
+        try {
+            DB::beginTransaction();
+
+            // Use Eloquent to create leave request and get the ID
+            $newLeaveRequest = LeaveRequest::create($data);
+
+            // Handle attachments if leave request was created successfully
+            if ($newLeaveRequest && $attachmentData) {
+                foreach ($attachmentData as $attachment) {
+                    DB::table('leave_request_attachments')->insert([
+                        'leave_request_id' => $newLeaveRequest->id,
+                        'file_path' => $attachment['file_path'],
+                        'original_name' => $attachment['original_name'],
+                        'file_type' => $attachment['file_type'],
+                        'file_size' => $attachment['file_size'],
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+
+            // Send notification to supervisors and managers in the same division
+            $this->sendLeaveRequestNotification($userId, $data);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request submitted successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error creating leave request: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating leave request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get datatables for simple datatable (V2) - Leave Requests
+     */
+    public function getDatatablesForSimple(Request $request)
+    {
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $dateFilter = $request->get('date_filter', 'this_month');
+        $userId = $request->get('user_id');
+        $status = $request->get('status');
+        $leaveTypeId = $request->get('leave_type_id');
+
+        // Apply date filter if not custom
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+
+        $query = DB::table('leave_requests as lr')
+            ->leftJoin('users', 'users.id', '=', 'lr.user_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->leftJoin('leave_types', 'leave_types.id', '=', 'lr.leave_type_id')
+            ->leftJoin('users as approvers', 'approvers.id', '=', 'lr.lr_approved_by')
+            ->select([
+                'lr.id',
+                'lr.user_id',
+                'lr.leave_type_id',
+                'lr.lr_start_date',
+                'lr.lr_end_date',
+                'lr.lr_start_time',
+                'lr.lr_end_time',
+                'lr.lr_total_days',
+                'lr.lr_total_hours',
+                'lr.lr_unit',
+                'lr.lr_reason',
+                'lr.lr_status',
+                'lr.lr_admin_notes',
+                'lr.lr_approved_by',
+                'lr.lr_approved_at',
+                'lr.created_at',
+                'users.u_name',
+                'users.u_nip',
+                'user_divisions.ud_name',
+                'leave_types.lt_name',
+                'leave_types.lt_code',
+                'approvers.u_name as approver_name'
+            ])
+            ->where('lr.lr_start_date', '>=', $startDate)
+            ->where('lr.lr_start_date', '<=', $endDate);
+
+        // Apply filters
+        if ($userId) {
+            $query->where('lr.user_id', $userId);
+        }
+        if ($status) {
+            $query->where('lr.lr_status', $status);
+        }
+        if ($leaveTypeId) {
+            $query->where('lr.leave_type_id', $leaveTypeId);
+        }
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('users.u_name', 'like', '%' . $search . '%')
+                    ->orWhere('users.u_nip', 'like', '%' . $search . '%')
+                    ->orWhere('leave_types.lt_name', 'like', '%' . $search . '%')
+                    ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Get total count before pagination
+        $totalRecords = $query->count();
+
+        // Apply pagination
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+        $offset = ($page - 1) * $perPage;
+
+        $leaveRequests = $query->orderBy('lr.created_at', 'desc')
+            ->offset($offset)
+            ->limit($perPage)
+            ->get();
+
+        // Get attachments for all leave requests
+        $leaveRequestIds = $leaveRequests->pluck('id')->toArray();
+        $attachments = DB::table('leave_request_attachments')
+            ->whereIn('leave_request_id', $leaveRequestIds)
+            ->get()
+            ->groupBy('leave_request_id');
+
+        // Format data
+        $formattedData = $leaveRequests->map(function($row) use ($attachments) {
+            $duration = '-';
+            if ($row->lr_unit == 'days') {
+                $duration = $row->lr_total_days . ' hari';
+            } else {
+                $duration = $row->lr_total_hours . ' jam';
+            }
+
+            $statusClass = '';
+            $statusText = '';
+            switch ($row->lr_status) {
+                case 'pending':
+                    $statusClass = 'bg-yellow-100 text-yellow-800';
+                    $statusText = 'PENDING';
+                    break;
+                case 'approved':
+                    $statusClass = 'bg-green-100 text-green-800';
+                    $statusText = 'APPROVED';
+                    break;
+                case 'rejected':
+                    $statusClass = 'bg-red-100 text-red-800';
+                    $statusText = 'REJECTED';
+                    break;
+                case 'cancelled':
+                    $statusClass = 'bg-gray-100 text-gray-800';
+                    $statusText = 'CANCELLED';
+                    break;
+                default:
+                    $statusClass = 'bg-gray-100 text-gray-800';
+                    $statusText = ucfirst($row->lr_status);
+            }
+
+            // Build action buttons HTML
+            $actionHtml = '<div class="flex items-center justify-center gap-2 flex-wrap">';
+            
+            // View button - always show
+            $actionHtml .= '<button onclick="viewLeaveRequestDetail(' . $row->id . ')" class="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200">View</button>';
+            
+            // Edit button - always show (like old page)
+            $actionHtml .= '<button onclick="editLeaveRequest(' . $row->id . ')" class="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 rounded hover:bg-yellow-200">Edit</button>';
+            
+            // Approve/Reject buttons - only for pending
+            if ($row->lr_status == 'pending') {
+                $actionHtml .= '<button onclick="showApprovalModal(' . $row->id . ', \'approve\')" class="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded hover:bg-green-200">Approve</button>';
+                $actionHtml .= '<button onclick="showApprovalModal(' . $row->id . ', \'reject\')" class="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded hover:bg-red-200">Reject</button>';
+            }
+            
+            // Delete button - only for owner and pending
+            if (auth()->check() && auth()->id() == $row->user_id && $row->lr_status == 'pending') {
+                $actionHtml .= '<button onclick="deleteLeaveRequest(' . $row->id . ')" class="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded hover:bg-red-200">Delete</button>';
+            }
+            
+            $actionHtml .= '</div>';
+
+            // Build attachment HTML
+            $attachmentHtml = '-';
+            if (isset($attachments[$row->id]) && $attachments[$row->id]->count() > 0) {
+                $attachmentHtml = '<div class="flex flex-col gap-1">';
+                foreach ($attachments[$row->id] as $attachment) {
+                    $fileIcon = '';
+                    $fileType = strtolower($attachment->file_type ?? '');
+                    
+                    if (strpos($fileType, 'pdf') !== false) {
+                        $fileIcon = '<i class="fas fa-file-pdf text-red-500"></i>';
+                    } elseif (strpos($fileType, 'image') !== false) {
+                        $fileIcon = '<i class="fas fa-file-image text-blue-600"></i>';
+                    } elseif (strpos($fileType, 'word') !== false) {
+                        $fileIcon = '<i class="fas fa-file-word text-blue-600"></i>';
+                    } else {
+                        $fileIcon = '<i class="fas fa-file text-gray-600"></i>';
+                    }
+                    
+                    $fileName = $attachment->original_name ?: 'Attachment';
+                    $shortName = strlen($fileName) > 15 ? substr($fileName, 0, 15) . '...' : $fileName;
+                    
+                    // Use Storage::url for file path
+                    $fileUrl = Storage::url($attachment->file_path);
+                    $fileUrl = str_replace('\\', '/', $fileUrl);
+                    
+                    $attachmentHtml .= '<button onclick="viewAttachment(\'' . $fileUrl . '\', \'' . addslashes($attachment->original_name) . '\', \'' . addslashes($attachment->file_type) . '\')" class="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200">' . $fileIcon . ' ' . htmlspecialchars($shortName) . '</button>';
+                }
+                $attachmentHtml .= '</div>';
+            }
+
+            return [
+                'id' => $row->id,
+                'user_id' => $row->user_id,
+                'u_name' => $row->u_name,
+                'u_nip' => $row->u_nip,
+                'ud_name' => $row->ud_name,
+                'lt_name' => $row->lt_name,
+                'lt_code' => $row->lt_code,
+                'lr_date' => date('d/m/Y', strtotime($row->created_at)),
+                'lr_start_date' => date('d/m/Y', strtotime($row->lr_start_date)),
+                'lr_end_date' => $row->lr_end_date ? date('d/m/Y', strtotime($row->lr_end_date)) : '-',
+                'lr_start_time' => $row->lr_start_time ? date('H:i', strtotime($row->lr_start_time)) : '-',
+                'lr_end_time' => $row->lr_end_time ? date('H:i', strtotime($row->lr_end_time)) : '-',
+                'lr_duration' => $duration,
+                'lr_reason' => $row->lr_reason,
+                'lr_status' => $row->lr_status,
+                'lr_status_display' => $statusText,
+                'lr_status_class' => $statusClass,
+                'lr_admin_notes' => $row->lr_admin_notes,
+                'approver_name' => $row->approver_name,
+                'lr_approved_at' => $row->lr_approved_at ? date('d/m/Y H:i', strtotime($row->lr_approved_at)) : '-',
+                'created_at' => date('d/m/Y H:i', strtotime($row->created_at)),
+                'lr_attachment' => $attachmentHtml,
+                'action' => $actionHtml
+            ];
+        });
+
+        return response()->json([
+            'data' => $formattedData,
+            'total' => $totalRecords,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => ceil($totalRecords / $perPage)
+        ]);
+    }
+
+    /**
+     * Show single leave request for V2 (JSON API)
+     */
+    public function showForSimple($id)
+    {
+        $leaveRequest = DB::table('leave_requests as lr')
+            ->leftJoin('users', 'users.id', '=', 'lr.user_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->leftJoin('leave_types', 'leave_types.id', '=', 'lr.leave_type_id')
+            ->leftJoin('users as approvers', 'approvers.id', '=', 'lr.lr_approved_by')
+            ->select([
+                'lr.*',
+                'users.u_name',
+                'users.u_nip',
+                'user_divisions.ud_name',
+                'leave_types.lt_name',
+                'leave_types.lt_code',
+                'approvers.u_name as approver_name'
+            ])
+            ->where('lr.id', $id)
+            ->first();
+
+        if (!$leaveRequest) {
+            return response()->json(['success' => false, 'message' => 'Leave request not found'], 404);
+        }
+
+        // Get attachments
+        $attachments = DB::table('leave_request_attachments')
+            ->where('leave_request_id', $id)
+            ->get();
+
+        $duration = '-';
+        if ($leaveRequest->lr_unit == 'days') {
+            $duration = $leaveRequest->lr_total_days . ' hari';
+        } else {
+            $duration = $leaveRequest->lr_total_hours . ' jam';
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $leaveRequest->id,
+                'user_id' => $leaveRequest->user_id,
+                'u_name' => $leaveRequest->u_name,
+                'u_nip' => $leaveRequest->u_nip,
+                'ud_name' => $leaveRequest->ud_name,
+                'leave_type_id' => $leaveRequest->leave_type_id,
+                'lt_name' => $leaveRequest->lt_name,
+                'lt_code' => $leaveRequest->lt_code,
+                'lr_start_date' => $leaveRequest->lr_start_date,
+                'lr_end_date' => $leaveRequest->lr_end_date,
+                'lr_start_time' => $leaveRequest->lr_start_time,
+                'lr_end_time' => $leaveRequest->lr_end_time,
+                'lr_total_days' => $leaveRequest->lr_total_days,
+                'lr_total_hours' => $leaveRequest->lr_total_hours,
+                'lr_unit' => $leaveRequest->lr_unit,
+                'lr_duration' => $duration,
+                'lr_reason' => $leaveRequest->lr_reason,
+                'lr_status' => $leaveRequest->lr_status,
+                'lr_admin_notes' => $leaveRequest->lr_admin_notes,
+                'approver_name' => $leaveRequest->approver_name,
+                'lr_approved_at' => $leaveRequest->lr_approved_at,
+                'attachments' => $attachments,
+                'created_at' => $leaveRequest->created_at
+            ]
+        ]);
+    }
+
+    /**
+     * Show leave request detail page for V2
+     */
+    public function showUpdated($id)
+    {
+        $this->validateAccess('leave-requests');
+
+        $title = 'Leave Request Detail';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+
+        $leaveRequest = LeaveRequest::with(['attachments', 'user', 'leaveType', 'approver'])
+            ->findOrFail($id);
+
+        if (!$leaveRequest) {
+            return redirect()->route('leave-requests_v2')->with('error', 'Leave request not found');
+        }
+
+        // Get related daily schedules
+        $dailySchedules = DB::table('daily_schedules')
+            ->select([
+                'daily_schedules.*',
+                'shift_codes.sc_code',
+                'shift_codes.sc_shift_name',
+                'user_divisions.ud_name'
+            ])
+            ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'daily_schedules.ud_id')
+            ->where('daily_schedules.user_id', $leaveRequest->user_id)
+            ->whereBetween('daily_schedules.ds_date', [$leaveRequest->lr_start_date, $leaveRequest->lr_end_date])
+            ->get();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Leave Request Detail',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'leave-requests'
+        ];
+
+        return view('app.updated_leave_request.show', compact('leaveRequest', 'dailySchedules', 'data'));
+    }
+
+    /**
+     * Approve leave request for V2
+     */
+    public function approveForSimple(Request $request, $id)
+    {
+        $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // Check if user can approve
+        $currentUser = auth()->user();
+        if ($currentUser->id == $leaveRequest->user_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot approve your own leave request'
+            ], 403);
+        }
+
+        // Check if leave request is pending
+        if ($leaveRequest->lr_status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending leave requests can be approved'
+            ], 400);
+        }
+
+        $request->validate([
+            'lr_admin_notes' => 'nullable|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update leave request status
+            $leaveRequest->lr_status = 'approved';
+            $leaveRequest->lr_admin_notes = $request->lr_admin_notes;
+            $leaveRequest->lr_approved_by = $currentUser->id;
+            $leaveRequest->lr_approved_at = now();
+            $leaveRequest->save();
+
+            // If it's annual leave, update leave balance
+            if ($leaveRequest->leaveType && $leaveRequest->leaveType->lt_code === 'ANNUAL') {
+                $leaveBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
+                    ->where('leave_type_id', $leaveRequest->leave_type_id)
+                    ->where('lb_year', date('Y'))
+                    ->first();
+
+                if ($leaveBalance) {
+                    $leaveBalance->lb_used_balance += $leaveRequest->lr_total_days;
+                    $leaveBalance->lb_remaining_balance = $leaveBalance->lb_initial_balance - $leaveBalance->lb_used_balance;
+                    $leaveBalance->save();
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request approved successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error approving leave request: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error approving leave request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject leave request for V2
+     */
+    public function rejectForSimple(Request $request, $id)
+    {
+        $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // Check if user can reject
+        $currentUser = auth()->user();
+        if ($currentUser->id == $leaveRequest->user_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot reject your own leave request'
+            ], 403);
+        }
+
+        // Check if leave request is pending
+        if ($leaveRequest->lr_status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending leave requests can be rejected'
+            ], 400);
+        }
+
+        $request->validate([
+            'lr_admin_notes' => 'required|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update leave request status
+            $leaveRequest->lr_status = 'rejected';
+            $leaveRequest->lr_admin_notes = $request->lr_admin_notes;
+            $leaveRequest->lr_approved_by = $currentUser->id;
+            $leaveRequest->lr_approved_at = now();
+            $leaveRequest->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request rejected successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error rejecting leave request: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error rejecting leave request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update leave request for V2
+     */
+    public function updateForSimple(Request $request, $id)
+    {
+        $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // Check if user can edit this request
+        if ($leaveRequest->user_id != auth()->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can only edit your own leave requests'
+            ], 403);
+        }
+
+        // Check if request can be edited
+        if ($leaveRequest->lr_status != 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending requests can be edited'
+            ], 400);
+        }
+
+        $request->validate([
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'lr_start_date' => 'required|date',
+            'lr_end_date' => 'nullable|date|after_or_equal:lr_start_date',
+            'lr_start_time' => 'nullable|date_format:H:i',
+            'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
+            'lr_unit' => 'required|in:days,hours',
+            'lr_reason' => 'required|string',
+            'lr_attachments.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240'
+        ]);
+
+        // Calculate total days/hours
+        $startDate = $request->lr_start_date;
+        $endDate = $request->lr_end_date ?: $startDate;
+
+        $startDateObj = Carbon::parse($startDate);
+        $endDateObj = Carbon::parse($endDate);
+
+        if ($request->lr_unit == 'hours') {
+            $startTime = $request->lr_start_time ? Carbon::parse($request->lr_start_time) : Carbon::parse('00:00:00');
+            $endTime = $request->lr_end_time ? Carbon::parse($request->lr_end_time) : Carbon::parse('23:59:59');
+
+            $totalHours = $startDateObj->diffInDays($endDateObj) * 24;
+            $totalHours += $startTime->diffInHours($endTime);
+            $totalDays = 0;
+        } else {
+            $totalDays = $startDateObj->diffInDays($endDateObj) + 1;
+            $totalHours = 0;
+        }
+
+        // Handle new file uploads
+        $attachmentData = null;
+        if ($request->hasFile('lr_attachments')) {
+            $files = $request->file('lr_attachments');
+            $attachmentData = [];
+
+            foreach ($files as $file) {
+                $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
+
+                $attachmentData[] = [
+                    'file_path' => $filePath,
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $file->getSize()
+                ];
+            }
+        }
+
+        $data = [
+            'leave_type_id' => $request->leave_type_id,
+            'lr_start_date' => $startDate,
+            'lr_end_date' => $endDate,
+            'lr_start_time' => $request->lr_start_time,
+            'lr_end_time' => $request->lr_end_time,
+            'lr_total_days' => $totalDays,
+            'lr_total_hours' => $totalHours,
+            'lr_unit' => $request->lr_unit,
+            'lr_reason' => $request->lr_reason
+        ];
+
+        try {
+            DB::beginTransaction();
+
+            $leaveRequest->update($data);
+
+            // Handle new attachments if any
+            if ($attachmentData) {
+                foreach ($attachmentData as $attachment) {
+                    DB::table('leave_request_attachments')->insert([
+                        'leave_request_id' => $leaveRequest->id,
+                        'file_path' => $attachment['file_path'],
+                        'original_name' => $attachment['original_name'],
+                        'file_type' => $attachment['file_type'],
+                        'file_size' => $attachment['file_size'],
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating leave request: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating leave request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete leave request for V2
+     */
+    public function destroyForSimple($id)
+    {
+        try {
+            $leaveRequest = LeaveRequest::findOrFail($id);
+
+            // Check if user can delete (only owner and only if pending)
+            if ($leaveRequest->user_id != auth()->user()->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only delete your own leave requests'
+                ], 403);
+            }
+
+            if ($leaveRequest->lr_status != 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending leave requests can be deleted'
+                ], 400);
+            }
+
+            // Delete attachments
+            DB::table('leave_request_attachments')
+                ->where('leave_request_id', $id)
+                ->delete();
+
+            // Delete leave request
+            $leaveRequest->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting leave request: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting leave request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get summary report datatables for simple datatable (V2)
+     */
+    public function getSummaryReportDatatablesForSimple(Request $request)
+    {
+        try {
+            // Get date range
+            $startDate = $request->get('start_date', date('Y-m-01'));
+            $endDate = $request->get('end_date', date('Y-m-t'));
+            $dateFilter = $request->get('date_filter', 'this_month');
+
+            if ($dateFilter && $dateFilter !== 'custom') {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+
+            $divisionId = $request->get('division_id');
+
+            // Use the same method as summaryReport to get data
+            $summaryData = $this->getLeaveSummary($startDate, $endDate, $divisionId);
+
+            // Apply search filter if provided
+            if ($request->filled('search')) {
+                $search = $request->get('search');
+                $summaryData = $summaryData->filter(function ($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false ||
+                        stripos($item->u_nip, $search) !== false;
+                });
+            }
+
+            // Get total count before pagination
+            $totalRecords = $summaryData->count();
+
+            // Apply pagination
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $offset = ($page - 1) * $perPage;
+
+            $paginatedData = $summaryData->slice($offset, $perPage)->values();
+
+            // Format data
+            $formattedData = $paginatedData->map(function($item, $index) use ($offset) {
+                $row = (array)$item;
+                $row['DT_RowIndex'] = $offset + $index + 1;
+                // Ensure user_id is included for clickable name
+                if (!isset($row['user_id']) && isset($item->user_id)) {
+                    $row['user_id'] = $item->user_id;
+                }
+                return $row;
+            });
+
+            return response()->json([
+                'data' => $formattedData,
+                'total' => $totalRecords,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => ceil($totalRecords / $perPage)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Leave Summary Report Datatables Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get staff leave requests datatables for V2
+     */
+    public function getStaffDatatablesForSimple(Request $request, $userId)
+    {
+        try {
+            // Get date range
+            $startDate = $request->get('start_date', date('Y-m-01'));
+            $endDate = $request->get('end_date', date('Y-m-t'));
+            $dateFilter = $request->get('date_filter', 'this_month');
+
+            if ($dateFilter && $dateFilter !== 'custom') {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+
+            $status = $request->get('status');
+
+            // Get staff leave requests
+            $query = DB::table('leave_requests as lr')
+                ->leftJoin('leave_types as lt', 'lr.leave_type_id', '=', 'lt.id')
+                ->select(
+                    'lr.id',
+                    'lr.lr_start_date',
+                    'lr.lr_end_date',
+                    'lr.lr_total_days',
+                    'lr.lr_total_hours',
+                    'lr.lr_unit',
+                    'lr.lr_reason',
+                    'lr.lr_status',
+                    'lr.created_at',
+                    'lt.lt_name as leave_type_name'
+                )
+                ->where('lr.user_id', $userId)
+                ->whereBetween('lr.lr_start_date', [$startDate, $endDate]);
+
+            if ($status) {
+                $query->where('lr.lr_status', $status);
+            }
+
+            // Get total count before pagination
+            $totalRecords = $query->count();
+
+            // Apply pagination
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $offset = ($page - 1) * $perPage;
+
+            $leaveRequests = $query->orderBy('lr.lr_start_date', 'desc')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get();
+
+            // Format data
+            $formattedData = $leaveRequests->map(function($row) {
+                $duration = '-';
+                if ($row->lr_unit == 'days') {
+                    $duration = $row->lr_total_days . ' hari';
+                } else {
+                    $duration = $row->lr_total_hours . ' jam';
+                }
+
+                $statusClass = '';
+                $statusText = '';
+                switch ($row->lr_status) {
+                    case 'pending':
+                        $statusClass = 'bg-yellow-100 text-yellow-800';
+                        $statusText = 'PENDING';
+                        break;
+                    case 'approved':
+                        $statusClass = 'bg-green-100 text-green-800';
+                        $statusText = 'APPROVED';
+                        break;
+                    case 'rejected':
+                        $statusClass = 'bg-red-100 text-red-800';
+                        $statusText = 'REJECTED';
+                        break;
+                    case 'cancelled':
+                        $statusClass = 'bg-gray-100 text-gray-800';
+                        $statusText = 'CANCELLED';
+                        break;
+                    default:
+                        $statusClass = 'bg-gray-100 text-gray-800';
+                        $statusText = ucfirst($row->lr_status);
+                }
+
+                return [
+                    'id' => $row->id,
+                    'start_date' => date('d/m/Y', strtotime($row->lr_start_date)),
+                    'end_date' => $row->lr_end_date ? date('d/m/Y', strtotime($row->lr_end_date)) : '-',
+                    'duration' => $duration,
+                    'leave_type_name' => $row->leave_type_name,
+                    'status' => $row->lr_status,
+                    'status_display' => $statusText,
+                    'status_class' => $statusClass,
+                    'reason' => $row->lr_reason,
+                    'created_at' => date('d/m/Y H:i', strtotime($row->created_at))
+                ];
+            });
+
+            return response()->json([
+                'data' => $formattedData,
+                'total' => $totalRecords,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => ceil($totalRecords / $perPage)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Staff Datatables V2 Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get staff leave statistics for V2
+     */
+    public function getStaffStatsForSimple(Request $request, $userId)
+    {
+        try {
+            // Get date range
+            $startDate = $request->get('start_date', date('Y-m-01'));
+            $endDate = $request->get('end_date', date('Y-m-t'));
+            $dateFilter = $request->get('date_filter', 'this_month');
+
+            if ($dateFilter && $dateFilter !== 'custom') {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+
+            $status = $request->get('status');
+
+            // Get leave requests
+            $query = DB::table('leave_requests as lr')
+                ->where('lr.user_id', $userId)
+                ->whereBetween('lr.lr_start_date', [$startDate, $endDate]);
+
+            if ($status) {
+                $query->where('lr.lr_status', $status);
+            }
+
+            $leaveRequests = $query->get();
+
+            // Calculate statistics
+            $approvedCount = $leaveRequests->where('lr_status', 'approved')->count();
+            $pendingCount = $leaveRequests->where('lr_status', 'pending')->count();
+            $rejectedCount = $leaveRequests->where('lr_status', 'rejected')->count();
+            $totalDays = $leaveRequests->where('lr_unit', 'days')->sum('lr_total_days');
+
+            return response()->json([
+                'approved' => $approvedCount,
+                'pending' => $pendingCount,
+                'rejected' => $rejectedCount,
+                'total_days' => $totalDays
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Staff Stats V2 Error: ' . $e->getMessage());
+            return response()->json([
+                'approved' => 0,
+                'pending' => 0,
+                'rejected' => 0,
+                'total_days' => 0
+            ], 500);
+        }
     }
 }

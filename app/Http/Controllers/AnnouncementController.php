@@ -133,6 +133,119 @@ class AnnouncementController extends Controller
     }
 
     /**
+     * Display announcement dashboard/listing for current user (V2 - New Layout)
+     * Same logic as index() but returns view with app_v2 layout
+     */
+    public function indexV2(Request $request)
+    {
+        $this->validateAccess();
+        $user = Auth::user();
+        $currentDate = Carbon::now();
+
+        // Base query with proper target audience filtering (same as index())
+        $baseQuery = Announcement::with(['category', 'creator.userPosition', 'userReactions.reaction', 'userReactions.user', 'attachments'])
+            ->withCount(['views as views_count'])
+            ->where('status', 'active')
+            ->whereNotNull('published_at')
+
+            // Add search functionality
+            ->when($request->get('search'), function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                        ->orWhere('content', 'like', '%' . $search . '%')
+                        ->orWhereHas('creator', function ($creatorQuery) use ($search) {
+                            $creatorQuery->where('u_name', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->where(function ($query) use ($user) {
+                // Always show announcements targeted to "all"
+                $query->where('target_type', 'all');
+
+                // Show announcements created by current user
+                if ($user) {
+                    $query->orWhere('created_by', $user->id);
+                }
+
+                // Include announcements targeted to user's division or individual
+                if ($user) {
+                    $query->orWhereHas('recipients', function ($q) use ($user) {
+                        $q->where(function ($subQuery) use ($user) {
+                            // Individual targeting
+                            $subQuery->where('recipient_type', 'user')
+                                ->where('recipient_id', $user->id);
+
+                            // Division targeting
+                            if ($user->ud_id) {
+                                $subQuery->orWhere(function ($divQuery) use ($user) {
+                                    $divQuery->where('recipient_type', 'division')
+                                        ->where('recipient_id', $user->ud_id);
+                                });
+                            }
+                        });
+                    });
+                }
+            })
+            ->whereDoesntHave('userReactions', function ($query) use ($user) {
+                // Hide announcements where user reacted with "Done" or "OK"
+                if ($user) {
+                    $query->where('user_id', $user->id)
+                        ->whereHas('reaction', function ($q) {
+                            $q->where('hide_announcement', true);
+                        });
+                }
+            });
+
+        // Get pinned announcements
+        $pinnedAnnouncements = clone $baseQuery;
+        $pinnedAnnouncements = $pinnedAnnouncements
+            ->where('is_pinned', true)
+            ->orderBy('published_at', 'desc')
+            ->get();
+
+        // Get regular announcements
+        $regularAnnouncements = clone $baseQuery;
+        $regularAnnouncements = $regularAnnouncements
+            ->where('is_pinned', false)
+            ->orderBy('published_at', 'desc')
+            ->take(20)
+            ->get();
+
+        // Get categories for filter
+        $categories = AnnouncementCategory::active()->orderBy('name')->get();
+
+        // Get reactions for users to select
+        $reactions = AnnouncementReaction::active()->get();
+
+        // Track announcement views for all visible announcements
+        if ($user) {
+            $allAnnouncements = $pinnedAnnouncements->merge($regularAnnouncements);
+            try {
+                $this->trackAnnouncementViews($allAnnouncements, $user, $request);
+            } catch (\Exception $e) {
+                // Log error but don't break the page
+                \Log::warning('Failed to track announcement views: ' . $e->getMessage());
+            }
+        }
+
+        $data = [
+            'title' => 'JEZ PRO - Announcements',
+            'subtitle' => 'Announcements',
+            'sidebar' => $this->sidebar(),
+            'user' => $user,
+            'segment' => 'announcements_v2'
+        ];
+
+        return view('app.updated_announcement.index', compact(
+            'pinnedAnnouncements',
+            'regularAnnouncements',
+            'categories',
+            'reactions',
+            'data'
+        ));
+    }
+
+    /**
      * Show management page for announcements (admin only)
      */
     public function manage(Request $request)
@@ -184,6 +297,57 @@ class AnnouncementController extends Controller
     }
 
     /**
+     * Show management page for announcements (V2 - New Layout)
+     */
+    public function manageV2(Request $request)
+    {
+        $this->validateAccess();
+        $user = Auth::user();
+
+        $announcements = Announcement::with(['category', 'creator.division', 'userReactions', 'attachments'])
+            ->when($request->get('search'), function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                        ->orWhere('content', 'like', '%' . $search . '%')
+                        ->orWhereHas('creator', function ($creatorQuery) use ($search) {
+                            $creatorQuery->where('u_name', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->when($request->get('category_id'), function ($query, $categoryId) {
+                return $query->where('category_id', $categoryId);
+            })
+            ->when($request->get('division_id'), function ($query, $divisionId) {
+                return $query->whereHas('creator', function ($creatorQuery) use ($divisionId) {
+                    $creatorQuery->where('ud_id', $divisionId);
+                });
+            })
+            ->when($request->get('status'), function ($query, $status) {
+                return $query->where('status', $status);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        $categories = AnnouncementCategory::active()->orderBy('name')->get();
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->orderBy('ud_name')->get();
+
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Manage Announcements',
+            'sidebar' => $this->sidebar(),
+            'user' => $user,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_announcement.manage', compact(
+            'announcements',
+            'divisions',
+            'categories',
+            'data'
+        ));
+    }
+
+    /**
      * Show form to create new announcement
      */
     public function create()
@@ -203,6 +367,33 @@ class AnnouncementController extends Controller
         ];
 
         return view('app.announcement.create', compact(
+            'categories',
+            'divisions',
+            'users',
+            'data'
+        ));
+    }
+
+    /**
+     * Show form to create new announcement (V2 - New Layout)
+     */
+    public function createV2()
+    {
+        $this->validateAccess();
+        $user = Auth::user();
+        $categories = AnnouncementCategory::active()->orderBy('name')->get();
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->orderBy('ud_name')->get();
+        $users = DB::table('users')->where('u_delete', '0')->whereNotNull('u_nip')->orderBy('u_name')->get();
+
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Create Announcement',
+            'sidebar' => $this->sidebar(),
+            'user' => $user,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_announcement.create', compact(
             'categories',
             'divisions',
             'users',
@@ -328,6 +519,33 @@ class AnnouncementController extends Controller
         return view('app.announcement.show', compact('announcement', 'reactions', 'data'));
     }
 
+    /**
+     * Display announcement details (V2 - New Layout)
+     * Same logic as show() but returns view with app_v2 layout
+     */
+    public function showV2($id)
+    {
+        $announcement = Announcement::withUserDivision()
+            ->with(['category', 'creator', 'recipients', 'attachments', 'userReactions.reaction', 'userReactions.user'])
+            ->withCount(['views as views_count'])
+            ->findOrFail($id);
+
+        // Track view
+        $this->trackView($id);
+
+        $reactions = DB::table('announcement_reactions')->orderBy('name')->get();
+
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Announcement Details',
+            'sidebar' => $this->sidebar(),
+            'user' => auth()->user(),
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_announcement.show', compact('announcement', 'reactions', 'data'));
+    }
+
 
     /**
      * Show edit form for announcement
@@ -349,6 +567,34 @@ class AnnouncementController extends Controller
         ];
 
         return view('app.announcement.edit', compact(
+            'announcement',
+            'categories',
+            'divisions',
+            'users',
+            'data'
+        ));
+    }
+
+    /**
+     * Show edit form for announcement (V2 - New Layout)
+     */
+    public function editV2($id)
+    {
+        $this->validateAccess();
+        $announcement = Announcement::with(['category', 'creator', 'recipients', 'attachments'])->findOrFail($id);
+        $categories = AnnouncementCategory::active()->orderBy('name')->get();
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->orderBy('ud_name')->get();
+        $users = DB::table('users')->where('u_delete', '0')->whereNotNull('u_nip')->orderBy('u_name')->get();
+
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Edit Announcement',
+            'sidebar' => $this->sidebar(),
+            'user' => Auth::user(),
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_announcement.edit', compact(
             'announcement',
             'categories',
             'divisions',
@@ -543,7 +789,12 @@ class AnnouncementController extends Controller
             ];
         });
 
-        $html = view('app.announcement._reaction_details', compact('announcement', 'reactionDetails'))->render();
+        // Detect if request is from V2 (check referer)
+        $referer = request()->header('referer');
+        $isV2 = $referer && strpos($referer, 'announcements_v2') !== false;
+        $viewPath = $isV2 ? 'app.updated_announcement._reaction_details' : 'app.announcement._reaction_details';
+        
+        $html = view($viewPath, compact('announcement', 'reactionDetails'))->render();
 
         return response()->json([
             'success' => true,
@@ -784,7 +1035,12 @@ class AnnouncementController extends Controller
                     ];
                 });
 
-            $html = view('app.announcement._view_details', compact('announcement', 'viewers'))->render();
+            // Detect if request is from V2 (check referer)
+            $referer = request()->header('referer');
+            $isV2 = $referer && strpos($referer, 'announcements_v2') !== false;
+            $viewPath = $isV2 ? 'app.updated_announcement._view_details' : 'app.announcement._view_details';
+            
+            $html = view($viewPath, compact('announcement', 'viewers'))->render();
 
             return response()->json([
                 'success' => true,

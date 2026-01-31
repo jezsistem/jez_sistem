@@ -4,7 +4,7 @@
 <div class="space-y-6">
     <!-- Welcome Header -->
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Hi, {{ Auth::user()->u_name ?? 'User' }}</h1>
+        <h1 class="text-xl font-semibold text-gray-900">Hi, {{ Auth::user()->u_name ?? 'User' }}</h1>
         <p class="text-sm text-gray-500 mt-1">This is HR Dashboard</p>
     </div>
     
@@ -16,7 +16,7 @@
                 <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
                     <i class="cft-standard-stroke cft-user text-blue-600 text-2xl"></i>
                 </div>
-                <span class="px-2.5 py-0.5 bg-red-50 text-red-600 text-xs font-semibold rounded-full flex items-center gap-1">
+                <span class="px-2.5 py-0.5 bg-red-50 text-red-500 text-xs font-semibold rounded-full flex items-center gap-1">
                     <i class="fas fa-arrow-up text-xs"></i>
                     +25.5%
                 </span>
@@ -31,7 +31,7 @@
                 <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
                     <i class="cft-standard-stroke cft-briefcase text-green-600 text-2xl"></i>
                 </div>
-                <span class="px-2.5 py-0.5 bg-red-50 text-red-600 text-xs font-semibold rounded-full flex items-center gap-1">
+                <span class="px-2.5 py-0.5 bg-red-50 text-red-500 text-xs font-semibold rounded-full flex items-center gap-1">
                     <i class="fas fa-arrow-up text-xs"></i>
                     +4.10%
                 </span>
@@ -46,7 +46,7 @@
                 <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
                     <i class="fas fa-plus text-purple-600 text-2xl"></i>
                 </div>
-                <span class="px-2.5 py-0.5 bg-red-50 text-red-600 text-xs font-semibold rounded-full flex items-center gap-1">
+                <span class="px-2.5 py-0.5 bg-red-50 text-red-500 text-xs font-semibold rounded-full flex items-center gap-1">
                     <i class="fas fa-arrow-up text-xs"></i>
                     +5.1%
                 </span>
@@ -59,9 +59,9 @@
         <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-minus text-red-600 text-2xl"></i>
+                    <i class="fas fa-minus text-red-500 text-2xl"></i>
                 </div>
-                <span class="px-2.5 py-0.5 bg-red-50 text-red-600 text-xs font-semibold rounded-full flex items-center gap-1">
+                <span class="px-2.5 py-0.5 bg-red-50 text-red-500 text-xs font-semibold rounded-full flex items-center gap-1">
                     <i class="fas fa-arrow-down text-xs"></i>
                     +25.5%
                 </span>

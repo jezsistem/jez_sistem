@@ -12,12 +12,13 @@ use Hash;
 
 class InvestorController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -186,5 +187,96 @@ class InvestorController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('investor');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'investor')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => DB::table('stores')->orderBy('st_name')->pluck('st_name', 'id'),
+        ];
+        return view('app.updated_investor.investor', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+            $st_id = $request->get('st_id', '');
+
+            $query = DB::table('investors')
+                ->select('investors.id as id', 'st_id', 'st_name', 'i_name', 'i_username', 'i_email', 'i_phone', 'i_address')
+                ->leftJoin('stores', 'stores.id', '=', 'investors.st_id');
+
+            if ($search) {
+                $query->where(function($w) use($search){
+                    $w->orWhere('i_phone', 'LIKE', "%$search%")
+                        ->orWhere('i_name', 'LIKE', "%$search%");
+                });
+            }
+
+            if ($st_id) {
+                $query->where('investors.st_id', '=', $st_id);
+            }
+
+            // Get all data first to handle pagination
+            $allData = $query->orderByDesc('investors.id')->get();
+
+            $total = $allData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $allData->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'st_id' => $row->st_id ?? null,
+                        'st_name' => $row->st_name ?? '-',
+                        'i_name' => $row->i_name ?? '-',
+                        'i_username' => $row->i_username ?? '-',
+                        'i_phone' => $row->i_phone ?? '-',
+                        'i_email' => $row->i_email ?? '-',
+                        'i_address' => $row->i_address ?? '-',
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

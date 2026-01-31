@@ -12,12 +12,13 @@ use App\Models\Account;
 
 class TaxController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -164,5 +165,94 @@ class TaxController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('data_pajak');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'data_pajak')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'a_id' => Account::selectRaw('id, CONCAT(a_name," (",a_code,")") as account_name')
+            ->where('a_delete', '!=', '1')
+            ->orderBy('a_code')->pluck('account_name', 'id'),
+        ];
+        return view('app.updated_tax.tax', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = Tax::select('taxes.id as tid', 'tx_code', 'tx_name', 'tx_npwp', 'tx_non_npwp', 'a_id_purchase', 'a_id_sell')
+                ->where('tx_delete', '!=', '1');
+
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->where('tx_code', 'LIKE', "%$search%")
+                      ->orWhere('tx_name', 'LIKE', "%$search%")
+                      ->orWhere('tx_npwp', 'LIKE', "%$search%")
+                      ->orWhere('tx_non_npwp', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('taxes.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $purchaseAccount = Account::where('id', $row->a_id_purchase)->first();
+                $sellAccount = Account::where('id', $row->a_id_sell)->first();
+                
+                $data[] = [
+                    'no' => $no++,
+                    'tid' => $row->tid,
+                    'tx_code' => $row->tx_code ?? '-',
+                    'tx_name' => $row->tx_name ?? '-',
+                    'a_id_purchase' => $row->a_id_purchase,
+                    'a_id_purchase_name' => $purchaseAccount ? '['.$purchaseAccount->a_code.'] '.$purchaseAccount->a_name : '-',
+                    'a_id_sell' => $row->a_id_sell,
+                    'a_id_sell_name' => $sellAccount ? '['.$sellAccount->a_code.'] '.$sellAccount->a_name : '-',
+                    'tx_npwp' => $row->tx_npwp ?? '-',
+                    'tx_non_npwp' => $row->tx_non_npwp ?? '-',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

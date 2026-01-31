@@ -12,12 +12,13 @@ use App\Models\Account;
 
 class StockTypeController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -154,5 +155,98 @@ class StockTypeController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function checkExistsStockType(Request $request)
+    {
+        $check = StockType::where(['stkt_name' => strtoupper($request->_stkt_name)])->exists();
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('tipe_stok');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'tipe_stok')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'a_id' => Account::selectRaw('id, CONCAT(a_name," (",a_code,")") as account_name')
+            ->where('a_delete', '!=', '1')
+            ->orderBy('a_code')->pluck('account_name', 'id'),
+        ];
+        return view('app.updated_stock_type.stock_type', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = StockType::select('stock_types.id as stktid', 'accounts.id as a_id', 'stkt_name', 'stkt_description', 'a_name', 'a_code')
+                ->join('accounts', 'accounts.id', '=', 'stock_types.a_id')
+                ->where('stkt_delete', '!=', '1');
+
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->where('a_name', 'LIKE', "%$search%")
+                      ->orWhere('stkt_name', 'LIKE', "%$search%")
+                      ->orWhere('stkt_description', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $query->orderBy('stock_types.id', 'desc');
+            $query->skip(($page - 1) * $perPage)->take($perPage);
+
+            $results = $query->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $data[] = [
+                    'no' => $no++,
+                    'stktid' => $row->stktid,
+                    'a_id' => $row->a_id,
+                    'stkt_name' => $row->stkt_name ?? '-',
+                    'a_name' => '['.$row->a_code.'] '.$row->a_name,
+                    'stkt_description' => $row->stkt_description ?? '-',
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

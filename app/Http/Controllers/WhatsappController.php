@@ -10,12 +10,13 @@ use App\Models\User;
 
 class WhatsappController extends Controller
 {
-  protected function validateAccess()
+  protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
         ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
             'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
+            'ma_slug' => $ma_slug
         ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -70,6 +71,26 @@ class WhatsappController extends Controller
         return view('app.whatsapp.whatsapp', compact('data'));
     }
 
+    public function indexUpdated()
+    {
+        $this->validateAccess('whatsapp'); // Gunakan akses yang sama dengan halaman lama
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'whatsapp')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+        ];
+        return view('app.updated_whatsapp.whatsapp', compact('data'));
+    }
+
     public function getDatatables(Request $request)
     {
         if(request()->ajax()) {
@@ -87,6 +108,64 @@ class WhatsappController extends Controller
             })
             ->addIndexColumn()
             ->make(true);
+        }
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = DB::table('whatsapps')->select('id', 'wa_receiver', 'wa_phone', 'wa_status', 'created_at');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('wa_receiver', 'LIKE', "%$search%")
+                        ->orWhere('wa_phone', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $results = $query->orderBy('created_at', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get();
+
+            $data = [];
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($results as $row) {
+                $statusClass = $row->wa_status == 'Terkirim' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                $data[] = [
+                    'no' => $no++,
+                    'id' => $row->id,
+                    'wa_receiver' => $row->wa_receiver ?? '-',
+                    'wa_phone' => $row->wa_phone ?? '-',
+                    'wa_status' => $row->wa_status,
+                    'wa_status_class' => $statusClass,
+                    'created_at' => date('d/m/Y H:i:s', strtotime($row->created_at)),
+                ];
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
         }
     }
 

@@ -58,6 +58,7 @@ use App\Http\Controllers\InvoiceReportController;
 use App\Http\Controllers\ArticleReportController;
 
 use App\Http\Controllers\HelperBackupController;
+use App\Http\Controllers\StorageAreaController;
 
 use App\Http\Controllers\WebArticleController;
 
@@ -104,7 +105,7 @@ use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
 use App\Http\Controllers\LockController;
-use App\Models\PositionAccessController;
+use App\Models\PositionAccessController as ModelsPositionAccessController;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -280,15 +281,22 @@ Route::group(['middleware' => 'auth'], function () {
 
     // InvoiceEditorController
     Route::get('invoice_editor', [InvoiceEditorController::class, 'index']);
+    Route::get('invoice_editor_v2', [InvoiceEditorController::class, 'indexUpdated'])->name('updated_invoice_editor');
     Route::get('ie_permission_datatables', [InvoiceEditorController::class, 'getPermissionDatatables']);
     Route::get('ie_permission_invoice_datatables', [InvoiceEditorController::class, 'getInvoiceDatatables']);
     Route::get('ie_permission_detail_datatables', [InvoiceEditorController::class, 'getDetailDatatables']);
     Route::get('ie_permission_tracking_datatables', [InvoiceEditorController::class, 'getTrackingDatatables']);
     Route::get('ie_permission_history_datatables', [InvoiceEditorController::class, 'getHistoryDatatables']);
+    // SimpleDatatables routes for v2
+    Route::get('ie_permission_datatables_simple', [InvoiceEditorController::class, 'getPermissionDatatablesSimple']);
+    Route::get('ie_permission_invoice_datatables_simple', [InvoiceEditorController::class, 'getInvoiceDatatablesSimple']);
+    Route::get('ie_permission_detail_datatables_simple', [InvoiceEditorController::class, 'getDetailDatatablesSimple']);
+    Route::get('ie_permission_tracking_datatables_simple', [InvoiceEditorController::class, 'getTrackingDatatablesSimple']);
+    Route::get('ie_permission_history_datatables_simple', [InvoiceEditorController::class, 'getHistoryDatatablesSimple']);
     Route::post('ie_permission_save', [InvoiceEditorController::class, 'storePermissionData']);
     Route::post('ie_permission_delete', [InvoiceEditorController::class, 'deletePermissionData']);
     Route::post('ie_permission_invoice', [InvoiceEditorController::class, 'checkInvoice']);
-//    Route::post('ie_permission_check_active_edit', [InvoiceEditorController::class, 'checkActiveEdit']);
+    Route::post('ie_permission_check_active_edit', [InvoiceEditorController::class, 'checkActiveEdit']);
     Route::post('ie_permission_done_edit', [InvoiceEditorController::class, 'doneEdit']);
     Route::post('ie_permission_do_edit', [InvoiceEditorController::class, 'doEdit']);
     Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
@@ -296,11 +304,17 @@ Route::group(['middleware' => 'auth'], function () {
 
     // InvoiceEditorController
     Route::get('invoice_editor_online', [InvoiceEditorOnlineController::class, 'index']);
+    Route::get('invoice_editor_online_v2', [InvoiceEditorOnlineController::class, 'indexUpdated'])->name('invoice_editor_online_v2');
     Route::get('ie_online_permission_datatables', [InvoiceEditorOnlineController::class, 'getPermissionDatatables']);
     Route::get('ie_online_permission_invoice_datatables', [InvoiceEditorOnlineController::class, 'getInvoiceDatatables']);
     Route::get('ie_online_permission_detail_datatables', [InvoiceEditorOnlineController::class, 'getDetailDatatables']);
     Route::get('ie_online_permission_tracking_datatables', [InvoiceEditorOnlineController::class, 'getTrackingDatatables']);
     Route::get('ie_online_permission_history_datatables', [InvoiceEditorOnlineController::class, 'getHistoryDatatables']);
+    // SimpleDatatables endpoints for v2
+    Route::get('ie_online_permission_invoice_datatables_simple', [InvoiceEditorOnlineController::class, 'getInvoiceDatatablesSimple']);
+    Route::get('ie_online_permission_detail_datatables_simple', [InvoiceEditorOnlineController::class, 'getDetailDatatablesSimple']);
+    Route::get('ie_online_permission_tracking_datatables_simple', [InvoiceEditorOnlineController::class, 'getTrackingDatatablesSimple']);
+    Route::get('ie_online_permission_history_datatables_simple', [InvoiceEditorOnlineController::class, 'getHistoryDatatablesSimple']);
     Route::post('ie_online_permission_save', [InvoiceEditorOnlineController::class, 'storePermissionData']);
     Route::post('ie_online_permission_delete', [InvoiceEditorOnlineController::class, 'deletePermissionData']);
     Route::post('ie_online_permission_invoice', [InvoiceEditorOnlineController::class, 'checkInvoice']);
@@ -337,6 +351,8 @@ Route::group(['middleware' => 'auth'], function () {
     // Helper Backup //
     Route::get('helper_backup', [HelperBackupController::class, 'index']);
     Route::get('helper_backup_v1', [HelperBackupV1Controller::class, 'index']);
+    Route::get('helper_backup_v2', [HelperBackupController::class, 'indexV2'])->name('helper_backup_v2');
+    Route::get('reload_storage_area', [StorageAreaController::class, 'reloadStorageArea']);
 
     // Customer Type
     Route::get('customer_type_datatables', [CustomerTypeController::class, 'getDatatables']);
@@ -362,12 +378,17 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Store
     Route::get('data_store', [StoreController::class, 'index'])->name('store');
+    Route::get('data_store_v2', [StoreController::class, 'indexV2'])->name('store_v2');
     Route::get('store_datatables', [StoreController::class, 'getDatatables']);
     Route::post('st_save', [StoreController::class, 'storeData']);
     Route::post('st_delete', [StoreController::class, 'deleteData']);
 
+    // Store Division
+    Route::get('data_divisi_v2', [StoreTypeDivisionController::class, 'indexV2'])->name('divisi_v2');
+
     // Product Supplier
     Route::get('data_supplier', [ProductSupplierController::class, 'index'])->name('product_supplier');
+    Route::get('data_supplier_v2', [ProductSupplierController::class, 'indexV2'])->name('supplier_v2');
     Route::get('product_supplier_datatables', [ProductSupplierController::class, 'getDatatables']);
     Route::post('ps_save', [ProductSupplierController::class, 'storeData']);
     Route::post('ps_delete', [ProductSupplierController::class, 'deleteData']);
@@ -376,6 +397,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Brand
     Route::get('brands', [BrandController::class, 'index'])->name('brands');
+    Route::get('brands_v2', [BrandController::class, 'indexV2'])->name('brands_v2');
     Route::get('brand_datatables', [BrandController::class, 'getDatatables']);
     Route::post('br_save', [BrandController::class, 'storeData']);
     Route::post('br_delete', [BrandController::class, 'deleteData']);
@@ -386,6 +408,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Product Unit
     Route::get('satuan_produk', [ProductUnitController::class, 'index'])->name('product_unit');
+    Route::get('satuan_produk_v2', [ProductUnitController::class, 'indexV2'])->name('satuan_produk_v2');
     Route::get('product_unit_datatables', [ProductUnitController::class, 'getDatatables']);
     Route::post('pu_save', [ProductUnitController::class, 'storeData']);
     Route::post('pu_delete', [ProductUnitController::class, 'deleteData']);
@@ -396,6 +419,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Gender
     Route::get('gender', [GenderController::class, 'index'])->name('gender');
+    Route::get('gender_v2', [GenderController::class, 'indexV2'])->name('gender_v2');
     Route::get('gender_datatables', [GenderController::class, 'getDatatables']);
     Route::post('gn_save', [GenderController::class, 'storeData']);
     Route::post('gn_delete', [GenderController::class, 'deleteData']);
@@ -404,6 +428,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Season
     Route::get('season', [SeasonController::class, 'index'])->name('season');
+    Route::get('season_v2', [SeasonController::class, 'indexV2'])->name('season_v2');
     Route::get('season_datatables', [SeasonController::class, 'getDatatables']);
     Route::post('ss_save', [SeasonController::class, 'storeData']);
     Route::post('ss_delete', [SeasonController::class, 'deleteData']);
@@ -412,14 +437,16 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Product Category
     Route::get('kategori_produk', [ProductCategoryController::class, 'index'])->name('product_category');
+    Route::get('kategori_produk_v2', [ProductCategoryController::class, 'indexV2'])->name('kategori_produk_v2');
     Route::get('product_category_datatables', [ProductCategoryController::class, 'getDatatables']);
     Route::post('pc_save', [ProductCategoryController::class, 'storeData']);
-    Route::post('pc_dele te', [ProductCategoryController::class, 'deleteData']);
+    Route::post('pc_delete', [ProductCategoryController::class, 'deleteData']);
     Route::post('pc_import', [ProductCategoryController::class, 'importData']);
     Route::post('check_exists_product_category', [ProductCategoryController::class, 'checkExistsProductCategory']);
 
     // Product Sub Category
     Route::get('sub_kategori_produk', [ProductSubCategoryController::class, 'index'])->name('product_sub_category');
+    Route::get('sub_kategori_produk_v2', [ProductSubCategoryController::class, 'indexV2'])->name('sub_kategori_produk_v2');
     Route::get('product_sub_category_datatables', [ProductSubCategoryController::class, 'getDatatables']);
     Route::get('psc_reload', [ProductSubCategoryController::class, 'reloadPsc']);
     Route::post('psc_save', [ProductSubCategoryController::class, 'storeData']);
@@ -439,6 +466,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 
     Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryTestController::class, 'index'])->name('product_sub_sub_category');
+    Route::get('sub_sub_kategori_produk_v2', [ProductSubSubCategoryTestController::class, 'indexV2'])->name('sub_sub_kategori_produk_v2');
     Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryTestController::class, 'getDatatables']);
     Route::get('reload_product_sub_category', [ProductSubCategoryController::class, 'reloadProductSubCategory']);
     Route::get('reload_product_sub_sub_category', [ProductSubSubCategoryTestController::class, 'reloadProductSubSubCategory']);
@@ -458,6 +486,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Product Sub Color
     Route::get('sub_warna_produk', [ColorController::class, 'index'])->name('color');
+    Route::get('sub_warna_produk_v2', [ColorController::class, 'indexV2'])->name('sub_warna_produk_v2');
     Route::get('color_datatables', [ColorController::class, 'getDatatables']);
     Route::post('cl_save', [ColorController::class, 'storeData']);
     Route::post('cl_delete', [ColorController::class, 'deleteData']);
@@ -465,6 +494,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Product Size
     Route::get('size_produk', [SizeController::class, 'index'])->name('size');
+    Route::get('size_produk_v2', [SizeController::class, 'indexV2'])->name('size_produk_v2');
     Route::get('size_datatables', [SizeController::class, 'getDatatables']);
     Route::get('reload_size', [SizeController::class, 'reloadSize']);
     Route::get('reload_size_schema', [SizeController::class, 'reloadSizeSchema']);
@@ -477,6 +507,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Product
     Route::get('data_produk', [ProductController::class, 'index'])->name('product');
+    Route::get('data_produk_v2', [ProductController::class, 'indexV2'])->name('data_produk_v2');
     Route::get('product_datatables', [ProductController::class, 'getDatatables']);
     Route::get('p_export', [ProductController::class, 'exportData']);
     Route::get('p_export_barcode', [ProductController::class, 'exportDataBarcode']);
@@ -510,6 +541,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Group
     Route::get('group_datatables', [GroupController::class, 'getDatatables']);
+    Route::get('group_datatables_simple', [GroupController::class, 'getDatatablesForSimple']);
     Route::get('reload_group', [GroupController::class, 'reloadGroup']);
     Route::post('gr_save', [GroupController::class, 'storeData']);
     Route::post('gr_delete', [GroupController::class, 'deleteData']);
@@ -708,37 +740,52 @@ Route::group(['middleware' => 'auth'], function () {
 
     // AssetDetailController
     Route::get('asset_detail', [AssetDetailController::class, 'index']);
+    Route::get('asset_detail_v2', [AssetDetailController::class, 'indexUpdated']);
     Route::get('ad_size_datatables', [AssetDetailController::class, 'getSizeDatatables']);
     Route::get('ad_color_datatables', [AssetDetailController::class, 'getColorDatatables']);
     Route::get('ad_brand_datatables', [AssetDetailController::class, 'getBrandDatatables']);
+    Route::get('ad_brand_datatables_simple', [AssetDetailController::class, 'getBrandDatatablesForSimple']);
+    Route::get('ad_color_datatables_simple', [AssetDetailController::class, 'getColorDatatablesForSimple']);
+    Route::get('ad_size_datatables_simple', [AssetDetailController::class, 'getSizeDatatablesForSimple']);
     Route::post('ad_load_data', [AssetDetailController::class, 'loadData']);
     Route::get('ad_export', [AssetDetailController::class, 'exportData']);
     Route::post('get_asset_sales_summaries', [AssetDetailController::class, 'getSummary']);
 
     // Power BI Dashboard
     Route::get('power_bi_dashboard', [PowerBiDashboardController::class, 'index']);
+    Route::get('power_bi_dashboard_v2', [PowerBiDashboardController::class, 'indexUpdated']);
 
     // UserMenuAccessController
     Route::get('uma_datatables', [UserMenuAccessController::class, 'getDatatables']);
+    Route::get('uma_datatables_simple', [UserMenuAccessController::class, 'getDatatablesForSimple']);
     Route::post('uma_save', [UserMenuAccessController::class, 'storeData']);
     Route::post('uma_delete', [UserMenuAccessController::class, 'deleteData']);
     Route::post('uma_default', [UserMenuAccessController::class, 'setDefault']);
 
     // MainMenuController
     Route::get('main_menu', [MainMenuController::class, 'index']);
+    Route::get('main_menu_v2', [MainMenuController::class, 'indexV2'])->name('main_menu_v2.index');
     Route::get('mm_datatables', [MainMenuController::class, 'getDatatables']);
     Route::post('mm_save', [MainMenuController::class, 'storeData']);
     Route::post('mm_delete', [MainMenuController::class, 'deleteData']);
     Route::post('mm_update', [MainMenuController::class, 'updateData']);
+    Route::get('main_menu_v2', [MainMenuController::class, 'indexUpdated'])->name('main_menu_v2');
+    Route::get('main_menu_datatables_simple', [MainMenuController::class, 'getDatatablesForSimple']);
 
     // MenuAccessController
     Route::get('menu_access', [MenuAccessController::class, 'index']);
+    Route::get('menu_access_v2', [MenuAccessController::class, 'indexV2'])->name('menu_access_v2.index');
     Route::get('ma_datatables', [MenuAccessController::class, 'getDatatables']);
     Route::post('ma_save', [MenuAccessController::class, 'storeData']);
     Route::post('ma_delete', [MenuAccessController::class, 'deleteData']);
+    Route::get('menu_access_v2', [MenuAccessController::class, 'indexUpdated'])->name('menu_access_v2');
+    Route::get('menu_access_datatables_simple', [MenuAccessController::class, 'getDatatablesForSimple']);
 
     // WebConfigController
     Route::get('pengaturan_erp', [WebConfigController::class, 'index']);
+    Route::get('pengaturan_erp_v2', [WebConfigController::class, 'indexV2'])->name('pengaturan_erp_v2.index');
+    Route::get('pengaturan_erp_v2_new', [WebConfigController::class, 'indexUpdated'])->name('pengaturan_erp_v2');
+    Route::get('pengaturan_erp_datatables_simple', [WebConfigController::class, 'getDatatablesForSimple']);
     Route::get('perp_datatables', [WebConfigController::class, 'getDatatables']);
     Route::post('perp_save', [WebConfigController::class, 'storeData']);
     Route::post('perp_delete', [WebConfigController::class, 'deleteData']);
@@ -751,6 +798,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     //Data Perusahaan
     Route::get('data_perusahaan', [DataPerusahaanController::class, 'index'])->name('data_perusahaan');
+    Route::get('data_perusahaan_v2', [DataPerusahaanController::class, 'indexV2'])->name('data_perusahaan_v2.index');
     Route::get('data_perusahaan_datatables', [DataPerusahaanController::class, 'getDatatables']);
     Route::post('dp_save', [DataPerusahaanController::class, 'storeData']);
     Route::post('dp_delete', [DataPerusahaanController::class, 'deleteData']);
@@ -774,6 +822,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('shift-codes/{id}', [ShiftCodeController::class, 'destroy'])->name('shift-codes.destroy');
     Route::post('shift-codes/{id}/toggle-status', [ShiftCodeController::class, 'toggleStatus'])->name('shift-codes.toggle-status');
     Route::get('shift-codes/type/{type}', [ShiftCodeController::class, 'getShiftCodesByType'])->name('shift-codes.by-type');
+    
+    // Shift Codes V2
+    Route::get('shift-codes_v2', [ShiftCodeController::class, 'indexUpdated'])->name('shift-codes_v2');
+    Route::get('shift-codes_datatables_simple', [ShiftCodeController::class, 'getDatatablesForSimple']);
+    Route::get('shift-codes_v2/{id}', [ShiftCodeController::class, 'showForSimple']);
+    Route::post('shift-codes_v2-store', [ShiftCodeController::class, 'storeForSimple']);
+    Route::post('shift-codes_v2-update/{id}', [ShiftCodeController::class, 'updateForSimple']);
+    Route::delete('shift-codes_v2-delete/{id}', [ShiftCodeController::class, 'destroyForSimple']);
 
     // DailyScheduleController
     Route::get('daily-schedules', [DailyScheduleController::class, 'index'])->name('daily-schedules.index');
@@ -787,8 +843,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('daily-schedules/store-range', [DailyScheduleController::class, 'storeRange'])->name('daily-schedules.store-range');
     Route::get('daily-schedules/export', [DailyScheduleController::class, 'export'])->name('daily-schedules.export');
     Route::get('daily-schedules/weekly', [DailyScheduleController::class, 'weeklySchedule'])->name('daily-schedules.weekly');
+    Route::get('daily-schedules/weekly_v2', [DailyScheduleController::class, 'weeklyScheduleUpdated'])->name('daily-schedules.weekly_v2');
     Route::get('daily-schedules/weekly-report', [DailyScheduleController::class, 'weeklyReport'])->name('daily-schedules.weekly-report');
     Route::get('daily-schedules/monthly-report', [DailyScheduleController::class, 'monthlyReport'])->name('daily-schedules.monthly-report');
+    Route::get('daily-schedules/weekly-report_v2', [DailyScheduleController::class, 'weeklyReportUpdated'])->name('daily-schedules.weekly-report_v2');
+    Route::get('daily-schedules/monthly-report_v2', [DailyScheduleController::class, 'monthlyReportUpdated'])->name('daily-schedules.monthly-report_v2');
     Route::get('daily-schedules/export-monthly-excel', [DailyScheduleController::class, 'exportMonthlyExcel'])->name('daily-schedules.export-monthly-excel');
     Route::get('daily-schedules/export-monthly-pdf', [DailyScheduleController::class, 'exportMonthlyPDF'])->name('daily-schedules.export-monthly-pdf');
     Route::get('daily-schedules/get-users-by-division', [DailyScheduleController::class, 'getUsersByDivision'])->name('daily-schedule.get-users-by-division');
@@ -805,6 +864,19 @@ Route::group(['middleware' => 'auth'], function () {
     // AttendanceController
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('attendance/datatables', [AttendanceController::class, 'getDatatables'])->name('attendance.datatables');
+
+    // Attendance V2
+    Route::get('attendance_v2', [AttendanceController::class, 'indexUpdated'])->name('attendance_v2');
+    Route::get('attendance_v2/datatables_simple', [AttendanceController::class, 'getDatatablesForSimple']);
+    Route::get('attendance_v2/stats_simple', [AttendanceController::class, 'getStatsForSimple']);
+    Route::get('attendance/summary-report_v2', [AttendanceController::class, 'summaryReportUpdated'])->name('attendance.summary-report_v2');
+    Route::get('attendance/summary-report_v2/datatables_simple', [AttendanceController::class, 'getSummaryReportDatatablesForSimple']);
+    Route::get('attendance/staff_v2/{user_id}', [AttendanceController::class, 'staffDetailUpdated'])->name('attendance.staff-detail_v2');
+    Route::get('attendance/staff_v2/{user_id}/datatables_simple', [AttendanceController::class, 'getStaffDatatablesForSimple']);
+    Route::get('attendance/staff_v2/{user_id}/stats_simple', [AttendanceController::class, 'getStaffStatsForSimple']);
+    Route::get('attendance/staff_v2/{user_id}/alpha-dates_simple', [AttendanceController::class, 'getStaffAlphaDatesForSimpleAPI']);
+    Route::get('attendance/create_v2', [AttendanceController::class, 'createUpdated'])->name('attendance.create_v2');
+    Route::get('attendance/upload_v2', [AttendanceController::class, 'uploadUpdated'])->name('attendance.upload_v2');
     Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
     Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     Route::get('attendance/upload', [AttendanceController::class, 'upload'])->name('attendance.upload');
@@ -838,6 +910,36 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('break-times', [BreakTimeController::class, 'index'])->name('break-times.index');
     Route::get('break-times/report', [BreakTimeController::class, 'report'])->name('break-times.report');
     Route::get('break-times/summary-report', [BreakTimeController::class, 'summaryReport'])->name('break-times.summary-report');
+    
+    // BreakTimeController V2
+    Route::get('break-times_v2', [BreakTimeController::class, 'indexUpdated'])->name('break-times_v2');
+    Route::get('break-times/report_v2', [BreakTimeController::class, 'reportUpdated'])->name('break-times.report_v2');
+    Route::get('break-times/summary-report_v2', [BreakTimeController::class, 'summaryReportUpdated'])->name('break-times.summary-report_v2');
+    Route::get('break-times/datatables_simple_v2', [BreakTimeController::class, 'getDatatablesForSimple'])->name('break-times.datatables_simple_v2');
+    Route::get('break-times/stats_simple_v2', [BreakTimeController::class, 'getBreakTimeStatsForSimple'])->name('break-times.stats_simple_v2');
+    Route::get('break-times/summary-report/datatables_simple_v2', [BreakTimeController::class, 'getSummaryReportDatatablesForSimple'])->name('break-times.summary-report-datatables_simple_v2');
+    Route::get('break-times/summary-report/stats_simple_v2', [BreakTimeController::class, 'getSummaryReportStatsForSimple'])->name('break-times.summary-report-stats_simple_v2');
+    Route::get('break-times_v2/{id}', [BreakTimeController::class, 'showUpdated'])->name('break-times.show_v2');
+    Route::get('break-times_v2/{id}/edit', [BreakTimeController::class, 'editUpdated'])->name('break-times.edit_v2');
+    Route::put('break-times_v2/{id}', [BreakTimeController::class, 'updateUpdated'])->name('break-times.update_v2');
+    Route::get('break-times/staff_v2/{user_id}', [BreakTimeController::class, 'staffDetailUpdated'])->name('break-times.staff-detail_v2');
+    Route::get('break-times/staff_v2/{user_id}/datatables_simple', [BreakTimeController::class, 'getStaffDatatablesForSimple'])->name('break-times.staff-datatables_simple_v2');
+    Route::get('break-times/staff_v2/{user_id}/stats_simple', [BreakTimeController::class, 'getStaffStatsForSimple'])->name('break-times.staff-stats_simple_v2');
+    
+    // BreakTimeBackupController V2
+    Route::get('break-times-backup_v2', [BreakTimeBackupController::class, 'indexUpdated'])->name('break-times-backup_v2');
+    Route::get('break-times-backup/report_v2', [BreakTimeBackupController::class, 'reportUpdated'])->name('break-times-backup.report_v2');
+    Route::get('break-times-backup/summary-report_v2', [BreakTimeBackupController::class, 'summaryReportUpdated'])->name('break-times-backup.summary-report_v2');
+    Route::get('break-times-backup/datatables_simple_v2', [BreakTimeBackupController::class, 'getDatatablesForSimple'])->name('break-times-backup.datatables_simple_v2');
+    Route::get('break-times-backup/stats_simple_v2', [BreakTimeBackupController::class, 'getBreakTimeStatsForSimple'])->name('break-times-backup.stats_simple_v2');
+    Route::get('break-times-backup/summary-report/datatables_simple_v2', [BreakTimeBackupController::class, 'getSummaryReportDatatablesForSimple'])->name('break-times-backup.summary-report-datatables_simple_v2');
+    Route::get('break-times-backup/summary-report/stats_simple_v2', [BreakTimeBackupController::class, 'getSummaryReportStatsForSimple'])->name('break-times-backup.summary-report-stats_simple_v2');
+    Route::get('break-times-backup_v2/{id}', [BreakTimeBackupController::class, 'showUpdated'])->name('break-times-backup.show_v2');
+    Route::get('break-times-backup_v2/{id}/edit', [BreakTimeBackupController::class, 'editUpdated'])->name('break-times-backup.edit_v2');
+    Route::put('break-times-backup_v2/{id}', [BreakTimeBackupController::class, 'updateUpdated'])->name('break-times-backup.update_v2');
+    Route::get('break-times-backup/staff_v2/{user_id}', [BreakTimeBackupController::class, 'staffDetailUpdated'])->name('break-times-backup.staff-detail_v2');
+    Route::get('break-times-backup/staff_v2/{user_id}/datatables_simple', [BreakTimeBackupController::class, 'getStaffDatatablesForSimple'])->name('break-times-backup.staff-datatables_simple_v2');
+    Route::get('break-times-backup/staff_v2/{user_id}/stats_simple', [BreakTimeBackupController::class, 'getStaffStatsForSimple'])->name('break-times-backup.staff-stats_simple_v2');
     Route::get('break-times/summary-report/datatables', [BreakTimeController::class, 'getSummaryReportDatatables'])->name('break-times.summary-report-datatables');
     Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'getSummaryReportStats'])->name('break-times.summary-report-stats');
     Route::get('break-times/datatables', [BreakTimeController::class, 'getDatatables'])->name('break-times.datatables');
@@ -899,6 +1001,16 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('leave-types/{id}', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
     Route::get('leave-types/{id}/toggle-status', [LeaveTypeController::class, 'toggleStatus'])->name('leave-types.toggle-status');
     Route::get('leave-types/type/{type}', [LeaveTypeController::class, 'getLeaveTypesByType'])->name('leave-types.by-type');
+    
+    // Leave Types V2 Routes
+    Route::get('leave-types_v2', [LeaveTypeController::class, 'indexUpdated'])->name('leave-types_v2');
+    Route::get('leave-types_v2/datatables_simple', [LeaveTypeController::class, 'getDatatablesForSimple'])->name('leave-types_v2.datatables_simple');
+    Route::get('leave-types_v2/show/{id}', [LeaveTypeController::class, 'showForSimple'])->name('leave-types_v2.show');
+    Route::get('leave-types_v2/detail/{id}', [LeaveTypeController::class, 'showUpdated'])->name('leave-types_v2.detail');
+    Route::post('leave-types_v2-store', [LeaveTypeController::class, 'storeForSimple'])->name('leave-types_v2.store');
+    Route::post('leave-types_v2-update/{id}', [LeaveTypeController::class, 'updateForSimple'])->name('leave-types_v2.update');
+    Route::delete('leave-types_v2-delete/{id}', [LeaveTypeController::class, 'destroyForSimple'])->name('leave-types_v2.delete');
+    Route::get('leave-types_v2/toggle-status/{id}', [LeaveTypeController::class, 'toggleStatusForSimple'])->name('leave-types_v2.toggle-status');
 
     // LeaveRequestController
     // Leave Summary Report Routes (MUST be before {id} routes to avoid conflicts)
@@ -906,6 +1018,16 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('leave-requests/summary-report/datatables', [LeaveRequestController::class, 'getSummaryReportDatatables'])->name('leave-requests.summary-report-datatables');
     Route::get('leave-requests/summary-report/export/excel', [LeaveRequestController::class, 'exportSummaryToExcel'])->name('leave-requests.summary-report-export-excel');
     Route::get('leave-requests/summary-report/export/pdf', [LeaveRequestController::class, 'exportSummaryToPDF'])->name('leave-requests.summary-report-export-pdf');
+    
+    // Leave Summary Report V2 Routes (MUST be BEFORE {id} routes to avoid conflicts)
+    Route::get('leave-requests/summary-report_v2', [LeaveRequestController::class, 'summaryReportUpdated'])->name('leave-requests_v2.summary-report');
+    Route::get('leave-requests/summary-report_v2/datatables_simple', [LeaveRequestController::class, 'getSummaryReportDatatablesForSimple'])->name('leave-requests_v2.summary-report.datatables_simple');
+    
+    // Staff Detail V2 Routes (MUST be BEFORE {id} routes to avoid conflicts)
+    Route::get('leave-requests/staff_v2/{user_id}', [LeaveRequestController::class, 'staffDetailUpdated'])->name('leave-requests_v2.staff-detail');
+    Route::get('leave-requests/staff_v2/{user_id}/datatables_simple', [LeaveRequestController::class, 'getStaffDatatablesForSimple'])->name('leave-requests_v2.staff-detail.datatables_simple');
+    Route::get('leave-requests/staff_v2/{user_id}/stats', [LeaveRequestController::class, 'getStaffStatsForSimple'])->name('leave-requests_v2.staff-detail.stats');
+    
     Route::get('leave-requests/staff/{user_id}', [LeaveRequestController::class, 'staffDetail'])->name('leave-requests.staff-detail');
     Route::get('leave-requests/staff/{user_id}/datatables', [LeaveRequestController::class, 'staffDatatables'])->name('leave-requests.staff-datatables');
     Route::get('leave-requests/staff/{user_id}/stats', [LeaveRequestController::class, 'staffStats'])->name('leave-requests.staff-stats');
@@ -933,6 +1055,17 @@ Route::group(['middleware' => 'auth'], function () {
     // Leave Request Index and Store Routes (MUST be AFTER {id} routes to avoid conflicts)
     Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
+    
+    // Leave Requests V2 Routes
+    Route::get('leave-requests_v2', [LeaveRequestController::class, 'indexUpdated'])->name('leave-requests_v2');
+    Route::get('leave-requests_v2/datatables_simple', [LeaveRequestController::class, 'getDatatablesForSimple'])->name('leave-requests_v2.datatables_simple');
+    Route::get('leave-requests_v2/show/{id}', [LeaveRequestController::class, 'showForSimple'])->name('leave-requests_v2.show');
+    Route::get('leave-requests_v2/detail/{id}', [LeaveRequestController::class, 'showUpdated'])->name('leave-requests_v2.detail');
+    Route::post('leave-requests_v2-store', [LeaveRequestController::class, 'storeForSimple'])->name('leave-requests_v2.store');
+    Route::post('leave-requests_v2-update/{id}', [LeaveRequestController::class, 'updateForSimple'])->name('leave-requests_v2.update');
+    Route::post('leave-requests_v2-approve/{id}', [LeaveRequestController::class, 'approveForSimple'])->name('leave-requests_v2.approve');
+    Route::post('leave-requests_v2-reject/{id}', [LeaveRequestController::class, 'rejectForSimple'])->name('leave-requests_v2.reject');
+    Route::delete('leave-requests_v2-delete/{id}', [LeaveRequestController::class, 'destroyForSimple'])->name('leave-requests_v2.delete');
 
 // Debug route for testing CSRF
     Route::get('test-csrf', function () {
@@ -952,6 +1085,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('user-positions/{id}/edit', [UserPositionController::class, 'edit'])->name('user-positions.edit');
     Route::put('user-positions/{id}', [UserPositionController::class, 'update'])->name('user-positions.update');
     Route::delete('user-positions/{id}', [UserPositionController::class, 'destroy'])->name('user-positions.destroy');
+    
+    // UserPositionController V2
+    Route::get('user-positions_v2', [UserPositionController::class, 'indexUpdated'])->name('user-positions_v2');
+    Route::get('user-positions_datatables_simple', [UserPositionController::class, 'getDatatablesForSimple']);
 
     // UserDivisionController
     Route::get('user-divisions', [UserDivisionController::class, 'index'])->name('user-divisions.index');
@@ -962,6 +1099,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('user-divisions/{id}/edit', [UserDivisionController::class, 'edit'])->name('user-divisions.edit');
     Route::put('user-divisions/{id}', [UserDivisionController::class, 'update'])->name('user-divisions.update');
     Route::delete('user-divisions/{id}', [UserDivisionController::class, 'destroy'])->name('user-divisions.destroy');
+    
+    // UserDivisionController V2
+    Route::get('user-divisions_v2', [UserDivisionController::class, 'indexUpdated'])->name('user-divisions_v2');
+    Route::get('user-divisions_datatables_simple', [UserDivisionController::class, 'getDatatablesForSimple']);
+    Route::get('user-divisions/leader-options', [UserDivisionController::class, 'getLeaderOptions']);
+    Route::get('user-divisions/manager-options', [UserDivisionController::class, 'getManagerOptions']);
 
     // UserDivisionController
     Route::get('user-divisions-v2', [UserDivisionV2Controller::class, 'index'])->name('user-divisions-v2.index');
@@ -974,6 +1117,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('user-types', [UserTypeController::class, 'store'])->name('user-types.store');
     Route::put('user-types/{id}', [UserTypeController::class, 'update'])->name('user-types.update');
     Route::delete('user-types/{id}', [UserTypeController::class, 'destroy'])->name('user-types.destroy');
+    
+    // UserTypeController V2
+    Route::get('user-types_v2', [UserTypeController::class, 'indexUpdated'])->name('user-types_v2');
+    Route::get('user-types_datatables_simple', [UserTypeController::class, 'getDatatablesForSimple']);
 
     // StaffController
     Route::get('staff', [StaffController::class, 'index'])->name('staff.index');
@@ -982,12 +1129,21 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('staff/{id}/division', [StaffController::class, 'updateDivision'])->name('staff.update-division');
     Route::post('staff/{id}/user-type', [StaffController::class, 'updateUserType'])->name('staff.update-user-type');
     Route::post('staff/{id}/leave-balance', [StaffController::class, 'updateLeaveBalance'])->name('staff.update-leave-balance');
+    
+    // StaffController V2
+    Route::get('staff_v2', [StaffController::class, 'indexUpdated'])->name('staff_v2');
+    Route::get('staff_datatables_simple', [StaffController::class, 'getDatatablesForSimple']);
 
     // User Select for AJAX
     Route::get('users/select', [UserController::class, 'select'])->name('users.select');
 
     // Announcement System
     Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('announcements_v2', [AnnouncementController::class, 'indexV2'])->name('announcements_v2.index');
+    Route::get('announcements_v2/create', [AnnouncementController::class, 'createV2'])->name('announcements_v2.create');
+    Route::get('announcements_v2/manage', [AnnouncementController::class, 'manageV2'])->name('announcements_v2.manage');
+    Route::get('announcements_v2/{id}/edit', [AnnouncementController::class, 'editV2'])->name('announcements_v2.edit');
+    Route::get('announcements_v2/{id}', [AnnouncementController::class, 'showV2'])->name('announcements_v2.show');
     Route::get('announcements/manage', [AnnouncementController::class, 'manage'])->name('announcements.manage');
     Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
     Route::get('announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
@@ -1005,12 +1161,14 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Announcement Categories
     Route::get('announcement-categories', [AnnouncementCategoryController::class, 'index'])->name('announcement-categories.index');
+    Route::get('announcement-categories_v2', [AnnouncementCategoryController::class, 'indexV2'])->name('announcement-categories_v2.index');
     Route::post('announcement-categories', [AnnouncementCategoryController::class, 'store'])->name('announcement-categories.store');
     Route::put('announcement-categories/{id}', [AnnouncementCategoryController::class, 'update'])->name('announcement-categories.update');
     Route::delete('announcement-categories/{id}', [AnnouncementCategoryController::class, 'destroy'])->name('announcement-categories.destroy');
 
     // Announcement Reactions
     Route::get('announcement-reactions', [AnnouncementReactionController::class, 'index'])->name('announcement-reactions.index');
+    Route::get('announcement-reactions_v2', [AnnouncementReactionController::class, 'indexV2'])->name('announcement-reactions_v2.index');
     Route::post('announcement-reactions', [AnnouncementReactionController::class, 'store'])->name('announcement-reactions.store');
     Route::put('announcement-reactions/{id}', [AnnouncementReactionController::class, 'update'])->name('announcement-reactions.update');
     Route::delete('announcement-reactions/{id}', [AnnouncementReactionController::class, 'destroy'])->name('announcement-reactions.destroy');
@@ -1032,12 +1190,20 @@ Route::group(['middleware' => 'auth'], function () {
         Route::delete('/release', 'releaseLock')->name('lock.release');
     });
 
-    Route::get('position-access', [PositionAccessController::class, 'index']);
-    Route::get('position-access-datatables', [PositionAccessController::class, 'getDatatables']);
-    Route::post('position-access-save', [PositionAccessController::class, 'storeData']);
-    Route::post('position-access-delete/{route}/{position_id}', [PositionAccessController::class, 'deleteData']);
-    Route::get('reload_position', [PositionAccessController::class, 'reloadPosition']);
-    Route::post('change_access', [PositionAccessController::class, 'changeAccess']);
+    Route::get('position-access', [\App\Models\PositionAccessController::class, 'index']);
+    Route::get('position-access-datatables', [\App\Models\PositionAccessController::class, 'getDatatables']);
+    Route::post('position-access-save', [\App\Models\PositionAccessController::class, 'storeData']);
+    Route::post('position-access-delete/{route}/{position_id}', [\App\Models\PositionAccessController::class, 'deleteData']);
+    Route::get('reload_position', [\App\Models\PositionAccessController::class, 'reloadPosition']);
+    Route::post('change_access', [\App\Models\PositionAccessController::class, 'changeAccess']);
+    
+    // Position Access V2
+    Route::get('position-access_v2', [\App\Http\Controllers\PositionAccessController::class, 'indexUpdated'])->name('position-access_v2');
+    Route::get('position-access_datatables_simple', [\App\Http\Controllers\PositionAccessController::class, 'getDatatablesForSimple']);
+    Route::post('position-access_v2-save', [\App\Http\Controllers\PositionAccessController::class, 'storeData']);
+    Route::post('position-access_v2-delete/{position_id}', [\App\Http\Controllers\PositionAccessController::class, 'deleteData']);
+    Route::get('reload_position_v2', [\App\Http\Controllers\PositionAccessController::class, 'reloadPosition']);
+    Route::post('change_access_v2', [\App\Http\Controllers\PositionAccessController::class, 'changeAccess']);
 
     //External Assignment Type
     Route::get('external_assignment_type', [ExternalAssignmentTypeController::class, 'index'])->name('external_assignment_type');
@@ -1046,12 +1212,25 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ea_delete', [ExternalAssignmentTypeController::class, 'deleteData']);
     Route::post('ea_import', [ExternalAssignmentTypeController::class, 'importData']);
     Route::post('check_exists_external_assignment_type', [ExternalAssignmentTypeController::class, 'checkExistsExternalTypes']);
+
+    // External Assignment Type V2
+    Route::get('external_assignment_type_v2', [ExternalAssignmentTypeController::class, 'indexUpdated'])->name('external_assignment_type_v2');
+    Route::get('external_assignment_type_v2/datatables_simple', [ExternalAssignmentTypeController::class, 'getDatatablesForSimple']);
+    Route::get('external_assignment_type_v2/get/{id}', [ExternalAssignmentTypeController::class, 'getForSimple']);
+    Route::post('external_assignment_type_v2/store', [ExternalAssignmentTypeController::class, 'storeForSimple']);
+    Route::post('external_assignment_type_v2/delete', [ExternalAssignmentTypeController::class, 'deleteForSimple']);
+    Route::post('external_assignment_type_v2/check_exists', [ExternalAssignmentTypeController::class, 'checkExistsForSimple']);
     Route::get('export-perusahaan', [ExternalAssignmentTypeController::class, 'exportData']);
 
 
     //External Assignment Request
     Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index'])->name('external-assignments.index');
     Route::get('external-assignment/summary-report', [ExternalAssignmentRequestController::class, 'summaryReport'])->name('external-assignment.summary-report');
+
+    // External Assignment V2
+    Route::get('external-assignment_v2', [ExternalAssignmentRequestController::class, 'indexUpdated'])->name('external-assignment_v2');
+    Route::get('external-assignment_v2/datatables_simple', [ExternalAssignmentRequestController::class, 'getDatatablesForSimple']);
+    Route::get('external-assignment_v2/stats_simple', [ExternalAssignmentRequestController::class, 'getStatsForSimple']);
     Route::get('external-assignment/summary-report/datatables', [ExternalAssignmentRequestController::class, 'getExternalAssignmentSummaryDatatables'])->name('external-assignment.summary-report-datatables');
     Route::get('external-assignment/summary-report/export/excel', [ExternalAssignmentRequestController::class, 'exportSummaryToExcel'])->name('external-assignment.summary-report-export-excel');
     Route::get('external-assignment/summary-report/export/pdf', [ExternalAssignmentRequestController::class, 'exportSummaryToPDF'])->name('external-assignment.summary-report-export-pdf');
@@ -1100,6 +1279,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_overtime_type', [OvertimeTypeController::class, 'checkExistsExternalTypes']);
     Route::get('export-perusahaan', [OvertimeTypeController::class, 'exportData']);
 
+    // Overtime Type V2
+    Route::get('overtime_type_v2', [OvertimeTypeController::class, 'indexUpdated'])->name('overtime_type_v2');
+    Route::get('overtime_type_v2/datatables_simple', [OvertimeTypeController::class, 'getDatatablesForSimple']);
+    Route::get('overtime_type_v2/get/{id}', [OvertimeTypeController::class, 'getForSimple']);
+    Route::post('overtime_type_v2/store', [OvertimeTypeController::class, 'storeForSimple']);
+    Route::post('overtime_type_v2/delete', [OvertimeTypeController::class, 'deleteForSimple']);
+    Route::post('overtime_type_v2/check_exists', [OvertimeTypeController::class, 'checkExistsForSimple']);
+
     // overtime
     Route::get('/overtime', [OvertimeRequestController::class, 'index'])->name('overtime.index');
     Route::get('/overtime/create', [OvertimeRequestController::class, 'create'])->name('overtime.create');
@@ -1109,6 +1296,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/overtime/{id}/approve', [OvertimeRequestController::class, 'approve'])->name('overtime.approve');
     Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
     Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
+
+    // Overtime V2
+    Route::get('overtime_v2', [OvertimeRequestController::class, 'indexUpdated'])->name('overtime_v2');
+    Route::get('overtime_v2/datatables_simple', [OvertimeRequestController::class, 'getDatatablesForSimple']);
+    Route::get('overtime_v2/{id}', [OvertimeRequestController::class, 'showUpdated'])->name('overtime_v2.show');
 
 
     // absen manual

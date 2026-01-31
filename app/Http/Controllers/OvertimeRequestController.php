@@ -14,12 +14,15 @@ use Yajra\DataTables\Facades\DataTables;
 
 class OvertimeRequestController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $segment = $slug ?? request()->segment(1);
+        $slugToCheck = str_replace('_v2', '', $segment);
+
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $slugToCheck
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -456,5 +459,217 @@ class OvertimeRequestController extends Controller
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * V2 - Updated version with Tailwind CSS
+     */
+    public function indexUpdated(Request $request)
+    {
+        $this->validateAccess();
+
+        $title = 'Overtime Requests';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+
+        $summary = [
+            'total'     => OvertimeRequest::count(),
+            'pending'   => OvertimeRequest::where('status', 'Pending')->count(),
+            'approved'  => OvertimeRequest::where('status', 'Approved')->count(),
+            'hr_check'  => OvertimeRequest::where('status', 'HR Check')->count(),
+            'done'      => OvertimeRequest::where('status', 'Done')->count(),
+        ];
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'overtime')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'overtime'
+        ];
+
+        return view('app.updated_overtime.index', compact('data', 'summary'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        $search = $request->get('search', '');
+        $status = $request->get('status', '');
+        $startDate = $request->get('start_date', '');
+        $endDate = $request->get('end_date', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+
+        $query = DB::table('overtime_requests as o')
+            ->leftJoin('users as u', 'o.request_by', '=', 'u.id')
+            ->leftJoin('user_divisions as d', 'o.ud_id', '=', 'd.id')
+            ->leftJoin('overtime_types as ot', 'o.ot_id', '=', 'ot.id')
+            ->leftJoin('users as approver', 'o.approved_by', '=', 'approver.id')
+            ->select(
+                'o.id',
+                'o.submission_date',
+                'd.ud_name as department_name',
+                'o.assigned_staff',
+                'o.start_date',
+                'o.start_time',
+                'o.end_date',
+                'o.end_time',
+                'ot.ot_name as claim',
+                'o.status',
+                'o.attachment',
+                'o.approved_by',
+                'o.approved_at',
+                'u.u_name as request_by_name',
+                'approver.u_name as approved_by_name',
+                'o.created_at'
+            );
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('d.ud_name', 'LIKE', "%{$search}%")
+                  ->orWhere('u.u_name', 'LIKE', "%{$search}%")
+                  ->orWhere('ot.ot_name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if (!empty($status)) {
+            $query->where('o.status', $status);
+        }
+
+        if (!empty($startDate)) {
+            $query->whereDate('o.start_date', '>=', $startDate);
+        }
+
+        if (!empty($endDate)) {
+            $query->whereDate('o.end_date', '<=', $endDate);
+        }
+
+        $total = $query->count();
+        $data = $query->orderByDesc('o.id')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        // Process assigned_staff
+        $data = $data->map(function($row) {
+            $staffIds = json_decode($row->assigned_staff, true) ?? [];
+            if (!empty($staffIds)) {
+                $staffNames = DB::table('users')
+                    ->whereIn('id', $staffIds)
+                    ->pluck('u_name')
+                    ->toArray();
+                $row->assigned_staff_names = $staffNames;
+            } else {
+                $row->assigned_staff_names = [];
+            }
+            
+            // Calculate duration
+            if ($row->start_date && $row->start_time && $row->end_date && $row->end_time) {
+                $start = new \DateTime($row->start_date . ' ' . $row->start_time);
+                $end = new \DateTime($row->end_date . ' ' . $row->end_time);
+                $diff = $start->diff($end);
+                $row->duration_hours = $diff->h + ($diff->days * 24);
+                $row->duration_minutes = $diff->i;
+            } else {
+                $row->duration_hours = 0;
+                $row->duration_minutes = 0;
+            }
+            
+            return $row;
+        });
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    /**
+     * V2 - Show detail page
+     */
+    public function showUpdated($id)
+    {
+        // ambil row overtime + requester + department
+        $row = DB::table('overtime_requests as o')
+            ->leftJoin('users as requester', 'o.request_by', '=', 'requester.id')
+            ->leftJoin('user_divisions as d', 'o.ud_id', '=', 'd.id')
+            ->leftJoin('overtime_types as ot', 'o.ot_id', '=', 'ot.id')
+            ->select(
+                'o.*',
+                'requester.u_name as request_by_name',
+                'd.ud_name as department_name',
+                'ot.ot_name as claim',
+            )
+            ->where('o.id', $id)
+            ->first();
+
+        if (! $row) {
+            abort(404, 'Overtime request not found');
+        }
+
+        $staffIds = json_decode($row->assigned_staff, true) ?? [];
+        $staffNames = [];
+        if (!empty($staffIds)) {
+            $staffNames = DB::table('users')
+                ->whereIn('id', $staffIds)
+                ->pluck('u_name')
+                ->toArray();
+        }
+
+        $detail = (object) $row;
+        $detail->assigned_staff = $staffNames;
+        $detail->start = ($row->start_date ?? '') . ' ' . ($row->start_time ?? '');
+        $detail->end   = ($row->end_date ?? '') . ' ' . ($row->end_time ?? '');
+
+        // tambahan: jika butuh nama approver
+        $detail->approver_name = null;
+        if (!empty($row->approved_by)) {
+            $detail->approver_name = DB::table('users')->where('id', $row->approved_by)->value('u_name');
+        }
+
+        $approvalLogs = [];
+        if (!empty($row->approved_by)) {
+            $approvalLogs[] = [
+                'role' => 'Approver',
+                'name' => $detail->approver_name,
+                'date' => $row->approved_at ? date('d M Y H:i', strtotime($row->approved_at)) : null,
+                'note' => null
+            ];
+        }
+
+        $detail->approval_logs = $approvalLogs;
+
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+
+        $userId = Auth::id();
+        $isManager = DB::table('users as u')
+            ->leftJoin('user_positions as p', 'u.up_id', '=', 'p.id')
+            ->where('u.id', $userId)
+            ->where('p.up_name', 'MANAGER')
+            ->exists();
+
+        // Cek apakah user HR
+        $isHR = false;
+        if ($user && $user->ud_id) {
+            $isHR = \DB::table('user_divisions')
+                ->where('id', $user->ud_id)
+                ->where('ud_code', 'HUMANRESOU')
+                ->exists();
+        }
+
+        $data = [
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'overtime')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'title' => 'Overtime Request',
+            'user' => $user_data,
+            'segment' => 'overtime'
+        ];
+
+        // kirim ke view
+        return view('app.updated_overtime.show', compact('detail', 'data', 'isManager', 'isHR'));
     }
 }

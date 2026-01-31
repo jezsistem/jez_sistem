@@ -18,12 +18,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class SalesReportController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $ma_slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -704,5 +705,114 @@ class SalesReportController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
+    }
+
+    public function getHbhjDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = DB::table('product_stocks')
+                ->selectRaw("ts_product_stocks.id as id, br_name, ps_barcode, p_name, p_color, sz_name, psc_name, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase2, ps_purchase_price, p_purchase_price, ps_sell_price, p_sell_price")
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_sub_categories', 'products.psc_id', '=', 'product_sub_categories.id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->where('products.p_delete', '!=', '1')
+                ->groupBy('product_stocks.id');
+
+            if (!empty($search)) {
+                $query->where(function ($w) use ($search) {
+                    $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', ["%$search%"]);
+                });
+            }
+
+            $total = $query->get()->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row, $index) use ($page, $perPage) {
+                    // Calculate HB (Harga Beli)
+                    $purchase = 0;
+                    if (!empty($row->purchase)) {
+                        $purchase = round($row->purchase);
+                    } else if (!empty($row->purchase2)) {
+                        $purchase = round($row->purchase2);
+                    } else {
+                        if (!empty($row->ps_purchase_price)) {
+                            $purchase = $row->ps_purchase_price;
+                        } else {
+                            $purchase = $row->p_purchase_price;
+                        }
+                    }
+
+                    // Calculate HJ (Harga Jual)
+                    $sell_price = 0;
+                    if (!empty($row->p_sell_price)) {
+                        $sell_price = $row->p_sell_price;
+                    } else {
+                        $sell_price = $row->ps_sell_price;
+                    }
+
+                    return [
+                        'no' => ($page - 1) * $perPage + $index + 1,
+                        'br_name' => $row->br_name ?? '-',
+                        'ps_barcode' => $row->ps_barcode ?? '-',
+                        'p_name' => $row->p_name ?? '-',
+                        'p_color' => $row->p_color ?? '-',
+                        'sz_name' => $row->sz_name ?? '-',
+                        'psc_name' => $row->psc_name ?? '-',
+                        'hb' => number_format($purchase),
+                        'hj' => number_format($sell_price),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('laporan_penjualan');
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'laporan_penjualan')->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'stt_id' => StoreType::where('stt_delete', '!=', '1')->whereIn('stt_name', ['ONLINE', 'OFFLINE'])->orderByDesc('id')->pluck('stt_name', 'id'),
+        ];
+        return view('app.updated_sales_report.sales_report', compact('data'));
     }
 }

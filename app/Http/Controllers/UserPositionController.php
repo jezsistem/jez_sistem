@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\UserPosition;
+use App\Models\User;
+use App\Models\WebConfig;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class UserPositionController extends Controller
 {
@@ -154,11 +157,18 @@ class UserPositionController extends Controller
     {
         $this->validateAccess();
         
+        $position = UserPosition::findOrFail($id);
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'position' => $position
+            ]);
+        }
+        
         $title = 'User Position Detail';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
-
-        $position = UserPosition::findOrFail($id);
 
         $data = [
             'title' => $title,
@@ -367,6 +377,87 @@ class UserPositionController extends Controller
             return response()->json([
                 'error' => 'Failed to load data: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess();
+        
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value ?? 'User Positions';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user->id)->first();
+        
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'user-positions')->first()->ma_title ?? 'User Positions',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.updated_user_position.user_position', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $search = $request->get('search', '');
+
+            $query = DB::table('user_positions')
+                ->select([
+                    'id',
+                    'up_code',
+                    'up_name',
+                    'up_description',
+                    'up_level',
+                    'up_can_approve_leave',
+                    'up_is_active'
+                ]);
+
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('up_code', 'LIKE', "%$search%")
+                      ->orWhere('up_name', 'LIKE', "%$search%")
+                      ->orWhere('up_description', 'LIKE', "%$search%");
+                });
+            }
+
+            $total = $query->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $query->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get()
+                ->map(function ($row) {
+                    $row->up_is_active_display = $row->up_is_active == 1 
+                        ? '<span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Active</span>'
+                        : '<span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactive</span>';
+                    $row->action = '<div class="flex gap-2 justify-center">
+                        <button type="button" class="btn-detail px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" data-id="' . $row->id . '">Detail</button>
+                        <button type="button" class="delete-user-position-btn px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-700" data-id="' . $row->id . '">Hapus</button>
+                    </div>';
+                    return $row;
+                })
+                ->values()
+                ->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row->DT_RowIndex = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to load data: ' . $e->getMessage()], 500);
         }
     }
 }

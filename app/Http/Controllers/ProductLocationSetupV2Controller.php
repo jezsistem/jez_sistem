@@ -69,7 +69,52 @@ class ProductLocationSetupV2Controller extends Controller
 
     public function index()
     {
-        $this->validateAccess();
+        $validate = DB::table('user_menu_accesses')
+        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+            'u_id' => Auth::user()->id,
+            'ma_slug' => 'setup_lokasi_stok_v2'
+        ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        // Get subtitle from menu or use default
+        $menu = DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first();
+        $subtitle = $menu ? $menu->ma_title : 'Mutasi Stock V2';
+
+        $data = [
+            'title' => $title,
+            'subtitle' => $subtitle,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+        ];
+
+        return view('app.product_location_setup_v2.product_location_setup_v2', compact('data'));
+    }
+
+    public function indexUpdated()
+    {
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => 'setup_lokasi_stok_v2'
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        }
         $user = new User;
         $select = ['*'];
         $where = [
@@ -81,7 +126,7 @@ class ProductLocationSetupV2Controller extends Controller
 
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'subtitle' => 'Mutasi Stock V2',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
@@ -91,7 +136,7 @@ class ProductLocationSetupV2Controller extends Controller
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
         ];
 
-        return view('app.product_location_setup_v2.product_location_setup_v2', compact('data'));
+        return view('app.updated_setup_lokasi_stok_v2.setup_lokasi_stok_v2', compact('data'));
     }
 
     public function startBinDatatables(Request $request)

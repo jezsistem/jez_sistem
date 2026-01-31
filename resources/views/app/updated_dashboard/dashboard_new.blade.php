@@ -5,7 +5,7 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ $data['subtitle'] }}</h1>
+            <h1 class="text-xl font-semibold text-gray-900">{{ $data['subtitle'] }}</h1>
             <p class="text-sm text-gray-500 mt-1">Overview of your business performance</p>
                 </div>
         <div class="flex items-center gap-3">
@@ -81,7 +81,7 @@
                 <span class="text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">Today</span>
                                 </div>
             <h3 class="text-sm font-medium mb-1 opacity-90">Nett Sales</h3>
-            <p class="text-2xl font-bold" id="nett_sales_value">
+            <p class="text-xl font-semibold" id="nett_sales_value">
                 <span class="loading-shimmer">Loading...</span>
             </p>
                     </div>
@@ -95,7 +95,7 @@
                 <span class="text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">Today</span>
                                     </div>
             <h3 class="text-sm font-medium mb-1 opacity-90">Profits</h3>
-            <p class="text-2xl font-bold" id="profits_value">
+            <p class="text-xl font-semibold" id="profits_value">
                 <span class="loading-shimmer">Loading...</span>
             </p>
                     </div>
@@ -109,7 +109,7 @@
                 <span class="text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">Today</span>
                                     </div>
             <h3 class="text-sm font-medium mb-1 opacity-90">Purchases</h3>
-            <p class="text-2xl font-bold" id="purchases_value">
+            <p class="text-xl font-semibold" id="purchases_value">
                 <span class="loading-shimmer">Loading...</span>
             </p>
                     </div>
@@ -123,7 +123,7 @@
                 <span class="text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">Total</span>
                                     </div>
             <h3 class="text-sm font-medium mb-1 opacity-90">Total Assets</h3>
-            <p class="text-2xl font-bold" id="assets_value">
+            <p class="text-xl font-semibold" id="assets_value">
                 <span class="loading-shimmer">Loading...</span>
             </p>
                         </div>

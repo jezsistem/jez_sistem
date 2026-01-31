@@ -20,12 +20,13 @@ use PhpParser\Node\Expr\PostDec;
 
 class SettlementController extends Controller
 {
-    protected function validateAccess()
+    protected function validateAccess($slug = null)
     {
+        $ma_slug = $slug ?? request()->segment(1);
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
+                'ma_slug' => $ma_slug
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -112,6 +113,14 @@ class SettlementController extends Controller
             if (!$paymentMethods->contains('DEPOSIT TIKTOK')) {
                 $paymentMethods['deposit_tiktok'] = 'DEPOSIT TIKTOK';
             }
+        }
+
+        // Check if this is a v2 request by checking referer
+        $referer = request()->header('Referer', '');
+        $isV2 = strpos($referer, 'settlement_v2') !== false;
+        
+        if ($isV2) {
+            return view('app.updated_settlement._payment_method_v2', compact('paymentMethods'));
         }
 
         return view('app.settlement._payment_method', compact('paymentMethods'));
@@ -769,6 +778,15 @@ class SettlementController extends Controller
                 return $item->total_payment != 0;
             })
             ->values();
+        
+        // Check if this is a v2 request by checking referer
+        $referer = request()->header('Referer', '');
+        $isV2 = strpos($referer, 'settlement_v2') !== false;
+        
+        if ($isV2) {
+            return view('app.updated_settlement._payment_calc_cards_v2', compact('merged'));
+        }
+        
         return view('app.settlement._payment_calc_cards', compact('merged'));
     }
 
@@ -1345,5 +1363,143 @@ class SettlementController extends Controller
 
         $fileName = 'settlement_detail_transactions_' . date('Ymd_His') . '.xlsx';
         return Excel::download($export, $fileName);
+    }
+
+    public function indexUpdated()
+    {
+        $this->validateAccess('settlement');
+        $user = new User();
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Settlement',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'statusses' => PosTransaction::statusList(),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderBy('st_name')->pluck('st_name', 'id'),
+            'pm_id' => PaymentMethod::where('pm_delete', '!=', '1')->groupBy('pm_name')->orderBy('pm_name')->pluck('pm_name'),
+        ];
+        return view('app.updated_settlement.settlement', compact('data'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        try {
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 25);
+            $start_date = $request->get('start_date');
+            $end_date = $request->get('end_date');
+            $st_id = $request->get('st_id') ?? 0;
+            $pm_id = $request->get('pm_id') ?? 0;
+            $status_trx = $request->get('status_trx') ?? '';
+            $status_settle = $request->get('status_settle') ?? null;
+            $status_cogs = $request->get('status_cogs') ?? null;
+            $search = $request->get('search') ?? null;
+            $sub_payment = $request->get('sub_payment') ?? null;
+
+            // If value is 0, set as null
+            if ($status_trx === '0' || $status_trx === 0) {
+                $status_trx = '';
+            }
+            if ($status_settle === '0' || $status_settle === 0) {
+                $status_settle = null;
+            }
+            if ($status_cogs === '0' || $status_cogs === 0) {
+                $status_cogs = null;
+            }
+
+            if (!$start_date || !$end_date) {
+                return response()->json([
+                    'error' => 'Tanggal mulai dan tanggal akhir harus diisi',
+                    'data' => [],
+                    'total' => 0,
+                    'total_pages' => 0,
+                    'current_page' => 1,
+                    'per_page' => 25
+                ], 400);
+            }
+
+            $allData = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs, $search, $sub_payment);
+            $combinedData = $allData->sortBy('pos_invoice');
+
+            $total = $combinedData->count();
+            $totalPages = ceil($total / $perPage);
+
+            $data = $combinedData->skip(($page - 1) * $perPage)->take($perPage)->map(function ($row) {
+                $subPaymentText = '';
+                if ($row->sub_payment == 1) {
+                    $subPaymentText = 'CASH';
+                } elseif ($row->sub_payment == 2) {
+                    $subPaymentText = 'COD';
+                } elseif ($row->sub_payment == 3) {
+                    $subPaymentText = 'ON US';
+                } elseif ($row->sub_payment == 4) {
+                    $subPaymentText = 'OFF US';
+                } else {
+                    $subPaymentText = '-';
+                }
+
+                $isSettleText = '';
+                if ($row->is_settle) {
+                    $isSettleText = 'SETTLED';
+                } else {
+                    $isSettleText = 'UNSETTLED';
+                }
+
+                $posStatusText = $row->pos_status ?? '-';
+                if ($posStatusText === 'REFUND') {
+                    $posStatusText = 'Refund';
+                } elseif ($posStatusText === 'DONE') {
+                    $posStatusText = 'DONE';
+                } elseif ($posStatusText === 'DP') {
+                    $posStatusText = 'DP';
+                }
+
+                return [
+                    'id' => $row->id,
+                    'is_partial' => $row->is_partial ?? 0,
+                    'date' => $row->date ? date('d/m/Y', strtotime($row->date)) : '-',
+                    'pos_invoice' => $row->pos_invoice ?? '-',
+                    'st_name' => $row->st_name ?? '-',
+                    'qty' => number_format($row->qty ?? 0),
+                    'netsales' => number_format($row->netsales ?? 0),
+                    'total_cogs' => number_format($row->total_cogs ?? 0),
+                    'pm_name' => $row->pm_name ?? '-',
+                    'sub_payment' => $subPaymentText,
+                    'pos_status' => $posStatusText,
+                    'is_settle' => $isSettleText,
+                    'netsales_raw' => $row->netsales ?? 0,
+                ];
+            })->values()->all();
+
+            $no = ($page - 1) * $perPage + 1;
+            foreach ($data as &$row) {
+                $row['no'] = $no++;
+            }
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'current_page' => (int) $page,
+                'per_page' => (int) $perPage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0,
+                'total_pages' => 0,
+                'current_page' => 1,
+                'per_page' => 25
+            ], 500);
+        }
     }
 }

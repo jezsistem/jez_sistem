@@ -50,21 +50,15 @@ class AttendanceController extends Controller
         }
 
         try {
-            \Log::info('validateAccess - Starting', [
-                'user_id' => Auth::user()->id,
-                'segment_1' => request()->segment(1),
-                'segment_2' => request()->segment(2)
-            ]);
+            $segment = request()->segment(1);
+            // For v2 pages, strip _v2 suffix to get the original slug (same as old page)
+            $slugToCheck = str_replace('_v2', '', $segment);
 
             $validate = DB::table('user_menu_accesses')
                 ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                     'u_id' => Auth::user()->id,
-                    'ma_slug' => request()->segment(1)
+                    'ma_slug' => $slugToCheck
                 ])->exists();
-
-            \Log::info('validateAccess - Result', [
-                'validate' => $validate
-            ]);
 
             if (!$validate) {
                 dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
@@ -1131,7 +1125,7 @@ class AttendanceController extends Controller
             'segment' => request()->segment(1)
         ];
 
-        return view('app.attendance.staff_detail', compact('staff', 'data'));
+        return view('app.attendance.staff_detailstaff_detail', compact('staff', 'data'));
     }
 
     public function staffDatatables($user_id)
@@ -4319,5 +4313,422 @@ class AttendanceController extends Controller
                 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * V2 - Updated version with Tailwind CSS
+     */
+    public function indexUpdated(Request $request)
+    {
+        $this->validateAccess();
+
+        $title = 'Attendance';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+
+        // Handle date filter
+        $startDate = $request->get('start_date', date('Y-m-d'));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+        $dateFilter = $request->get('date_filter', 'this_week');
+
+        // If date filter is provided, calculate dates
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+
+        $attendance = new Attendance();
+        $stats = $attendance->getAttendanceStats(
+            $startDate,
+            $endDate,
+            $request->get('user_id')
+        );
+
+        $users = DB::table('users')->where('u_delete', '!=', '1')->get();
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->get();
+        $leaveTypes = DB::table('leave_types')->where('lt_is_active', 1)->get();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', 'attendance')->first()->ma_title ?? 'Attendance',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'attendance',
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter
+        ];
+
+        return view('app.updated_attendance.index', compact('users', 'divisions', 'leaveTypes', 'stats', 'data', 'startDate', 'endDate', 'dateFilter'));
+    }
+
+    public function getDatatablesForSimple(Request $request)
+    {
+        $search = $request->get('search', '');
+        $startDate = $request->get('start_date', date('Y-m-d'));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+        $userId = $request->get('user_id', '');
+        $divisionId = $request->get('division_id', '');
+        $status = $request->get('status', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+
+        $query = DB::table('attendance')
+            ->select([
+                'attendance.*',
+                'users.u_name',
+                'users.u_nip',
+                'user_divisions.ud_name',
+                'shift_codes.sc_code',
+                'shift_codes.sc_shift_name'
+            ])
+            ->leftJoin('users', 'users.id', '=', 'attendance.user_id')
+            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->leftJoin('daily_schedules', 'daily_schedules.id', '=', 'attendance.daily_schedule_id')
+            ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id');
+
+        if (!empty($startDate)) {
+            $query->where('attendance.at_date', '>=', $startDate);
+        }
+        if (!empty($endDate)) {
+            $query->where('attendance.at_date', '<=', $endDate);
+        }
+        if (!empty($userId)) {
+            $query->where('attendance.user_id', $userId);
+        }
+        if (!empty($divisionId)) {
+            $query->where('users.ud_id', $divisionId);
+        }
+        if (!empty($status)) {
+            $query->where('attendance.at_status', $status);
+        }
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('users.u_name', 'LIKE', "%{$search}%")
+                  ->orWhere('users.u_nip', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $total = $query->count();
+        $data = $query->orderByDesc('attendance.at_date')
+            ->orderByDesc('attendance.created_at')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function getStatsForSimple(Request $request)
+    {
+        $startDate = $request->get('start_date', date('Y-m-d'));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+        $userId = $request->get('user_id', '');
+
+        $attendance = new Attendance();
+        $stats = $attendance->getAttendanceStats($startDate, $endDate, $userId);
+
+        return response()->json($stats);
+    }
+
+    public function summaryReportUpdated(Request $request)
+    {
+        $this->validateAccess();
+
+        $title = 'Attendance Summary Report';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+
+        // Handle date filter
+        $dateFilter = $request->get('date_filter', 'this_week');
+
+        if ($dateFilter === 'custom') {
+            $startDate = $request->get('start_date', date('Y-m-01'));
+            $endDate = $request->get('end_date', date('Y-m-t'));
+        } else {
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+
+            if (empty($startDate) || empty($endDate)) {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+        }
+
+        // Get summary data
+        $summaryData = $this->getAttendanceSummary($startDate, $endDate, $request->get('division_id'));
+
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->get();
+
+        // Calculate statistics
+        $summaryStats = [
+            'total_staff' => $summaryData->count(),
+            'total_shifts' => $summaryData->sum('total_shifts') ?? 0,
+            'late_days' => $summaryData->sum('late_days') ?? 0,
+            'scan_once_days' => $summaryData->sum('scan_once_days') ?? 0,
+            'alpha_days' => $summaryData->sum('alpha_days') ?? 0,
+        ];
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Attendance Summary Report',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'attendance',
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateFilter' => $dateFilter
+        ];
+
+        return view('app.updated_attendance.summary_report', compact('divisions', 'data', 'summaryStats', 'startDate', 'endDate', 'dateFilter'));
+    }
+
+    public function getSummaryReportDatatablesForSimple(Request $request)
+    {
+        $search = $request->get('search', '');
+        $startDate = $request->get('start_date', date('Y-m-01'));
+        $endDate = $request->get('end_date', date('Y-m-t'));
+        $divisionId = $request->get('division_id', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+
+        // Get summary data
+        $summaryData = $this->getAttendanceSummary($startDate, $endDate, $divisionId);
+
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $summaryData = $summaryData->filter(function ($item) use ($search) {
+                return stripos($item->u_name, $search) !== false ||
+                    stripos($item->u_nip, $search) !== false;
+            });
+        }
+
+        $total = $summaryData->count();
+        $data = $summaryData->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function staffDetailUpdated($user_id)
+    {
+        $this->validateAccess();
+
+        $title = 'Staff Attendance Detail';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+
+        $staff = DB::table('users')
+            ->leftJoin('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->select('users.*', 'user_divisions.ud_name')
+            ->where('users.id', $user_id)
+            ->first();
+
+        if (!$staff) {
+            abort(404, 'Staff not found');
+        }
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Attendance Details',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'attendance'
+        ];
+
+        return view('app.updated_attendance.staff_detail', compact('staff', 'data'));
+    }
+
+    public function getStaffDatatablesForSimple($user_id, Request $request)
+    {
+        $search = $request->get('search', '');
+        $startDate = $request->get('start_date', date('Y-m-d', strtotime('-30 days')));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+        $status = $request->get('status', '');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 25);
+
+        $query = DB::table('attendance')
+            ->leftJoin('users', 'attendance.user_id', '=', 'users.id')
+            ->leftJoin('daily_schedules', 'attendance.daily_schedule_id', '=', 'daily_schedules.id')
+            ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+            ->select([
+                'attendance.id',
+                'attendance.at_date',
+                'attendance.at_time_in',
+                'attendance.at_time_out',
+                'attendance.at_status',
+                'attendance.at_notes',
+                'shift_codes.sc_code',
+                'shift_codes.sc_shift_name',
+                'shift_codes.sc_start_time',
+                'shift_codes.sc_end_time'
+            ])
+            ->where('attendance.user_id', $user_id);
+
+        if (!empty($startDate)) {
+            $query->where('attendance.at_date', '>=', $startDate);
+        }
+        if (!empty($endDate)) {
+            $query->where('attendance.at_date', '<=', $endDate);
+        }
+        if (!empty($status)) {
+            $query->where('attendance.at_status', $status);
+        }
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('attendance.at_date', 'LIKE', "%{$search}%")
+                  ->orWhere('shift_codes.sc_code', 'LIKE', "%{$search}%")
+                  ->orWhere('attendance.at_status', 'LIKE', "%{$search}%")
+                  ->orWhere('attendance.at_notes', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $total = $query->count();
+        $data = $query->orderByDesc('attendance.at_date')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'data' => $data,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage)
+        ]);
+    }
+
+    public function getStaffStatsForSimple($user_id, Request $request)
+    {
+        $startDate = $request->get('start_date', date('Y-m-d', strtotime('-30 days')));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+
+        $query = DB::table('attendance')
+            ->where('user_id', $user_id)
+            ->whereBetween('at_date', [$startDate, $endDate]);
+
+        $stats = [
+            'total_shifts' => (clone $query)->whereNotNull('daily_schedule_id')->count(),
+            'present_days' => (clone $query)->where('at_status', 'present')->count(),
+            'total_libur' => (clone $query)->whereNull('daily_schedule_id')->count(),
+            'sick_days' => (clone $query)->where('at_status', 'leave_SICK')->count(),
+            'leave_days' => (clone $query)->where('at_status', 'like', 'leave_%')->where('at_status', '!=', 'leave_SICK')->count(),
+            'late_days' => (clone $query)->where('at_status', 'late')->count(),
+            'scan_once_days' => (clone $query)->where('at_status', 'scan_once')->count(),
+            'alpha_days' => 0 // Will be calculated separately
+        ];
+
+        // Calculate alpha days
+        $alphaDates = $this->getStaffAlphaDatesForSimple($user_id, $startDate, $endDate);
+        $stats['alpha_days'] = count($alphaDates);
+
+        return response()->json($stats);
+    }
+
+    private function getStaffAlphaDatesForSimple($user_id, $startDate, $endDate)
+    {
+        // Get all dates with shifts (not day off) in the range
+        $datesWithShifts = DB::table('daily_schedules')
+            ->where('user_id', $user_id)
+            ->whereBetween('ds_date', [$startDate, $endDate])
+            ->whereIn('ds_status', ['scheduled', 'active'])
+            ->pluck('ds_date')
+            ->toArray();
+
+        // Get dates with attendance (present, late, etc)
+        $datesWithAttendance = DB::table('attendance')
+            ->where('user_id', $user_id)
+            ->whereBetween('at_date', [$startDate, $endDate])
+            ->whereIn('at_status', ['present', 'late', 'early_leave', 'scan_once'])
+            ->pluck('at_date')
+            ->toArray();
+
+        // Get dates with leave
+        $datesWithLeave = DB::table('attendance')
+            ->where('user_id', $user_id)
+            ->whereBetween('at_date', [$startDate, $endDate])
+            ->where('at_status', 'like', 'leave_%')
+            ->pluck('at_date')
+            ->toArray();
+
+        // Get dates with sick
+        $datesWithSick = DB::table('attendance')
+            ->where('user_id', $user_id)
+            ->whereBetween('at_date', [$startDate, $endDate])
+            ->where('at_status', 'leave_SICK')
+            ->pluck('at_date')
+            ->toArray();
+
+        // Alpha = dates with shifts but no attendance, no leave, no sick
+        $alphaDates = array_diff($datesWithShifts, $datesWithAttendance, $datesWithLeave, $datesWithSick);
+
+        return array_values($alphaDates);
+    }
+
+    public function getStaffAlphaDatesForSimpleAPI($user_id, Request $request)
+    {
+        $startDate = $request->get('start_date', date('Y-m-d', strtotime('-30 days')));
+        $endDate = $request->get('end_date', date('Y-m-d'));
+
+        $alphaDates = $this->getStaffAlphaDatesForSimple($user_id, $startDate, $endDate);
+
+        return response()->json(['dates' => $alphaDates]);
+    }
+
+    public function createUpdated()
+    {
+        $this->validateAccess();
+
+        $title = 'Create Attendance';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+
+        $users = DB::table('users')->where('u_delete', '!=', '1')->get();
+        $leaveTypes = DB::table('leave_types')->where('lt_is_active', 1)->get();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Create New Attendance',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'attendance'
+        ];
+
+        return view('app.updated_attendance.create', compact('users', 'leaveTypes', 'data'));
+    }
+
+    public function uploadUpdated()
+    {
+        $this->validateAccess();
+
+        $title = 'Upload Attendance Excel';
+        $user = auth()->user();
+        $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
+
+        $data = [
+            'title' => $title,
+            'subtitle' => 'Upload Attendance Excel',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => 'attendance'
+        ];
+
+        return view('app.updated_attendance.upload', compact('data'));
     }
 }
