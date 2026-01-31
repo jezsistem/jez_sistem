@@ -1451,7 +1451,7 @@ class BreakTimeController extends Controller
         $breakAllowance = 0;
         
         // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
-        if (in_array($shiftCode, ['PF', 'PF0', 'PFM'])) {
+        if (in_array($shiftCode, ['PF', 'PF0', 'PFM', 'PTF'])) {
             $breakAllowance = 2; // 2 breaks for PF, PF0, PFM (30 minutes each)
         } else {
             // Regular logic based on shift type
@@ -2117,7 +2117,7 @@ class BreakTimeController extends Controller
                     $shiftCode = $dailySchedule->sc_code; // Get shift code for special cases
                     
                     // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
-                    if (in_array($shiftCode, haystack: ['PF', 'PF0', 'PFM'])) {
+                    if (in_array($shiftCode, haystack: ['PF', 'PF0', 'PFM', 'PTF'])) {
                         // For PF, PF0, PFM: 2 breaks of 30 minutes each
                         $breakDuration = 30; // 30 minutes per break
                         // Note: User can do break_1 and break_2 (2 breaks total)

@@ -1,83 +1,124 @@
 @extends('app.structure')
-@section('content')
-<!--begin::Content-->
-<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    <!--begin::Subheader-->
-    <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
-        <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
-            <!--begin::Info-->
-            <div class="d-flex align-items-center flex-wrap mr-1">
-                <!--begin::Page Heading-->
-                <div class="d-flex align-items-baseline flex-wrap mr-5">
-                    <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
-                    <!--end::Page Title-->
+@section('content')
+    <!--begin::Content-->
+    <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+        <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
+            <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+                <div class="d-flex align-items-center flex-wrap mr-1">
+                    <div class="d-flex align-items-baseline flex-wrap mr-5">
+                        <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
+                    </div>
                 </div>
-                <!--end::Page Heading-->
             </div>
-            <!--end::Info-->
         </div>
-    </div>
-    <!--end::Subheader-->
-    <!--begin::Entry-->
-    <div class="d-flex flex-column-fluid">
-        <!--begin::Container-->
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 col-xxl-12">
-                    <!--begin::Card-->
-                    <div class="card card-custom gutter-b">
-                        <div class="card-header flex-wrap py-3">
-                            <div class="card-toolbar">
-                                <!--begin::Button-->
-                                <a href="#" class="btn btn-dark font-weight-bolder" id="add_whatsapp_btn">
-                                <span class="svg-icon svg-icon-md">
-                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
-                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                            <rect x="0" y="0" width="24" height="24" />
-                                            <circle fill="#000000" cx="9" cy="15" r="6" />
-                                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z" fill="#000000" opacity="0.3" />
-                                        </g>
-                                    </svg>
-                                    <!--end::Svg Icon-->
-                                </span>Data Baru</a>
-                                <!--end::Button-->
+
+        <!--begin::Entry-->
+        <div class="d-flex flex-column-fluid">
+            <div class="container">
+
+                <div class="row">
+                    <div class="col-lg-12 col-xxl-12">
+
+                        <div class="card card-custom gutter-b">
+                            <div class="card-header">
+                                <h3 class="card-title">WhatsApp Connection</h3>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row">
+
+                                    <!-- ===================== KIRI (QR CODE) ===================== -->
+                                    <div class="col-md-6 text-center">
+
+                                        <h5>Scan Barcode WhatsApp Anda</h5>
+                                        <div id="qr_box" class="p-5 border rounded" style="min-height:300px;">
+                                            <span class="text-muted">Menunggu QR...</span>
+                                        </div>
+
+                                        <button class="btn btn-secondary mt-5" id="wa_action_btn">
+                                            Reload Barcode
+                                        </button>
+                                    </div>
+
+                                    <!-- ===================== KANAN (INFO AKUN) ===================== -->
+                                    <div class="col-md-6">
+
+
+                                        <div id="wa-info-section">
+                                            <div class="form-group">
+                                                <label>Nama WhatsApp</label>
+                                                <input type="text" id="wa-name" class="form-control" disabled>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Nomor WhatsApp</label>
+                                                <input type="text" id="wa-number" class="form-control" disabled>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Status</label>
+                                                <input type="text" id="wa-status-text" class="form-control" disabled>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
                             </div>
                         </div>
-                        <div class="card-body table-responsive">
-                            <!--begin: Datatable-->
-                            <input type="search" class="form-control  col-6" id="whatsapp_search" placeholder="Cari penerima"/><br/>
-                            <table class="table table-hover table-checkable" id="Watb">
-                                <thead class="bg-light text-dark">
-                                    <tr>
-                                        <th class="text-dark">No</th>
-                                        <th class="text-dark">Penerima</th>
-                                        <th class="text-dark">No WA</th>
-                                        <th class="text-dark">Status</th>
-                                        <th class="text-dark">Dikirim</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
 
-                                </tbody>
-                            </table>
-                            <!--end: Datatable-->
-                        </div>
                     </div>
-                    <!--end::Card-->
                 </div>
+
             </div>
         </div>
-        <!--end::Container-->
+        <!--begin::Card - LIST JOB BROADCAST-->
+
+        <div class="d-flex flex-column-fluid">
+            <div class="container">
+                <div class="card card-custom gutter-b mt-10">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title">Daftar Broadcast Job</h3>
+
+                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addJobModal">
+                            + Tambah Job
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+
+                        <table id="waJobTable" class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Job</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Interval (Jam)</th>
+                                <th>Batch Size</th>
+                                <th>Status</th>
+                                <th style="width: 100px">Aksi</th>
+                            </tr>
+                            </thead>
+                        </table>
+
+                    </div>
+                </div>
+                <!--end::Card-->
+            </div>
+        </div>
     </div>
-    <!--end::Entry-->
-</div>
-<!--end::Content-->
-@include('app.whatsapp.whatsapp_modal')
-@include('app._partials.js')
-@include('app.whatsapp.whatsapp_js')
-@endSection()
+    <!--end::Content-->
+
+    @include('app.whatsapp.whatsapp_modal')
+    @include('app._partials.js')
+    @include('app.whatsapp.whatsapp_js')
+
+@endsection

@@ -39,7 +39,7 @@
                 <div class="col-lg-12 col-xxl-12">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
-                        <div class="col-12 row justify-content-between">
+                        <div class="col-12 row justify-content-between mx-5 my-7">
                             <!--begin::Button-->
                             <select class="form-control col-sm-6 col-lg-2 bg-primary text-white" id="std_id"
                                 name="std_id">
@@ -70,8 +70,8 @@
                             </a>
                         </div> --}}
 
-                            <div class="col-sm-6 col-lg-4">
-                                <a class="btn btn-sm btn-light font-weight-bold bg-inventory"
+                            <div class="col-sm-6 col-lg-2">
+                                <a class="btn btn-sm btn-warning font-weight-bold"
                                     id="kt_dashboard_daterangepicker" data-toggle="tooltip"
                                     title="Select dashboard daterange" data-placement="left" style="cursor:pointer;">
                                     <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
@@ -80,9 +80,15 @@
                                 </a>
                             </div>
 
+                            <div class="col-sm-2 col-lg-2 text-left">
+                                <div class="btn btn-sm btn-primary font-weight-bold">
+                                    <h3>Total Trx: <span id="total_transactions">0</span></h3>
+                                </div>
+                            </div>
+
                             <!--end::Button-->
                             <a href="#" class="col-sm-6 col-lg-2 btn-sm btn-primary font-weight-bold"
-                                style="padding-top:14px;" id="check_invoice_btn">Check Invoice Baru Refund</a>
+                                style="padding-top:14px;margin-right: 20px;" id="check_invoice_btn">Check Invoice Baru Refund</a>
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
@@ -95,6 +101,7 @@
                                         <th class="text-dark">Invoice</th>
                                         <th class="text-dark">Kasir</th>
                                         <th class="text-dark">Customer</th>
+                                        <th class="text-dark">Customer Phone</th>
                                         <th class="text-dark">Divisi</th>
                                         <th class="text-dark">Tanggal</th>
                                         <th class="text-dark">Item</th>

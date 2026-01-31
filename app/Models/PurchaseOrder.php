@@ -12,6 +12,43 @@ class PurchaseOrder extends Model
     use HasFactory, Lockable;
     protected $table = 'purchase_orders';
 
+    protected $fillable = [
+        'st_id',
+        'ps_id',
+        'stkt_id',
+        'tax_id',
+        'dp_id',
+        'acc_id',
+        'po_invoice',
+        'po_shipping_cost',
+        'notes',
+        'po_discount',
+        'po_extra_discount',
+        'po_sub_discount',
+        'po_total_purchase',
+        'po_total_qty',
+        'po_payment_amount',
+        'po_description',
+        'dispute',
+        'status_dispute',
+        'dispute_description',
+        'bank_general',
+        'pay_date',
+        'due_date',
+        'po_delete',
+        'po_draft',
+        'putaway',
+        'is_receivable',
+        'claim_amount',
+        'po_status',
+        'finance_status',
+        'adjustment_amount',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at'
+    ];
+
     public function checkData($select, $where)
     {
         $affected = DB::table($this->table)

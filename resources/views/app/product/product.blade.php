@@ -192,6 +192,10 @@
                                     <button type="button" class="btn btn-warning font-weight-bolder ml-2" id="mass_update_product">
                                         Mass Update
                                     </button>
+
+                                    <button type="button" class="btn font-weight-bolder ml-2 text-white" style="background-color: green;" id="mass_img_product">
+                                        Mass Import Img
+                                    </button>
                                         
                                 </div>
                                 <!--end::Dropdown-->
@@ -311,9 +315,16 @@
                                 <!--begin: Datatable-->
                                 <div class="form-group" style="padding-top:22px;">
                                     <select class="form-control" id="p_active_filter" name="p_active_filter" required>
-                                        <option value="">- Status -</option>
+                                        <option value="">- Status Produk -</option>
                                         <option value="1">Aktif</option>
                                         <option value="0">Tidak Aktif</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="padding-top:22px;">
+                                    <select class="form-control" id="p_photo_status_filter" name="p_photo_status_filter" required>
+                                        <option value="">- Status Foto -</option>
+                                        <option value="1">Sudah Upload</option>
+                                        <option value="0">Belum Upload</option>
                                     </select>
                                 </div>
                                 <!--end: Datatable-->

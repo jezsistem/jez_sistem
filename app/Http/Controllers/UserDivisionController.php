@@ -136,7 +136,8 @@ class UserDivisionController extends Controller
             'ud_code' => 'required|unique:user_divisions,ud_code',
             'ud_name' => 'required|string|max:255',
             'ud_description' => 'nullable|string',
-            'ud_status' => 'required|in:active,inactive'
+            'ud_status' => 'required|in:active,inactive',
+            'division_type' => 'nullable|string|in:FRONTLINE,BACKOFFICE'
         ]);
 
         $data = [
@@ -145,7 +146,8 @@ class UserDivisionController extends Controller
             'lead_id' => $request->lead_id,
             'manager_id' => $request->manager_id,
             'ud_description' => $request->ud_description,
-            'ud_status' => $request->ud_status
+            'ud_status' => $request->ud_status,
+            'division_type' => $request->division_type
         ];
 
         $userDivision = new UserDivision();
@@ -252,7 +254,8 @@ class UserDivisionController extends Controller
             'ud_code' => 'required|unique:user_divisions,ud_code,' . $id,
             'ud_name' => 'required|string|max:255',
             'ud_description' => 'nullable|string',
-            'ud_status' => 'required|in:active,inactive'
+            'ud_status' => 'required|in:active,inactive',
+            'division_type' => 'nullable|string|in:FRONTLINE,BACKOFFICE'
         ]);
 
         $data = [
@@ -261,7 +264,8 @@ class UserDivisionController extends Controller
             'ud_description' => $request->ud_description,
             'lead_id' => $request->lead_id,
             'manager_id' => $request->manager_id,
-            'ud_status' => $request->ud_status
+            'ud_status' => $request->ud_status,
+            'division_type' => $request->division_type
         ];
 
         $userDivision = new UserDivision();
@@ -315,7 +319,8 @@ class UserDivisionController extends Controller
                     'ud_description',
                     'leader_users.u_name as leader_name',
                     'manager_users.u_name as manager_name',
-                    'ud_status'
+                    'ud_status',
+                    'division_type'
                 ])
                 ->leftJoin('users as leader_users', 'leader_users.id', '=', 'user_divisions.lead_id')
                 ->leftJoin('users as manager_users', 'manager_users.id', '=', 'user_divisions.manager_id')

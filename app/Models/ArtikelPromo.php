@@ -18,7 +18,10 @@ class ArtikelPromo extends Model
         'date_end',
         'promo_type',
         'promo_disc',
-        'promo_note'
+        'promo_note',
+        'discounted_price',
+        'price_diff',
+        'created_at'
     ];
 
     public function checkData($select, $where)

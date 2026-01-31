@@ -115,7 +115,7 @@ class PurchaseOrderReceiveCODController extends Controller
                     ts_purchase_orders.stkt_id,
                     ts_purchase_orders.tax_id,
                     ts_stock_types.stkt_name,
-                    ts_taxes.tx_name")
+                    ts_taxes.tx_name, ts_purchase_orders.po_payment_amount as payment_amount") // Ensure all fields are included
                 ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')

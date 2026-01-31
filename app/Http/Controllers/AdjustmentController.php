@@ -13,6 +13,7 @@ use App\Models\ProductLocationSetup;
 use App\Models\BinAdjustment;
 use App\Models\UserActivity;
 use App\Models\Store;
+use Illuminate\Support\Facades\Storage;
 
 class AdjustmentController extends Controller
 {
@@ -156,7 +157,7 @@ class AdjustmentController extends Controller
     public function adjustmentHistoryDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name', 'ba_approve', 'ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.updated_at as ba_updated_at', 'ba_status','ba_cogs as cogs')
+            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'ba_proof_file','pls_id', 'st_name', 'pl_code', 'u_name', 'ba_approve', 'ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.updated_at as ba_updated_at', 'ba_status','ba_cogs as cogs')
                 ->leftJoin('users', 'users.id', '=', 'bin_adjustments.u_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'bin_adjustments.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -208,6 +209,13 @@ class AdjustmentController extends Controller
                 ->editColumn('ba_updated_at', function ($data) {
                     return date('d-m-Y H:i:s', strtotime($data->ba_updated_at));
                 })
+                ->editColumn('ba_proof_file', function ($data) {
+                    if(!empty($data->ba_proof_file)){
+                        return "<a href='https://nos.wjv-1.neo.id/$data->ba_proof_file' target='_blank' data-id='" . $data->id . "'>View Files</a>";
+                    } else{
+                        return '-';
+                    }
+                })
                 ->editColumn('adjust', function ($data) {
                     if ($data->ba_adjust_type == '+') {
                         return '<span class="btn btn-sm btn-success" style="white-space: nowrap;">' . $data->ba_adjust_type . ' ' . $data->ba_adjust . '</span>';
@@ -215,7 +223,7 @@ class AdjustmentController extends Controller
                         return '<span class="btn btn-sm btn-danger" style="white-space: nowrap;">' . $data->ba_adjust_type . ' ' . $data->ba_adjust . '</span>';
                     }
                 })
-                ->rawColumns(['pl_code', 'article', 'adjust', 'ba_status'])
+                ->rawColumns(['pl_code', 'article', 'adjust', 'ba_status', 'ba_proof_file'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->status)) {
                         $instance->where('ba_status', '=', $request->status);
@@ -493,6 +501,101 @@ class AdjustmentController extends Controller
         return json_encode($r);
     }
 
+//    public function addArticle(Request $request)
+//    {
+//        $pls_qty = $request->_pls_qty;
+//        $pst_id = $request->_pst_id;
+//        $article_note = $request->_article_note;
+//        $bin = $request->_bin;
+//        $pl_id = $bin;
+//        $check_location = ProductLocationSetup::where(['pst_id' => $pst_id, 'pl_id' => $pl_id])->exists();
+//        $cogs = ProductStock::select('ps_purchase_price')->where('id', $pst_id)->get()->first()->ps_purchase_price;
+//        if ($check_location) {
+//            $pls = ProductLocationSetup::select('id', 'pls_qty')->where(['pst_id' => $pst_id, 'pl_id' => $pl_id])->get()->first();
+//            $pls_id = $pls->id;
+//            $pls_current_qty = $pls->pls_qty;
+//            $ba_code = 'ADJ' . date('YmdHis');
+//
+//
+//            $store = ProductLocation::select('st_name')
+//                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+//                ->where('product_locations.id', $pl_id)
+//                ->first();
+//
+//            $aliases = [
+//                'JEZ MALANG' => 'MLG',
+//                'EVENT JEZ MALANG' => 'MLG',
+//                'EVENT JEZ SURABAYA' => 'SBY',
+//                'JEZ SURABAYA' => 'SBY',
+//                'JEZ KEDIRI' => 'KDR',
+//                'JEZ JEMBER' => 'JBR',
+//                'JEZ SIDOARJO' => 'SDA',
+//                'EVENT JEZ SIDOARJO' => 'SDA'
+//            ];
+//
+//            $st_name = $store->st_name ?? '';
+//            $alias = $aliases[$st_name] ?? $st_name;
+//            $final_note = $alias . ' - ' . ($article_note ?: '-');
+//
+//            $bin_history = BinAdjustment::create([
+//                'pls_id' => $pls_id,
+//                'pst_id' => $pst_id,
+//                'u_id' => Auth::user()->id,
+//                'ba_code' => $ba_code,
+//                'ba_cogs' => $cogs,
+//                'ba_old_qty' => $pls_current_qty,
+//                'ba_new_qty' => $pls_current_qty + $pls_qty,
+//                'ba_adjust' => $pls_qty,
+//                'ba_adjust_type' => '+',
+//                'ba_note' => $final_note,
+//                'ba_status' => BinAdjustment::NEED_APPROVAL,
+//                'created_at' => date('Y-m-d H:i:s')
+//            ]);
+//            if (!empty($bin_history)) {
+//                $r['status'] = '200';
+//            } else {
+//                $r['status'] = '400';
+//            }
+//        } else {
+//            $insert_id = DB::table('product_location_setups')->insertGetId([
+//                'pst_id' => $pst_id,
+//                'pl_id' => $pl_id,
+//                'pls_qty' => 0,
+//                'created_at' => date('Y-m-d H:i:s')
+//            ]);
+//            if (!empty($insert_id)) {
+//                $ba_code = 'ADJ' . date('YmdHis');
+//                $bin_history = BinAdjustment::create([
+//                    'pls_id' => $insert_id,
+//                    'pst_id' => $pst_id,
+//                    'u_id' => Auth::user()->id,
+//                    'ba_code' => $ba_code,
+//                    'ba_cogs' => $cogs,
+//                    'ba_old_qty' => '0',
+//                    'ba_new_qty' => $pls_qty,
+//                    'ba_adjust' => $pls_qty,
+//                    'ba_adjust_type' => '+',
+//                    'ba_note' => $article_note,
+//                    'ba_status' => BinAdjustment::NEED_APPROVAL,
+//                    'created_at' => date('Y-m-d H:i:s')
+//                ]);
+//                if (!empty($bin_history)) {
+//                    $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+//                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                        ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                        ->where('product_stocks.id', $pst_id)
+//                        ->get()->first();
+//                    $this->UserActivity('menambah artikel [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $bin);
+//                    $r['status'] = '200';
+//                } else {
+//                    $r['status'] = '400';
+//                }
+//            }
+//        }
+//        return json_encode($r);
+//    }
+
     public function addArticle(Request $request)
     {
         $pls_qty = $request->_pls_qty;
@@ -500,14 +603,42 @@ class AdjustmentController extends Controller
         $article_note = $request->_article_note;
         $bin = $request->_bin;
         $pl_id = $bin;
-        $check_location = ProductLocationSetup::where(['pst_id' => $pst_id, 'pl_id' => $pl_id])->exists();
-        $cogs = ProductStock::select('ps_purchase_price')->where('id', $pst_id)->get()->first()->ps_purchase_price;
+
+        // === Tambahan: Upload File ke S3 (Jika Ada File) ===
+        $uploadedProof = null;
+        $bucketName = config('filesystems.disks.s3.bucket');
+        $userId = Auth::user()->id;
+
+        if ($request->hasFile('proof_file')) {
+            $file = $request->file('proof_file');
+            $fileName = $userId . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            // simpan ke S3
+            $path = $file->storeAs('adjustment_proofs', $fileName, 's3');
+
+            $uploadedProof = $bucketName . '/' . $path;
+        }
+        // === End Upload ===
+
+        $check_location = ProductLocationSetup::where([
+            'pst_id' => $pst_id,
+            'pl_id' => $pl_id
+        ])->exists();
+
+        $cogs = ProductStock::select('ps_purchase_price')
+            ->where('id', $pst_id)
+            ->first()
+            ->ps_purchase_price;
+
         if ($check_location) {
-            $pls = ProductLocationSetup::select('id', 'pls_qty')->where(['pst_id' => $pst_id, 'pl_id' => $pl_id])->get()->first();
+
+            $pls = ProductLocationSetup::select('id', 'pls_qty')
+                ->where(['pst_id' => $pst_id, 'pl_id' => $pl_id])
+                ->first();
+
             $pls_id = $pls->id;
             $pls_current_qty = $pls->pls_qty;
             $ba_code = 'ADJ' . date('YmdHis');
-
 
             $store = ProductLocation::select('st_name')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
@@ -540,23 +671,29 @@ class AdjustmentController extends Controller
                 'ba_adjust' => $pls_qty,
                 'ba_adjust_type' => '+',
                 'ba_note' => $final_note,
+                'ba_proof_file' => $uploadedProof, // <==== FILE DISIMPAN DI SINI
                 'ba_status' => BinAdjustment::NEED_APPROVAL,
                 'created_at' => date('Y-m-d H:i:s')
             ]);
+
             if (!empty($bin_history)) {
                 $r['status'] = '200';
             } else {
                 $r['status'] = '400';
             }
+
         } else {
+
             $insert_id = DB::table('product_location_setups')->insertGetId([
                 'pst_id' => $pst_id,
                 'pl_id' => $pl_id,
                 'pls_qty' => 0,
                 'created_at' => date('Y-m-d H:i:s')
             ]);
+
             if (!empty($insert_id)) {
                 $ba_code = 'ADJ' . date('YmdHis');
+
                 $bin_history = BinAdjustment::create([
                     'pls_id' => $insert_id,
                     'pst_id' => $pst_id,
@@ -568,23 +705,30 @@ class AdjustmentController extends Controller
                     'ba_adjust' => $pls_qty,
                     'ba_adjust_type' => '+',
                     'ba_note' => $article_note,
+                    'ba_proof_file' => $uploadedProof,
                     'ba_status' => BinAdjustment::NEED_APPROVAL,
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
+
                 if (!empty($bin_history)) {
                     $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
                         ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                         ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where('product_stocks.id', $pst_id)
-                        ->get()->first();
-                    $this->UserActivity('menambah artikel [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $bin);
+                        ->first();
+
+                    $this->UserActivity('menambah artikel [' . $item->br_name . '] ' .
+                        $item->p_name . ' ' . $item->p_color . ' ' .
+                        $item->sz_name . ' pada BIN ' . $bin);
+
                     $r['status'] = '200';
                 } else {
                     $r['status'] = '400';
                 }
             }
         }
+
         return json_encode($r);
     }
 

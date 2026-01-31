@@ -1,4 +1,131 @@
 <script>
+    let chat_status = 'closed';
+    let ot_id = null;
+
+    function openChat($trx_id) {
+        jQuery.noConflict();
+        $('#chatModal').modal('show');
+        // Get trx_number from the button's data attribute and update the modal title
+        var trx_number = $(event.target).closest('button').data('trx_number');
+        $('.trx_number_title').text(trx_number);
+        setChatOpenStatus();
+        ot_id = $trx_id;
+        getChatData(ot_id);
+    }
+
+    function closeChat() {
+        jQuery.noConflict();
+        $('#chatModal').modal('hide');
+        setChatOpenStatus();
+        ot_id = null;
+    }
+
+    function setChatOpenStatus() {
+        if (chat_status == 'closed') {
+            chat_status = 'opened'
+        } else {
+            chat_status = 'closed'
+        }
+    }
+
+    function startChatPolling() {
+        setInterval(function() {
+            if (chat_status === 'opened' && ot_id !== null) {
+                getChatData(ot_id);
+            }
+        }, 5000);
+    }
+
+    function getChatData($ot_id) {
+        $.ajax({
+            url: "{{ url('get_chat_history_online_transaction') }}/" + $ot_id,
+            type: 'GET',
+            data: {
+                is_amp: 0,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.status === '200') {
+                    var chatHistory = response.data;
+                    var chatContainer = $('.chat-messages');
+                    chatContainer.empty(); // Clear existing messages
+
+                    chatHistory.forEach(function(chat) {
+                        var messageElement;
+
+                        if (chat.is_amp == 0) {
+                            // Sent message (You)
+                            messageElement = $(`
+                                <div class="d-flex justify-content-end mb-3">
+                                    <div class="bg-danger text-white rounded px-6 py-2" style="max-width: 70%;">
+                                        <small class="text-light font-weight-bold">${chat.u_name ? chat.u_name : 'You'}</small>
+                                        <p class="mb-1">${chat.messages}</p>
+                                        <small class="text-light">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                                    </div>
+                                </div>
+                            `);
+                        } else {
+                            // Received message (Other user)
+                            messageElement = $(`
+                                <div class="d-flex justify-content-start mb-3">
+                                    <div class="bg-secondary border rounded px-6 py-2" style="max-width: 70%;">
+                                        <small class="text-muted font-weight-bold">${chat.u_name ? chat.u_name : 'User'}</small>
+                                        <p class="mb-1">${chat.messages}</p>
+                                        <small class="text-muted">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                                    </div>
+                                </div>
+                            `);
+                        }
+
+                        chatContainer.append(messageElement);
+                    });
+
+                    // Scroll to the bottom of the chat container
+                    chatContainer.scrollTop(chatContainer[0].scrollHeight);
+                } else {
+                    toastr.error('Failed to load chat history. Please try again.');
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error('An error occurred while fetching chat history. Please try again.');
+                console.error('Error fetching chat history:', error);
+            }
+        });
+
+    }
+
+    function sendChatMessage() {
+        var message = $('#text_input').val();
+        var ot_id_new = ot_id; // Use JavaScript variable, not PHP variable
+
+        if (message.trim() === '') {
+            return;
+        }
+
+        $.ajax({
+            url: "{{ url('send_chat_history_online_transaction') }}",
+            type: 'POST',
+            data: {
+                ot_id: ot_id_new,
+                message: message,
+                is_amp: 0,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.status === '200') {
+                    // Show success toast
+                    toastr.success('Message sent successfully!');
+                    $('#text_input').val('');
+                    // Refresh chat data
+                    getChatData(ot_id);
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error('Failed to send message. Please try again.');
+                console.error('Error sending message:', error);
+            }
+        });
+    }
 
 
     function loadStorageAreas() {
@@ -1453,10 +1580,12 @@
         let qty = $(this).data('qty');
         let sku = $(this).data('sku');
         let p_name = $(this).data('p_name');
+        let req_qty = $(this).data('qty')
 
         console.log("SKU:", sku);
 
         $('#sku_selected').text(sku);
+        $('#qty_selected').text(req_qty);
 
         // AJAX ambil data BIN
         $.ajax({
@@ -1514,7 +1643,7 @@
         $('#binTable tbody tr').each(function () {
             let binText = $(this).find('td:first').text().toLowerCase();
 
-            if (binText.includes(searchText)) {
+            if (binText === searchText) {
                 $(this).show();
                 matchingRows.push(this);
             } else {
@@ -1544,74 +1673,113 @@
 
                 // var sku_send = $('#sku_send').val(validSku)
 
+                let selectedQty = 1;
+                let request_qty = document.getElementById('qty_selected').textContent;
+
                 $('#sku_search').focus().on('keyup', function (e) {
                     if (e.key === 'Enter') {
                         let enteredSku = $(this).val();
 
-                        if (enteredSku === validSku) {
-                            swal({
-                                title: "Keluar..?",
-                                text: "Yakin keluarin produk " + product_name + " dari BIN " + bin_name + " ?",
-                                icon: "warning",
-                                buttons: [
-                                    'Batal',
-                                    'Yakin'
-                                ],
-                                dangerMode: false,
-                            }).then(function(isConfirm) {
-                                if (isConfirm) {
-                                    $.ajaxSetup({
-                                        headers: {
-                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                        }
-                                    });
-
-                                    $.ajax({
-                                        type: "POST",
-                                        data: {
-                                            // cari ini
-                                            _sku: enteredSku,
-                                            _bin: bin,
-                                            _bin_id: bin_id,
-                                            _plst_qty: 1,
-                                            _plst_id: plst_id,
-                                            _status: status
-                                        },
-                                        dataType: 'json',
-                                        url: "{{ url('save_out_activity_bin_selected') }}",
-                                        success: function(r) {
-                                            if (r.status == '200') {
-                                                out_table.draw();
-                                                $('#binModal').modal('hide');
-
-                                                $('#sku_send').val('');
-                                                $('#bin_out_search').val('');
-                                                $('#binTable tbody').empty();
-                                                $('#sku_search').remove();
-                                                $('#bin_out_search').prop('disabled', false);
-
-                                                swal({
-                                                    title: 'Berhasil',
-                                                    text: ' berhasil dikeluarkan',
-                                                    icon: 'success',
-                                                    button: 'OK',
-                                                });
-                                            } else {
-                                                swal('Gagal', 'Gagal keluar produk', 'error');
-                                            }
-                                        }
-                                    });
-                                }
-                            });
-                        } else {
+                        if (enteredSku !== validSku) {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'SKU tidak ditemukan',
                                 text: 'SKU tidak cocok dengan BIN yang dipilih!',
                             });
+                            return;
+                        }
+
+                        // JIKA REQUEST QTY > 1 → MODAL QTY
+                        if (request_qty > 1) {
+                            selectedQty = 1;
+                            $('#qtyValue').val(selectedQty);
+                            $('#qtyModal').modal('show');
+                        } else {
+                            confirmOutProduct(1);
                         }
                     }
                 });
+
+                $('#qtyPlus').on('click', function () {
+                    if (selectedQty < request_qty) {
+                        selectedQty++;
+                        $('#qtyValue').val(selectedQty);
+                    }
+                });
+
+                $('#qtyMinus').on('click', function () {
+                    if (selectedQty > 1) {
+                        selectedQty--;
+                        $('#qtyValue').val(selectedQty);
+                    }
+                });
+
+                $('#qtyConfirm').on('click', function () {
+                    $('#qtyModal').modal('hide');
+                    confirmOutProduct(selectedQty);
+                });
+
+                function confirmOutProduct(qty) {
+                    swal({
+                        title: "Keluar..?",
+                        text: "Yakin keluarin " + qty + " produk " + product_name + " dari BIN " + bin_name + " ?",
+                        icon: "warning",
+                        buttons: ['Batal', 'Yakin'],
+                        dangerMode: false,
+                    }).then(function(isConfirm) {
+
+                        if (!isConfirm) return;
+
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+
+                        Swal.fire({
+                            title: 'Loading...',
+                            text: 'Sedang memproses',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('save_out_activity_bin_selected') }}",
+                            dataType: 'json',
+                            data: {
+                                _sku: validSku,
+                                _bin: bin,
+                                _bin_id: bin_id,
+                                _plst_qty: qty,
+                                _plst_id: plst_id,
+                                _status: status
+                            },
+                            success: function(r) {
+                                Swal.close();
+
+                                if (r.status == '200') {
+                                    out_table.draw();
+                                    $('#binModal').modal('hide');
+
+                                    $('#sku_send').val('');
+                                    $('#bin_out_search').val('');
+                                    $('#binTable tbody').empty();
+                                    $('#sku_search').remove();
+                                    $('#bin_out_search').prop('disabled', false);
+
+                                    swal('Berhasil', 'Produk berhasil dikeluarkan', 'success');
+                                } else {
+                                    swal('Gagal', r.message || 'Gagal keluar produk', 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.close();
+                                swal('Error', 'Terjadi kesalahan', 'error');
+                            }
+                        });
+                    });
+                }
 
             } else if (matchingRows.length === 0) {
                 Swal.fire({
@@ -1634,6 +1802,7 @@
 
 
     $(document).ready(function () {
+        startChatPolling();
         scanner_scan_default.render(success, error);
         $('#binModal').on('shown.bs.modal', function () {
 
@@ -1837,6 +2006,7 @@
         var bin = $(this).attr('data-bin');
         var current_qty = $(this).attr('data-qty');
         var secret_code = $('#u_secret_code').val();
+        var st_id_refund = $(this).attr('data-st_id_refund');
         //alert(plst_id+' '+pls_id+' '+p_name+' '+bin+' '+current_qty+' '+secret_code);
         if (current_qty != 0) {
             swal({
@@ -1863,7 +2033,8 @@
                             _plst_qty: plst_qty,
                             _pls_id: pls_id,
                             _plst_id: plst_id,
-                            _secret_code: secret_code
+                            _secret_code: secret_code,
+                            _st_id_refund: st_id_refund
                         },
                         dataType: 'json',
                         url: "{{ url('save_in_refund_activity') }}",
@@ -2477,7 +2648,7 @@
         modal_opened = 'ScanInRefundModal';
         $('#st_id').val('');
         $('#ScanInRefundModal').modal('show');
-        scan_in_table.draw();
+        scan_in_refund_table.draw();
         scanner_scan_in_refund.render(success, error);
     });
 

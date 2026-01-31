@@ -1,5 +1,460 @@
 <script>
+    var detail_table = '';
+    var online_transaction_table = '';
+    var is_amp = 1;
+    var waiting_online_items_table = '';
+
+    function deleteItem(otd_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Data yang dihapus tidak dapat dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ url('transaksi_online_delete_item') }}",
+                    type: 'POST',
+                    data: {
+                        otd_id: otd_id,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            Swal.fire(
+                                'Terhapus!',
+                                'Item berhasil dihapus.',
+                                'success'
+                            );
+                            detail_table.draw(false);
+                        } else {
+                            Swal.fire(
+                                'Gagal!',
+                                response.message || 'Terjadi kesalahan saat menghapus item.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire(
+                            'Error!',
+                            'Terjadi kesalahan saat menghapus item.',
+                            'error'
+                        );
+                        console.error('Error deleting item:', error);
+                    }
+                });
+            }
+        });
+    }
+
+    function cancelWaitingOnlineItem(plst_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Item waiting online akan dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, batalkan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ url('transaksi_online_cancel_waiting_online_item') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        plst_id: plst_id
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            Swal.fire(
+                                'Berhasil!',
+                                'Item waiting online berhasil dibatalkan.',
+                                'success'
+                            );
+                            waiting_online_items_table.draw();
+                            online_transaction_table.draw(false);
+                        } else {
+                            Swal.fire(
+                                'Gagal!',
+                                response.message || 'Terjadi kesalahan saat membatalkan item.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire(
+                            'Error!',
+                            'Terjadi kesalahan saat membatalkan item waiting online.',
+                            'error'
+                        );
+                        console.error('Error canceling waiting online item:', error);
+                    }
+                });
+            }
+        });
+    }
+
+    function viewPickList(pst_id, warehouse_st_id) {
+        // open modal view pick list
+        $('#waitingPickListModal').modal('show');
+
+        //get data and pass to table waitingPickListTable
+
+        const endpoint = "{{ url('view_pick_list_online_transaction') }}/" + pst_id + "/" + warehouse_st_id;
+        const container = $('#waitingPickListTable');
+
+        container.html(
+            '<div class="text-center p-4"><div class="spinner-border text-info"></div><p class="mt-2">Memuat data...</p></div>'
+        );
+
+        const formatDateTime = value => {
+            if (!value) return '-';
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return value;
+            const pad = n => n.toString().padStart(2, '0');
+            return `${pad(parsed.getDate())}/${pad(parsed.getMonth() + 1)}/${parsed.getFullYear()} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}:${pad(parsed.getSeconds())}`;
+        };
+
+        fetch(endpoint)
+            .then(response => {
+            if (!response.ok) {
+                throw new Error('Network error');
+            }
+            return response.json();
+            })
+            .then(({ status, data }) => {
+            if (status !== '200') {
+                container.html('<div class="text-danger p-4 text-center">Gagal memuat data</div>');
+                return;
+            }
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.html('<div class="p-4 text-center text-muted">Belum ada pick list</div>');
+                return;
+            }
+
+            const rows = data.map((item, index) => `
+                <tr>
+                <td class="text-center">${index + 1}</td>
+                <td>${formatDateTime(item.created_at)}</td>
+                <td>${item.u_name ?? '-'}</td>
+                <td>${item.st_name ?? '-'}</td>
+                <td>${item.plst_status ?? '-'}</td>
+                <td>${item.order_number ?? '-'}</td>
+                </tr>
+            `).join('');
+
+            container.html(`
+                <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                    <thead class="thead-light">
+                    <tr>
+                        <th class="text-center" style="width: 40px;">#</th>
+                        <th>Tanggal</th>
+                        <th>User</th>
+                        <th>Store</th>
+                        <th>Pick Status</th>
+                        <th>No Pesanan</th>
+                    </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                </div>
+            `);
+            })
+            .catch(() => {
+            container.html('<div class="text-danger p-4 text-center">Gagal memuat data</div>');
+            });
+        }
+    document.getElementById('splitForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        let formData = new FormData(this);
+        let uploadBtn = document.getElementById('uploadBtn');
+        let loading = document.getElementById('loadingOverlay');
+
+        uploadBtn.disabled = true;
+        loading.style.display = 'block'; // tampilkan loading
+
+        fetch("{{ route('pdf.split') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                uploadBtn.disabled = false;
+                $('#ImportModal').modal('hide');
+
+                if (data.message) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    // ✅ reset form
+                    document.getElementById('splitForm').reset();
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                uploadBtn.disabled = false;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat memproses file.'
+                });
+            });
+    });
+
+
+    // ketika tombol history diklik
+    document.getElementById('historyBtn').addEventListener('click', function() {
+        const modal = $('#historyModal');
+        const content = $('#historyContent');
+
+        modal.modal('show');
+        content.html(
+            '<div class="text-center p-4"><div class="spinner-border text-info"></div><p class="mt-2">Memuat data...</p></div>'
+        );
+
+        fetch('{{ route('split.history.ajax') }}')
+            .then(res => res.text())
+            .then(html => content.html(html))
+            .catch(() => content.html('<div class="text-danger p-4 text-center">Gagal memuat data</div>'));
+    });
+
+    function sendChatMessage() {
+        var message = $('#text_input').val();
+        var ot_id_new = ot_id; // Use JavaScript variable, not PHP variable
+
+        if (message.trim() === '') {
+            return;
+        }
+
+        $.ajax({
+            url: "{{ url('send_chat_history_online_transaction') }}",
+            type: 'POST',
+            data: {
+                ot_id: ot_id_new,
+                message: message,
+                is_amp: 1,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.status === '200') {
+                    // Show success toast
+                    toastr.success('Message sent successfully!');
+                    $('#text_input').val('');
+                    // Refresh chat data
+                    getChatData(ot_id);
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error('Failed to send message. Please try again.');
+                console.error('Error sending message:', error);
+            }
+        });
+    }
+
+    function pickItems(warehouse_st_id, to_id, sku, to_detail_id, qty) {
+        console.log(to_id, sku, to_detail_id, qty);
+
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: `Yakin mau pick SKU ${sku} dengan qty ${qty}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, pick!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ url('transaksi_online_pick_items') }}",
+                    type: 'POST',
+                    data: {
+                        to_id: to_id,
+                        sku: sku,
+                        to_detail_id: to_detail_id,
+                        qty: qty,
+                        warehouse_st_id: warehouse_st_id,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            toastr.success('Items picked successfully!');
+                            detail_table.draw(false);
+                        } else {
+                            toastr.error(response.message ||
+                                'Failed to pick items. Please try again.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        toastr.error('An error occurred while picking items. Please try again.');
+                        console.error('Error picking items:', error);
+                    }
+                });
+            }
+        });
+    }
+
+    function clearPrintStatus(ot_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Status cetak invoice akan direset!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, reset!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ url('clear_print_status_online_transaction') }}/" + ot_id,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status === '200') {
+                            Swal.fire(
+                                'Berhasil!',
+                                'Status cetak invoice telah direset.',
+                                'success'
+                            );
+                            online_transaction_table.draw(false);
+                        } else {
+                            Swal.fire(
+                                'Gagal!',
+                                response.message ||
+                                'Terjadi kesalahan saat mereset status cetak invoice.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire(
+                            'Error!',
+                            'Terjadi kesalahan saat mereset status cetak invoice.',
+                            'error'
+                        );
+                        console.error('Error resetting print status:', error);
+                    }
+                });
+            }
+        });
+    }
+
+    function cancelTransaction(ot_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Transaksi akan dikembalikan ke NEW TRX!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, kembalikan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('cancel_online_transaction') }}/" + ot_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        Swal.fire('Berhasil!', 'Transaksi telah dikembalikan ke NEW TRX.',
+                            'success');
+                        online_transaction_table.draw(false);
+                    } else {
+                        Swal.fire(
+                            'Gagal!',
+                            response.message || 'Terjadi kesalahan saat membatalkan transaksi.',
+                            'error'
+                        );
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire(
+                        'Error!',
+                        'Terjadi kesalahan saat membatalkan transaksi.',
+                        'error'
+                    );
+                    console.error('Error canceling transaction:', error);
+                }
+            });
+        });
+    }
+
+    function deleteTransaction(ot_id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Transaksi akan dicancel secara permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, cancel!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('delete_online_transaction') }}/" + ot_id,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        Swal.fire('Berhasil!', 'Transaksi telah dicancel.',
+                            'success');
+                        online_transaction_table.draw(false);
+                    } else {
+                        Swal.fire(
+                            'Gagal!',
+                            response.message || 'Terjadi kesalahan saat cancel transaksi.',
+                            'error'
+                        );
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire(
+                        'Error!',
+                        'Terjadi kesalahan saat cancel transaksi.',
+                        'error'
+                    );
+                    console.error('Error canceling transaction:', error);
+                }
+            });
+        });
+    }
+
     $(document).ready(function() {
+        startChatPolling();
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -109,7 +564,7 @@
 
 
 
-        var online_transaction_table = $('#OnlineTransactionb').DataTable({
+        online_transaction_table = $('#OnlineTransactionb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -121,17 +576,27 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('transaksi_online_datatables') }}", // URL endpoint
+                url: "{{ url('transaksi_online_datatables') }}", // Endpoint DataTables
                 data: function(d) {
-                    d.search = $('#online_transaction_search').val(); // Input pencarian
-                    d.st_id = $('#st_id_filter').val(); // Filter st_id
-                    d.status = $('#filter_status').val(); // Filter status
+                    d.search = $('#online_transaction_search').val();
+                    d.st_id = $('#st_id_filter').val();
+                    d.status = $('#filter_status').val(); // Status aktif dari tab
+                    d.tab_status = $('#tab_status').val(); // Status aktif dari tab
+                    d.chat_status = $('#filter_status_chat').val(); // Status chat dari filter
+                    d.warehouse = $('#filter_warehouse').val(); // Warehouse dari filter
+                    d.courier = $('#filter_courier').val(); // Courier dari filter
+                    d.platform = $('#filter_platform').val(); // Platform dari filter
+                    d.order_status = $('#filter_order_status').val(); // Order status dari filter
                 }
             },
             columns: [{
                     data: 'DT_RowIndex',
                     name: 'to_id',
                     searchable: false
+                },
+                {
+                    data: 'pin',
+                    name: 'pin'
                 },
                 {
                     data: 'order_number',
@@ -156,52 +621,238 @@
                 {
                     data: 'shipping_fee',
                     name: 'shipping_fee',
-                    render: function(data, type, row) {
+                    render: function(data) {
                         return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
                     }
                 },
                 {
+                    data: 'courier',
+                    name: 'courier'
+                },
+                {
+                    data: 'shipping_method',
+                    name: 'shipping_method'
+                },
+                {
                     data: 'total_payment',
                     name: 'total_payment',
-                    render: function(data, type, row) {
+                    render: function(data) {
                         return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
                     }
                 },
                 {
                     data: 'order_status',
                     name: 'order_status'
+                },
+                {
+                    data: 'internal_order_status',
+                    name: 'internal_order_status'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
                 }
             ],
             columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
-                "width": "0%"
+                "width": "5%"
             }],
+            rowCallback: function(row, data) {
+                if (data.is_pinned == true || data.is_pinned == 1) {
+                    $(row).css('background-color', '#fff3cd');
+                } else if (data.is_instant == true || data.is_instant == 1) {
+                    $(row).css('background-color', '#d4edda');
+                } else {
+                    $(row).css('background-color', 'white');
+                }
+            },
             language: {
-                "lengthMenu": "Tampilkan MENU data per halaman", // Menyesuaikan teks menu panjang
+                "lengthMenu": "Tampilkan _MENU_ data per halaman",
+                "zeroRecords": "Tidak ada data ditemukan",
+                "info": "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                "infoEmpty": "Tidak ada data yang tersedia",
+                "infoFiltered": "(disaring dari total _MAX_ data)"
             }
         });
 
-        // Event listener untuk dropdown filter st_id_filter
+        waiting_online_items_table = $('#waitingOnlineTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            dom: 'rt<"text-right"ip>',
+            deferLoading: 0,
+            ajax: {
+                url: "{{ url('transaksi_online_waiting_online_items') }}", // Endpoint DataTables
+                data: function(d) {
+                    d.search = $('#searchWaitingOnlineItem').val();
+                }
+            },
+            columns: [{
+                data: 'article',
+                name: 'article',
+                searchable: false
+            }],
+            columnDefs: [{
+                "targets": 0,
+                "width": "5%"
+            }],
+
+        });
+
+        $('#btn_waiting_online').on('click', function() {
+            jQuery.noConflict();
+            waiting_online_items_table.draw();
+            $('#waitingOnlineItemModal').modal('show');
+        });
+
+        $('#trxTabs .nav-link').on('click', function(e) {
+            e.preventDefault();
+
+            $('#trxTabs .nav-link').removeClass('active');
+            $(this).addClass('active');
+
+            var status = $(this).data('status');
+            $('#tab_status').val(status);
+
+            console.log(status)
+
+            online_transaction_table.ajax.reload();
+        });
+
+        $('.close-modal').on('click', function() {
+            online_transaction_table.draw(false);
+        });
+
         $('#st_id_filter').on('change', function() {
             online_transaction_table.draw(false); // Memuat ulang tabel tanpa reset halaman
         });
 
-        // Initialize Select2 pada elemen select filter_status
         $('#filter_status').select2({
             width: "200px",
             dropdownParent: $('#filter_status_parent') // Menentukan parent untuk dropdown
         });
 
-        // Event listener untuk perubahan pada filter_status
         $('#filter_status').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 
-        // Event listener untuk input pencarian
+        $('#filter_status_chat').select2({
+            width: "200px",
+            dropdownParent: $('#filter_status_chat_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_status_chat').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_warehouse').select2({
+            width: "200px",
+            dropdownParent: $('#filter_warehouse_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_warehouse').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_platform').select2({
+            width: "200px",
+            dropdownParent: $('#filter_platform_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_platform').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_courier').select2({
+            width: "200px",
+            dropdownParent: $('#filter_courier_parent') // Menentukan parent untuk dropdown
+        });
+
+        $('#filter_courier').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
+        $('#filter_order_status').select2({
+            width: "50%",
+            dropdownParent: $('#filter_order_status_parent'),
+            minimumResultsForSearch: 0
+        });
+
+        $('#st_id_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#st_id_filter_export_parent')
+        });
+
+        $('#st_id_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#status_print_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#status_trx_filter_export_parent')
+        });
+
+        $('#status_print_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#platform_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#platform_trx_filter_export_parent')
+        });
+
+        $('#platform_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#courier_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#courier_trx_filter_export_parent')
+        });
+
+        $('#courier_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#order_status_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#order_status_trx_filter_export_parent')
+        });
+
+        $('#order_status_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        $('#internal_order_status_trx_filter_export').select2({
+            width: "200px",
+            dropdownParent: $('#internal_order_status_trx_filter_export_parent')
+        });
+
+        $('#internal_order_status_trx_filter_export').on('change', function() {
+            console.log($(this).val());
+        });
+
+        // Add margin-left to Select2 containers
+        $('.select2-container').css('margin-left', '10px');
+
+        $('#filter_order_status').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (array)
+            online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+
         $('#online_transaction_search').on('keyup', function() {
             online_transaction_table.draw(); // Memuat ulang tabel setiap kali ada perubahan pencarian
+        });
+
+        $('#searchWaitingOnlineItem').on('keyup', function() {
+            waiting_online_items_table.draw(); // Memuat ulang tabel setiap kali ada perubahan pencarian
         });
 
         {{-- $('#f_import').on('submit' , function (e) { --}}
@@ -343,23 +994,28 @@
                         excelImportData = data.data['processedData'];
                         console.log(data.data);
                         console.log(data.name);
+                        online_transaction_table.draw(false);
                     } else if (data.status == '422') {
                         $("#ImportModal").modal('hide');
                         console.log(data.data);
                         swal('Belum dimacro ya jez? 😒😒',
-                            data.message || 'File yang anda import kosong atau format tidak tepat',
+                            data.message ||
+                            'File yang anda import kosong atau format tidak tepat',
                             'warning');
+                        online_transaction_table.draw(false);
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
                         console.log(data.data);
                         swal('Error',
-                            'File yang anda import kosong atau format tidak tepat',
-                            'warning');
+                        'File yang anda import kosong atau format tidak tepat',
+                        'warning');
+                        online_transaction_table.draw(false);
                     } else {
                         $("#ImportModal").modal('hide');
                         swal('Error',
                             data.message || 'Terjadi kesalahan saat mengimpor data',
                             'error');
+                        online_transaction_table.draw(false);
                     }
                 },
                 error: function(data) {
@@ -370,7 +1026,6 @@
                     swal('Error', data, 'error');
                 }
             });
-            online_transaction_table.draw(false);
         });
         {{-- $('#f_import').on('submit', function (e) { --}}
         {{--    e.preventDefault(); --}}
@@ -432,13 +1087,13 @@
             return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        var detail_table = $('#Detailtb').DataTable({
+        detail_table = $('#Detailtb').DataTable({
 
             destroy: true,
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: '<"text-right"l>rt<"text-right"ip>',
+            dom: 'rt<"text-right"ip>',
             buttons: [{
                 "extend": 'excelHtml5',
                 "text": 'Excel',
@@ -525,8 +1180,16 @@
                     }
                 },
                 {
-                    data: 'status_pick',
-                    name: 'status_pick'
+                    data: 'warehouse',
+                    name: 'warehouse'
+                },
+                {
+                    data: 'pick_status',
+                    name: 'pick_status'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
                 },
             ],
             columnDefs: [{
@@ -534,14 +1197,288 @@
                 "className": "text-center",
                 "width": "0%"
             }],
-            language: {
-                "lengthMenu": "MENU",
-            },
             order: [
                 [0, 'desc']
             ],
         });
         jQuery.noConflict();
+
+        $(document).delegate('#add_new_item_btn', 'click', function() {
+            jQuery.noConflict();
+            $to_id = $('#to_id').val();
+            $.ajax({
+                url: "{{ url('transaksi_online_get_items') }}",
+                type: 'GET',
+                data: {
+                    to_id: $to_id,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        var items = response.data;
+                        var select = $('#item_sejenis_select');
+                        select.empty();
+                        select.append('<option value="">Pilih Item</option>');
+
+                        items.forEach(function(item) {
+                            select.append('<option value="' + item.id + '">' + item
+                                .sku + '</option>');
+                        });
+                    } else {
+                        toastr.error('Failed to load items. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(
+                        'An error occurred while fetching items. Please try again.');
+                    console.error('Error fetching items:', error);
+                }
+            });
+
+            $('#tambahItemModal').modal('show');
+        });
+
+        $(document).delegate('#edit_item_btn', 'click', function() {
+            jQuery.noConflict();
+            var otd_id = $(this).data('otd_id');
+            var qty = $(this).data('qty');
+            var to_id = $('#to_id').val();
+
+            $('#edit_item_otd_id').val(otd_id);
+            $('#edit_item_qty').val(qty);
+            $('#edit_item_to_id').val(to_id);
+            $('#editItemModal').modal('show');
+        });
+
+        $('#f_edit_item').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+            var otd_id = $(this).data('otd_id');
+
+            formData.append('otd_id', otd_id);
+
+            $.ajax({
+                url: "{{ url('transaksi_online_edit_item') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#editItemModal').modal('hide');
+                        toastr.success('Item berhasil diedit!');
+                        $('#f_edit_item')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to edit item. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(response.message ||
+                        'An error occurred while editing the item. Please try again.');
+                    console.error('Error editing item:', error);
+                }
+            });
+        });
+
+        $(document).delegate('#change_warehouse_btn', 'click', function() {
+            jQuery.noConflict();
+            var otd_id = $(this).data('otd_id');
+            var to_id = $('#to_id').val();
+            var current_warehouse = $(this).data('warehouse');
+
+            $('#edit_item_warehouse_otd_id').val(otd_id);
+            $('#edit_item_warehouse_to_id').val(to_id);
+            $('#old_warehouse').text(current_warehouse);
+
+            $.ajax({
+                url: "{{ url('warehouse_list') }}",
+                type: 'GET',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        var warehouses = response.data;
+                        var select = $('#warehouse_select');
+                        select.empty();
+                        select.append('<option value="">Pilih Warehouse</option>');
+
+                        warehouses.forEach(function(warehouse) {
+                            select.append('<option value="' + warehouse.w_code +
+                                '">' + warehouse.w_code + '</option>');
+                        });
+                    } else {
+                        toastr.error('Failed to load warehouses. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(
+                        'An error occurred while fetching warehouses. Please try again.'
+                    );
+                    console.error('Error fetching warehouses:', error);
+                }
+            });
+
+            $('#editItemWarehouseModal').modal('show');
+        });
+
+        $('#f_edit_item_warehouse').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+            var otd_id = $(this).data('otd_id');
+
+            $.ajax({
+                url: "{{ url('transaksi_online_edit_item_warehouse') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#editItemWarehouseModal').modal('hide');
+                        toastr.success('Warehouse berhasil diedit!');
+                        $('#f_edit_item')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to edit item. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(response.message ||
+                        'An error occurred while editing the item. Please try again.');
+                    console.error('Error editing item:', error);
+                }
+            });
+        });
+
+        $(document).delegate('#tambah_nomor_resi_btn', 'click', function() {
+            jQuery.noConflict();
+            var otd_id = $(this).data('otd_id');
+            var to_id = $('#to_id').val();
+            var current_resi = $(this).data('no_resi');
+
+            $('#edit_resi_number_otd_id').val(otd_id);
+            $('#edit_resi_number_to_id').val(to_id);
+            $('#resi_number_input').val(current_resi);
+
+            $('#editResiNumberModal').modal('show');
+        });
+
+        $('#f_edit_resi_number').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "{{ url('transaksi_online_edit_resi_number') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#editResiNumberModal').modal('hide');
+                        toastr.success('Nomor resi berhasil diupdate!');
+                        $('#f_edit_resi_number')[0].reset();
+                        $('#close_modal_detail').click();
+                        online_transaction_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to update resi number. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(
+                        'An error occurred while updating resi number. Please try again.'
+                    );
+                    console.error('Error updating resi number:', error);
+                }
+            });
+        });
+
+        $('#f_tambah_item').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "{{ url('transaksi_online_add_new_item') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#tambahItemModal').modal('hide');
+                        toastr.success('Item berhasil ditambahkan!');
+                        $('#f_tambah_item')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to add item. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(response.message ||
+                        'An error occurred while adding the item. Please try again.');
+                    console.error('Error adding item:', error);
+                }
+            });
+        });
+
+        $(document).delegate('#btn_input_resi', 'click', function() {
+            jQuery.noConflict();
+            var to_id = $('#to_id').val();
+
+            $('#input_single_resi_to_id').val(to_id);
+
+            $('#InputResiModal').modal('show');
+        });
+
+        $('#f_input_single_resi').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "{{ url('input_single_resi') }}",
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === '200') {
+                        $('#InputResiModal').modal('hide');
+                        toastr.success('Resi berhasil diupload!');
+                        $('#f_input_single_resi')[0].reset();
+                        detail_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to upload resi. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(
+                        'An error occurred while uploading the resi. Please try again.');
+                    console.error('Error uploading resi:', error);
+                }
+            });
+        });
 
         $(document).delegate('#print_invoice', 'click', function() {
             var numOrder = document.getElementById('num_order').textContent;
@@ -565,19 +1502,21 @@
                         method: 'POST',
                         data: {
                             orderNumber: numOrder,
+                            to_id: $('#to_id').val(),
                             _token: '{{ csrf_token() }}'
                         },
                         success: function(response) {
                             console.log(response.status);
                             if (response.status == 200) {
-                                var printUrl = '{{ url('print_online_nota') }}/' +
-                                    numOrder;
+                                var printUrl = '{{ url('print_invoice_v2') }}/' +
+                                    response.encrypted_id;
                                 window.open(printUrl, '_blank');
                                 online_transaction_table.draw(false);
                             } else {
                                 Swal.fire({
                                     title: 'Error!',
-                                    text: 'Harap melakukan Picker di Data Stok.',
+                                    text: response.message ||
+                                        'There was a problem printing the invoice. Please try again.',
                                     icon: 'error',
                                     confirmButtonColor: '#3085d6'
                                 });
@@ -602,15 +1541,49 @@
 
         });
 
+        $(document).delegate('#pin_btn', 'click', function() {
+            var to_id = $(this).data('to_id');
+            var is_pinned = $(this).data('pinned');
+
+            $.ajax({
+                url: "{{ url('transaksi_online_pin') }}",
+                type: 'POST',
+                data: {
+                    to_id: to_id,
+                    is_pinned: is_pinned,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        toastr.success(response.message ||
+                            'Pin status updated successfully!');
+                        online_transaction_table.draw(false);
+                    } else {
+                        toastr.error(response.message ||
+                            'Failed to update pin status. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    toastr.error(
+                        'An error occurred while updating pin status. Please try again.'
+                    );
+                    console.error('Error updating pin status:', error);
+                }
+            });
+        });
+
 
         $(document).delegate('#detail_btn', 'click', function() {
             console.log('tes');
             var to_id = $(this).attr('data-to_id');
             var num_order = $(this).attr('data-num_order');
             var status = $(this).attr('data-status');
+            var resi = $(this).attr('data-no_resi');
             $('#to_id').val(to_id);
             $('#num_order').text(num_order);
             $('#status_pesanan').val(status);
+            $('#no_resi_display').text(resi);
+            $('#tambah_nomor_resi_btn').data('no_resi', resi);
 
             if (status == 'Batal') {
                 $('#add_item_detail_btn').hide();
@@ -618,7 +1591,7 @@
                 $('#add_item_detail_btn').show();
             }
 
-            $('#DetailModal').on('show.bs.modal', function() {
+            $('#DetailModal').off('show.bs.modal').on('show.bs.modal', function() {
                 detail_table.draw(false);
             }).modal('show');
         });
@@ -636,23 +1609,26 @@
         })
 
         // $('#sales_online_export').on('click', function () {
-            $(document).delegate('#sales_online_export', 'click', function(e) {
+        $(document).delegate('#sales_online_export', 'click', function(e) {
             e.preventDefault();
-            let date = $('#kt_dashboard_daterangepicker_date').text(); // Ensure this gets the correct date range
-            let branch_trx = $('#branch_trx').val();
-            let status_trx = $('#status_trx').val();
-            let changeplatform = $('#changeplatform').val();
-
-            console.log("Branch:", branch_trx);
-            console.log("Status:", status_trx);
-            console.log("Platform:", changeplatform);
-            console.log("Date:", date);
+            
+            let date = $('#sales_date').val(); // Get hidden date value
+            let st_id_filter_export = $('#st_id_filter_export').val();
+            let status_print_filter_export = $('#status_print_filter_export').val();
+            let platform_trx_filter_export = $('#platform_trx_filter_export').val();
+            let courier_trx_filter_export = $('#courier_trx_filter_export').val();
+            let order_status_trx_filter_export = $('#order_status_trx_filter_export').val();
+            let internal_order_status_trx_filter_export = $('#internal_order_status_trx_filter_export').val();
 
             // Redirect with parameters
-            window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + 
-                                "&date=" + date + 
-                                "&status=" + status_trx + 
-                                "&changeplatform=" + changeplatform;
+            window.location.href = "{{ url('online_sales_export') }}" +
+                "?st_id=" + (st_id_filter_export || '') +
+                "&date=" + (date || '') +
+                "&status_print=" + (status_print_filter_export || '') +
+                "&platform=" + (platform_trx_filter_export || '') +
+                "&courier=" + (courier_trx_filter_export || '') +
+                "&order_status=" + (order_status_trx_filter_export || '') +
+                "&internal_order_status=" + (internal_order_status_trx_filter_export || '');
         });
 
 
@@ -695,7 +1671,7 @@
             $('#sales_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
-            online_transaction_table.draw();
+            // online_transaction_table.draw();
             // article_report_table.draw();
         }
 

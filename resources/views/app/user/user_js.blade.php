@@ -642,6 +642,51 @@
             return false;
         });
 
+        $(document).on('click', '#store_menu_access_template_btn', function(e) {
+            var template_id = $(this).attr('data-template_id');
+            swal({
+                title: "Gunakan Template..?",
+                text: "Yakin menggunakan template ini untuk menu access user ?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Ya, Gunakan'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {
+                            template_id: template_id,
+                            u_id: u_id
+                        },
+                        dataType: 'json',
+                        url: "{{ url('uma_save_use_template') }}",
+                        success: function(r) {
+                            if (r.status == '200') {
+                                menu_access_table.draw(false);
+                                loadUserMenu();
+                                toastr.success(
+                                    'Data berhasil ditambah dari template',
+                                    'Berhasil');
+                            } else {
+                                toastr.error('Gagal tambah data dari template',
+                                    'Gagal');
+                            }
+                        }
+                    });
+                }
+            });
+
+            return false;
+        });
+
         $(document).on('click', '#delete_menu_access_btn', function(e) {
             var id = $(this).attr('data-id');
             $.ajaxSetup({

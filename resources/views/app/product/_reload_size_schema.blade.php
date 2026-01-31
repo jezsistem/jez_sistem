@@ -50,19 +50,19 @@
                     <input type="number" class="form-control psb_hidden"
                         id="product_size_price_tag{{ $key + 1 }}" data-price-tag="{{ $row->id }}"
                         onchange="return getProductPriceTag('{{ $key + 1 }}')" placeholder="Harga Banderol"
-                        style="display:none;" />
+                        style="display:none;" @if (!$is_mdcx && !$is_admin) disabled @endif />
                 </td>
                 <td>
                     <input type="number" class="form-control psb_hidden"
                         id="product_size_sell_price{{ $key + 1 }}" data-sell-price="{{ $row->id }}"
                         onchange="return getProductSellPrice('{{ $key + 1 }}')" placeholder="Harga Jual"
-                        style="display:none;" />
+                        style="display:none;" @if (!$is_mdcx && !$is_admin) disabled @endif />
                 </td>
                 <td>
                     <input type="number" class="form-control psb_hidden"
                         id="product_size_purchase_price{{ $key + 1 }}" data-purchase-price="{{ $row->id }}"
                         onchange="return getProductPurchasePrice('{{ $key + 1 }}')" placeholder="Harga Beli"
-                        style="display:none;" />
+                        style="display:none;" @if (!$is_finance && !$is_admin) disabled @endif />
                 </td>
             </tr>
         @endforeach

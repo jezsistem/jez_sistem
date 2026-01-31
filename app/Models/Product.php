@@ -43,7 +43,44 @@ class Product extends Model
         'created_at',
         'p_turnoverclass',
         'updated_at',
-        'mark_down'
+        'mark_down',
+        'for_offline'
+    ];
+
+    public const readableColumns = [
+        'br_id' => 'Brand',
+        'pc_id' => 'Category',
+        'psc_id' => 'Sub Category',
+        'pssc_id' => 'Sub Sub Category',
+        'mc_id' => 'Main Color',
+        'ps_id' => 'Supplier',
+        'pu_id' => 'Unit',
+        'gn_id' => 'Gender',
+        'ss_id' => 'Season',
+        'p_color' => 'Color',
+        'p_name' => 'Article Name',
+        'p_aging' => 'Aging',
+        'p_price_tag' => 'Price Tag',
+        'p_sell_price' => 'Sell Price',
+        'p_purchase_price' => 'Purchase Price',
+        'p_description' => 'Description',
+        'p_image' => 'Image',
+        'schema_size' => 'Schema Size',
+        'subcategory1' => 'Subcategory 1',
+        'subcategory2' => 'Subcategory 2',
+        'mp_best_seller' => 'MP Best Seller',
+        'mp_stock_masking' => 'MP Stock Masking',
+        'complement' => 'Complement',
+        'consignment' => 'Consignment',
+        'is_everlast' => 'Is Everlast',
+        'is_supersale' => 'Is Supersale',
+        'is_reguler' => 'Is Reguler',
+        'p_turnoverclass' => 'Turnover Class',
+        'mark_down' => 'Mark Down',
+        'ps_price_tag' => 'SKU Price Tag',
+        'ps_sell_price' => 'SKU Sell Price',
+        'ps_purchase_price' => 'SKU Purchase Price',
+        'for_offline' => 'For Offline'
     ];
 
 
@@ -135,6 +172,11 @@ class Product extends Model
         return $export;
     }
 
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'p_id');
+    }
+
     public static function getArticleExport()
     {
         $export = DB::table('products')
@@ -158,12 +200,36 @@ class Product extends Model
         'bestseller',
         'mp_best_seller',
         'complement',
-        'consigment',
+        'consignment',
         'mp_stock_masking',
         'is_everlast',
         'is_supersale',
         'is_reguler',
         'p_turnoverclass',
-        'mark_down'
+        'mark_down',
+        'for_offline'
+    ];
+
+    public static $massUpdateSKUColumns = [
+        'ps_price_tag',
+        'ps_sell_price',
+    ];
+
+    public static $fintechCanChange = [
+        'is_everlast',
+        'p_purchase_price',
+        'ps_purchase_price'
+    ];
+
+    public static $mdcxCanChange = [
+        'p_price_tag',
+        'p_sell_price',
+        'ps_price_tag',
+        'ps_sell_price',
+        'for_offline'
+    ];
+
+    public static $atLeastSupervisorCanChange = [
+        'for_offline'
     ];
 }

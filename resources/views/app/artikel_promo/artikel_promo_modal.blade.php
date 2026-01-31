@@ -42,8 +42,8 @@
                         <input type="date" class="form-control" id="date_end" name="date_end" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="promo_disc">Promo Disc</label>
-                        <input type="text" class="form-control" id="promo_disc" name="promo_disc" required />
+                        <label for="discounted_price">Price After Discount</label>
+                        <input type="text" class="form-control" id="discounted_price" name="discounted_price" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Note</label>

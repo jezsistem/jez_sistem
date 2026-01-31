@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Jobs\ProcessBroadcastJob;
+use App\Models\WaBroadcastJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -24,19 +26,32 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-        
-        // Auto-expire break times every 30 minutes
-        $schedule->command('break:expire')
-                 ->everyThirtyMinutes()
-                 ->withoutOverlapping()
-                 ->runInBackground();
-        
-        // Force expire all active breaks daily at 6 AM
-        $schedule->command('break:expire --force')
-                 ->dailyAt('06:00')
-                 ->withoutOverlapping()
-                 ->runInBackground();
+        // Scheduler WA Broadcast Job
+        $schedule->call(function () {
+
+            // Ambil semua job yang belum selesai
+            $jobs = WaBroadcastJob::where('status', '!=', 'completed')->get();
+
+            foreach ($jobs as $job) {
+
+                // Pastikan job sudah masuk waktu aktif
+                if (now()->between($job->start_at, $job->end_at)) {
+
+                    // Pastikan waktunya mengirim
+                    if ($job->next_run_at <= now()) {
+
+                        // Jalankan job broadcast
+                        dispatch(new ProcessBroadcastJob($job));
+
+                        // Set jadwal berikutnya
+                        $job->next_run_at = now()->addHours($job->interval_hours);
+                        $job->status = 'running';
+                        $job->save();
+                    }
+                }
+            }
+
+        })->everyMinute(); // dijalankan setiap menit
     }
 
     /**

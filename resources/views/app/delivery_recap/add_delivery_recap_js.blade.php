@@ -15,7 +15,7 @@
             $('#device_background').css('background-attachment', 'fixed');
             $('#device_background').css('background-position', 'center');
         }
-
+//aksdjklajsldkajlsd
         $("#cust_subdistrict_label").focus(function() {
             $('html, body').animate({
                 scrollTop: $(this).offset().top + 200

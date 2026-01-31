@@ -84,6 +84,13 @@
                                                         <span class="menu-text">Staff</span>
                                                     </a>
                                                 </li>
+                                                <li class="menu-item">
+                                                    <a href="{{ url('/staff-information') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Staff Information</span>
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </div>
                                     </li>
@@ -112,12 +119,13 @@
                                                         <span class="menu-text">Shift</span>
                                                     </a>
                                                 </li>
-                                                <!-- <li class="menu-item">
-                                        <a href="{{ url('/daily-schedules') }}" class="menu-link">
-                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                            <span class="menu-text">Schedule</span>
-                                        </a>
-                                    </li> -->
+                                                <li class="menu-item">
+                                                    <a href="{{ url('/public-holiday') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Hari Libur Nasional</span>
+                                                    </a>
+                                                </li>
                                                 @if(hasAccess(auth()->user()->up_id, 'read'))
                                                     <li class="menu-item">
                                                         <a href="{{ url('/daily-schedules/weekly') }}"
@@ -238,8 +246,8 @@
                                             </li>
 
                                             @if($hasLeaveType)
-                                                <li class="menu-item {{ request()->is('leave-requests/summary-report*') ? 'active' : '' }}">
-                                                    <a href="{{ url('/leave-requests/summary-report') }}"
+                                                <li class="menu-item {{ request()->is('overtime/summary-report*') ? 'active' : '' }}">
+                                                    <a href="{{ url('/overtime/summary-report/view') }}"
                                                        class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>

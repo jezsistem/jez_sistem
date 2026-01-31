@@ -96,8 +96,11 @@ class UserController extends Controller
             'stt_id' => StoreType::where('stt_delete', '!=', '1')->orderByDesc('id')->pluck('stt_name', 'id'),
             'ma_id' => DB::table('menu_accesses')->orderBy('ma_sort')->pluck('ma_title', 'id'),
             'sidebar' => $this->sidebar(),
+            'menu_access_templates' => DB::table('menu_access_templates')->orderByDesc('id')->get(),
         ];
-        return view('app.user.user', compact('data'));
+
+        $menu_access_templates = DB::table('menu_access_templates')->orderByDesc('id')->get();
+        return view('app.user.user', compact('data', 'menu_access_templates'));
     }
 
     public function getDatatables(Request $request)

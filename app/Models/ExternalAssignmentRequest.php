@@ -45,7 +45,7 @@ class ExternalAssignmentRequest extends Model
         $endDate = null,
         $userId = null,
         $status = null,
-        $typeId = null
+        $eaTypeID = null
     ) {
         $query = DB::table('external_assignment_requests as ear')
             ->select([
@@ -83,8 +83,8 @@ class ExternalAssignmentRequest extends Model
         }
 
         // filter tipe assignment
-        if ($typeId) {
-            $query->where('ear.ea_id', $typeId);
+        if ($eaTypeID) {
+            $query->where('ear.ea_id', $eaTypeID);
         }
 
         return $query->get();
@@ -142,5 +142,10 @@ class ExternalAssignmentRequest extends Model
     public function reports()
     {
         return $this->hasMany(ExternalAssignmentRequestReport::class, 'ear_id');
+    }
+
+    public function uploads()
+    {
+        return $this->hasMany(ExternalAssignmentUpload::class, 'ear_id');
     }
 }

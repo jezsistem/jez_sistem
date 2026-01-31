@@ -3,7 +3,10 @@
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 <script>
+    var financeAttachmentTable = null;
+
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
             .pid + '">' +
@@ -193,7 +196,13 @@
 
     // CALCULATION 
     function poadPurchasePrice(id, index, purchase_price) {
-        var poad_id = $('#poad_purchase_price_' + id + '_' + index).attr('data-poad-id');
+        var $input = $('#poad_purchase_price_' + id + '_' + index);
+        console.log($input.prop('disabled'));
+
+        if ($input.prop('disabled') === true) {
+            return;
+        }
+        var poad_id = $input.attr('data-poad-id');
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -240,14 +249,20 @@
         if (sub_discount == '' || sub_discount == 0) sub_discount = 0;
 
         for (let i = 0; i < total_row; ++i) {
+            var $input = $('#poad_purchase_price_' + id + '_' + i);
+            if ($input.prop('disabled')) {
+                poad_total_price += parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val())) || 0;
+                continue;
+            }; // Skip if disabled
+
             var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
             var qty = $('#poad_qty_' + id + '_' + i).val() || 1; // Default qty to 1 if not entered
-            var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-            var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-            var final_total = total - (total / 100 * parseFloat(sub_discount));
+            var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+            var total = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+            var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
 
             // Update purchase price for this row
-            $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
+            $input.val(addCommas(final_total));
 
             // Calculate and update total purchase price
             var total_purchase_price = final_total * parseFloat(qty);
@@ -260,7 +275,7 @@
         }
 
         $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-        reloadPoTotalPrice(po_id)
+
 
         // Send updated discount information via AJAX
         $.ajaxSetup({
@@ -285,6 +300,7 @@
                 }
             }
         });
+        reloadPoTotalPrice(po_id)
     }
 
     function extraDiscount(id) {
@@ -309,19 +325,24 @@
             }
 
             for (let i = 0; i < total_row; ++i) {
+                var $input = $('#poad_purchase_price_' + id + '_' + i);
+                if ($input.prop('disabled')) {
+                    poad_total_price += parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val())) || 0;
+                    continue;
+                }; // Skip if disabled
+
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-                var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-                var final_total = total - (total / 100 * parseFloat(sub_discount));
-                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
+                var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+                var total = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+                var final_total = Math.ceil(total - (total / 100 * parseFloat(sub_discount)));
+                $input.val(addCommas(final_total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(final_total * qty));
                 poad_total_price += final_total * qty;
                 poadPurchasePrice(id, i, final_total);
             }
 
             $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-            reloadPoTotalPrice(po_id)
         }
 
         $.ajaxSetup({
@@ -345,10 +366,10 @@
                 }
             }
         });
+        reloadPoTotalPrice(po_id)
     }
 
-    function subDiscount(id)
-    {
+    function subDiscount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
         var sub_discount = $('#poa_sub_discount' + id).val();
@@ -365,19 +386,25 @@
                 sub_discount = 0;
             }
             for (let i = 0; i < total_row; ++i) {
+                var $input = $('#poad_purchase_price_' + id + '_' + i);
+                if ($input.prop('disabled')) {
+                    poad_total_price += parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val())) || 0;
+                    continue;
+                }; // Skip if disabled
+
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
-                var subtotal_after_extra = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-                var total = subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount));
-                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
+                var subtotal = Math.ceil(price_tag - (price_tag / 100 * parseFloat(discount)));
+                var subtotal_after_extra = Math.ceil(subtotal - (subtotal / 100 * parseFloat(extra_discount)));
+                var total = Math.ceil(subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount)));
+                $input.val(addCommas(total));
                 $('#total_purchase_price_' + id + '_' + i).val(addCommas(total * qty));
                 poad_total_price += total * qty;
                 poadPurchasePrice(id, i, total);
             }
 
             $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
-            reloadPoTotalPrice(po_id)
+
         }
 
         $.ajaxSetup({
@@ -401,6 +428,7 @@
                 }
             }
         });
+        reloadPoTotalPrice(po_id)
     }
 
     // function subDiscount(id)
@@ -467,7 +495,18 @@
         return x1 + x2;
     }
 
+    // Helper to track pending AJAX requests to poad_save_purchase_price
+    let pendingPoadSavePurchasePrice = 0;
+
     function reloadPoTotalPrice(id) {
+        // Only reload if no pending poad_save_purchase_price requests
+        if (pendingPoadSavePurchasePrice > 0) {
+            // Wait and retry after a short delay
+            setTimeout(function() {
+                reloadPoTotalPrice(id);
+            }, 200);
+            return;
+        }
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -486,6 +525,40 @@
                 } else {
                     toast('Gagal', 'gagal menampilkan total terbaru', 'warning');
                 }
+            }
+        });
+    }
+
+    // Patch poadPurchasePrice to increment/decrement the counter
+    function poadPurchasePrice(id, index, purchase_price) {
+        var $input = $('#poad_purchase_price_' + id + '_' + index);
+        if ($input.prop('disabled') === true) {
+            return;
+        }
+        var poad_id = $input.attr('data-poad-id');
+        pendingPoadSavePurchasePrice++;
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _poad_id: poad_id,
+                _purchase_price: purchase_price
+            },
+            dataType: 'json',
+            url: "{{ url('poad_save_purchase_price') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            },
+            complete: function() {
+                pendingPoadSavePurchasePrice--;
             }
         });
     }
@@ -598,6 +671,72 @@
             }
         });
     }
+
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
+    function deleteFinanceAttachment(id) {
+        swal({
+            title: "Hapus Lampiran..?",
+            text: "Yakin hapus lampiran ini ?",
+            icon: "warning",
+            buttons: [
+                'Jangan Hapus',
+                'Hapus Lampiran'
+            ],
+            dangerMode: true,
+        }).then(function(isConfirm) {
+            if (isConfirm) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    data: {
+                        attachment_id: id
+                    },
+                    dataType: 'json',
+                    url: "{{ url('po_finance_attachment_delete') }}",
+                    success: function(r) {
+                        if (r.status == '200') {
+                            financeAttachmentTable.draw(false);
+                        } else {
+                            swal('Gagal', 'Gagal hapus lampiran', 'error');
+                        }
+                    }
+                });
+                return false;
+            }
+        })
+    }
+
+    function activeEditPoad(id, index) {
+        $('#poad_purchase_price_' + id + '_' + index).prop('disabled', false);
+        $('#poad_qty_' + id + '_' + index).prop('disabled', false);
+    }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -732,6 +871,37 @@
         });
     });
 
+    $('#dispute_description').on('blur', function() {
+
+        var no_order = $('#po_invoice_label').text();
+
+        const description = $(this).val();
+        const po_invoice = no_order;
+
+        if (!po_invoice) {
+            alert("No PO Invoice provided!");
+            return;
+        }
+
+        $.ajax({
+            url: "{{ url('dispute_description_save') }}",
+            type: 'POST',
+            data: {
+                dispute_description: description,
+                po_invoice: po_invoice,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                console.log(response);
+                toastr.success("Dispute deskripsi berhasil disimpan", "Berhasil");
+            },
+            error: function(xhr) {
+                console.error(xhr);
+                toastr.error("Gagal menyimpan data", "Gagal");
+            }
+        });
+    });
+
     $(document).delegate('#bank_general', 'change', function() {
         var bg_id = $(this).val();
         $.ajaxSetup({
@@ -787,6 +957,11 @@
                 data: function(d) {
                     d.search = $('#purchase_order_search').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.date = $('#po_date').val();
+                    d.status_purchase = $('#status_purchase').val();
+                    d.status_finance = $('#status_finance').val();
+                    d.filter_dispute = $('#filter_dispute').val();
+                    d.filter_status_dispute = $('#filter_status_dispute').val();
                 }
             },
             columns: [{
@@ -822,6 +997,10 @@
                 {
                     data: 'po_status',
                     name: 'po_status'
+                },
+                {
+                    data: 'finance_status',
+                    name: 'finance_status'
                 },
             ],
             columnDefs: [{
@@ -974,6 +1153,129 @@
             order: [
                 [0, 'desc']
             ],
+        });
+
+        financeAttachmentTable = $('#FinanceAttachmentTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            deferLoading: 0,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_finance_attachment_datatable') }}",
+                data: function(d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'file_name',
+                    name: 'file_name',
+                    searchable: false
+                },
+                {
+                    data: 'description',
+                    name: 'description'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": [0, 1],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        var purchaseOrderLogTable = $('#PurchaseOrderLogTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            deferLoading: 0,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_log_datatables') }}",
+                data: function(d) {
+                    d.po_id = $('#_po_id').val();
+                },
+            },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'type',
+                    name: 'type'
+                },
+                {
+                    data: 'item_detail',
+                    name: 'item_detail',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'target_column',
+                    name: 'target_column'
+                },
+                {
+                    data: 'before',
+                    name: 'before',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'after',
+                    name: 'after',
+                    render: function(data, type, row) {
+                        return data ? data : '-';
+                    }
+                }
+            ],
+            columnDefs: [{
+                "targets": '_all',
+                "className": "text-center"
+            }],
+            order: [
+                [1, 'desc']
+            ],
+            pageLength: 25
+        });
+
+        $('#ChangeLogBtn').on('click', function() {
+            purchaseOrderLogTable.draw();
+            jQuery.noConflict();
+            $('#ChangeLogModal').modal('show');
         });
 
         $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
@@ -1163,6 +1465,14 @@
             product_table.draw();
         });
 
+        $('#filter_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+        $('#filter_status_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
+
         $('#ps_id').select2({
             width: "100%",
             dropdownParent: $('#ps_id_parent')
@@ -1245,6 +1555,35 @@
 
         $('#st_id_filter').on('change', function() {
             purchase_order_table.draw();
+        });
+
+        $('#status_purchase').select2({
+            width: "200px",
+            dropdownParent: $('#status_purchase_parent')
+        });
+
+        $('#status_purchase').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#status_purchase').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+        $('#status_finance').on('change', function() {
+            purchase_order_table.draw();
+        });
+        $('#status_finance').select2({
+            width: "200px",
+            dropdownParent: $('#status_finance_parent')
+        });
+
+        $('#status_finance').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
         });
 
         $('#br_id_filter_item').select2({
@@ -1333,7 +1672,7 @@
                         $('#po_description').val(r.po_description);
                         $('#shipping_cost').val(r.shipping_cost);
                         $('#dispute').val(dispute_text);
-                        $('#dispute_description').val(r.po_dispute_description);
+                        $('#dispute_description').val(r.dispute_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
@@ -1346,8 +1685,12 @@
                         $('#status_dispute').val(r.status_dispute);
                         $('#total_purchase').val(r.po_total_purchase);
                         $('#payment_amount').val(r.po_payment_amount);
+                        $('#adjustment_amount').val(r.adjustment_amount);
                         $('#total_qty').val(r.po_total_qty);
+                        jQuery('#is_receivable').val(r.is_receivable);
+                        jQuery('#claim_amount').val(r.claim_amount);
                         reloadArticleDetail(po_id);
+                        calcRemainingPayment(r.po_invoice);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
                     }
@@ -1367,6 +1710,15 @@
             $("#BuktitfImagesBtn").click(function() {
                 $("#BuktitfImagesModal").modal("show");
                 purchaseOrderBuktitfTable.draw();
+                console.log($('#po_id').val());
+            });
+        });
+
+        $(document).ready(function() {
+            $("#FinanceAttachmentBtn").click(function() {
+                $("#FinanceAttachmentModal").modal("show");
+                financeAttachmentTable.draw();
+                $('#po_id_finance_attachment').val($('#_po_id').val());
                 console.log($('#po_id').val());
             });
         });
@@ -1410,6 +1762,7 @@
                         jQuery('#acc_id').val('').trigger('change');
                         jQuery('#total_purchase').val('');
                         jQuery('#payment_amount').val('');
+                        jQuery('#adjustment_amount').val('');
                         jQuery('#total_qty').val('');
                         $('.add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
@@ -1456,7 +1809,46 @@
         checkRequiredSelects();
 
 
-        $('#save_purchase_order_btn').on('click', function(e) {
+        // $('#save_purchase_order_btn').on('click', function(e) {
+        //     e.preventDefault();
+        //     // alert("Modal ditutup, melepaskan lock...");
+        //     var po_id = $('#_po_id').val();
+        //     if (po_id) {
+        //         closeEditModal('purchase_order', po_id, 'pembelian');
+        //     }
+        //     // Hentikan interval extend lock
+        //     if (window.lockExtendInterval) {
+        //         clearInterval(window.lockExtendInterval);
+        //         window.lockExtendInterval = null;
+        //     }
+        //     $('#PurchaseOrderModal').modal('hide');
+        //     var po_id = $('#_po_id').val();
+        //     $.ajaxSetup({
+        //         headers: {
+        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //         }
+        //     });
+        //     $.ajax({
+        //         type: "POST",
+        //         dataType: 'json',
+        //         data: {
+        //             _id: po_id
+        //         },
+        //         url: "{{ url('po_save_draft') }}",
+        //         success: function(r) {
+        //             if (r.status == '200') {
+        //                 //swal("Berhasil", "Data berhasil disimpan", "success");
+        //             } else {
+        //                 //swal('Gagal', 'Gagal simpan data', 'error');
+        //             }
+        //         }
+        //     });
+        //     purchase_order_table.draw(false);
+
+        //     $('#detail_po').removeClass('d-none');
+        // });
+
+        $('.close_modal_po').on('click', function(e) {
             e.preventDefault();
             // alert("Modal ditutup, melepaskan lock...");
             var po_id = $('#_po_id').val();
@@ -1490,6 +1882,7 @@
                     }
                 }
             });
+            changeFinanceStatus(po_id);
             purchase_order_table.draw(false);
 
             $('#detail_po').removeClass('d-none');
@@ -1653,6 +2046,7 @@
 
         $('#total_purchase').on('change', function() {
             var total_purchase = $(this).val();
+            var po_invoice = $('#po_invoice_label').text();
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1668,7 +2062,7 @@
                 url: "{{ url('po_total_purchase') }}",
                 success: function(r) {
                     if (r.status == '200') {
-
+                        calcRemainingPayment(po_invoice);
                     } else {
                         //swal('Gagal', 'Gagal mengubah data store', 'warning');
                     }
@@ -1678,6 +2072,7 @@
 
         $('#payment_amount').on('change', function() {
             var payment_amount = $(this).val();
+            var po_invoice = $('#po_invoice_label').text();
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1693,8 +2088,35 @@
                 url: "{{ url('po_payment_amount') }}",
                 success: function(r) {
                     if (r.status == '200') {
-
+                        toastr.success("Jumlah pembayaran berhasil di Update", "Success");
+                        calcRemainingPayment(po_invoice);
                     } else {}
+                }
+            });
+        });
+
+        $('#adjustment_amount').on('change', function() {
+            var adjustment_amount = $(this).val();
+            var po_invoice = $('#po_invoice_label').text();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _adjustment_amount: adjustment_amount
+                },
+                url: "{{ url('po_adjustment_amount') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+                        calcRemainingPayment(po_invoice);
+                    } else {
+                        swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
                 }
             });
         });
@@ -1937,6 +2359,8 @@
                     }
                 },
                 error: function(data) {
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
                     toastr.error('Terjadi kesalahan saat mengimport data', 'Error');
                 }
             });
@@ -2105,6 +2529,116 @@
             });
         });
 
+        $('#f_add_finance_attachment').on('submit', function(e) {
+            e.preventDefault();
+            $('#add_finance_attachment_btn').html('Proses...');
+            $('#add_finance_attachment_btn').attr('disabled', true);
+            var formData = new FormData(this);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_finance_attachment_upload') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#add_finance_attachment_btn").html('Upload');
+                    $("#add_finance_attachment_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    $("#AddFinanceAttachmentInputModal").modal('hide');
+                    financeAttachmentTable.draw(false);
+                    if (data.status == '200') {
+                        toastr.success('Data berhasil diimport', 'Berhasil');
+                        $('#f_add_finance_attachment')[0].reset();
+                        reloadArticleDetail(po_id);
+                    } else if (data.status == '400') {
+                        toastr.warning(
+                            'File yang anda import kosong atau format tidak tepat',
+                            'File');
+                    } else {
+                        toastr.warning(
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'Gagal');
+                    }
+                },
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat mengupload data', 'Error');
+                }
+            });
+        });
+
+        $('#is_receivable').on('change', function() {
+            var is_receivable = $(this).val();
+            var po_id = $('#_po_id').val();
+
+            if (is_receivable === '') {
+                return;
+            }
+
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: po_id,
+                    _is_receivable: is_receivable
+                },
+                url: "{{ url('po_change_is_receivable') }}",
+
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Status Receivable berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Status Receivable", "Gagal");
+                }
+            });
+        });
+
+        $('#claim_amount').on('change', function() {
+            var claim_amount = $(this).val();
+            var po_id = $('#_po_id').val();
+            var po_invoice = $('#po_invoice_label').text();
+
+            if (claim_amount === '') {
+                return;
+            }
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: po_id,
+                    _claim_amount: claim_amount
+                },
+                url: "{{ url('po_change_claim_amount') }}",
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Claim Amount berhasil disimpan", "Berhasil");
+                    var total_po = $('#poad_total_price').text().replace(/Rp\.\s*/g, '')
+                        .replace(/\./g, '').replace(/,/g, '');
+                    calcRemainingPayment(po_invoice);
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Claim Amount", "Gagal");
+                }
+            });
+        });
+
 
         $(document).delegate('#ExportArticleData', 'click', function(e) {
             e.preventDefault();
@@ -2113,5 +2647,61 @@
             {{-- window.location.href = "{{ url('po_article_export') }}?po_id="+po_id; --}}
             window.location.href = "{{ url('po_article_export') }}?po_id=" + po_id + "&st_id=" + st_id;
         });
+
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+
+            if ((end - start) < 100 || label == 'Today') {
+                title = 'Today:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Yesterday') {
+                title = 'Yesterday:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
+            } else {
+                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+            console.log(hidden_range);
+            $('#po_date').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+
+            purchase_order_table.draw();
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+                'All Days': [null, null],
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end, '');
     });
 </script>

@@ -3,7 +3,8 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">Grafik <small><i>* silahkan pilih status grafik pada opsi dibawah</i></small></h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Grafik <small><i>* silahkan pilih status grafik
+                            pada opsi dibawah</i></small></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -19,7 +20,8 @@
                 <div id="chart"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-light-primary font-weight-bold"
+                    data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -28,7 +30,8 @@
 
 
 <!-- Modal-->
-<div class="modal fade" id="UserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="UserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -80,14 +83,20 @@
                             <th class="text-dark">Pergerakan Terakhir</th>
                             <th class="text-dark"><span id="last_updated_label"></span></th>
                         </tr>
+                        <tr>
+                            <th class="text-dark">Lokasi Refund</th>
+                            <th class="text-dark"><span id="refund_location_label"></span></th>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <div class="modal-footer">
                 @if ($data['user']->g_name == 'administrator')
-                <button type="button" class="btn btn-danger font-weight-bold" data-id="" id="delete_btn">Hapus</button>
+                    <button type="button" class="btn btn-danger font-weight-bold" data-id=""
+                        id="delete_btn">Hapus</button>
                 @endif
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-light-primary font-weight-bold"
+                    data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>

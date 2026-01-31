@@ -141,8 +141,7 @@
                         <strong>{{ $row->st_name }}</strong><br />
                         {{ $row->st_address }}<br />
                         {{ $row->st_phone }}<br /><br />
-                        Jersey Zone<br />
-                        www.jez.co.id
+                        www.zona-karya.id
                     </div>
                     <div class="separate"></div>
 
@@ -393,9 +392,9 @@
                                         @if (!empty($row->pos_payment))
                                             {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }} --}}
                                             @if (!empty($discount_invoice))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - ($total_price + $nameset - $discount_invoice)) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - $row->pos_another_cost - ($total_price + $nameset - $discount_invoice)) }}
                                             @else
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - ($total_final + $nameset)) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment + $row->pos_payment_partial + $total_voucher - $row->pos_another_cost - ($total_final + $nameset)) }}
                                             @endif
                                         @else
                                             0
@@ -409,21 +408,34 @@
                                             sudah termasuk PPN</i></span>
                                 </td>
                             </tr>
+{{--                            <tr>--}}
+{{--                                <td colspan="4">--}}
+{{--                                    <center><span class="center" style="float:unset; margin-top:10px;"><i>Note : Harga--}}
+{{--                                            sudah termasuk PPN</i></span></center>--}}
+{{--                                </td>--}}
+{{--                            </tr>--}}
+
                         </table>
                     </div>
+                    @if($row->pos_note)
+                        <div style="margin-top: 20px; font-size: 10px;">
+                            <b>Note : {{ $row->pos_note }}</b>
+                        </div>
+                    @endif
+
                     <div class="thanks">
                         ~~~ Terimakasih ~~~
                     </div>
-                    <div class="azost">
-                        www.jez.co.id
-                    </div>
+{{--                    <div class="azost">--}}
+{{--                        www.zona-karya.id--}}
+{{--                    </div>--}}
                     <br />
 
                     <div class="title">
                         <strong><i>Cust Experience :</i></strong>
                         <br />
                         <img class="" data-pt_id="{{ $row->pt_id }}" src="{{ asset('logo/jezpro_qr.png') }}"
-                            style="width:43%; background-color:#000;" />
+                            style="width:43%; background-color:#000; margin-top:20px" />
                     </div>
                     <br>
                     <div class="title">

@@ -54,8 +54,16 @@
                     name: 'pl_refund'
                 },
                 {
+                    data: 'pl_default_failed_qc',
+                    name: 'pl_default_failed_qc'
+                },
+                {
                     data: 'pl_freeze',
                     name: 'pl_freeze'
+                },
+                {
+                    data: 'pl_offline',
+                    name: 'pl_offline'
                 },
                 {
                     data: 'detail',
@@ -120,6 +128,7 @@
             $('#pl_description').val(data.pl_description);
             $('#pl_default').val(data.pl_default);
             $('#pl_refund').val(data.pl_refund);
+            $('#pl_failed_qc').val(data.pl_failed_qc);
             $('#pl_freeze').val(data.pl_freeze);
             $('#pl_capacity').val(data.pl_capacity);
             // jQuery('#pl_freeze').val(data.pl_freeze).trigger('change');
@@ -324,6 +333,28 @@
                 data: {
                     plid: plid,
                     pl_freeze: isChecked,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('Data berhasil diubah', 'Berhasil');
+                    product_location_table.draw(false);
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengubah status.', 'Gagal');
+                }
+            });
+        });
+
+        $(document).on('change', '.toggle-offline', function() {
+            let plid = $(this).data('id');
+            let isChecked = $(this).is(':checked') ? '1' : '0';
+
+            $.ajax({
+                url: '{{ url("pl_offline_status") }}',
+                method: 'POST',
+                data: {
+                    plid: plid,
+                    pl_offline: isChecked,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {

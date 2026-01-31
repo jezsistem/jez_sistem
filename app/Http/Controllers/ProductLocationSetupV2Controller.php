@@ -1180,6 +1180,44 @@ class ProductLocationSetupV2Controller extends Controller
             ]);
         }
 
+        //check is pls_qty on temp more than available qty on product_location_setups
+        $check_qty = TempMutasi::select(
+            'pls_id',
+            'product_location_setups.pls_qty',
+            DB::raw('SUM(ts_temp_mutasi.pls_qty) as total_mutation_qty')
+        )
+            ->join('product_location_setups', 'product_location_setups.id', '=', 'temp_mutasi.pls_id')
+            ->where('temp_mutasi.u_id', Auth::user()->id)
+            ->groupBy('pls_id', 'product_location_setups.pls_qty')
+            ->get();
+
+        foreach ($check_qty as $item) {
+            if ($item->total_mutation_qty > $item->pls_qty) {
+                $pl_code = ProductLocation::join('product_location_setups', 'product_location_setups.pl_id', '=', 'product_locations.id')
+                    ->where('product_location_setups.id', $item->pls_id)
+                    ->value('pl_code') ?? 'Unknown';
+                $ps_barcode = TempMutasi::where('pls_id', $item->pls_id)
+                    ->where('u_id', Auth::user()->id)
+                    ->value('ps_barcode') ?? 'Unknown';
+                $qtyInvalid[] = [
+                    'pl_code' => $pl_code,
+                    'sku' => $ps_barcode,
+                    'qty_mutasi' => $item->total_mutation_qty,
+                    'qty_available' => $item->pls_qty
+                ];
+            }
+        }
+        
+        if (!empty($qtyInvalid)) {
+            return response()->json([
+                'status' => '400',
+                'message' => 'Data mutasi ada yang bermasalah, silahkan perbaiki data dan import ulang',
+                'missingBins' => $missingBins,
+                'missingItemsOnBin' => $missingItemsOnBin,
+                'qtyInvalid' => $qtyInvalid
+            ]);
+        }
+
         foreach ($datas as $data) {
             $pls = ProductLocationSetup::find($data->pls_id);
             if (!$pls) {

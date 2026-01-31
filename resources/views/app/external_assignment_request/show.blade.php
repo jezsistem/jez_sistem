@@ -48,25 +48,29 @@
 
                         <!-- Tombol Approval Dinamis -->
                         <hr>
-                        @if($canApprove)
-                            @if($approvalStep === 'hr')
+                        @if ($canApprove)
+                            @if ($approvalStep === 'hr')
                                 <!-- Dropdown Tombol HR -->
                                 <div class="dropdown mt-3">
-                                    <button class="btn btn-success dropdown-toggle" type="button" id="hrActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="btn btn-success dropdown-toggle" type="button" id="hrActionDropdown"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
                                         Action by HR
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="hrActionDropdown">
                                         <li>
-                                            <a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#hrApproveModal">Approve</a>
+                                            <a class="dropdown-item text-success" href="#" data-bs-toggle="modal"
+                                                data-bs-target="#hrApproveModal">Approve</a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#hrRejectModal">Reject</a>
+                                            <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal"
+                                                data-bs-target="#hrRejectModal">Reject</a>
                                         </li>
                                     </ul>
                                 </div>
 
                                 <!-- Modal Approve HR -->
-                                <div class="modal fade" id="hrApproveModal" tabindex="-1" aria-labelledby="hrApproveModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="hrApproveModal" tabindex="-1"
+                                    aria-labelledby="hrApproveModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form method="POST" action="{{ route('ear.approve', $detail->id) }}">
                                             @csrf
@@ -74,7 +78,8 @@
                                             <div class="modal-content">
                                                 <div class="modal-header bg-success text-white">
                                                     <h5 class="modal-title">Approve by HR</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
@@ -83,7 +88,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Batal</button>
                                                     <button type="submit" class="btn btn-success">Submit Approval</button>
                                                 </div>
                                             </div>
@@ -92,7 +98,8 @@
                                 </div>
 
                                 <!-- Modal Reject HR -->
-                                <div class="modal fade" id="hrRejectModal" tabindex="-1" aria-labelledby="hrRejectModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="hrRejectModal" tabindex="-1"
+                                    aria-labelledby="hrRejectModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form method="POST" action="{{ route('ear.approve', $detail->id) }}">
                                             @csrf
@@ -100,7 +107,8 @@
                                             <div class="modal-content">
                                                 <div class="modal-header bg-danger text-white">
                                                     <h5 class="modal-title">Reject by HR</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
@@ -109,51 +117,63 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Batal</button>
                                                     <button type="submit" class="btn btn-danger">Submit Reject</button>
                                                 </div>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-
                             @elseif($approvalStep === 'finance')
                                 <!-- Dropdown Tombol Finance -->
                                 <div class="dropdown mt-3">
-                                    <button class="btn btn-success dropdown-toggle" type="button" id="financeActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="btn btn-success dropdown-toggle" type="button"
+                                        id="financeActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                         Action by Finance
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="financeActionDropdown">
-                                        <li><a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#financeApproveModal">Approve</a></li>
-                                        <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#financeRejectModal">Reject</a></li>
+                                        <li><a class="dropdown-item text-success" href="#" data-bs-toggle="modal"
+                                                data-bs-target="#financeApproveModal">Approve</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal"
+                                                data-bs-target="#financeRejectModal">Reject</a></li>
                                     </ul>
                                 </div>
 
                                 <!-- Modal Approve Finance -->
-                                <div class="modal fade" id="financeApproveModal" tabindex="-1" aria-labelledby="financeApproveModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="financeApproveModal" tabindex="-1"
+                                    aria-labelledby="financeApproveModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
-                                        <form action="{{ route('ear.approve', $detail->id) }}" method="POST" enctype="multipart/form-data">
+                                        <form action="{{ route('ear.approve', $detail->id) }}" method="POST"
+                                            enctype="multipart/form-data">
                                             @csrf
                                             <input type="hidden" name="action" value="Done">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-success text-white">
                                                     <h5 class="modal-title">Finance Approval</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
-                                                        <label for="ear_finance_note" class="form-label">Catatan Finance</label>
+                                                        <label for="ear_finance_note" class="form-label">Catatan
+                                                            Finance</label>
                                                         <textarea class="form-control" name="ear_finance_note" id="ear_finance_note" rows="3"></textarea>
                                                     </div>
 
                                                     <div class="mb-3">
-                                                        <label for="ear_finance_uploads" class="form-label">Upload Bukti Transfer</label>
-                                                        <input type="file" class="form-control" name="ear_finance_uploads" id="ear_finance_uploads" accept="image/*" required>
-                                                        <small class="text-muted">Format: JPG, PNG, atau JPEG. Maksimal 2MB.</small>
+                                                        <label for="ear_finance_uploads" class="form-label">Upload Bukti
+                                                            Transfer</label>
+                                                        <input type="file" class="form-control"
+                                                            name="ear_finance_uploads" id="ear_finance_uploads"
+                                                            accept="image/*" required>
+                                                        <small class="text-muted">Format: JPG, PNG, atau JPEG. Maksimal
+                                                            2MB.</small>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="submit" class="btn btn-success">Submit Approval</button>
+                                                    <button type="submit" class="btn btn-success">Submit
+                                                        Approval</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -161,7 +181,8 @@
                                 </div>
 
                                 <!-- Modal Reject Finance -->
-                                <div class="modal fade" id="financeRejectModal" tabindex="-1" aria-labelledby="financeRejectModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="financeRejectModal" tabindex="-1"
+                                    aria-labelledby="financeRejectModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form action="{{ route('ear.approve', $detail->id) }}" method="POST">
                                             @csrf
@@ -169,11 +190,13 @@
                                             <div class="modal-content">
                                                 <div class="modal-header bg-danger text-white">
                                                     <h5 class="modal-title">Reject by Finance</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
-                                                        <label for="ear_finance_note_reject" class="form-label">Reason</label>
+                                                        <label for="ear_finance_note_reject"
+                                                            class="form-label">Reason</label>
                                                         <textarea class="form-control" name="ear_finance_note" id="ear_finance_note_reject" rows="3" required></textarea>
                                                     </div>
                                                 </div>
@@ -184,32 +207,35 @@
                                         </form>
                                     </div>
                                 </div>
-
                             @else
                                 <!-- Dropdown Tombol Supervisor / Manager -->
                                 <div class="dropdown mt-3">
-                                    <button class="btn btn-success dropdown-toggle" type="button" id="defaultActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="btn btn-success dropdown-toggle" type="button"
+                                        id="defaultActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                         Action by {{ ucfirst($approvalStep) }}
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="defaultActionDropdown">
                                         <li>
-                                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST"
+                                                class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="action" value="Approved">
-                                                <button type="submit" class="dropdown-item text-success" onclick="return confirm('Yakin ingin melanjutkan ke tahap berikutnya?')">Approve</button>
+                                                <button type="submit" class="dropdown-item text-success"
+                                                    onclick="return confirm('Yakin ingin melanjutkan ke tahap berikutnya?')">Approve</button>
                                             </form>
                                         </li>
                                         <li>
-                                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST"
+                                                class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="action" value="Rejected">
-                                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Yakin ingin menolak request ini?')">Reject</button>
+                                                <button type="submit" class="dropdown-item text-danger"
+                                                    onclick="return confirm('Yakin ingin menolak request ini?')">Reject</button>
                                             </form>
                                         </li>
                                     </ul>
                                 </div>
                             @endif
-
                         @elseif($detail->ear_status === 'Completed')
                             <div class="alert alert-success mt-3 mb-0">
                                 <i class="bi bi-check-circle"></i> Request ini sudah <strong>Completed</strong>.
@@ -227,7 +253,7 @@
                         <ul class="timeline">
                             <li class="timeline-item {{ $detail->ear_approved_by ? 'text-success' : 'text-muted' }}">
                                 <strong>Supervisor / Manager:</strong><br>
-                                @if($detail->ear_approved_by)
+                                @if ($detail->ear_approved_by)
                                     {{ $detail->approver->u_name ?? '-' }}<br>
                                     <small>{{ $detail->ear_approved_at ? \Carbon\Carbon::parse($detail->ear_approved_at)->format('d M Y H:i') : '-' }}</small>
                                 @else
@@ -237,11 +263,11 @@
 
                             <li class="timeline-item {{ $detail->ear_hr_checked_by ? 'text-success' : 'text-muted' }}">
                                 <strong>HR Checked:</strong><br>
-                                @if($detail->ear_hr_checked_by)
+                                @if ($detail->ear_hr_checked_by)
                                     {{ $detail->hrChecker->u_name ?? '-' }}<br>
                                     <small>{{ $detail->ear_hr_checked_at ? \Carbon\Carbon::parse($detail->ear_hr_checked_at)->format('d M Y H:i') : '-' }}</small>
                                     <br>
-                                    <small>{{ $detail->ear_hr_note  }}</small>
+                                    <small>{{ $detail->ear_hr_note }}</small>
                                 @else
                                     <em>Menunggu pemeriksaan HR</em>
                                 @endif
@@ -249,14 +275,15 @@
 
                             <li class="timeline-item {{ $detail->ear_finance_by ? 'text-success' : 'text-muted' }}">
                                 <strong>Finance Processed:</strong><br>
-                                @if($detail->ear_finance_by)
+                                @if ($detail->ear_finance_by)
                                     {{ $detail->financeProcessor->u_name ?? '-' }}<br>
                                     <small>{{ $detail->ear_finance_at ? \Carbon\Carbon::parse($detail->ear_finance_at)->format('d M Y H:i') : '-' }}</small>
                                     <br>
-                                    <small>{{ $detail->ear_finance_note  }}</small>
-                                    @if($detail->ear_finance_uploads)
+                                    <small>{{ $detail->ear_finance_note }}</small>
+                                    @if ($detail->ear_finance_uploads)
                                         <div class="mt-2">
-                                            <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#financeProofModal">
+                                            <a href="#" class="text-primary" data-bs-toggle="modal"
+                                                data-bs-target="#financeProofModal">
                                                 <i class="fa fa-image"></i> Lihat Bukti Transfer
                                             </a>
                                         </div>
@@ -273,27 +300,29 @@
 
         <!-- Rundown -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-light"><h5 class="mb-0">Rundown</h5></div>
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Rundown</h5>
+            </div>
             <div class="card-body">
-                @if($detail->rundowns && $detail->rundowns->count() > 0)
+                @if ($detail->rundowns && $detail->rundowns->count() > 0)
                     <table class="table table-bordered table-sm">
                         <thead class="table-light">
-                        <tr>
-                            <th>Activity</th>
-                            <th>Date</th>
-                            <th>Start</th>
-                            <th>End</th>
-                        </tr>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Date</th>
+                                <th>Start</th>
+                                <th>End</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        @foreach($detail->rundowns as $r)
-                            <tr>
-                                <td>{{ $r->activity }}</td>
-                                <td>{{ $r->rundown_date }}</td>
-                                <td>{{ $r->start_time }}</td>
-                                <td>{{ $r->end_time }}</td>
-                            </tr>
-                        @endforeach
+                            @foreach ($detail->rundowns as $r)
+                                <tr>
+                                    <td>{{ $r->activity }}</td>
+                                    <td>{{ $r->rundown_date }}</td>
+                                    <td>{{ $r->start_time }}</td>
+                                    <td>{{ $r->end_time }}</td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 @else
@@ -309,21 +338,21 @@
 
             </div>
             <div class="card-body">
-                @if($detail->cashDetails && $detail->cashDetails->count() > 0)
+                @if ($detail->cashDetails && $detail->cashDetails->count() > 0)
                     <table class="table table-bordered table-sm">
                         <thead class="table-light">
-                        <tr>
-                            <th>Purpose</th>
-                            <th>Amount</th>
-                        </tr>
+                            <tr>
+                                <th>Purpose</th>
+                                <th>Amount</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        @foreach($detail->cashDetails as $c)
-                            <tr>
-                                <td>{{ $c->cash_purpose }}</td>
-                                <td>Rp {{ number_format($c->cash_amount, 0, ',', '.') }}</td>
-                            </tr>
-                        @endforeach
+                            @foreach ($detail->cashDetails as $c)
+                                <tr>
+                                    <td>{{ $c->cash_purpose }}</td>
+                                    <td>Rp {{ number_format($c->cash_amount, 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 @else
@@ -339,42 +368,91 @@
             </div>
 
             <div class="card-body">
-                @if($detail->ear_status === 'Approved' && Auth::id() === $detail->request_by)
+                @if (
+                    ($detail->ear_status === 'Approved' ||
+                        $detail->ear_status === 'HR Check' ||
+                        $detail->ear_status === 'Finance Process') &&
+                        Auth::id() === $detail->request_by)
                     <!-- Form Input Report -->
-                    <form action="{{ route('ear.report.store', $detail->id) }}" method="POST">
+                    <form action="{{ route('ear.report.update', $detail->id) }}" method="POST" id="reportForm">
                         @csrf
 
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm align-middle" id="reportTable">
                                 <thead class="table-light text-center">
-                                <tr>
-                                    <th style="width: 120px;">Tanggal</th>
-                                    <th style="width: 90px;">Start</th>
-                                    <th style="width: 90px;">End</th>
-                                    <th>Detail Kegiatan</th>
-                                    <th style="width: 140px;">Cash (Rp)</th>
-                                    <th style="width: 50px;">#</th>
-                                </tr>
+                                    <tr>
+                                        <th style="width: 120px;">Tanggal</th>
+                                        <th style="width: 90px;">Start</th>
+                                        <th style="width: 90px;">End</th>
+                                        <th>Detail Kegiatan</th>
+                                        <th style="width: 140px;">Cash (Rp)</th>
+                                        <th style="width: 50px;">#</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td><input type="date" name="reports[0][earr_date]" class="form-control form-control-sm" required></td>
-                                    <td><input type="time" name="reports[0][earr_time_start]" class="form-control form-control-sm" required></td>
-                                    <td><input type="time" name="reports[0][earr_time_end]" class="form-control form-control-sm" required></td>
-                                    <td><textarea name="reports[0][earr_detail]" class="form-control form-control-sm" rows="1" required></textarea></td>
-                                    <td><input type="number" name="reports[0][cash_amount]" class="form-control form-control-sm text-end" placeholder="0"></td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-danger btn-sm btn-remove-row">&times;</button>
-                                    </td>
-                                </tr>
+                                    @if ($detail->reports && $detail->reports->count() > 0)
+                                        @foreach ($detail->reports as $index => $report)
+                                            <tr>
+                                                <td><input type="date" name="reports[{{ $index }}][earr_date]"
+                                                        class="form-control form-control-sm"
+                                                        value="{{ $report->earr_date }}" required></td>
+                                                <td><input type="time"
+                                                        name="reports[{{ $index }}][earr_time_start]"
+                                                        class="form-control form-control-sm"
+                                                        value="{{ $report->earr_time_start }}" required></td>
+                                                <td><input type="time"
+                                                        name="reports[{{ $index }}][earr_time_end]"
+                                                        class="form-control form-control-sm"
+                                                        value="{{ $report->earr_time_end }}" required></td>
+                                                <td>
+                                                    <textarea name="reports[{{ $index }}][earr_detail]" class="form-control form-control-sm" rows="1"
+                                                        required>{{ $report->earr_detail }}</textarea>
+                                                </td>
+                                                <td><input type="number"
+                                                        name="reports[{{ $index }}][cash_amount]"
+                                                        class="form-control form-control-sm text-end" placeholder="0"
+                                                        value="{{ $report->cash_amount }}"></td>
+                                                <td class="text-center">
+                                                    <button type="button"
+                                                        class="btn btn-danger btn-sm btn-remove-row">&times;</button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td><input type="date" name="reports[0][earr_date]"
+                                                    class="form-control form-control-sm" required></td>
+                                            <td><input type="time" name="reports[0][earr_time_start]"
+                                                    class="form-control form-control-sm" required></td>
+                                            <td><input type="time" name="reports[0][earr_time_end]"
+                                                    class="form-control form-control-sm" required></td>
+                                            <td>
+                                                <textarea name="reports[0][earr_detail]" class="form-control form-control-sm" rows="1" required></textarea>
+                                            </td>
+                                            <td><input type="number" name="reports[0][cash_amount]"
+                                                    class="form-control form-control-sm text-end" placeholder="0"></td>
+                                            <td class="text-center">
+                                                <button type="button"
+                                                    class="btn btn-danger btn-sm btn-remove-row">&times;</button>
+                                            </td>
+                                        </tr>
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <button type="submit" class="btn btn-success btn-sm px-4">
-                                <i class="fa fa-save"></i> Simpan Report
-                            </button>
+                            <div class="d-flex">
+                                <button type="submit" class="btn btn-success btn-sm px-4" id="save_data">
+                                    <i class="fa fa-save"></i> Simpan Report
+                                </button>
+                                @if ($detail->ear_status === 'Approved')
+                                    <button type="submit" class="btn btn-info btn-sm px-4 ml-4" id="send_data_to_hr">
+                                        <i class="fa fa-paper-plane"></i> Simpan & Kirim Report ke HR
+                                    </button>
+                                @endif
+                            </div>
+
 
                             <button type="button" class="btn btn-primary btn-sm" id="addRowBtn">
                                 <i class="fa fa-plus"></i> Tambah Baris
@@ -383,60 +461,89 @@
                     </form>
 
                     {{-- Jika sudah ada report sebelumnya, tampilkan di bawah form --}}
-                    @if($detail->reports && $detail->reports->count() > 0)
+                    @if ($detail->reports && $detail->reports->count() > 0 && Auth::id() != $detail->request_by)
                         <hr class="my-4">
                         <h6 class="fw-bold mb-2">Report Dinas Sebelumnya:</h6>
 
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm align-middle mb-0">
                                 <thead class="table-light text-center">
-                                <tr>
-                                    <th style="width: 120px;">Tanggal</th>
-                                    <th style="width: 90px;">Start</th>
-                                    <th style="width: 90px;">End</th>
-                                    <th>Detail</th>
-                                    <th style="width: 140px;" class="text-end">Cash (Rp)</th>
-                                </tr>
+                                    <tr>
+                                        <th style="width: 120px;">Tanggal</th>
+                                        <th style="width: 90px;">Start</th>
+                                        <th style="width: 90px;">End</th>
+                                        <th>Detail</th>
+                                        <th style="width: 140px;" class="text-end">Cash (Rp)</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                @foreach($detail->reports as $rep)
+                                    @foreach ($detail->reports as $rep)
+                                        <tr>
+                                            <td>{{ $rep->earr_date }}</td>
+                                            <td>{{ $rep->earr_time_start }}</td>
+                                            <td>{{ $rep->earr_time_end }}</td>
+                                            <td>{{ $rep->earr_detail }}</td>
+                                            <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                     <tr>
-                                        <td>{{ $rep->earr_date }}</td>
-                                        <td>{{ $rep->earr_time_start }}</td>
-                                        <td>{{ $rep->earr_time_end }}</td>
-                                        <td>{{ $rep->earr_detail }}</td>
-                                        <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}</td>
+                                        <th colspan="4" style="text-align: right;">Total Cash:</th>
+                                        <th style="text-align: right;">
+                                            Rp {{ number_format($detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                        </th>
                                     </tr>
-                                @endforeach
+                                    <tr></tr>
+                                    <tr>
+                                        <th colspan="4" style="text-align: right;">Plus Minus Cash:</th>
+                                        <th style="text-align: right;">
+                                            Rp
+                                            {{ number_format($detail->ear_cash_advance - $detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                        </th>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                     @endif
-
                 @else
                     <!-- View Only -->
-                    @if($detail->reports && $detail->reports->count() > 0)
+                    @if ($detail->reports && $detail->reports->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm align-middle mb-0">
                                 <thead class="table-light text-center">
-                                <tr>
-                                    <th style="width: 120px;">Tanggal</th>
-                                    <th style="width: 90px;">Start</th>
-                                    <th style="width: 90px;">End</th>
-                                    <th>Detail</th>
-                                    <th style="width: 140px;" class="text-end">Cash (Rp)</th>
-                                </tr>
+                                    <tr>
+                                        <th style="width: 120px;">Tanggal</th>
+                                        <th style="width: 90px;">Start</th>
+                                        <th style="width: 90px;">End</th>
+                                        <th>Detail</th>
+                                        <th style="width: 140px;" class="text-end">Cash (Rp)</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                @foreach($detail->reports as $rep)
+                                    @foreach ($detail->reports as $rep)
+                                        <tr>
+                                            <td>{{ $rep->earr_date }}</td>
+                                            <td>{{ $rep->earr_time_start }}</td>
+                                            <td>{{ $rep->earr_time_end }}</td>
+                                            <td>{{ $rep->earr_detail }}</td>
+                                            <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                     <tr>
-                                        <td>{{ $rep->earr_date }}</td>
-                                        <td>{{ $rep->earr_time_start }}</td>
-                                        <td>{{ $rep->earr_time_end }}</td>
-                                        <td>{{ $rep->earr_detail }}</td>
-                                        <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}</td>
+                                        <th colspan="4" style="text-align: right;">Total Cash:</th>
+                                        <th style="text-align: left;">
+                                            Rp {{ number_format($detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                        </th>
                                     </tr>
-                                @endforeach
+                                    <tr></tr>
+                                    <tr>
+                                        <th colspan="4" style="text-align: right;">Plus Minus Cash:</th>
+                                        <th style="text-align: left;">
+                                            Rp
+                                            {{ number_format($detail->ear_cash_advance - $detail->reports->sum('cash_amount'), 0, ',', '.') }}
+                                        </th>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -447,11 +554,63 @@
             </div>
         </div>
 
+        <!-- Requester Upload -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Requester Upload</h5>
+            </div>
+
+            <div class="card-body">
+                @if (Auth::id() === $detail->request_by &&
+                        ($detail->ear_status === 'Approved' ||
+                            $detail->ear_status === 'HR Check' ||
+                            $detail->ear_status === 'Finance Process'))
+                    <!-- Upload Form -->
+                    <form class="mb-3" id="f_upload_images">
+                        <div class="row align-items-center justify-content-center">
+                            <div class="col-md-10">
+                                <label for="file_req_upload" class="form-label">Upload File</label>
+                                <input type="hidden" name="ear_id" value="{{ $detail->id }}">
+                                <input type="file" class="form-control" name="files[]" id="file_req_upload" multiple
+                                    required>
+                                <small class="text-muted">Format: PDF, JPG, PNG, JPEG. Maksimal 5MB per file. You can
+                                    select multiple files.</small>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <button type="button" id="btn_upload_images" class="btn btn-primary w-100">
+                                    <i class="fa fa-upload"></i> Upload
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                @endif
+
+                <!-- Table List of Uploaded Files -->
+                @if ($detail->uploads && $detail->uploads->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm align-middle" id="uploaded_files_table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>File Name</th>
+                                    <th style="width: 300px;">Uploaded At</th>
+                                    <th style="width: 200px;" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted mb-0">No files uploaded yet.</p>
+                @endif
+            </div>
+        </div>
+
     </div>
 
-    @if($detail->ear_finance_uploads)
+    @if ($detail->ear_finance_uploads)
         <!-- Modal Preview Bukti Transfer -->
-        <div class="modal fade" id="financeProofModal" tabindex="-1" aria-labelledby="financeProofModalLabel" aria-hidden="true">
+        <div class="modal fade" id="financeProofModal" tabindex="-1" aria-labelledby="financeProofModalLabel"
+            aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -459,9 +618,8 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-center">
-                        <img src="{{ asset('storage/' . $detail->ear_finance_uploads) }}"
-                             alt="Bukti Transfer"
-                             class="img-fluid rounded shadow">
+                        <img src="{{ asset('storage/' . $detail->ear_finance_uploads) }}" alt="Bukti Transfer"
+                            class="img-fluid rounded shadow">
                     </div>
                 </div>
             </div>
@@ -514,19 +672,199 @@
     </style>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let rowIndex = 1;
+        function deleteUpload(uploadId) {
+            if (confirm('Are you sure you want to delete this file?')) {
+                // Perform AJAX request to delete the file
+                $.ajax({
+                    url: "{{ url('external-assignment-uploads/delete/') }}/" + uploadId,
+                    type: "DELETE",
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(res) {
+                        if (res.status === '200') {
+                            toastr.success(res.message);
+                            // Refresh DataTable
+                            uploadedFilesTable.ajax.reload(null, false);
+                        } else {
+                            toastr.error(res.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('Failed to delete file');
+                    }
+                });
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const reportForm = document.getElementById('reportForm');
+            const sendToHrBtn = document.getElementById('send_data_to_hr');
+
+            if (sendToHrBtn) {
+                sendToHrBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    reportForm.action = "{{ route('ear.report.store', $detail->id) }}";
+                    reportForm.submit();
+                });
+            }
+            // Robust DataTable initialization with retry mechanism for uploaded files
+            function initUploadedFilesDataTable() {
+                if (typeof $.fn.DataTable === 'undefined') {
+                    console.log('DataTable not available, retrying in 100ms...');
+                    setTimeout(initUploadedFilesDataTable, 100);
+                    return;
+                }
+
+                try {
+                    console.log('Initializing uploaded files DataTable...');
+
+                    const columns = [{
+                            data: 'DT_RowIndex',
+                            name: 'DT_RowIndex',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center'
+                        },
+                        {
+                            data: 'file_name',
+                            name: 'file_name'
+                        },
+                        {
+                            data: 'created_at',
+                            name: 'created_at',
+                            render: function(data) {
+                                return data ? new Date(data).toLocaleString('id-ID') : '-';
+                            }
+                        },
+                        {
+                            data: 'action',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center'
+                        }
+                    ];
+
+                    window.uploadedFilesTable = $('#uploaded_files_table').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ url('external-assignment-uploads') }}",
+                            type: "GET",
+                            data: function(d) {
+                                d.ear_id = "{{ $detail->id }}";
+                            }
+                        },
+                        columns: columns,
+                        order: [
+                            [2, 'desc']
+                        ],
+                        paging: false,
+                        searching: false,
+                        lengthChange: false,
+                        info: false,
+                        language: {
+                            processing: "Loading...",
+                            emptyTable: "No files uploaded yet",
+                            zeroRecords: "No matching records found"
+                        }
+                    });
+
+                    console.log('Uploaded files DataTable initialized successfully');
+
+                } catch (error) {
+                    console.error('Error initializing uploaded files DataTable:', error);
+                    // Retry after a delay
+                    setTimeout(initUploadedFilesDataTable, 500);
+                }
+            }
+
+            // Initialize the DataTable
+            initUploadedFilesDataTable();
+
+            // Refresh DataTable after successful upload
+            $('#btn_upload_images').on('click', function(e) {
+                e.preventDefault();
+
+                let formData = new FormData();
+                let fileInput = document.getElementById('file_req_upload');
+                formData.append('ear_id', "{{ $detail->id }}");
+
+                if (fileInput.files.length === 0) {
+                    toastr.error('Please select at least one file');
+                    return;
+                }
+
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    formData.append('files[]', fileInput.files[i]);
+                }
+
+                formData.append('_token', "{{ csrf_token() }}");
+
+                $.ajax({
+                    url: "{{ url('external-assignment-uploads/store') }}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        console.log("Upload response:", res);
+                        if (res.status === '200') {
+                            toastr.success(res.message);
+                            fileInput.value = '';
+                            // Refresh DataTable
+                            uploadedFilesTable.ajax.reload(null, false);
+                        } else {
+                            toastr.error(res.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Upload error:", xhr.responseText);
+                        toastr.error(xhr.responseJSON?.message || 'Failed to upload images');
+                    }
+                });
+            });
+
+            // Handle delete action from DataTable
+            $(document).on('click', '.btn-delete-file', function() {
+                let fileId = $(this).data('id');
+                if (confirm('Are you sure you want to delete this file?')) {
+                    $.ajax({
+                        url: "{{ url('external-assignment-uploads') }}/" + fileId,
+                        type: "DELETE",
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(res) {
+                            if (res.status === '200') {
+                                toastr.success(res.message);
+                                uploadedFilesTable.ajax.reload(null, false);
+                            } else {
+                                toastr.error(res.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            toastr.error('Failed to delete file');
+                        }
+                    });
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize rowIndex based on existing reports count
+            let rowIndex = {{ $detail->reports && $detail->reports->count() > 0 ? $detail->reports->count() : 1 }};
 
             // Tambah baris
-            document.getElementById('addRowBtn').addEventListener('click', function () {
+            document.getElementById('addRowBtn').addEventListener('click', function() {
                 let newRow = `
             <tr>
-                <td><input type="date" name="reports[${rowIndex}][earr_date]" class="form-control" required></td>
-                <td><input type="time" name="reports[${rowIndex}][earr_time_start]" class="form-control" required></td>
-                <td><input type="time" name="reports[${rowIndex}][earr_time_end]" class="form-control" required></td>
-                <td><textarea name="reports[${rowIndex}][earr_detail]" class="form-control" rows="1" required></textarea></td>
-                <td><input type="number" name="reports[${rowIndex}][cash_amount]" class="form-control" placeholder="0"></td>
-                <td><button type="button" class="btn btn-danger btn-sm btn-remove-row">&times;</button></td>
+                <td><input type="date" name="reports[${rowIndex}][earr_date]" class="form-control form-control-sm" required></td>
+                <td><input type="time" name="reports[${rowIndex}][earr_time_start]" class="form-control form-control-sm" required></td>
+                <td><input type="time" name="reports[${rowIndex}][earr_time_end]" class="form-control form-control-sm" required></td>
+                <td><textarea name="reports[${rowIndex}][earr_detail]" class="form-control form-control-sm" rows="1" required></textarea></td>
+                <td><input type="number" name="reports[${rowIndex}][cash_amount]" class="form-control form-control-sm text-end" placeholder="0"></td>
+                <td class="text-center"><button type="button" class="btn btn-danger btn-sm btn-remove-row">&times;</button></td>
             </tr>
         `;
                 $('#reportTable tbody').append(newRow);
@@ -534,14 +872,14 @@
             });
 
             // Hapus baris
-            $(document).on('click', '.btn-remove-row', function () {
+            $(document).on('click', '.btn-remove-row', function() {
                 $(this).closest('tr').remove();
             });
         });
     </script>
 
     <!-- Bootstrap JS -->
-{{--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">--}}
+    {{--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

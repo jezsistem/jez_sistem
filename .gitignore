@@ -6,6 +6,7 @@
 /storage/*.key
 /vendor
 .env
+.env.local
 .env.backup
 .env.production
 .phpunit.result.cache
@@ -23,4 +24,5 @@ README2.md
 
 /storage/*
 /storage/logs/laravel.log
+/public/online/*
 #/resources/views/app/_partials/header.blade.php

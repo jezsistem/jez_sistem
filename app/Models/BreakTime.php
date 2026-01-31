@@ -196,7 +196,7 @@ class BreakTime extends Model
         $breakAllowance = $this->getBreakAllowance($shiftType);
 
         // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
-        if (in_array($dailySchedule->shiftCode->sc_code, ['PF', 'PF0', 'PFM'])) {
+        if (in_array($dailySchedule->shiftCode->sc_code, ['PF', 'PF0', 'PFM', 'PTF'])) {
             \Log::info('PF, PF0, PFM shift codes get 2 breaks even if PART TIME');
             // Override break allowance for PF, PF0, PFM
             $breakAllowance = [

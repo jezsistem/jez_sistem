@@ -535,6 +535,7 @@ class SettlementController extends Controller
                     });
             })
             ->where('payment_methods.st_id', '=', $st_id)
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->where(function ($query) {
                 $query->where('payment_methods.pm_name', '!=', 'CASH')
                     ->orWhere(function ($q) {
@@ -598,6 +599,7 @@ class SettlementController extends Controller
                     });
             })
             ->where('payment_methods.st_id', '=', $st_id)
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->where(function ($query) {
                 $query->where('payment_methods.pm_name', '!=', 'CASH')
                     ->orWhere(function ($q) {
@@ -651,6 +653,7 @@ class SettlementController extends Controller
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = FALSE THEN COALESCE(pos_real_price, 0) ELSE 0 END) AS unsettled_payment')
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
             })
@@ -713,6 +716,7 @@ class SettlementController extends Controller
             ->join('online_transactions', 'pos_invoice', '=', 'order_number')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id')
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
             })
@@ -1002,6 +1006,7 @@ class SettlementController extends Controller
                 DB::raw('0 as is_partial')
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
             })
@@ -1085,6 +1090,7 @@ class SettlementController extends Controller
                 'total_disburshed_amount as total_dana_cair',
                 DB::raw('0 as is_partial')
             ])
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
@@ -1165,6 +1171,7 @@ class SettlementController extends Controller
                 'total_disburshed_amount as total_dana_cair',
                 DB::raw('1 as is_partial')
             ])
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
@@ -1244,6 +1251,7 @@ class SettlementController extends Controller
                 'total_disburshed_amount as total_dana_cair',
                 DB::raw('0 as is_partial')
             ])
+            ->where('pos_transactions.pos_status', '!=', 'REJECTED')
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->where(function ($query) {
                 $query->where('pm_main.pm_name', 'CASH')

@@ -1,5 +1,29 @@
+<script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 <script>
     var approval = '';
+
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
 
     $(document).ready(function() {
         $.ajaxSetup({
@@ -284,22 +308,20 @@
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: true,
+            responsive: false, // Disable responsive to allow horizontal scroll
+            scrollX: true, // Enable horizontal scrolling
+            autoWidth: false, // Allow columns to use their defined widths
             dom: 'Brtl<"text-right"ip>',
-            buttons: [{
-                "extend": 'excelHtml5',
-                "text": 'Excel',
-                "className": 'btn btn-primary btn-xs'
-            }],
+            buttons: [],
             ajax: {
-                url: "{{ url('pocdetail_datatables') }}",
+                url: "{{ url('apd_datatables') }}",
                 data: function(d) {
                     d.poads_invoice = $('#invoice_label').text();
                 }
             },
             columns: [{
                     data: 'DT_RowIndex',
-                    name: 'id',
+                    name: 'po_id',
                     searchable: false
                 },
                 {
@@ -339,21 +361,33 @@
                     name: 'poads_qty'
                 },
                 {
-                    data: 'ps_qty',
-                    name: 'ps_qty'
+                    data: 'pls_qty_current',
+                    name: 'pls_qty_current'
                 },
                 {
                     data: 'poads_purchase_price',
                     name: 'poads_purchase_price',
-                    render: function(data) {
-                        return formatRupiah(data);
+                    render: function(data, type, row) {
+                        var price = parseFloat(data);
+                        var formattedPrice = new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(price);
+                        return formattedPrice;
                     }
                 },
                 {
                     data: 'poads_total_price',
                     name: 'poads_total_price',
-                    render: function(data) {
-                        return formatRupiah(data);
+                    render: function(data, type, row) {
+                        var price = parseFloat(data);
+                        var formattedPrice = new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(price);
+                        return formattedPrice;
                     }
                 },
                 {
@@ -397,8 +431,8 @@
         });
 
         $('#APtb tbody').on('click', 'tr', function() {
-            console.log('Row clicked',po_approval_table.row(this).data());
-            
+            console.log('Row clicked', po_approval_table.row(this).data());
+
 
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
@@ -422,6 +456,7 @@
             approval = po_approval_table.row(this).data().u_receive;
             var bank_general = po_approval_table.row(this).data().bank_general;
             var payment = po_approval_table.row(this).data().acc_id;
+            var payment_amount = po_approval_table.row(this).data().payment_amount;
             jQuery.noConflict();
 
             console.log('STORES : ', tgl_terima);
@@ -477,6 +512,7 @@
                     $('#tax_name').val(tx_name);
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
+                    $('#payment_amount').val(payment_amount);
                     console.log('BANK GENERAL : ', bank_general, 'PAYMENT : ', payment);
                     jQuery('#bank_general').val(bank_general).trigger('change');
                     jQuery('#acc_id').val(payment).trigger('change');
@@ -491,6 +527,8 @@
                         jQuery('#acc_id').prop('disabled', false);
                     }
 
+                    calcRemainingPayment(po_invoice);
+
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
                     PurchaseOrdersFileDispute.draw();
@@ -500,6 +538,33 @@
             $('#invoice_label').text(poads_invoice.replace("&amp;", "&"));
 
             apd_table.draw();
+        });
+
+        $('#payment_amount').on('change', function() {
+            var payment_amount = $(this).val();
+            var po_invoice = $('#no_po').text();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _payment_amount: payment_amount
+                },
+                url: "{{ url('po_payment_amount') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+                        calcRemainingPayment(po_invoice);
+                        toastr.success("Jumlah pembayaran berhasil di Update", "Success");
+                    } else if (r.status == '500') {
+                        swal('Error', r.message);
+                    } else {}
+                }
+            });
         });
 
         $(document).delegate('#bank_general', 'change', function() {
@@ -636,6 +701,8 @@
                                 po_approval_table.draw(false);
                                 swal("Berhasil", "Data berhasil dibayar",
                                     "success");
+                                changeFinanceStatus($('#_po_id').val());
+
                             } else {
                                 swal('Gagal', 'Gagal approve data', 'error');
                             }

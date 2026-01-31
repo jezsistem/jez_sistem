@@ -963,6 +963,68 @@
                         start_bin_table.draw();
                         end_bin_table.draw();
                         bin_history_table.draw();
+                    } else if (data.status == '400' && data.qtyInvalid && data.qtyInvalid.length > 0) {
+                        Swal.fire({
+                            title: 'Data Mutasi Bermasalah',
+                            html: `
+                                <div style="overflow-x:auto;">
+                                    <p style="margin-bottom: 15px;">Ada data yang bermasalah, silahkan perbaiki data dan import ulang</p>
+                                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                                        <thead>
+                                            <tr>
+                                                <th style="border: 1px solid #ccc; padding: 8px;">Bin Code</th>
+                                                <th style="border: 1px solid #ccc; padding: 8px;">SKU</th>
+                                                <th style="border: 1px solid #ccc; padding: 8px;">Qty Mutasi</th>
+                                                <th style="border: 1px solid #ccc; padding: 8px;">Qty Tersedia</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="qty-invalid-mutation-table-body"></tbody>
+                                    </table>
+                                    <br/>
+                                    <div style="text-align: center;">
+                                        <button id="export_qty_invalid_mutation" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                                        <button id="close_qty_invalid_mutation_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                                    </div>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                let tbody = document.getElementById('qty-invalid-mutation-table-body');
+                                data.qtyInvalid.forEach(function(item) {
+                                    let row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.pl_code || '-'}</td>
+                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.sku || '-'}</td>
+                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_mutasi || '-'}</td>
+                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_available || '-'}</td>
+                                    `;
+                                    tbody.appendChild(row);
+                                });
+
+                                document.getElementById('export_qty_invalid_mutation')
+                                    .addEventListener('click', function() {
+                                        let wb = XLSX.utils.book_new();
+                                        let ws_data = [
+                                            ["Bin Code", "SKU", "Qty Mutasi", "Qty Tersedia"],
+                                            ...data.qtyInvalid.map(item => [
+                                                item.pl_code || '-',
+                                                item.sku || '-',
+                                                item.qty_mutasi || '-',
+                                                item.qty_available || '-'
+                                            ])
+                                        ];
+                                        let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                        XLSX.utils.book_append_sheet(wb, ws, "Invalid Qty Mutation");
+                                        XLSX.writeFile(wb, "Invalid_Qty_Mutation.xlsx");
+                                    });
+
+                                document.getElementById('close_qty_invalid_mutation_alert')
+                                    .addEventListener('click', function() {
+                                        Swal.close();
+                                    });
+                            }
+                        });
                     } else {
                         toastr.error(data.message ||
                             'Terjadi kesalahan saat menyimpan mutasi', 'Error');

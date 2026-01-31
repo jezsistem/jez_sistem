@@ -97,9 +97,10 @@
                     <thead>
                         <tr>
                             <th style="white-space: nowrap;">Size</th>
-                            <th style="white-space: nowrap;">Stok</th>
+                            {{-- <th style="white-space: nowrap;">Stok</th> --}}
                             <th style="white-space: nowrap;">Barcode / Sku</th>
                             <th style="white-space: nowrap;">Harga Bandrol</th>
+                            <th style="white-space: nowrap;">Harga Jual</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -21,6 +21,7 @@ class BinAdjustment extends Model
         'ba_adjust',
         'ba_adjust_type',
         'ba_note',
+        'ba_proof_file',
         'created_at',
         'ba_status',
         'ba_approve',

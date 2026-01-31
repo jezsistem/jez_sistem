@@ -89,6 +89,7 @@ class ArtikelPromoController extends Controller
                 ->orderByDesc('sid')->pluck('store', 'sid'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
             'segment' => request()->segment(1),
+            'stores' => Store::where('st_delete', '!=', '1')->orderBy('st_name')->get(),
         ];
         return view('app.artikel_promo.artikel_promo', compact('data'));
         //        return 'aaaa';
@@ -121,17 +122,18 @@ class ArtikelPromoController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id', 'article_id', 'p_name','st_id','stores.st_code as st_code', 'promo_name', 'date_start', 'date_end', 'promo_disc', 'p_price_tag', 'promo_note')
+            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id', 'article_id', 'p_name', 'st_id', 'stores.st_code as st_code', 'promo_name', 'date_start', 'date_end', 'promo_disc', 'p_price_tag', 'promo_note', 'discounted_price')
                 ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
                 ->join('products', 'products.id', '=', 'articles_promo.p_id'))
                 ->filter(function ($instance) use ($request) {
                     $search = $request->get('search');
+                    $search_article = $request->get('search_article');
                     $dateRange = $request->get('date_start');
                     if (!empty($search)) {
                         $instance->where(function ($query) use ($search) {
                             $query->orWhere('p_id', 'LIKE', "%$search%")
-                                ->orWhere('article_id', 'LIKE', "%$search%")
-                                ->orWhere('p_name', 'LIKE', "%$search%")
+                                // ->orWhere('article_id', 'LIKE', "%$search%")
+                                // ->orWhere('p_name', 'LIKE', "%$search%")
                                 ->orWhere('st_code', 'LIKE', "%$search%")
                                 ->orWhere('promo_name', 'LIKE', "%$search%")
                                 ->orWhere('date_start', 'LIKE', "%$search%")
@@ -140,6 +142,14 @@ class ArtikelPromoController extends Controller
                                 ->orWhere('promo_note', 'LIKE', "%$search%");
                         });
                     }
+
+                    if (!empty($search_article)) {
+                        $instance->where(function ($query) use ($search_article) {
+                            $query->orWhere('article_id', 'LIKE', "%$search_article%")
+                                ->orWhere('p_name', 'LIKE', "%$search_article%");
+                        });
+                    }
+
                     if (!empty($dateRange)) {
                         $dates = explode('|', $dateRange);
                         if (count($dates) === 2) {
@@ -147,6 +157,9 @@ class ArtikelPromoController extends Controller
                         } else {
                             $instance->whereDate('date_start', $dates[0]);
                         }
+                    }
+                    if (!empty($request->get('artikel_promo_store'))) {
+                        $instance->where('st_id', $request->get('artikel_promo_store'));
                     }
                 })
                 ->addColumn('article_id', function ($row) {
@@ -165,12 +178,16 @@ class ArtikelPromoController extends Controller
                     return number_format($row->p_price_tag);
                 })
                 ->addColumn('price_discount', function ($row) {
-                    $originalPrice = $row->p_price_tag;
-                    $discount = $row->promo_disc;
+                    if ($row->discounted_price) {
+                        return number_format($row->discounted_price);
+                    } else {
+                        $originalPrice = $row->p_price_tag;
+                        $discount = $row->promo_disc;
 
-                    $discountedPrice = $originalPrice - ($originalPrice * ($discount / 100));
+                        $discountedPrice = $originalPrice - ($originalPrice * ($discount / 100));
 
-                    return number_format($discountedPrice);
+                        return number_format($discountedPrice);
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -297,18 +314,30 @@ class ArtikelPromoController extends Controller
         $mode = $request->input('_mode'); // 'add' or 'edit'
         $id = $request->input('_id');
 
+        $article_id = $request->input('article_id');
+        $product = DB::table('products')->where('article_id', $article_id)->first();
+
+        $discountedPrice = is_numeric($request->input('discounted_price')) ? (int) $request->input('discounted_price') : 0;
+
+        $price_tag = $product->p_price_tag;
+
+        $diffPrice = $price_tag - $discountedPrice;
+
+        $discountPercentage = ($diffPrice / $price_tag) * 100;
+        $promoDisc = round($discountPercentage);
+
         $data = [
-            'p_id' => $request->input('p_id'),
+            'p_id' => $product->id,
             'st_id' => $request->input('st_id'),
             'promo_name' => $request->input('promo_name'),
             'date_start' => $request->input('date_start'),
             'date_end' => $request->input('date_end'),
-            'promo_disc' => $request->input('promo_disc'),
+            'promo_disc' => $promoDisc,
             'promo_note' => $request->input('promo_note'),
+            'discounted_price' => $discountedPrice,
+            'price_diff' => $diffPrice,
+            'created_at' => now(),
         ];
-
-        $article_id = $request->input('article_id');
-        $product = DB::table('products')->where('article_id', $article_id)->first();
 
         if (!$product) {
             return response()->json([
@@ -324,7 +353,7 @@ class ArtikelPromoController extends Controller
             $artikelPromo->timestamps = false; // Disable timestamps
             $artikelPromo->fill($data);
             if ($artikelPromo->save()) {
-                $this->UserActivity('menambah artikel promo ' . strtoupper($request->input('promo_name')) . ' ' . $request->input('promo_disc'));
+                $this->UserActivity('menambah artikel promo ' . strtoupper($request->input('promo_name')) . ' ' . $discountedPrice);
                 return response()->json(['status' => '200', 'message' => 'Data Successfully Added JEZ']);
             } else {
                 return response()->json(['status' => '400', 'message' => 'Failed to add data JEZ']);
@@ -335,7 +364,7 @@ class ArtikelPromoController extends Controller
                 $artikelPromo->timestamps = false; // Disable timestamps
                 $artikelPromo->fill($data);
                 if ($artikelPromo->save()) {
-                    $this->UserActivity('mengubah data diskon ' . strtoupper($request->input('promo_name')) . ' ' . $request->input('promo_disc'));
+                    $this->UserActivity('mengubah data diskon ' . strtoupper($request->input('promo_name')) . ' ' . $discountedPrice);
                     return response()->json(['status' => '200', 'message' => 'Data successfully updated JEZ']);
                 } else {
                     return response()->json(['status' => '400', 'message' => 'Failed to update data JEZ']);
@@ -407,11 +436,13 @@ class ArtikelPromoController extends Controller
     public function exportData(Request $request)
     {
         try {
-            $type = $request->get('type');
+            $search = $request->get('search');
+            $dateRange = $request->get('date_range');
+            $store = $request->get('artikel_promo_store');
 
             $fileName = 'Export_Artikel_Promo_' . date('Y-m-d') . '.xlsx';
 
-            return Excel::download(new ArtikelPromoExport($type), $fileName);
+            return Excel::download(new ArtikelPromoExport($search, $dateRange, $store), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }

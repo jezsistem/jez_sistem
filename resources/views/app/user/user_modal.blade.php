@@ -168,17 +168,52 @@
             </div>
             <div class="modal-body table-responsive">
                 <div class="row justify-content-between">
-                <div id="menu_panel"></div>
-                <a href="#" class="btn btn-sm btn-primary font-weight-bolder col-3" id="add_menu_access_btn">
-                <span class="svg-icon svg-icon-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                            <rect x="0" y="0" width="24" height="24" />
-                            <circle fill="#000000" cx="9" cy="15" r="6" />
-                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z" fill="#000000" opacity="0.3" />
-                        </g>
-                    </svg>
-                </span>Tambah</a>
+                <div class="accordion accordion-toggle-arrow" style="min-width: 100%" id="menuAccessAccordion">
+                    <!-- Template Accordion -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title collapsed" data-toggle="collapse" data-target="#templateCollapse">
+                                <i class="flaticon2-list-2"></i> Template Menu Access
+                            </div>
+                        </div>
+                        <div id="templateCollapse" class="collapse" data-parent="#menuAccessAccordion">
+                            <div class="card-body">
+                                <div id="template_panel">
+                                    @forelse ($menu_access_templates as $menu_access_template)
+                                        <a class='btn btn-sm btn-primary mr-1 mb-1' data-template_id="{{ $menu_access_template->id }}" id="store_menu_access_template_btn">{{ $menu_access_template->template_name }}</a>
+                                    @empty
+                                        <p class="text-muted">Tidak ada template tersedia</p>
+                                    @endforelse
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Custom Menu Access Accordion -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title collapsed" data-toggle="collapse" data-target="#customMenuCollapse">
+                                <i class="flaticon2-add-square"></i> Custom Menu Access
+                            </div>
+                        </div>
+                        <div id="customMenuCollapse" class="collapse" data-parent="#menuAccessAccordion">
+                            <div class="card-body">
+                                <div id="menu_panel"></div>
+                                <a href="#" class="btn btn-sm btn-primary font-weight-bolder col-3" id="add_menu_access_btn">
+                                <span class="svg-icon svg-icon-md">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24" />
+                                            <circle fill="#000000" cx="9" cy="15" r="6" />
+                                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z" fill="#000000" opacity="0.3" />
+                                        </g>
+                                    </svg>
+                                </span>Tambah</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-12" id="menuList"></div>
                 </div><br/><br/>
                 <input type="search" class="form-control  col-6" id="menu_search" placeholder="Cari .."/><br/>

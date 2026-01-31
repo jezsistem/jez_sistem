@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ModalLockAllowedModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -14,9 +15,14 @@ class LockController extends Controller
     // "Daftar putih" model yang boleh di-lock (untuk keamanan)
     private function getAllowedModels(): array
     {
-        return [
-            'purchase_order' => \App\Models\PurchaseOrder::class,
-        ];
+        $allowedModels = ModalLockAllowedModel::all();
+
+        $allowedModelsArray = [];
+        foreach ($allowedModels as $allowedModel) {
+            $allowedModelsArray[$allowedModel->model_type] = "\\App\\Models\\" . $allowedModel->model_name;
+        }
+
+        return $allowedModelsArray;
     }
 
     // Fungsi untuk mencari model berdasarkan tipe dan ID dari request
@@ -121,6 +127,14 @@ class LockController extends Controller
             $existingLock->update(['expires_at' => now()->addMinutes(self::LOCK_DURATION_MINUTES)]);
             return response()->json(['status' => 'success', 'message' => 'Lock diperpanjang.']);
         }
+
+        // Jika tidak ada lock spesifik yang cocok, buat lock baru
+        $lockable->locks()->create([
+            'user_id'    => Auth::id(),
+            'expires_at' => now()->addMinutes(self::LOCK_DURATION_MINUTES),
+            'identifier' => $validated['identifier'],
+        ]);
+        return response()->json(['status' => 'success', 'message' => 'Lock baru berhasil dibuat.']);
 
         // Jika tidak ada lock spesifik yang cocok, kembalikan error
         return response()->json(['status' => 'error', 'message' => 'Tidak ada lock yang aktif untuk sesi ini.'], 404);

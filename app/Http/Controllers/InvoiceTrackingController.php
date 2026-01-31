@@ -158,9 +158,9 @@ class InvoiceTrackingController extends Controller
 
 
         if (request()->ajax()) {
-            return datatables()->of(PosTransaction::selectRaw("ts_pos_transactions.id as pt_id, sum(ts_pos_transaction_details.pos_td_qty) as total_item, u_name, cust_name, cust_id, pos_invoice, std_id, stt_name, pos_real_price, dv_name, cr_id, pt_id_ref, pos_shipping_number, psi_courier, psi_description, ts_pos_transactions.created_at as pos_created, pos_status, pos_payment")
-                ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
+            return datatables()->of(PosTransaction::selectRaw("ts_pos_transactions.id as pt_id, sum(ts_pos_transaction_details.pos_td_qty) as total_item, u_name, cust_name, cust_phone, cust_id, pos_invoice, std_id, stt_name, pos_real_price, dv_name, cr_id, pt_id_ref, pos_shipping_number, psi_courier, psi_description, ts_pos_transactions.created_at as pos_created, pos_status, pos_payment")
                 ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+                ->leftJoin('store_types', 'store_types.id', '=', 'store_type_divisions.stt_id')
                 ->leftJoin('pos_shipping_information', 'pos_shipping_information.pt_id', '=', 'pos_transactions.id')
                 ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
                 ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
@@ -180,22 +180,19 @@ class InvoiceTrackingController extends Controller
                         $invoice = PosTransaction::select('pos_invoice')->where('id', $data->pt_id_ref)->get()->first()->pos_invoice;
 
                         if (strtoupper($data->stt_name) == 'ONLINE' && substr(trim((string) $data->pos_invoice), 0, 3) === 'INV') {
-                            return '<a class="text-white" href="' . url('/') . '/print_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-warning" title="' . $invoice . '">' . $data->pos_invoice . '</span></a>';
+                            return '<a class="text-white" href="' . url('/') . '/print_invoice_v2/' . encrypt($data->pt_id) . '" target="_blank"><span class="btn btn-sm btn-warning" title="' . $invoice . '">' . $data->pos_invoice . '</span></a>';
                         } else {
                             return '<a class="text-white" href="' . url('/') . '/print_offline_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-warning" title="' . $invoice . '">' . $data->pos_invoice . '</span></a>';
                         }
                     } else {
 
-
-                        if (strtoupper($data->stt_name) == 'ONLINE' && substr(trim((string) $data->pos_invoice), 0, 3) === 'INV') {
+                        if (strtoupper($data->stt_name) == 'ONLINE') {
                             if ($data->pos_status == 'DONE' || $data->pos_status == 'PAID') {
-                                $return = '<a class="text-white" href="' . url('/') . '/print_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
+                                $return = '<a class="text-white" href="' . url('/') . '/print_invoice_v2/' . encrypt($data->pt_id) . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
                             } else {
                                 $return = '<button class="text-white btn btn-sm btn-primary">' . $data->pos_invoice . '</button>';
                             }
                             return $return;
-                        } else if (strtoupper($data->stt_name) == 'ONLINE' && substr(trim((string) $data->pos_invoice), 0, 3) !== 'INV') { // NOT INV
-                            return '<a class="text-white" href="' . url('/') . '/print_online_nota/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
                         } else {
                             return '<a class="text-white" href="' . url('/') . '/print_offline_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
                         }
@@ -497,10 +494,10 @@ Balas pesan ini jika butuh bantuan :)";
     public function invoiceDpRepaymentDetails($id)
     {
         $pt = PosTransaction::where('pos_transactions.id', $id)
-        ->select('pos_transactions.pos_real_price', 'pos_transactions.pos_payment', 'pos_transactions.pos_note', 'pos_transactions.created_at', 'payment_methods.pm_name', 'pos_transactions.st_id')
-        ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
-        ->first();
-        $payment_methods = DB::table('payment_methods')->where('pm_delete', '!=', '1') ->where('st_id', $pt->st_id)->orderBy('pm_name')->pluck('pm_name', 'id')->toArray();
+            ->select('pos_transactions.pos_real_price', 'pos_transactions.pos_payment', 'pos_transactions.pos_note', 'pos_transactions.created_at', 'payment_methods.pm_name', 'pos_transactions.st_id')
+            ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+            ->first();
+        $payment_methods = DB::table('payment_methods')->where('pm_delete', '!=', '1')->where('st_id', $pt->st_id)->orderBy('pm_name')->pluck('pm_name', 'id')->toArray();
 
         $data = [
             'total_sales' => $pt->pos_real_price,
@@ -524,6 +521,53 @@ Balas pesan ini jika butuh bantuan :)";
                 'data' => null
             ]);
         }
+    }
+
+    public function getTotalTransactions(Request $request)
+    {
+        $status = $request->status;
+        $division = $request->division;
+        $st_id = $request->st_id;
+        $date = $request->get('date');
+
+        $start = null;
+        $end = null;
+
+        $exp = explode('|', $date);
+        $total = count($exp);
+        if ($total > 1) {
+            if ($exp[0] != $exp[1]) {
+                $start = $exp[0];
+                $end = $exp[1];
+            } else {
+                $start = $exp[0];
+            }
+        } else {
+            if (!empty($date)) {
+                $start = $date;
+            } else {
+                $start = date('Y-m-d');
+            }
+        }
+
+        $query = PosTransaction::where('st_id', '=', $st_id)
+            ->where(function ($w) use ($start, $end) {
+                if (!empty($end)) {
+                    $w->whereDate('pos_transactions.created_at', '>=', $start)
+                        ->whereDate('pos_transactions.created_at', '<=', $end);
+                } else {
+                    $w->whereDate('pos_transactions.created_at', '=', $start);
+                }
+            })
+            ->when(!empty($status), function ($q) use ($status) {
+                return $q->where('pos_status', $status);
+            })
+            ->when(!empty($division), function ($q) use ($division) {
+                return $q->where('std_id', $division);
+            })->get();
+
+        $total = $query->count();
+        return response()->json(['total' => $total]);
     }
 
     private function shipmentracking($shipping_number, $courier, $id)

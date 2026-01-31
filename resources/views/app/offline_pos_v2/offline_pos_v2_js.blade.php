@@ -12,7 +12,6 @@
 
 <script>
     console.log('offline_pos_v2_js loaded');
-    // Helper function to check if we should skip adding Bootstrap rows (offline_pos_v2 uses updateProductTable)
     function shouldSkipRowAddition() {
         // Always skip in offline_pos_v2 - it uses updateProductTable() to render table from orderItems array
         return true;

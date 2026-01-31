@@ -30,17 +30,74 @@
                         <!--begin::Card-->
                         <div class="card card-custom gutter-b">
                             <div class="card-header flex-wrap py-3">
-                                <!--begin: Datatable-->
-                                <div class="form-group" style="padding-top:22px;">
-                                    <select class="form-control bg-primary text-white" id="st_id_filter" name="st_id_filter"
-                                        required>
-                                        <option value="">- Storage -</option>
-                                        @foreach ($data['st_id'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div id="st_id_filter_parent"></div>
+                                <div class="d-flex">
+                                    <!--begin: Datatable-->
+                                    <div class="form-group" style="padding-top:22px;">
+                                        <select class="form-control bg-primary text-white" id="st_id_filter"
+                                            name="st_id_filter" required>
+                                            <option value="">- Storage -</option>
+                                            @foreach ($data['st_id'] as $key => $value)
+                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="st_id_filter_parent"></div>
+                                    </div>
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <a href="#" class="btn btn-date-info font-weight-bold mr-2"
+                                            id="kt_dashboard_daterangepicker" data-toggle="tooltip"
+                                            title="Tanggal PO dibuat" data-placement="left">
+                                            <span class="font-size-base"
+                                                id="kt_dashboard_daterangepicker_title">Today</span>
+                                            <span class="font-size-base font-weight-bolder"
+                                                id="kt_dashboard_daterangepicker_date"></span>
+                                            <input type="hidden" id="po_date" />
+                                        </a>
+                                    </div>
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select name="status_purchase" id="status_purchase"
+                                            class="form-control bg-primary text-white">
+                                            <option value="">- Status Pembelian -</option>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="partial">Partial</option>
+                                            <option value="done">Done</option>
+                                        </select>
+                                        <div id="status_purchase_parent"></div>
+                                    </div>
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select name="status_finance" id="status_finance"
+                                            class="form-control bg-primary text-white">
+                                            <option value="">- Status Finance -</option>
+                                            <option value="CONSIGNMENT">CONSIGNMENT</option>
+                                            <option value="DRAFT / PENDING">DRAFT / PENDING</option>
+                                            <option value="HUTANG (PARTIAL RECEIVE)">HUTANG (PARTIAL RECEIVE)</option>
+                                            <option value="HUTANG">HUTANG</option>
+                                            <option value="PIUTANG (OVERPAYMENT PARTIAL)">PIUTANG (OVERPAYMENT PARTIAL)
+                                            </option>
+                                            <option value="PIUTANG">PIUTANG</option>
+                                            <option value="LUNAS">LUNAS</option>
+                                            <option value="UNKNOWN">UNKNOWN</option>
+                                        </select>
+                                        <div id="status_finance_parent"></div>
+                                    </div>
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select class="form-control" id="filter_dispute" name="filter_dispute"
+                                            style="border: 1px solid #ced4da;">
+                                            <option value="">- It Is Dispute? -</option>
+                                            <option value="1">Yes</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group ml-5" style="padding-top:22px;">
+                                        <select class="form-control" name="filter_status_dispute" id="filter_status_dispute"
+                                            style="border: 1px solid #ced4da;">
+                                            <option value="">- Pilih Status Dispute -</option>
+                                            <option value="1">Progress</option>
+                                            <option value="0">Closed</option>
+                                        </select>
+                                    </div>
                                 </div>
+
                                 <!--end: Datatable-->
                                 <div class="card-toolbar">
                                     <!--begin::Dropdown-->
@@ -87,7 +144,8 @@
                                         <!--end::Dropdown Menu-->
                                     </div>
                                     <!--end::Dropdown-->
-                                    <button href="#" class="btn btn-secondary font-weight-bolder add_po_btn" id="add_po_no_item_btn" data-type="without_item">
+                                    <button href="#" class="btn btn-secondary font-weight-bolder add_po_btn"
+                                        id="add_po_no_item_btn" data-type="without_item">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +163,8 @@
                                         </span>Buat PO Tanpa Item</button>
                                     <!--end::Button-->
                                     <!--begin::Button-->
-                                    <button href="#" class="btn btn-dark font-weight-bolder ml-2 add_po_btn" id="add_po_btn" data-type="with_item">
+                                    <button href="#" class="btn btn-dark font-weight-bolder ml-2 add_po_btn"
+                                        id="add_po_btn" data-type="with_item">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -138,6 +197,7 @@
                                             <th class="text-dark">Nomor Order</th>
                                             <th class="text-dark">Total</th>
                                             <th class="text-dark">Status</th>
+                                            <th class="text-dark">Status Finance</th>
                                         </tr>
                                     </thead>
                                     <tbody>

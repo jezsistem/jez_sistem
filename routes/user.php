@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InvestorController;
+use App\Http\Controllers\PersonalDataController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -47,4 +48,9 @@ Route::middleware(['auth'])->group(function () {
         [InvestorController::class, 'deleteData']
     );
     Route::post('i_username', [InvestorController::class, 'checkUsername']);
+
+    //Personal Data
+    Route::get('personal_data', [PersonalDataController::class, 'index'])->name('personal_data.index');
+    Route::post('personal_data', [PersonalDataController::class, 'storeData'])->name('personal_data.store');
+    Route::put('personal_data', [PersonalDataController::class, 'updateData'])->name('personal_data.update');
 });

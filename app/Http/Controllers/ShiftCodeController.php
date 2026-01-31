@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PublicHoliday;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -9,7 +11,6 @@ use App\Models\ShiftCode;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\UserActivity;
-use Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class ShiftCodeController extends Controller
@@ -79,6 +80,8 @@ class ShiftCodeController extends Controller
 
         return view('app.shift_code.index', compact('shiftCodes', 'data'));
     }
+
+
 
     public function create()
     {

@@ -20,15 +20,47 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
+        'google_id',
+        'st_id',
+        'stt_id',
+        'u_id_responsibility',
+        'u_nip',
+        'u_ktp',
+        'u_secret_code',
         'u_name',
         'u_email',
-        'password',
-        'u_photo',
-        'google_id',
         'avatar',
         'provider',
         'google_linked',
-        'google_linked_at'
+        'google_linked_at',
+        'u_phone',
+        'u_disc',
+        'u_address',
+        'u_active',
+        'join_date',
+        'u_delete',
+        'up_id',
+        'ud_id',
+        'ut_id',
+        'u_photo',
+        'delete_access',
+        'pos_access',
+        'pick_access',
+        'manual_attendance_access',
+        'created_by',
+        'updated_by',
+        'u_ktp_image',
+        'u_npwp',
+        'u_npwp_image',
+        'u_birthday',
+        'u_bpjs_kes_number',
+        'u_bpjs_kes_image',
+        'u_bpjs_tk_number',
+        'u_bpjs_tk_image',
+        'u_bank_name',
+        'u_bank_account_number',
+        'u_bank_account_holder',
+        'contract_number',
     ];
 
     /**
@@ -72,12 +104,13 @@ class User extends Authenticatable
 
     public function checkJoinData($select, $where)
     {
-        $select = array_merge($select, ['stt_name', 'st_name']);
+        $select = array_merge($select, ['stt_name', 'st_name','leave_balances.lb_remaining_balance as leave_balance']);
         $affected = DB::table($this->table)
             ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
             ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
             ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
             ->leftJoin('store_types', 'store_types.id', '=', 'users.stt_id')
+            ->leftJoin('leave_balances', 'leave_balances.user_id', '=', 'users.id')
             ->select($select)
             ->where($where)
             ->get();
@@ -220,5 +253,49 @@ class User extends Authenticatable
     public function getDisplayName()
     {
         return $this->u_name ?: $this->name;
+    }
+
+    public function remainingLeaveBalance() {
+        return $this->hasOne(LeaveBalance::class, 'user_id')->select('user_id', 'lb_remaining_balance')->latest('created_at');
+    }
+
+    public function remainingPhBalance() {
+        return $this->hasOne(LeaveBalance::class, 'user_id')->select('user_id', 'lb_ph_remaining')->latest('created_at');
+    }
+
+    public function isFintech($user_id)
+    {
+        //get user division
+        $is_fintech = User::query()
+            ->where('users.id', $user_id)
+            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->where('ud_code', 'FINANCETEC')
+            ->exists();
+
+        return $is_fintech;
+    }
+
+    public function isMDCX($user_id)
+    {
+        //get user division
+        $is_mdcx = User::query()
+            ->where('users.id', $user_id)
+            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->where('ud_code', 'MDCX')
+            ->exists();
+
+        return $is_mdcx;
+    }
+
+    public function isAtLeastSupervisor($user_id)
+    {
+        //get user position
+        $is_spv = User::query()
+            ->where('users.id', $user_id)
+            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+            ->where('up_code', '!=', 'STAFF')
+            ->exists();
+
+        return $is_spv;
     }
 }

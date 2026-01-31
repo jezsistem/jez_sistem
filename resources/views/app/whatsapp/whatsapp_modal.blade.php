@@ -42,3 +42,57 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- ===================== MODAL ADD JOB ===================== -->
+<div class="modal fade" id="addJobModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tambah Job Broadcast WA</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <form id="addJobForm">
+                @csrf
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label>Nama Job</label>
+                        <input type="text" name="job_name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tanggal & Jam Mulai</label>
+                        <input type="datetime-local" name="start_at" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tanggal & Jam Selesai</label>
+                        <input type="datetime-local" name="end_at" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Interval Pengiriman (Dalam jam)</label>
+                        <input type="number" name="interval_hours" class="form-control" required min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Jumlah Pesan Dalam 1 Batch</label>
+                        <input type="number" name="batch_size" class="form-control" required min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Konten Pesan</label>
+                        <textarea name="message" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Simpan Job</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

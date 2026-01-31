@@ -22,7 +22,7 @@ class RedirectController extends Controller
         if (!empty($menu)) {
             return redirect()->to('/'.$menu->ma_slug);
         } else {
-            dd('Anda belum memiliki default menu access, silahkan hubungi administrator untuk setting');
+            return redirect()->to('/announcements');
         }
     }
 }

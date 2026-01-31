@@ -831,6 +831,7 @@ class AttendanceController extends Controller
 
             // Store message in session before redirect
             session()->flash('success', $message);
+            session()->flash('errors', $errors);
             \Log::info('Session message stored', ['session_id' => session()->getId(), 'message' => $message]);
 
             return redirect()->route('attendance.index');
@@ -1281,7 +1282,7 @@ class AttendanceController extends Controller
         $allSchedules = $allSchedulesQuery->select('ds.ds_date', 'sc.sc_code')->get();
 
         // Calculate weighted total shifts using the same logic as getAttendanceSummary
-        $pfSchedules = $allSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM'])->count();
+        $pfSchedules = $allSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM', 'PTF'])->count();
         $nonPfSchedules = $allSchedules->count() - $pfSchedules;
         $totalShiftsCount = ($pfSchedules * 2) + $nonPfSchedules;
 
@@ -1346,7 +1347,7 @@ class AttendanceController extends Controller
 
             if ($scheduleOnDate) {
                 // Use schedule weight
-                if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM'])) {
+                if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM', 'PTF'])) {
                     $weightedPresentDays += 2;
                 } else {
                     $weightedPresentDays += 1;
@@ -2154,7 +2155,7 @@ class AttendanceController extends Controller
                 $leaveDisplay = "{$leaveDays} days {$leaveHours} hours";
 
                 // Calculate total shifts with weighting
-                $pfSchedules = $userSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM'])->count();
+                $pfSchedules = $userSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM', 'PTF'])->count();
                 $nonPfSchedules = $userSchedules->count() - $pfSchedules;
                 $totalShifts = ($pfSchedules * 2) + $nonPfSchedules;
 
@@ -2189,7 +2190,7 @@ class AttendanceController extends Controller
 
                     if ($scheduleOnDate) {
                         // Use schedule weight
-                        if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM'])) {
+                        if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM', 'PTF'])) {
                             $presentDays += 2;
                         } else {
                             $presentDays += 1;
@@ -2212,7 +2213,7 @@ class AttendanceController extends Controller
                                 'status' => $a->at_status,
                                 'has_schedule' => $scheduleOnDate ? 'yes' : 'no',
                                 'schedule_shift' => $scheduleOnDate ? $scheduleOnDate->sc_code : 'none',
-                                'weight_applied' => $scheduleOnDate ? (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM']) ? 2 : 1) : 1
+                                'weight_applied' => $scheduleOnDate ? (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM', 'PTF']) ? 2 : 1) : 1
                             ];
                         })->toArray()
                     ]);

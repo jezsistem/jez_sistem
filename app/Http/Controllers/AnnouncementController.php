@@ -25,7 +25,7 @@ class AnnouncementController extends Controller
      */
     public function index(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = Auth::user();
         $currentDate = Carbon::now();
 

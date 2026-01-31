@@ -205,7 +205,7 @@
         <div class="container">
             <!-- Statistics Cards -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-4 mb-4">
                     <div class="card card-custom rounded-lg bg-all">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -222,7 +222,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-4 mb-4">
                     <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -239,7 +239,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-4 mb-4">
                     <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -256,7 +256,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-4 mb-4">
                     <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -268,6 +268,57 @@
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('ear_status', 'Rejected')->count() }}</div>
                                     <div class="text-dark-50">Rejected</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <div class="card card-custom rounded-lg bg-other">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40  mr-4">
+                                    <span class="symbol-label bg-white text-dark">
+                                        <i class="ki-outline ki-magnifier text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="hr-check-requests">{{ $leaveRequests->where('ear_status', 'HR Check')->count() }}</div>
+                                    <div class="text-dark-50">HR Check</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <div class="card card-custom rounded-lg bg-other">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40  mr-4">
+                                    <span class="symbol-label bg-white text-dark">
+                                        <i class="ki-outline ki-dollar text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="finance-requests">{{ $leaveRequests->where('ear_status', 'Finance Process')->count() }}</div>
+                                    <div class="text-dark-50">Finance Process</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <div class="card card-custom rounded-lg" style="background-color: #C9F7F5;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40  mr-4">
+                                    <span class="symbol-label bg-white text-dark">
+                                        <i class="ki-outline ki-check-circle text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('ear_status', 'DONE')->count() }}</div>
+                                    <div class="text-dark-50">Done</div>
                                 </div>
                             </div>
                         </div>
@@ -307,7 +358,7 @@
                                         <input type="date" class="form-control" id="end_date" name="end_date" 
                                                value="{{ $endDate }}">
                                     </div>
-                                    <div class="col-md-2">
+                                    {{-- <div class="col-md-2">
                                         <label for="user_id">Staff</label>
                                         <select class="form-control" id="user_id" name="user_id">
                                             <option value="">All Staffs</option>
@@ -317,14 +368,14 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                    </div>
+                                    </div> --}}
                                     <div class="col-md-2">
-                                        <label for="leave_type_id">Leave Type</label>
-                                        <select class="form-control" id="leave_type_id" name="leave_type_id">
+                                        <label for="ea_type_id">External Assign Type</label>
+                                        <select class="form-control" id="ea_type_id" name="ea_type_id">
                                             <option value="">All Types</option>
-                                            @foreach($leaveTypes as $type)
+                                            @foreach($externalAssignType as $type)
                                                 <option value="{{ $type->id }}" {{ $leaveTypeId == $type->id ? 'selected' : '' }}>
-                                                    {{ $type->lt_name }}
+                                                    {{ $type->ea_name }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -332,8 +383,8 @@
                                     <div class="col-md-2">
                                         <label for="status">Status</label>
                                         <select class="form-control" id="status" name="status">
-                                            <option value="" {{ empty($status) ? 'selected' : '' }}>All Status</option>
                                             <option value="Pending Approval" {{ $status == 'Pending Approval' ? 'selected' : '' }}>Pending Approval</option>
+                                            <option value="">All Status</option>
                                             <option value="Approved" {{ $status == 'Approved' ? 'selected' : '' }}>Approved</option>
                                             <option value="Rejected" {{ $status == 'Rejected' ? 'selected' : '' }}>Rejected</option>
                                             <option value="HR Check" {{ $status == 'HR Check' ? 'selected' : '' }}>HR Check</option>
@@ -361,7 +412,7 @@
                         <div class="card-header flex-wrap py-3">
                             <div class="card-toolbar d-flex justify-content-between w-100">
                                 <div class="d-flex align-items-center">
-                                    <input type="search" class="form-control" style="width: 300px;" id="leave_request_search" placeholder="Search"/>
+                                    <input type="search" class="form-control" style="width: 300px;" id="leave_request_search" placeholder="Search Staff Name..."/>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <!--begin::Button-->

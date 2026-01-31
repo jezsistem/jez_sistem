@@ -209,8 +209,13 @@
                     orderable: false
                 },
                 {
-                    data: 'qty',
-                    name: 'qty',
+                    data: 'qty_send',
+                    name: 'qty_send',
+                    orderable: false
+                },
+                {
+                    data: 'qty_receive',
+                    name: 'qty_receive',
                     orderable: false
                 },
                 {
@@ -485,7 +490,11 @@
                 dangerMode: false,
             }).then((isConfirm) => {
                 if (isConfirm) {
-                    // $(this).addClass('disabled');
+                    var $btn = $('#transfer_btn');
+                    var originalText = $btn.html();
+                    $btn.html('Proses...');
+                    $btn.prop('disabled', true);
+
                     var arr = [];
                     var i = 0;
                     var st_start = $('#st_id_start').val();
@@ -509,7 +518,6 @@
                         }
                     });
 
-                    // The AJAX call remains the same as in your provided code
                     $.ajax({
                         type: "POST",
                         data: {
@@ -522,6 +530,8 @@
                         dataType: 'json',
                         url: "{{ url('stock_transfer_exec') }}",
                         success: function(r) {
+                            $btn.html(originalText);
+                            $btn.prop('disabled', false);
                             if (r.status == '200') {
                                 if ($('#stf_code').text() == '') {
                                     $('#stf_code').text(r.code);
@@ -529,16 +539,16 @@
                                 transfer_bin_table.draw();
                                 transfer_history_table.draw();
                                 in_transfer_bin_table.draw();
-                                $(this).removeClass('disabled');
                                 toastr.success(
-                                    "Data berhasil ditransfer dan menunggu diterima",
+                                    "Data berhasil dipindah ke draft dan menunggu diambil oleh helper",
                                     "Berhasil");
                             } else {
                                 toastr.error(r.message, 'Gagal');
                             }
                         },
                         error: function() {
-                            $(this).removeClass('disabled');
+                            $btn.html(originalText);
+                            $btn.prop('disabled', false);
                             toastr.error(
                                 "Terjadi kesalahan saat memproses permintaan.",
                                 "Error");

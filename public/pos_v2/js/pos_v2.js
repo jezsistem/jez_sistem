@@ -11,32 +11,33 @@ let totalDiscount = 0;
 let shippingModal, voucherModal, discountModal, paymentModal;
 
 // Global function to force remove ALL backdrops
-window.forceRemoveAllBackdrops = function() {
-    console.log('🔴 === FORCE REMOVING ALL BACKDROPS ===');
-    
-    // 1. Remove by ID first
+window.forceRemoveAllBackdrops = function () {
+    console.log('🔴 === FORCE HIDING ALL BACKDROPS ===');
+
+    // 1. Hide by ID first
     const paymentBackdrop = document.getElementById('payment-modal-backdrop');
     if (paymentBackdrop) {
-        console.log('✅ Removing payment backdrop by ID');
-        paymentBackdrop.remove();
+        console.log('✅ Hiding payment backdrop by ID');
+        paymentBackdrop.style.display = 'none';
+        paymentBackdrop.classList.add('hidden');
     }
-    
-    // 2. Remove ALL divs with backdrop characteristics
+
+    // 2. Hide ALL divs with backdrop characteristics
     const allDivs = document.querySelectorAll('body > div');
     console.log('🔍 Checking', allDivs.length, 'divs for backdrops');
-    
-    let removedCount = 0;
-    allDivs.forEach(function(div) {
+
+    let hiddenCount = 0;
+    allDivs.forEach(function (div) {
         const divId = div.getAttribute('id') || '';
         const classes = div.className || '';
         const style = div.getAttribute('style') || '';
-        
+
         // Skip modal elements and important containers
         if (divId.includes('modal-') || divId.includes('toast-') || divId.includes('confirm-') ||
             divId === 'app' || divId === 'root' || divId === 'main-content') {
             return;
         }
-        
+
         // Check if looks like backdrop
         const looksLikeBackdrop = (
             (classes.includes('fixed') && classes.includes('inset-0')) ||
@@ -44,20 +45,21 @@ window.forceRemoveAllBackdrops = function() {
             (classes.includes('z-40') || classes.includes('z-50')) ||
             (style.includes('background-color: rgba'))
         );
-        
+
         if (looksLikeBackdrop) {
             const bgColor = window.getComputedStyle(div).backgroundColor;
-            const isTransparent = (bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'transparent' || bgColor === 'transparent');
-            
+            const isTransparent = (bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'transparent');
+
             if (!isTransparent) {
-                console.log('🗑️ REMOVING BACKDROP:', {id: divId || 'no-id', classes: classes, bgColor: bgColor});
-                div.remove();
-                removedCount++;
+                console.log('👁️ HIDING BACKDROP:', { id: divId || 'no-id', classes: classes, bgColor: bgColor });
+                div.style.display = 'none';
+                div.classList.add('hidden');
+                hiddenCount++;
             }
         }
     });
-    
-    console.log('✨ Removed', removedCount, 'backdrop(s)');
+
+    console.log('✨ Hidden', hiddenCount, 'backdrop(s)');
 };
 
 // Flowbite Toast Helper Function
@@ -69,17 +71,17 @@ function showToast(message, type = 'warning') {
         warning: '<i class="cft-standard-solid cft-warning text-xl"></i>',
         info: '<i class="cft-standard-solid cft-info text-xl"></i>'
     };
-    
+
     const colors = {
         success: { bg: 'bg-green-100', icon: 'text-green-500', text: 'text-green-800' },
         error: { bg: 'bg-red-100', icon: 'text-red-500', text: 'text-red-800' },
         warning: { bg: 'bg-orange-100', icon: 'text-orange-500', text: 'text-orange-800' },
         info: { bg: 'bg-red-100', icon: 'text-red-500', text: 'text-red-800' }
     };
-    
+
     const color = colors[type] || colors.warning;
     const icon = icons[type] || icons.warning;
-    
+
     // Create toast container if it doesn't exist
     let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
@@ -88,14 +90,14 @@ function showToast(message, type = 'warning') {
         toastContainer.className = 'fixed top-5 right-5 z-50 space-y-4';
         document.body.appendChild(toastContainer);
     }
-    
+
     // Create toast element
     const toastId = 'toast-' + Date.now();
     const toast = document.createElement('div');
     toast.id = toastId;
     toast.className = `flex items-center p-4 mb-4 w-full max-w-xs text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800`;
     toast.setAttribute('role', 'alert');
-    
+
     toast.innerHTML = `
         <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 ${color.icon} ${color.bg} rounded-lg dark:${color.bg} dark:${color.icon}">
             ${icon}
@@ -108,9 +110,9 @@ function showToast(message, type = 'warning') {
             </svg>
         </button>
     `;
-    
+
     toastContainer.appendChild(toast);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
         if (toast.parentNode) {
@@ -123,7 +125,7 @@ function showToast(message, type = 'warning') {
             }, 300);
         }
     }, 5000);
-    
+
     // Handle close button
     const closeBtn = toast.querySelector('[data-dismiss-target]');
     if (closeBtn) {
@@ -150,14 +152,14 @@ function showConfirmToast(message, confirmText = 'Ya', cancelText = 'Batal') {
             toastContainer.className = 'fixed top-5 right-5 z-50 space-y-4';
             document.body.appendChild(toastContainer);
         }
-        
+
         // Create confirmation toast element
         const toastId = 'confirm-toast-' + Date.now();
         const toast = document.createElement('div');
         toast.id = toastId;
         toast.className = 'flex items-center p-4 mb-4 w-full max-w-md text-gray-500 bg-white rounded-lg shadow-lg dark:text-gray-400 dark:bg-gray-800 border border-gray-200';
         toast.setAttribute('role', 'alert');
-        
+
         toast.innerHTML = `
             <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-800 dark:text-orange-200">
                 <i class="cft-standard-solid cft-warning text-xl"></i>
@@ -174,9 +176,9 @@ function showConfirmToast(message, confirmText = 'Ya', cancelText = 'Batal') {
                 </div>
             </div>
         `;
-        
+
         toastContainer.appendChild(toast);
-        
+
         // Handle confirm button
         const confirmBtn = toast.querySelector('.confirm-yes-btn');
         confirmBtn.addEventListener('click', () => {
@@ -189,7 +191,7 @@ function showConfirmToast(message, confirmText = 'Ya', cancelText = 'Batal') {
             }, 300);
             resolve(true);
         });
-        
+
         // Handle cancel button
         const cancelBtn = toast.querySelector('.confirm-cancel-btn');
         cancelBtn.addEventListener('click', () => {
@@ -205,32 +207,32 @@ function showConfirmToast(message, confirmText = 'Ya', cancelText = 'Batal') {
     });
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
     // Debug: Check if jQuery and CSRF token are loaded
     console.log('POS V2 JS loaded');
     console.log('CSRF Token:', $('meta[name="csrf-token"]').attr('content'));
     console.log('jQuery version:', $.fn.jquery);
-    
+
     // ===========================================
     // RETUR / EXCHANGE FUNCTIONALITY
     // ===========================================
-    
+
     let selectedTransactionForRetur = null;
     let returItemsData = [];
-    
+
     // Initialize Flowbite modals - wait for Flowbite to be ready
     function initModals() {
         if (typeof Flowbite === 'undefined' || !Flowbite.Modal) {
             setTimeout(initModals, 100);
             return;
         }
-        
+
         const shippingModalEl = document.getElementById('modal-shipping');
         const voucherModalEl = document.getElementById('modal-voucher');
         const discountModalEl = document.getElementById('modal-discount');
         const paymentModalEl = document.getElementById('modal-payment');
         const shiftModalEl = document.getElementById('modal-shift');
-        
+
         try {
             if (shippingModalEl) {
                 shippingModal = new Flowbite.Modal(shippingModalEl, {
@@ -273,56 +275,56 @@ $(document).ready(function() {
             console.error('Error initializing Flowbite modals:', error);
         }
     }
-    
+
     // Wait for window to fully load including Flowbite
     if (document.readyState === 'complete') {
         initModals();
     } else {
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             setTimeout(initModals, 200);
         });
         // Also try immediately
         setTimeout(initModals, 200);
     }
-    
+
     // Update time
     function updateTime() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString('id-ID', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
+        const timeString = now.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
             second: '2-digit',
-            hour12: false 
+            hour12: false
         });
         $('#current-time').text(timeString);
     }
-    
+
     setInterval(updateTime, 1000);
     updateTime();
-    
+
     // Retur checkbox toggle
-    $('#retur-checkbox').on('change', function() {
+    $('#retur-checkbox').on('change', function () {
         if ($(this).is(':checked')) {
             $('#transaction-id').removeClass('hidden').addClass('block');
         } else {
             $('#transaction-id').addClass('hidden').removeClass('block');
         }
     });
-    
+
     // Search product with autocomplete
     let productSearchTimeout;
-    $('#search-product').on('keyup', function() {
+    $('#search-product').on('keyup', function () {
         const searchTerm = $(this).val().trim();
         const $autocomplete = $('#product-autocomplete');
-        
+
         clearTimeout(productSearchTimeout);
-        
+
         if (searchTerm.length < 2) {
             $autocomplete.addClass('hidden').removeClass('block').empty();
             return;
         }
-        
-        productSearchTimeout = setTimeout(function() {
+
+        productSearchTimeout = setTimeout(function () {
             const csrfToken = $('meta[name="csrf-token"]').attr('content');
             if (!csrfToken) {
                 console.error('CSRF token not found!');
@@ -342,14 +344,14 @@ $(document).ready(function() {
                     _st_id: $('#st_id').val() || '', // Same as old version - use _st_id from select dropdown
                     _token: csrfToken
                 },
-                success: function(products) {
+                success: function (products) {
                     console.log('=== AJAX SUCCESS ===');
                     console.log('Products received:', products);
                     console.log('Products count:', products ? products.length : 0);
                     console.log('Products type:', typeof products);
                     console.log('Is Array:', Array.isArray(products));
                     console.log('Products stringified:', JSON.stringify(products).substring(0, 200));
-                    
+
                     // Handle both array and object responses
                     let productArray = products;
                     if (!Array.isArray(products)) {
@@ -357,23 +359,23 @@ $(document).ready(function() {
                             productArray = products.data;
                         } else if (products.products && Array.isArray(products.products)) {
                             productArray = products.products;
-                            } else {
-                                console.error('Unexpected response format:', products);
-                                $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-4 text-orange-600">Unexpected response format. Check console.</li></ul>').removeClass('hidden').addClass('block');
-                                return;
-                            }
+                        } else {
+                            console.error('Unexpected response format:', products);
+                            $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-4 text-orange-600">Unexpected response format. Check console.</li></ul>').removeClass('hidden').addClass('block');
+                            return;
+                        }
                     }
-                    
+
                     if (productArray && productArray.length > 0) {
                         let html = '<ul class="divide-y divide-gray-200">';
-                        productArray.forEach(function(product) {
+                        productArray.forEach(function (product) {
                             // Parse bin string to create badges
                             // Format: [02] [0] [TOKO] [0]
                             const binBadges = formatBinToBadges(product.bin);
-                            
+
                             const productImage = product.image || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(product.brand || 'BRAND') + '&background=F74040&color=fff&size=60';
                             const brandName = product.brand || 'BRAND';
-                            
+
                             html += `
                                 <li class="product-item p-4 bg-white hover:bg-gray-50 cursor-pointer transition-colors text-sm" 
                                     data-product='${JSON.stringify(product).replace(/'/g, "&#39;")}'>
@@ -407,17 +409,17 @@ $(document).ready(function() {
                         $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-4 text-gray-500 text-sm">No products found</li></ul>').removeClass('hidden').addClass('block');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error searching products:', error);
                     console.error('Response:', xhr.responseText);
                     console.error('Status:', xhr.status);
                     console.error('Status Text:', xhr.statusText);
-                    
+
                     let errorMsg = 'Error searching products';
                     if (xhr.status === 419) {
                         errorMsg = 'CSRF token mismatch. Please refresh the page.';
                         // Try to reload CSRF token
-                        $.get('/point_of_sale_v2').then(function(html) {
+                        $.get('/point_of_sale_v2').then(function (html) {
                             var parser = new DOMParser();
                             var doc = parser.parseFromString(html, 'text/html');
                             var newToken = doc.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -432,33 +434,33 @@ $(document).ready(function() {
                         try {
                             const response = JSON.parse(xhr.responseText);
                             errorMsg = response.message || errorMsg;
-                        } catch(e) {
+                        } catch (e) {
                             errorMsg = error + ' (Status: ' + xhr.status + ')';
                         }
                     }
-                    
-                        $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-4 text-red-600">' + errorMsg + '</li></ul>').removeClass('hidden').addClass('block');
+
+                    $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-4 text-red-600">' + errorMsg + '</li></ul>').removeClass('hidden').addClass('block');
                 }
             });
         }, 300);
     });
-    
+
     // Handle product selection
-    $(document).on('click', '.product-item', function() {
+    $(document).on('click', '.product-item', function () {
         try {
             const productJson = $(this).attr('data-product').replace(/&#39;/g, "'");
             const product = JSON.parse(productJson);
             addProductToOrder(product);
             $('#search-product').val('');
             $('#product-autocomplete').addClass('hidden').removeClass('block').empty();
-        } catch(e) {
+        } catch (e) {
             console.error('Error parsing product data:', e);
             showToast('Error selecting product. Please try again.', 'error');
         }
     });
-    
+
     // Hide autocomplete when clicking outside
-    $(document).on('click', function(e) {
+    $(document).on('click', function (e) {
         if (!$(e.target).closest('#search-product, #product-autocomplete').length) {
             $('#product-autocomplete').addClass('hidden').removeClass('block');
         }
@@ -469,39 +471,39 @@ $(document).ready(function() {
             $('#invoice-autocomplete').addClass('hidden').removeClass('block');
         }
     });
-    
+
     // Search Invoice functionality
     let invoiceSearchTimeout;
-    
-    $('#invoice-input').on('keyup', function() {
+
+    $('#invoice-input').on('keyup', function () {
         const query = $(this).val().trim();
         const $autocomplete = $('#invoice-autocomplete');
-        
+
         // Clear previous timeout
         clearTimeout(invoiceSearchTimeout);
-        
+
         if (query.length > 4) {
             // Debounce search
-            invoiceSearchTimeout = setTimeout(function() {
+            invoiceSearchTimeout = setTimeout(function () {
                 $.ajaxSetup({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
-                
+
                 $.ajax({
                     url: '/autocomplete_invoice',
                     method: 'POST',
                     data: {
                         query: query
                     },
-                    success: function(data) {
+                    success: function (data) {
                         if (data && data.trim() !== '') {
                             // Parse the HTML response and convert to modern Tailwind format
                             const $temp = $('<div>').html(data);
                             const invoices = [];
-                            
-                            $temp.find('li a').each(function() {
+
+                            $temp.find('li a').each(function () {
                                 const $link = $(this);
                                 const href = $link.attr('href');
                                 const invoiceText = $link.find('span').text().trim();
@@ -512,10 +514,10 @@ $(document).ready(function() {
                                     });
                                 }
                             });
-                            
+
                             if (invoices.length > 0) {
                                 let html = '<ul class="divide-y divide-gray-200">';
-                                invoices.forEach(function(invoice) {
+                                invoices.forEach(function (invoice) {
                                     html += `
                                         <li class="invoice-item p-3 hover:bg-gray-50 cursor-pointer transition-colors">
                                             <a href="${invoice.url}" target="_blank" class="flex items-center justify-between text-sm">
@@ -536,7 +538,7 @@ $(document).ready(function() {
                             $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-3 text-gray-500 text-sm text-center">Tidak ditemukan</li></ul>').removeClass('hidden').addClass('block');
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('Error searching invoice:', error);
                         $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-3 text-red-500 text-sm text-center">Error: ' + error + '</li></ul>').removeClass('hidden').addClass('block');
                     }
@@ -546,20 +548,20 @@ $(document).ready(function() {
             $autocomplete.addClass('hidden').removeClass('block');
         }
     });
-    
+
     // Close autocomplete when clicking outside
-    $(document).on('click', function(e) {
+    $(document).on('click', function (e) {
         if (!$(e.target).closest('#invoice-input, #invoice-autocomplete').length) {
             $('#invoice-autocomplete').addClass('hidden').removeClass('block');
         }
     });
-    
+
     // Add product to order
     function addProductToOrder(product) {
         const brandName = product.brand || 'BRAND';
         const productImage = product.image || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(brandName) + '&background=F74040&color=fff&size=60';
         const fullProductName = product.brand ? '[' + product.brand + '] ' + product.name : product.name;
-        
+
         const item = {
             id: product.id,
             name: fullProductName,
@@ -574,7 +576,7 @@ $(document).ready(function() {
             nameset: 0,
             marketplace: 0
         };
-        
+
         // Check if product already exists
         const existingIndex = orderItems.findIndex(i => i.id === item.id && i.pl_id === item.pl_id);
         if (existingIndex >= 0) {
@@ -582,14 +584,14 @@ $(document).ready(function() {
         } else {
             orderItems.push(item);
         }
-        
+
         updateOrderDisplay();
         updateSummary();
         updateProductTable();
     }
-    
+
     // Table quantity controls
-    window.increaseTableQuantity = function(index) {
+    window.increaseTableQuantity = function (index) {
         if (orderItems[index]) {
             orderItems[index].quantity += 1;
             updateOrderDisplay();
@@ -597,8 +599,8 @@ $(document).ready(function() {
             updateProductTable();
         }
     };
-    
-    window.decreaseTableQuantity = function(index) {
+
+    window.decreaseTableQuantity = function (index) {
         if (orderItems[index] && orderItems[index].quantity > 1) {
             orderItems[index].quantity -= 1;
             updateOrderDisplay();
@@ -606,16 +608,16 @@ $(document).ready(function() {
             updateProductTable();
         }
     };
-    
-    window.updateTableQuantity = function(index, value) {
+
+    window.updateTableQuantity = function (index, value) {
         if (!orderItems[index]) return;
-        
+
         const quantity = parseInt(value) || 0;
-        
+
         // Get selected BIN and its stock quantity
         const $select = $(`select.bin-select[data-item-index="${index}"]`);
         const selectedOption = $select.find('option:selected');
-        
+
         // Check if locations are still loading
         if ($select.find('option').length === 1 && $select.find('option').text() === 'Loading...') {
             showToast('Tunggu sebentar, lokasi sedang dimuat...', 'info');
@@ -623,9 +625,9 @@ $(document).ready(function() {
             $(`#item_qty${index}`).val(previousQty);
             return false;
         }
-        
+
         const plsQty = parseInt(selectedOption.data('pls-qty')) || 0;
-        
+
         // Validate quantity against stock
         if (quantity > plsQty || quantity < 0) {
             showToast('Melebihi Stok<br>Jumlah item tidak boleh melebihi atau kurang jumlah pada BIN', 'warning');
@@ -634,115 +636,115 @@ $(document).ready(function() {
             $(`#item_qty${index}`).val(previousQty);
             return false;
         }
-        
+
         orderItems[index].quantity = quantity;
-        
+
         // Update subtotal item di table
         updateItemSubtotal(index);
-        
+
         updateOrderDisplay();
         updateSummary();
         updateProductTable();
     };
-    
-    window.updateNameset = function(index, value) {
+
+    window.updateNameset = function (index, value) {
         if (!orderItems[index]) return;
-        
+
         const namesetValue = parseFloat(value) || 0;
-        
+
         // Validasi tidak boleh minus (sesuai POS lama)
         if (namesetValue < 0) {
             showToast('Nameset tidak boleh minus', 'warning');
             $(`#nameset_price${index}`).val(orderItems[index].nameset || 0);
             return false;
         }
-        
+
         orderItems[index].nameset = namesetValue;
-        
+
         // Update subtotal item di table (include nameset)
         updateItemSubtotal(index);
-        
+
         // Update summary
         updateSummary();
         updateProductTable();
     };
-    
-    window.updateMarketplace = function(index, value) {
+
+    window.updateMarketplace = function (index, value) {
         if (!orderItems[index]) return;
-        
+
         const marketplaceValue = parseFloat(value) || 0;
-        
+
         // Validasi tidak boleh minus
         if (marketplaceValue < 0) {
             showToast('Marketplace tidak boleh minus', 'warning');
             $(`#marketplace_price${index}`).val(orderItems[index].marketplace || 0);
             return false;
         }
-        
+
         orderItems[index].marketplace = marketplaceValue;
-        
+
         // Update summary
         updateSummary();
     };
-    
+
     // Helper function to update item subtotal in table
     function updateItemSubtotal(index) {
         if (!orderItems[index]) return;
-        
+
         const item = orderItems[index];
         const subtotal = (item.price * item.quantity) - (item.discRp || 0) + (parseFloat(item.nameset) || 0);
         $(`#subtotal_item${index}`).text('Rp. ' + formatNumber(subtotal));
     }
-    
+
     // Update reseller discount percentage
-    window.updateResellerDisc = function(index) {
+    window.updateResellerDisc = function (index) {
         if (!orderItems[index]) return;
-        
+
         const discountPercent = parseFloat($('#reseller_disc' + index).val()) || 0;
-        
+
         if (discountPercent < 0) {
             showToast('Diskon tidak boleh minus', 'warning');
             $('#reseller_disc' + index).val('');
             return;
         }
-        
+
         orderItems[index].discPercent = discountPercent;
-        
+
         // Calculate discount in rupiah
         const itemPrice = orderItems[index].price;
         const quantity = orderItems[index].quantity;
         const subtotal = itemPrice * quantity;
         const discountRp = (subtotal * discountPercent) / 100;
-        
+
         orderItems[index].discRp = discountRp;
         $('#reseller_disc_number' + index).val(discountRp > 0 ? discountRp.toFixed(0) : '');
-        
+
         // Update subtotal item di table
         updateItemSubtotal(index);
-        
+
         updateSummary();
         updateProductTable();
     };
-    
+
     // Update reseller discount rupiah
-    window.updateResellerDiscNumber = function(index) {
+    window.updateResellerDiscNumber = function (index) {
         if (!orderItems[index]) return;
-        
+
         const discountRp = parseFloat($('#reseller_disc_number' + index).val()) || 0;
-        
+
         if (discountRp < 0) {
             showToast('Diskon tidak boleh minus', 'warning');
             $('#reseller_disc_number' + index).val('');
             return;
         }
-        
+
         orderItems[index].discRp = discountRp;
-        
+
         // Calculate discount percentage
         const itemPrice = orderItems[index].price;
         const quantity = orderItems[index].quantity;
         const subtotal = itemPrice * quantity;
-        
+
         if (subtotal > 0) {
             const discountPercent = (discountRp / subtotal) * 100;
             orderItems[index].discPercent = discountPercent;
@@ -751,29 +753,50 @@ $(document).ready(function() {
             orderItems[index].discPercent = 0;
             $('#reseller_disc' + index).val('');
         }
-        
+
         // Update subtotal item di table
         updateItemSubtotal(index);
-        
+
         updateSummary();
         updateProductTable();
     };
-    
+
     // Delete item from table
-    window.deleteTableItem = function(index) {
+    window.deleteTableItem = function (index) {
         if (!orderItems[index]) return;
-        
+
         showConfirmToast('Yakin ingin menghapus item ini?', 'Ya, Hapus', 'Batal').then((confirmed) => {
             if (confirmed) {
-            orderItems.splice(index, 1);
-            updateProductTable();
-            updateOrderDisplay();
-            updateSummary();
+                orderItems.splice(index, 1);
+                updateProductTable();
+                updateOrderDisplay();
+                updateSummary();
                 showToast('Item berhasil dihapus', 'success');
-        }
+            }
         });
     };
-    
+
+    window.updatePriceTag = function (index, value) {
+        if (!orderItems[index]) return;
+
+        const newPrice = parseFloat(value) || 0;
+
+        if (newPrice < 0) {
+            showToast('Harga tidak boleh minus', 'warning');
+            $(`#price_tag${index}`).val(orderItems[index].price || 0);
+            return false;
+        }
+
+        orderItems[index].price = newPrice;
+
+        // Update subtotal item di table
+        updateItemSubtotal(index);
+
+        updateOrderDisplay();
+        updateSummary();
+        updateProductTable();
+    }
+
     function updateProductTable() {
         $('#product-tbody').empty();
         orderItems.forEach((item, index) => {
@@ -781,7 +804,7 @@ $(document).ready(function() {
             const isRetur = item.isRetur === true;
             const qty = item.qty || item.quantity || 1;
             const actualQty = Math.abs(qty);
-            
+
             // Extract brand from name if format is [BRAND] product name
             let displayName = item.name;
             let brandBadge = '';
@@ -790,28 +813,28 @@ $(document).ready(function() {
                 brandBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold ${brandClass} text-white mr-2">${item.brand}</span>`;
                 displayName = displayName.replace(/^\[.*?\]\s*/, '');
             }
-            
+
             // Styling for retur items
             const rowClass = isRetur ? 'bg-red-50 border-l-4 border-red-500 hover:bg-red-100' : 'bg-white hover:bg-gray-50';
             const textClass = isRetur ? 'text-red-900' : 'text-gray-900';
             const inputBgClass = isRetur ? 'bg-red-100' : 'bg-white';
             const disabledAttr = isRetur ? 'disabled' : '';
-            
+
             // Create BIN select dropdown (disabled for retur)
             let binSelect = '';
             if (isRetur) {
                 binSelect = `<span class="text-xs font-semibold text-red-700 px-3 py-2 bg-red-100 rounded-lg border border-red-300">RETUR ITEM</span>`;
             } else {
                 binSelect = `<select class="bin-select w-full text-sm bg-green-100 text-green-800 font-semibold border border-green-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-green-500 focus:border-green-500" data-pst-id="${item.id}" data-item-index="${index}">`;
-            binSelect += `<option value="">Loading...</option>`;
-            binSelect += `</select>`;
+                binSelect += `<option value="">Loading...</option>`;
+                binSelect += `</select>`;
             }
-            
+
             // Calculate subtotal
             const subtotal = (item.price * actualQty) - (item.disc_number || item.discRp || 0) + (parseFloat(item.nameset) || 0);
             const displaySubtotal = isRetur ? `-Rp. ${formatNumber(subtotal)}` : `Rp. ${formatNumber(subtotal)}`;
             const displayQty = isRetur ? `-${actualQty}` : actualQty;
-            
+
             // Image or initial
             let imageHtml = '';
             if (item.image) {
@@ -822,7 +845,7 @@ $(document).ready(function() {
                 const txtColor = isRetur ? 'text-red-600' : 'text-gray-600';
                 imageHtml = `<div class="w-10 h-10 rounded ${bgColor} flex items-center justify-center ${txtColor} font-bold mr-3">${initial}</div>`;
             }
-            
+
             const row = `
                 <tr data-product-id="${item.id}" data-pl-id="${item.pl_id || ''}" class="${rowClass} transition-colors">
                     <td class="px-4 py-3 w-50">
@@ -852,7 +875,9 @@ $(document).ready(function() {
                     <td class="px-4 py-3 text-center">
                         <input type="number" id="marketplace_price${index}" class="w-16 text-center text-sm border border-gray-300 rounded-lg px-2 py-1.5 ${inputBgClass} ${textClass} focus:ring-red-400 focus:border-red-400 marketplace-price-input" value="${item.marketplace || 0}" min="0" onchange="updateMarketplace(${index}, this.value)" disabled>
                     </td>
-                    <td class="px-4 py-3 text-right text-sm w-28"><strong class="${textClass}">Rp. ${formatNumber(item.price)}</strong></td>
+                    <td class="px-4 py-3 text-center">
+                        <input type="number" id="price_tag${index}" class="w-24 text-center text-sm border border-gray-300 rounded-lg px-2 py-1.5 ${inputBgClass} ${textClass} focus:ring-red-400 focus:border-red-400" value="${item.price || 0}" min="0" onchange="updatePriceTag(${index}, this.value)" ${disabledAttr}>
+                    </td>
                     <td class="px-4 py-3 text-right text-sm w-28"><strong class="text-red-600 font-bold" id="subtotal_item${index}">${displaySubtotal}</strong></td>
                     <td class="px-4 py-3 text-center">
                         <button type="button" onclick="deleteTableItem(${index})" class="w-8 h-8 flex items-center bg-red-50 justify-center text-red-500 hover:text-red-800 hover:bg-red-100 rounded transition-colors" title="Hapus">
@@ -862,21 +887,21 @@ $(document).ready(function() {
                 </tr>
             `;
             $('#product-tbody').append(row);
-            
+
             // Load locations for this product (skip for retur items)
             if (!isRetur) {
-            loadLocationsForProduct(item.id, index, item.pl_id);
+                loadLocationsForProduct(item.id, index, item.pl_id);
             }
         });
-        
+
         // Update marketplace field status after table is rendered
         updateMarketplaceFieldStatus();
     }
-    
+
     // Load locations for a product and populate BIN select
     function loadLocationsForProduct(pstId, itemIndex, currentPlId) {
         const stId = $('#st_id').val() || '';
-        
+
         $.ajax({
             url: '/reload_location_by_pst_id',
             method: 'POST',
@@ -884,17 +909,17 @@ $(document).ready(function() {
                 pst_id: pstId,
                 st_id: stId
             },
-            success: function(locations) {
+            success: function (locations) {
                 const $select = $(`select.bin-select[data-pst-id="${pstId}"][data-item-index="${itemIndex}"]`);
                 $select.empty();
-                
+
                 if (locations && locations.length > 0) {
-                    locations.forEach(function(loc) {
+                    locations.forEach(function (loc) {
                         const selected = loc.pl_id == currentPlId ? 'selected' : '';
                         const optionText = `[${loc.pl_code.toUpperCase()}] [${formatNumber(loc.pls_qty)}]`;
                         $select.append(`<option value="${loc.pl_id}" ${selected} data-pl-code="${loc.pl_code}" data-pls-qty="${loc.pls_qty}">${optionText}</option>`);
                     });
-                    
+
                     // Store pls_qty in orderItems after loading locations
                     if (orderItems[itemIndex]) {
                         const selectedOption = $select.find('option:selected');
@@ -905,29 +930,29 @@ $(document).ready(function() {
                     $select.append('<option value="">No locations available</option>');
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Error loading locations:', error);
                 const $select = $(`select.bin-select[data-pst-id="${pstId}"][data-item-index="${itemIndex}"]`);
                 $select.html('<option value="">Error loading locations</option>');
             }
         });
     }
-    
+
     // Handle BIN select change
-    $(document).on('change', '.bin-select', function() {
+    $(document).on('change', '.bin-select', function () {
         const $select = $(this);
         const newPlId = $select.val();
         const itemIndex = $select.data('item-index');
         const pstId = $select.data('pst-id');
-        
+
         if (!orderItems[itemIndex]) return;
-        
+
         // Get selected BIN stock quantity
         const selectedOption = $select.find('option:selected');
         const plCode = selectedOption.data('pl-code');
         const plsQty = parseInt(selectedOption.data('pls-qty')) || 0;
         const currentQuantity = orderItems[itemIndex].quantity || 1;
-        
+
         // Validate quantity against new BIN stock
         if (currentQuantity > plsQty || currentQuantity < 0) {
             showToast('Melebihi Stok<br>Jumlah item tidak boleh melebihi atau kurang jumlah pada BIN', 'warning');
@@ -936,64 +961,64 @@ $(document).ready(function() {
             $select.val(previousPlId);
             return false;
         }
-        
+
         // Show warning if TOKO is selected
         if (plCode && plCode.toUpperCase() === 'TOKO') {
-                const previousPlId = orderItems[itemIndex].pl_id || '';
+            const previousPlId = orderItems[itemIndex].pl_id || '';
             // Revert first
-                $select.val(previousPlId);
-            
+            $select.val(previousPlId);
+
             showConfirmToast('Yakin pilih dari display? Apakah sudah cek barang?', 'Ya, Lanjutkan', 'Batal').then((confirmed) => {
                 if (confirmed) {
                     // Update BIN selection
                     $select.val(newPlId);
                     orderItems[itemIndex].pl_id = newPlId;
                     orderItems[itemIndex].pls_qty = plsQty; // Store stock quantity for validation
-                    
+
                     // Update the row's data attribute
                     const $row = $select.closest('tr');
                     $row.attr('data-pl-id', newPlId);
-                    
+
                     // Update summary after BIN change
                     updateSummary();
                 }
             });
-                return false;
+            return false;
         }
-        
+
         // Update BIN selection
         orderItems[itemIndex].pl_id = newPlId;
         orderItems[itemIndex].pls_qty = plsQty; // Store stock quantity for validation
-        
+
         // Update the row's data attribute
         const $row = $select.closest('tr');
         $row.attr('data-pl-id', newPlId);
-        
+
         // Update summary after BIN change
         updateSummary();
     });
-    
+
     // Update order display
     function updateOrderDisplay() {
         const $orderList = $('#order-items-list');
         $orderList.empty();
-        
+
         if (orderItems.length === 0) {
             $orderList.html('<p class="text-gray-500 text-center text-sm py-3">No items in order</p>');
             return;
         }
-        
+
         orderItems.forEach((item, index) => {
             const isRetur = item.isRetur === true;
             const qty = Math.abs(item.quantity || item.qty || 1);
             const displayQty = isRetur ? `-${qty}` : qty;
-            
+
             // Extract brand from name if format is [BRAND] product name
             let displayName = item.name;
             if (item.brand) {
                 displayName = displayName.replace(/^\[.*?\]\s*/, '');
             }
-            
+
             // Use image or initial
             let imageHtml = '';
             if (item.image) {
@@ -1004,12 +1029,12 @@ $(document).ready(function() {
                 const textColor = isRetur ? 'text-red-600' : 'text-gray-600';
                 imageHtml = `<div class="w-9 h-9 rounded ${bgColor} flex items-center justify-center ${textColor} font-bold text-sm">${initial}</div>`;
             }
-            
+
             const subtotal = (item.price * qty) - (item.discRp || item.disc_number || 0) + (parseFloat(item.nameset) || 0);
             const displaySubtotal = isRetur ? `-Rp. ${formatNumber(subtotal)}` : `Rp. ${formatNumber(subtotal)}`;
             const bgClass = isRetur ? 'bg-red-50 border-l-4 border-red-500' : 'bg-gray-100';
             const textClass = isRetur ? 'text-red-900' : 'text-gray-900';
-            
+
             const quantityControls = isRetur ? `
                 <span class="text-sm font-semibold ${textClass}">${displayQty}</span>
             ` : `
@@ -1023,7 +1048,7 @@ $(document).ready(function() {
                         </button>
                     </div>
             `;
-            
+
             const itemHtml = `
                 <div class="flex items-center gap-3 p-4 ${bgClass} rounded-lg">
                     ${imageHtml}
@@ -1040,10 +1065,10 @@ $(document).ready(function() {
             `;
             $orderList.append(itemHtml);
         });
-        
+
         $('#item-count').text(`${orderItems.length} Items`);
     }
-    
+
     // Update summary
     function updateSummary() {
         // Hitung subtotal (harga × qty - discount) + nameset
@@ -1055,19 +1080,19 @@ $(document).ready(function() {
             const itemNameset = parseFloat(item.nameset) || 0;
             return sum + (itemSubtotal - itemDiscount) + itemNameset;
         }, 0);
-        
+
         // Hitung total nameset (sesuai POS lama)
         const totalNameset = orderItems.reduce((sum, item) => {
             return sum + (parseFloat(item.nameset) || 0);
         }, 0);
-        
+
         // Hitung total marketplace (sesuai POS lama)
         const totalMarketplace = orderItems.reduce((sum, item) => {
             return sum + (parseFloat(item.marketplace) || 0);
         }, 0);
-        
+
         const grandTotal = subtotal + shippingCost - voucherDiscount - totalDiscount;
-        
+
         $('#subtotal').text('Rp. ' + formatNumber(subtotal));
         if (selectedCourierName) {
             $('#shipping-cost').html(' <span class="px-1 py-0.5 text-2xs text-red-500 bg-red-100 rounded-lg mr-2">' + selectedCourierName + '</span>' + 'Rp. ' + formatNumber(shippingCost));
@@ -1077,25 +1102,25 @@ $(document).ready(function() {
         $('#voucher-discount').text('Rp. ' + formatNumber(voucherDiscount));
         $('#total-discount').text('Rp. ' + formatNumber(totalDiscount));
         $('#grand-total').text('Rp. ' + formatNumber(grandTotal));
-        
+
         // Store total nameset and marketplace for later use (if needed in payment modal)
         window.totalNameset = totalNameset;
         window.totalMarketplace = totalMarketplace;
     }
-    
+
     // Format number
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
-    
+
     // Quantity controls
-    window.increaseQuantity = function(index) {
+    window.increaseQuantity = function (index) {
         orderItems[index].quantity += 1;
         updateOrderDisplay();
         updateSummary();
     };
-    
-    window.decreaseQuantity = function(index) {
+
+    window.decreaseQuantity = function (index) {
         if (orderItems[index].quantity > 1) {
             orderItems[index].quantity -= 1;
         } else {
@@ -1104,32 +1129,32 @@ $(document).ready(function() {
         updateOrderDisplay();
         updateSummary();
     };
-    
+
     // Clear all
-    $('#clear-all').on('click', function(e) {
+    $('#clear-all').on('click', function (e) {
         e.preventDefault();
         showConfirmToast('Yakin ingin menghapus semua item?', 'Ya, Hapus Semua', 'Batal').then((confirmed) => {
             if (confirmed) {
-            orderItems = [];
-            updateOrderDisplay();
-            updateSummary();
-            updateProductTable();
+                orderItems = [];
+                updateOrderDisplay();
+                updateSummary();
+                updateProductTable();
                 showToast('Semua item berhasil dihapus', 'success');
-        }
+            }
         });
     });
-    
+
     // Variables for shipping and discount
     let selectedCourier = '';
     let selectedCourierName = '';
-    
+
     // Edit summary items - Open Flowbite modals
-    $(document).on('click', '.edit-icon-btn', function(e) {
+    $(document).on('click', '.edit-icon-btn', function (e) {
         const $icon = $(this).find('.edit-icon');
         const type = $icon.data('edit');
-        
+
         // Set current values when modal opens
-        setTimeout(function() {
+        setTimeout(function () {
             if (type === 'shipping') {
                 $('#shipping-amount').val(shippingCost || '');
                 if (selectedCourier) {
@@ -1138,9 +1163,9 @@ $(document).ready(function() {
             }
         }, 100);
     });
-    
+
     // Add/Remove voucher fields
-    $(document).on('click', '.add-voucher', function() {
+    $(document).on('click', '.add-voucher', function () {
         const newField = `
             <div class="flex gap-2 mb-3">
                 <input type="text" name="voucher-list[]" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block p-2.5" placeholder="Kode Voucher" value="">
@@ -1149,13 +1174,13 @@ $(document).ready(function() {
         `;
         $('#voucher-container').append(newField);
     });
-    
-    $(document).on('click', '.remove-voucher', function() {
+
+    $(document).on('click', '.remove-voucher', function () {
         $(this).closest('.flex').remove();
     });
-    
+
     // Add/Remove discount fields
-    $(document).on('click', '.add-total-discount', function() {
+    $(document).on('click', '.add-total-discount', function () {
         const newField = `
             <div class="flex gap-2 mb-3">
                 <input type="text" name="total-discount-list[]" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block p-2.5" placeholder="Diskon" value="">
@@ -1164,41 +1189,41 @@ $(document).ready(function() {
         `;
         $('#total-discount-container').append(newField);
     });
-    
-    $(document).on('click', '.remove-total-discount', function() {
+
+    $(document).on('click', '.remove-total-discount', function () {
         const discountValue = parseFloat($(this).closest('.flex').find('input').val()) || 0;
         totalDiscount = Math.max(0, totalDiscount - discountValue);
         $(this).closest('.flex').remove();
         updateSummary();
     });
-    
+
     // Reset discount
-    $('#total_discount_reset').on('click', function() {
+    $('#total_discount_reset').on('click', function () {
         totalDiscount = 0;
         $('input[name="total-discount-list[]"]').val('');
         updateSummary();
     });
-    
+
     // Handle form submissions
-    $('#form-shipping').on('submit', function(e) {
+    $('#form-shipping').on('submit', function (e) {
         e.preventDefault();
         const shippingCostValue = parseFloat($('#shipping-amount').val()) || 0;
         const courierValue = $('#courier').val();
         const courierText = $('#courier option:selected').text();
-        
+
         if (courierText === '- Pilih -' || !courierValue) {
             showToast('Silahkan pilih kurir', 'warning');
             return;
         }
-        
+
         shippingCost = shippingCostValue;
         selectedCourier = courierValue;
         selectedCourierName = courierText;
-        
+
         updateSummary();
-        
+
         console.log('=== SHIPPING FORM SUBMITTED - CLOSING MODAL ===');
-        
+
         // Close modal and remove ALL backdrops
         const modalEl = document.getElementById('modal-shipping');
         if (modalEl) {
@@ -1207,46 +1232,46 @@ $(document).ready(function() {
                 const modal = Flowbite.Modal.getInstance(modalEl) || shippingModal;
                 if (modal) {
                     console.log('Hiding shipping modal via Flowbite');
-                modal.hide();
+                    modal.hide();
                 }
             }
-                modalEl.classList.add('hidden');
-                modalEl.setAttribute('aria-hidden', 'true');
-            
+            modalEl.classList.add('hidden');
+            modalEl.setAttribute('aria-hidden', 'true');
+
             // FORCE REMOVE ALL BACKDROPS - with multiple attempts and delays
             console.log('Starting backdrop removal process...');
             window.forceRemoveAllBackdrops();
-            setTimeout(function() {
+            setTimeout(function () {
                 console.log('Backdrop removal attempt 2');
                 window.forceRemoveAllBackdrops();
             }, 100);
-            setTimeout(function() {
+            setTimeout(function () {
                 console.log('Backdrop removal attempt 3');
                 window.forceRemoveAllBackdrops();
             }, 300);
-            setTimeout(function() {
+            setTimeout(function () {
                 console.log('Backdrop removal attempt 4 (final)');
                 window.forceRemoveAllBackdrops();
             }, 600);
         }
     });
-    
-    $('#form-voucher').on('submit', function(e) {
+
+    $('#form-voucher').on('submit', function (e) {
         e.preventDefault();
-        
+
         const formData = $(this).serializeArray();
         const voucherCodes = formData.filter(item => item.name === 'voucher-list[]').map(item => item.value).filter(val => val.trim() !== '');
-        
+
         if (voucherCodes.length === 0) {
             showToast('Silahkan masukkan kode voucher', 'warning');
             return;
         }
-        
+
         // TODO: Implement voucher verification via AJAX
         // For now, just close modal
         console.log('Voucher codes:', voucherCodes);
         console.log('=== VOUCHER FORM SUBMITTED - CLOSING MODAL ===');
-        
+
         // Close modal and remove ALL backdrops
         const modalEl = document.getElementById('modal-voucher');
         if (modalEl) {
@@ -1255,39 +1280,39 @@ $(document).ready(function() {
                 const modal = Flowbite.Modal.getInstance(modalEl) || voucherModal;
                 if (modal) {
                     console.log('Hiding voucher modal via Flowbite');
-                modal.hide();
+                    modal.hide();
                 }
             }
-                modalEl.classList.add('hidden');
-                modalEl.setAttribute('aria-hidden', 'true');
-            
+            modalEl.classList.add('hidden');
+            modalEl.setAttribute('aria-hidden', 'true');
+
             // FORCE REMOVE ALL BACKDROPS - with multiple attempts and delays
             console.log('Starting backdrop removal process...');
             window.forceRemoveAllBackdrops();
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 100);
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 300);
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 600);
         }
     });
-    
-    $('#form-discount').on('submit', function(e) {
+
+    $('#form-discount').on('submit', function (e) {
         e.preventDefault();
-        
+
         const discountType = $('#discount-type').val();
         const formData = $(this).serializeArray();
         const discountValues = formData.filter(item => item.name === 'total-discount-list[]').map(item => parseFloat(item.value) || 0);
-        
+
         if (discountValues.length === 0) {
             showToast('Silahkan masukkan nilai diskon', 'warning');
             return;
         }
-        
+
         let totalDiscountValue = 0;
         if (discountType === 'percentage') {
             // Calculate percentage from subtotal
@@ -1297,12 +1322,12 @@ $(document).ready(function() {
             // Nominal - sum all values
             totalDiscountValue = discountValues.reduce((sum, val) => sum + val, 0);
         }
-        
+
         totalDiscount = totalDiscountValue;
         updateSummary();
-        
+
         console.log('=== DISCOUNT FORM SUBMITTED - CLOSING MODAL ===');
-        
+
         // Close modal and remove ALL backdrops
         const modalEl = document.getElementById('modal-discount');
         if (modalEl) {
@@ -1311,51 +1336,51 @@ $(document).ready(function() {
                 const modal = Flowbite.Modal.getInstance(modalEl) || discountModal;
                 if (modal) {
                     console.log('Hiding discount modal via Flowbite');
-                modal.hide();
+                    modal.hide();
                 }
             }
-                modalEl.classList.add('hidden');
-                modalEl.setAttribute('aria-hidden', 'true');
-            
+            modalEl.classList.add('hidden');
+            modalEl.setAttribute('aria-hidden', 'true');
+
             // FORCE REMOVE ALL BACKDROPS - with multiple attempts and delays
             console.log('Starting backdrop removal process...');
             window.forceRemoveAllBackdrops();
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 100);
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 300);
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 600);
         }
     });
-    
+
     // Pay button - Open Flowbite modal
-    $('#pay-btn').on('click', function() {
+    $('#pay-btn').on('click', function () {
         if (orderItems.length === 0) {
             showToast('Silakan tambahkan produk terlebih dahulu', 'warning');
             return;
         }
-        
+
         if (!$('#cust_id').val() || $('#cust_id').val() === '') {
             showToast('Silakan pilih customer terlebih dahulu', 'warning');
             return;
         }
-        
+
         // Calculate totals
         const currentSubtotal = subtotal;
         const currentShipping = shippingCost;
         const currentVoucher = voucherDiscount;
         const currentTotalDiscount = totalDiscount;
         const currentGrandTotal = currentSubtotal + currentShipping - currentVoucher - currentTotalDiscount;
-        
+
         // Populate payment modal
         $('#payment_total').text('Rp. ' + formatNumber(currentGrandTotal));
         $('#real_price').val(formatNumber(currentGrandTotal));
         $('#final_total_unique_code').val(formatNumber(currentGrandTotal));
-        
+
         // Reset payment modal fields
         $('#order_code').val('');
         $('#no_resi').val('');
@@ -1370,15 +1395,15 @@ $(document).ready(function() {
         $('#note').val('');
         $('#no_resi_upload').val('');
         $('#upload-text').html('<span class="font-semibold">Click to upload</span> or drag and drop');
-        
+
         // Recalculate to ensure initial values are correct
         calculateRealPrice();
-        
+
         console.log('=== OPENING PAYMENT MODAL ===');
-        
+
         // MANUAL APPROACH - No Flowbite for backdrop, just show/hide
-            const modalEl = document.getElementById('modal-payment');
-            if (modalEl) {
+        const modalEl = document.getElementById('modal-payment');
+        if (modalEl) {
             // 1. Create backdrop FIRST
             let backdrop = document.getElementById('payment-modal-backdrop');
             if (backdrop) {
@@ -1387,76 +1412,76 @@ $(document).ready(function() {
             backdrop = document.createElement('div');
             backdrop.id = 'payment-modal-backdrop';
             backdrop.style.cssText = 'position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 40; width: 100vw; height: 100vh;';
-            backdrop.onclick = function(e) {
+            backdrop.onclick = function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 return false;
             };
             document.body.appendChild(backdrop);
             console.log('✅ Backdrop created first');
-            
+
             // 2. Show modal manually
             modalEl.classList.remove('hidden');
             modalEl.removeAttribute('aria-hidden');
             modalEl.style.display = 'flex';
             console.log('✅ Modal shown manually');
-            
+
             // 3. Create Flowbite instance ONLY for internal modal behavior (not backdrop)
-                if (typeof Flowbite !== 'undefined' && Flowbite.Modal) {
+            if (typeof Flowbite !== 'undefined' && Flowbite.Modal) {
                 try {
                     const existingModal = Flowbite.Modal.getInstance(modalEl);
                     if (existingModal) {
                         existingModal.destroy();
                     }
-                    
+
                     // Create instance with backdrop disabled
                     paymentModal = new Flowbite.Modal(modalEl, {
-                            placement: 'center',
+                        placement: 'center',
                         backdrop: 'none' // No Flowbite backdrop!
                     });
                     console.log('✅ Flowbite modal instance created (no backdrop)');
-                } catch(e) {
+                } catch (e) {
                     console.error('Error creating Flowbite modal:', e);
                 }
             }
         }
     });
-    
+
     // Payment modal - Close button handlers (custom, no data-modal-hide)
     function closePaymentModal() {
         console.log('=== CLOSING PAYMENT MODAL ===');
-            const modalEl = document.getElementById('modal-payment');
-            if (modalEl) {
+        const modalEl = document.getElementById('modal-payment');
+        if (modalEl) {
             // Hide modal manually
-                        modalEl.classList.add('hidden');
-                        modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.classList.add('hidden');
+            modalEl.setAttribute('aria-hidden', 'true');
             modalEl.style.display = 'none';
             console.log('Payment modal hidden manually');
-            
+
             // FORCE REMOVE ALL BACKDROPS
             console.log('Starting backdrop removal process...');
             window.forceRemoveAllBackdrops();
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 100);
-            setTimeout(function() {
+            setTimeout(function () {
                 window.forceRemoveAllBackdrops();
             }, 300);
         }
     }
-    
+
     // Close button handlers
-    $(document).on('click', '#close-payment-modal, #cancel-payment-modal', function(e) {
+    $(document).on('click', '#close-payment-modal, #cancel-payment-modal', function (e) {
         e.preventDefault();
         e.stopPropagation();
         closePaymentModal();
     });
-    
+
     // Payment modal - Unique code handler
-    $('#unique_code').on('input', function() {
+    $('#unique_code').on('input', function () {
         calculateRealPrice();
     });
-    
+
     // Payment modal - Calculate real price on input change
     function calculateRealPrice() {
         const grandTotalText = $('#payment_total').text();
@@ -1467,33 +1492,33 @@ $(document).ready(function() {
         const anotherCost = parseFloat($('#another_cost').val()) || 0;
         const dpPayment = parseFloat($('#dp_payment').val()) || 0;
         const isDownpayment = $('#dp_checkbox').is(':checked');
-        
+
         let realPrice = grandTotal + uniqueCode - discountSeller - adminCost + anotherCost;
-        
+
         if (isDownpayment && dpPayment > 0) {
             realPrice = dpPayment;
         }
-        
+
         // Ensure real price is not negative
         if (realPrice < 0) {
             realPrice = 0;
         }
-        
+
         $('#real_price').val(formatNumber(realPrice));
         $('#final_total_unique_code').val(formatNumber(grandTotal + uniqueCode));
     }
-    
+
     // Payment modal - Input change handlers
-    $('#discount_seller, #admin_cost, #another_cost, #dp_payment').on('input', function() {
+    $('#discount_seller, #admin_cost, #another_cost, #dp_payment').on('input', function () {
         calculateRealPrice();
     });
-    
-    $('#dp_checkbox').on('change', function() {
+
+    $('#dp_checkbox').on('change', function () {
         calculateRealPrice();
     });
-    
+
     // Payment modal - File upload handler
-    $('#no_resi_upload').on('change', function() {
+    $('#no_resi_upload').on('change', function () {
         const file = this.files[0];
         if (file) {
             if (file.type !== 'application/pdf') {
@@ -1506,22 +1531,22 @@ $(document).ready(function() {
             $('#upload-text').html('<span class="font-semibold">Click to upload</span> or drag and drop');
         }
     });
-    
+
     // Payment modal - Save transaction
-    $('#save_transaction').on('click', function() {
+    $('#save_transaction').on('click', function () {
         if (orderItems.length === 0) {
             showToast('Tidak ada item dalam keranjang', 'error');
             return;
         }
-        
+
         if (!$('#cust_id').val() || $('#cust_id').val() === '') {
             showToast('Silakan pilih customer terlebih dahulu', 'error');
             return;
         }
-        
+
         // Collect all form data
         const formData = new FormData();
-        
+
         // Transaction data
         formData.append('_pm_id', $('#pm_id').val() || '');
         formData.append('sub_payment', $('#sub_payment').val() || '');
@@ -1532,7 +1557,7 @@ $(document).ready(function() {
         formData.append('_st_id', $('#st_id').val() || '');
         formData.append('_pt_id_complaint', $('#pt_id_complaint').val() || '');
         formData.append('_exchange', $('#exchange_flag').val() || '');
-        formData.append('cross_order', $('#cross_order').val() || '0');
+        formData.append('_cross', 'true');
         formData.append('_unique_code', $('#unique_code').val() || '0');
         formData.append('_real_price', $('#real_price').val().replace(/[^\d]/g, '') || '0');
         formData.append('_admin_cost', $('#admin_cost').val() || '0');
@@ -1550,18 +1575,18 @@ $(document).ready(function() {
         formData.append('voc_pst_id', $('#_voc_pst_id').val() || '');
         formData.append('voc_value', $('#_voc_value').val() || '');
         formData.append('voc_id', $('#_voc_id').val() || '');
-        
+
         // File upload
         const resiFile = $('#no_resi_upload')[0].files[0];
         if (resiFile) {
             formData.append('no_resi_upload', resiFile);
         }
-        
+
         // Order items data
         const orderItemsData = orderItems.map((item, index) => {
             return {
-                pst_id: item.pstId,
-                pl_id: item.plId,
+                pst_id: item.id,
+                pl_id: item.pl_id,
                 quantity: item.quantity,
                 nameset: item.nameset || '',
                 marketplace: item.marketplace || '',
@@ -1571,12 +1596,12 @@ $(document).ready(function() {
             };
         });
         formData.append('order_items', JSON.stringify(orderItemsData));
-        
+
         // Disable button during submission
         const $btn = $(this);
         const originalText = $btn.html();
         $btn.prop('disabled', true).html('<span class="inline-block animate-spin mr-2">⏳</span> Processing...');
-        
+
         // Submit transaction
         $.ajax({
             url: '/save_transaction',
@@ -1584,22 +1609,22 @@ $(document).ready(function() {
             data: formData,
             processData: false,
             contentType: false,
-            success: function(response) {
+            success: function (response) {
                 try {
                     const result = typeof response === 'string' ? JSON.parse(response) : response;
-                    
+
                     if (result.status === '200' && result.pt_id) {
                         // Save transaction details for each item
                         let detailPromises = [];
                         let detailIndex = 0;
-                        
+
                         orderItems.forEach((item) => {
                             const detailFormData = new FormData();
                             detailFormData.append('_pt_id', result.pt_id);
                             detailFormData.append('_pt_id_complaint', $('#_pt_id_complaint').val() || '');
                             detailFormData.append('_exchange', $('#_exchange').val() || '');
-                            detailFormData.append('_pl_id', item.plId || '');
-                            detailFormData.append('_pst_id', item.pstId);
+                            detailFormData.append('_pl_id', item.pl_id || '');
+                            detailFormData.append('_pst_id', item.id || '');
                             detailFormData.append('_plst_id', '');
                             detailFormData.append('_price', item.price);
                             detailFormData.append('_item_qty', item.quantity);
@@ -1614,7 +1639,8 @@ $(document).ready(function() {
                             detailFormData.append('voc_pst_id', $('#_voc_pst_id').val() || '');
                             detailFormData.append('voc_value', $('#_voc_value').val() || '');
                             detailFormData.append('_price_item_discount', item.discRp || 0);
-                            
+                            detailFormData.append('_cross', 'true');
+
                             const detailPromise = $.ajax({
                                 url: '/save_transaction_detail',
                                 type: 'POST',
@@ -1622,18 +1648,18 @@ $(document).ready(function() {
                                 processData: false,
                                 contentType: false
                             });
-                            
+
                             detailPromises.push(detailPromise);
                         });
-                        
+
                         // Wait for all detail saves to complete
-                        $.when.apply($, detailPromises).done(function() {
+                        $.when.apply($, detailPromises).done(function () {
                             showToast('Transaksi berhasil disimpan! Invoice: ' + result.invoice, 'success');
-                            
+
                             // Close payment modal and remove backdrop
                             console.log('=== TRANSACTION SAVED - CLOSING PAYMENT MODAL ===');
                             closePaymentModal();
-                            
+
                             // Reset POS state
                             orderItems = [];
                             shippingCost = 0;
@@ -1647,13 +1673,13 @@ $(document).ready(function() {
                             updateProductTable();
                             updateSummary();
                             updateOrderDisplay();
-                            
+
                             // Optionally redirect to invoice or print
                             if (result.pt_id) {
                                 // You can add redirect to invoice page here
                                 // window.location.href = '/invoice/' + result.pt_id;
                             }
-                        }).fail(function() {
+                        }).fail(function () {
                             showToast('Transaksi disimpan, tetapi ada error saat menyimpan detail. Silakan cek kembali.', 'warning');
                         });
                     } else {
@@ -1664,7 +1690,7 @@ $(document).ready(function() {
                     showToast('Error processing response', 'error');
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('AJAX Error:', xhr, status, error);
                 let errorMsg = 'Gagal menyimpan transaksi';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -1679,23 +1705,23 @@ $(document).ready(function() {
                 }
                 showToast(errorMsg, 'error');
             },
-            complete: function() {
+            complete: function () {
                 $btn.prop('disabled', false).html(originalText);
             }
         });
     });
-    
+
     // Customer search with autocomplete
     let customerSearchTimeout;
     let selectedCustomer = null;
-    
-    $('#customer-search').on('keyup', function() {
+
+    $('#customer-search').on('keyup', function () {
         const query = $(this).val().trim();
         const $autocomplete = $('#customer-autocomplete');
         const divisionType = $('#std_id option:selected').text().toUpperCase();
-        
+
         clearTimeout(customerSearchTimeout);
-        
+
         if (query.length < 3) {
             $autocomplete.addClass('hidden').removeClass('block').empty();
             $('#customer-badge').addClass('hidden').removeClass('flex');
@@ -1703,8 +1729,8 @@ $(document).ready(function() {
             selectedCustomer = null;
             return;
         }
-        
-        customerSearchTimeout = setTimeout(function() {
+
+        customerSearchTimeout = setTimeout(function () {
             // Include division type in search untuk filter customer
             $.ajax({
                 url: '/autocomplete_customer',
@@ -1714,13 +1740,13 @@ $(document).ready(function() {
                     type: 'cust',
                     division_type: divisionType // Tambahkan division type untuk filter
                 },
-                success: function(data) {
+                success: function (data) {
                     // Parse and reformat customer autocomplete with badges and smaller text
                     if (data && data.trim() !== '') {
                         const $temp = $('<div>').html(data);
                         const customers = [];
-                        
-                        $temp.find('li a#add_to_item_list_cust').each(function() {
+
+                        $temp.find('li a#add_to_item_list_cust').each(function () {
                             const $link = $(this);
                             const custId = $link.attr('data-id');
                             const custText = $link.text().trim();
@@ -1755,10 +1781,10 @@ $(document).ready(function() {
                                 }
                             }
                         });
-                        
+
                         if (customers.length > 0) {
                             let html = '<ul class="divide-y divide-gray-200">';
-                            customers.forEach(function(customer) {
+                            customers.forEach(function (customer) {
                                 html += `
                                     <li class="customer-item p-2.5 hover:bg-gray-50 cursor-pointer transition-colors" id="add_to_item_list_cust" data-id="${customer.id}">
                                         <div class="flex items-center justify-between">
@@ -1776,35 +1802,53 @@ $(document).ready(function() {
                             html += '</ul>';
                             $autocomplete.html(html).removeClass('hidden').addClass('block');
                         } else {
-                            $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-2.5 text-gray-500 text-xs text-center">Tidak ditemukan</li></ul>').removeClass('hidden').addClass('block');
+                            $autocomplete.html('<ul class="divide-y divide-gray-200 cursor-pointer bg-red-500 text-white add_customer"><li class="p-2.5 text-center">+ Tambah Customer</li></ul>').removeClass('hidden').addClass('block');
                         }
                     } else {
-                        $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-2.5 text-gray-500 text-xs text-center">Tidak ditemukan</li></ul>').removeClass('hidden').addClass('block');
+                        $autocomplete.html('<ul class="divide-y divide-gray-200 cursor-pointer bg-red-500 text-white add_customer"><li class="p-2.5 text-center">+ Tambah Customer</li></ul>').removeClass('hidden').addClass('block');
                     }
                 },
-                error: function() {
+                error: function () {
                     $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-4 text-red-600">Error searching customers</li></ul>').removeClass('hidden').addClass('block');
                 }
             });
         }, 300);
     });
-    
+
+    $(document).on('click', '.add_customer', function () {
+        {
+            // Open add customer page in new tab
+            $('#add-customer-btn').click();
+        }
+    });
+
+    $(document).on('click', '#add-customer-btn', function () {
+        {
+            //copy text from customer search input
+            const custName = $('#customer-search').val().trim();
+
+            //set at add customer input form
+            $('#cust_name').val(custName);
+        }
+    });
+
+
     // Handle customer selection from autocomplete
-    $(document).on('click', '.customer-item, #add_to_item_list_cust', function() {
+    $(document).on('click', '.customer-item, #add_to_item_list_cust', function () {
         const custId = $(this).attr('data-id') || $(this).closest('[data-id]').attr('data-id');
         const $item = $(this);
-        
+
         // Get customer name from the text-xs font-semibold element
         const custName = $item.find('.text-xs.font-semibold').first().text().trim() || $item.text().trim();
         const custPhone = $item.find('.bg-gray-100').first().text().trim() || '';
         const custType = $item.find('.bg-red-100').first().text().trim() || '';
-        
+
         const divisionType = $('#std_id option:selected').text().toUpperCase();
-        
+
         $('#cust_id').val(custId);
         $('#customer-search').val(custName);
         $('#customer-autocomplete').addClass('hidden').removeClass('block').empty();
-        
+
         // Jika division = DROPSHIPPER, tampilkan sebagai dropshipper badge
         if (divisionType === 'DROPSHIPPER') {
             $('#dropshipper-badge .dropshipper-name').text(custName);
@@ -1812,38 +1856,38 @@ $(document).ready(function() {
             $('#customer-badge').addClass('hidden').removeClass('flex');
         } else {
             // Show customer badge untuk division biasa
-        $('#customer-badge .customer-name').text(custName);
-        $('#customer-badge .customer-type').text(custType || 'CUSTOMER');
-        $('#customer-badge').removeClass('hidden').addClass('flex');
+            $('#customer-badge .customer-name').text(custName);
+            $('#customer-badge .customer-type').text(custType || 'CUSTOMER');
+            $('#customer-badge').removeClass('hidden').addClass('flex');
             $('#dropshipper-badge').addClass('hidden').removeClass('flex');
         }
-        
+
         selectedCustomer = {
             id: custId,
             name: custName,
             phone: custPhone,
             status: custType
         };
-        
+
         // Update marketplace field status based on division type
         updateMarketplaceFieldStatus();
     });
-    
+
     // Sub customer search (untuk dropshipper)
     let subCustomerSearchTimeout;
-    $('#sub-customer-search').on('keyup', function() {
+    $('#sub-customer-search').on('keyup', function () {
         const query = $(this).val().trim();
         const $autocomplete = $('#sub-customer-autocomplete');
-        
+
         clearTimeout(subCustomerSearchTimeout);
-        
+
         if (query.length < 3) {
             $autocomplete.addClass('hidden').removeClass('block').empty();
             $('#customer-badge').addClass('hidden').removeClass('flex');
             return;
         }
-        
-        subCustomerSearchTimeout = setTimeout(function() {
+
+        subCustomerSearchTimeout = setTimeout(function () {
             $.ajax({
                 url: '/autocomplete_customer',
                 method: 'POST',
@@ -1851,13 +1895,13 @@ $(document).ready(function() {
                     query: query,
                     type: 'cust'
                 },
-                success: function(data) {
+                success: function (data) {
                     // Parse and reformat customer autocomplete
                     if (data && data.trim() !== '') {
                         const $temp = $('<div>').html(data);
                         const customers = [];
-                        
-                        $temp.find('li a#add_to_item_list_cust').each(function() {
+
+                        $temp.find('li a#add_to_item_list_cust').each(function () {
                             const $link = $(this);
                             const custId = $link.attr('data-id');
                             const custText = $link.text().trim();
@@ -1880,10 +1924,10 @@ $(document).ready(function() {
                                 });
                             }
                         });
-                        
+
                         if (customers.length > 0) {
                             let html = '<ul class="divide-y divide-gray-200">';
-                            customers.forEach(function(customer) {
+                            customers.forEach(function (customer) {
                                 html += `
                                     <li class="sub-customer-item p-2.5 hover:bg-gray-50 cursor-pointer transition-colors" data-id="${customer.id}">
                                         <div class="flex items-center justify-between">
@@ -1907,32 +1951,32 @@ $(document).ready(function() {
                         $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-2.5 text-gray-500 text-xs text-center">Tidak ditemukan</li></ul>').removeClass('hidden').addClass('block');
                     }
                 },
-                error: function() {
+                error: function () {
                     $autocomplete.html('<ul class="divide-y divide-gray-200"><li class="p-4 text-red-600">Error searching customers</li></ul>').removeClass('hidden').addClass('block');
                 }
             });
         }, 300);
     });
-    
+
     // Handle sub customer selection (untuk dropshipper)
-    $(document).on('click', '.sub-customer-item', function() {
+    $(document).on('click', '.sub-customer-item', function () {
         const custId = $(this).attr('data-id');
         const $item = $(this);
-        
+
         const custName = $item.find('.text-xs.font-semibold').first().text().trim() || $item.text().trim();
         const custPhone = $item.find('.bg-gray-100').first().text().trim() || '';
         const custType = $item.find('.bg-blue-100').first().text().trim() || '';
-        
+
         $('#sub_cust_id').val(custId);
         $('#sub-customer-search').val(custName);
         $('#sub-customer-autocomplete').addClass('hidden').removeClass('block').empty();
-        
+
         // Show customer badge untuk sub customer
         $('#customer-badge .customer-name').text(custName);
         $('#customer-badge .customer-type').text(custType || 'CUSTOMER');
         $('#customer-badge').removeClass('hidden').addClass('flex');
     });
-    
+
     // Function to enable/disable marketplace field based on division type (sesuai POS lama)
     // DROPSHIPPER/RESELLER/WHATSAPP/WEBSITE: marketplace DISABLED (menggunakan UNIT/QTY)
     // Division lain: marketplace ENABLED (bisa menggunakan marketplace)
@@ -1940,11 +1984,11 @@ $(document).ready(function() {
         const divisionType = $('#std_id option:selected').text().toUpperCase();
         const marketplaceDisabledTypes = ['DROPSHIPPER', 'RESELLER', 'WHATSAPP', 'WEBSITE'];
         const isMarketplaceDisabled = marketplaceDisabledTypes.includes(divisionType);
-        
+
         // Enable/disable all marketplace input fields
-        $('.marketplace-price-input').each(function() {
+        $('.marketplace-price-input').each(function () {
             const index = $(this).attr('id').replace('marketplace_price', '');
-            
+
             if (isMarketplaceDisabled) {
                 // Untuk DROPSHIPPER/RESELLER/WHATSAPP/WEBSITE: marketplace DISABLED (menggunakan UNIT/QTY)
                 $(this).prop('disabled', true).removeClass('bg-white').addClass('bg-gray-100');
@@ -1959,12 +2003,12 @@ $(document).ready(function() {
             }
         });
     }
-    
+
     // Listen to division type change
-    $(document).on('change', '#std_id', function() {
+    $(document).on('change', '#std_id', function () {
         const stdId = $(this).val();
         const divisionType = $(this).find('option:selected').text().toUpperCase();
-        
+
         // Reset customer fields
         $('#cust_id').val('');
         $('#sub_cust_id').val('');
@@ -1973,14 +2017,14 @@ $(document).ready(function() {
         $('#customer-badge').addClass('hidden').removeClass('flex');
         $('#dropshipper-badge').addClass('hidden').removeClass('flex');
         selectedCustomer = null;
-        
+
         // Clear order items when division changes (sesuai POS lama)
         if (orderItems.length > 0) {
             const previousValue = $(this).data('previous-value') || '';
             const currentValue = stdId;
             // Revert first, then show confirmation
             $(this).val(previousValue);
-            
+
             showConfirmToast('Ubah division akan menghapus semua item di order. Lanjutkan?', 'Ya, Lanjutkan', 'Batal').then((confirmed) => {
                 if (confirmed) {
                     $(this).val(currentValue);
@@ -1992,10 +2036,10 @@ $(document).ready(function() {
             });
             return;
         }
-        
+
         // Store previous value
         $(this).data('previous-value', stdId);
-        
+
         // Show/hide dropshipper field based on division
         if (divisionType === 'DROPSHIPPER') {
             $('#dropship-input-container').removeClass('hidden');
@@ -2008,17 +2052,17 @@ $(document).ready(function() {
             $('#customer-label').text('Customer');
             $('#customer-search').attr('placeholder', 'Search Customer (min 4 chars)');
         }
-        
+
         // Reload customer list by division
         if (stdId) {
             reloadCustomerByDivision(stdId);
         }
-        
+
         // Update marketplace field status
         updateMarketplaceFieldStatus();
         updateSummary();
     });
-    
+
     // Function to reload customer list by division (sesuai POS lama)
     function reloadCustomerByDivision(stdId) {
         $.ajaxSetup({
@@ -2026,7 +2070,7 @@ $(document).ready(function() {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        
+
         $.ajax({
             type: "GET",
             dataType: 'html',
@@ -2034,30 +2078,30 @@ $(document).ready(function() {
                 _std_id: stdId
             },
             url: "/reload_customer_by_division",
-            success: function(response) {
+            success: function (response) {
                 // Response akan berisi HTML dengan select dropdown
                 // Untuk POS V2, kita akan gunakan data untuk autocomplete
                 // Tapi kita perlu parse response untuk mendapatkan customer list
                 console.log('Customer list reloaded for division:', stdId);
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Error reloading customer by division:', error);
             }
         });
     }
-    
+
     // Function to load customer detail (reusable)
     function loadCustomerDetail(custId) {
         if (!custId) {
             showToast('Silahkan pilih customer terlebih dahulu', 'warning');
             return;
         }
-        
+
         // Show loading state
-        $('#modal-customer-detail').find('[id^="detail-"]').each(function() {
+        $('#modal-customer-detail').find('[id^="detail-"]').each(function () {
             $(this).html('<span class="text-gray-400 text-xs">Loading...</span>');
         });
-        
+
         // Open modal - use data attributes for Flowbite auto-initialization
         const modalEl = document.getElementById('modal-customer-detail');
         if (modalEl) {
@@ -2069,7 +2113,7 @@ $(document).ready(function() {
                         modal = new Flowbite.Modal(modalEl);
                     }
                     modal.show();
-                } catch(e) {
+                } catch (e) {
                     console.error('Error opening modal:', e);
                     // Fallback: use data attributes
                     $(modalEl).removeClass('hidden');
@@ -2079,14 +2123,14 @@ $(document).ready(function() {
                 $(modalEl).removeClass('hidden');
             }
         }
-        
+
         // Fetch customer details
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        
+
         $.ajax({
             url: '/check_customer',
             method: 'POST',
@@ -2094,12 +2138,12 @@ $(document).ready(function() {
                 _cust_id: custId
             },
             dataType: 'text', // Force text to handle json_encode response
-            success: function(response) {
+            success: function (response) {
                 // Parse response (controller returns json_encode, so it's a string)
                 let data;
                 try {
                     data = JSON.parse(response);
-                } catch(e) {
+                } catch (e) {
                     console.error('Error parsing response:', e, 'Response:', response);
                     showToast('Error parsing response dari server', 'error');
                     if (modalEl) {
@@ -2107,9 +2151,9 @@ $(document).ready(function() {
                     }
                     return;
                 }
-                
+
                 console.log('Customer detail response:', data);
-                
+
                 if (data.status === '200' || data.status === 200) {
                     // Get customer type name
                     const ctId = data.ct_id;
@@ -2122,23 +2166,23 @@ $(document).ready(function() {
                             ctName = 'ID: ' + ctId;
                         }
                     }
-                    
+
                     // Populate modal fields
                     $('#detail-ct_id').text(ctName);
                     $('#detail-cust_name').text(data.cust_name || '-');
                     $('#detail-cust_store').text(data.cust_store || '-');
                     $('#detail-cust_phone').text(data.cust_phone || '-');
                     $('#detail-cust_email').text(data.cust_email || '-');
-                    
+
                     // Use province/city/subdistrict name if available, otherwise use code (sesuai POS lama)
                     $('#detail-cust_province').text(data.cust_province_name || data.cust_province || '-');
                     $('#detail-cust_city').text(data.cust_city_name || data.cust_city || '-');
                     $('#detail-cust_subdistrict').text(data.cust_subdistrict_name || data.cust_subdistrict || '-');
                     $('#detail-cust_address').text(data.cust_address || '-');
-                    
+
                     // Status badge
                     const isActive = data.cust_token_active == 1 || data.cust_token_active === '1' || data.cust_token_active === 1;
-                    const statusHtml = isActive 
+                    const statusHtml = isActive
                         ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>'
                         : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Non-Active</span>';
                     $('#detail-cust_token_active').html(statusHtml);
@@ -2149,7 +2193,7 @@ $(document).ready(function() {
                     }
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('AJAX Error:', xhr, status, error);
                 console.error('Response:', xhr.responseText);
                 let errorMsg = 'Error memuat detail customer';
@@ -2159,7 +2203,7 @@ $(document).ready(function() {
                     try {
                         const errorData = JSON.parse(xhr.responseText);
                         errorMsg = errorData.message || errorMsg;
-                    } catch(e) {
+                    } catch (e) {
                         errorMsg = 'HTTP ' + xhr.status + ': ' + (xhr.responseText.substring(0, 100) || error);
                     }
                 }
@@ -2170,22 +2214,22 @@ $(document).ready(function() {
             }
         });
     }
-    
+
     // Customer detail button - Show customer details modal
-    $(document).on('click', '#customer-detail-btn', function() {
+    $(document).on('click', '#customer-detail-btn', function () {
         const custId = $('#cust_id').val();
         loadCustomerDetail(custId);
     });
-    
+
     // Dropshipper detail button - Show dropshipper details modal
-    $(document).on('click', '#dropshipper-detail-btn', function() {
+    $(document).on('click', '#dropshipper-detail-btn', function () {
         const custId = $('#cust_id').val();
         loadCustomerDetail(custId);
     });
-    
+
     // Dropship mode toggle
     let isDropshipMode = false;
-    $('#dropship-btn').on('click', function() {
+    $('#dropship-btn').on('click', function () {
         isDropshipMode = !isDropshipMode;
         if (isDropshipMode) {
             $('#dropship-input-container').removeClass('hidden');
@@ -2199,20 +2243,29 @@ $(document).ready(function() {
             showToast('Mode Dropship nonaktif', 'info');
         }
     });
-    
+
     // Add new customer form submission
-    $('#f_customer').on('submit', function(e) {
+    $('#f_customer').on('submit', function (e) {
         e.preventDefault();
-        
+
         const formData = $(this).serializeArray();
-        formData.push({name: '_token', value: $('meta[name="csrf-token"]').attr('content')});
-        
+        formData.push({ name: '_token', value: $('meta[name="csrf-token"]').attr('content') });
+
         $.ajax({
-            url: '/save_customer',
+            url: '/cust_save',
             method: 'POST',
             data: formData,
-            success: function(response) {
-                if (response.status === '200') {
+            success: function (response) {
+                // Handle string or object response
+                let res = response;
+                if (typeof response === 'string') {
+                    try {
+                        res = JSON.parse(response);
+                    } catch (e) {
+                        res = {};
+                    }
+                }
+                if (res.status === '200' && res.new_id) {
                     showToast('Customer berhasil ditambahkan!', 'success');
                     const modalEl = document.getElementById('modal-customer');
                     if (modalEl) {
@@ -2223,18 +2276,56 @@ $(document).ready(function() {
                             modalEl.classList.add('hidden');
                             modalEl.setAttribute('aria-hidden', 'true');
                         }
+
+                        const divisionType = $('#std_id option:selected').text().toUpperCase();
+
+                        const custId = res.data.id;
+                        const custName = res.data.cust_name;
+                        const custPhone = res.data.cust_phone;
+                        const custType = res.data.cust_type;
+
+                        $('#cust_id').val(custId);
+                        $('#customer-search').val(custName);
+                        $('#customer-autocomplete').addClass('hidden').removeClass('block').empty();
+
+                        // Jika division = DROPSHIPPER, tampilkan sebagai dropshipper badge
+                        if (divisionType === 'DROPSHIPPER') {
+                            $('#dropshipper-badge .dropshipper-name').text(custName);
+                            $('#dropshipper-badge').removeClass('hidden').addClass('flex');
+                            $('#customer-badge').addClass('hidden').removeClass('flex');
+                        } else {
+                            // Show customer badge untuk division biasa
+                            $('#customer-badge .customer-name').text(custName);
+                            $('#customer-badge .customer-type').text(custType || 'CUSTOMER');
+                            $('#customer-badge').removeClass('hidden').addClass('flex');
+                            $('#dropshipper-badge').addClass('hidden').removeClass('flex');
+                        }
+
+                        selectedCustomer = {
+                            id: custId,
+                            name: custName,
+                            phone: custPhone,
+                            status: custType
+                        };
+
+                        // Ensure all backdrops are removed after hiding the modal
+                        // Hide all Flowbite backdrops instead of removing them
+                        window.forceRemoveAllBackdrops();
+                        setTimeout(function () {
+                            window.forceRemoveAllBackdrops();
+                        }, 100);
                     }
                     // Reset form
                     $('#f_customer')[0].reset();
+                    // Set new customer as selected
+                    $('#cust_id').val(res.new_id);
                     // Optionally reload customer list or refresh page
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1000);
+                    // location.reload(); // Not needed, just update input
                 } else {
-                    showToast('Gagal menambahkan customer: ' + (response.message || 'Unknown error'), 'error');
+                    showToast('Gagal menambahkan customer: ' + (res.message || 'Unknown error'), 'error');
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 let errorMsg = 'Gagal menambahkan customer!';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMsg = xhr.responseJSON.message;
@@ -2243,11 +2334,11 @@ $(document).ready(function() {
             }
         });
     });
-    
+
     // Initialize empty order display
     updateOrderDisplay();
     updateSummary();
-    
+
     // Format bin string to badges
     // Input: "[02] [0] [TOKO] [0]"
     // Output: HTML badges
@@ -2255,20 +2346,20 @@ $(document).ready(function() {
         if (!binString || binString.trim() === '') {
             return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">No Location</span>';
         }
-        
+
         // Parse pattern: [CODE] [QTY] [CODE] [QTY] ...
         const regex = /\[([^\]]+)\]\s*\[([^\]]+)\]/g;
         const badges = [];
         let match;
-        
+
         while ((match = regex.exec(binString)) !== null) {
             const locationCode = match[1].trim();
             const quantity = parseInt(match[2]) || 0;
-            
+
             // Determine badge color based on location code and quantity (Tailwind classes)
             // Simple 2-color scheme: green if quantity > 0, red if quantity = 0
             let badgeClass = quantity > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500';
-            
+
             // Create badge with icon
             const icon = quantity > 0 ? '<i class="cft-standard-solid cft-check-round text-green-600 text-sm"></i>' : '<i class="cft-standard-solid cft-cancel text-red-500 text-sm"></i>';
             badges.push(`
@@ -2277,27 +2368,27 @@ $(document).ready(function() {
                 </span>
             `);
         }
-        
+
         return badges.join('');
     }
-    
+
     // CSRF Token setup for AJAX
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
-    
+
     // Store selection change handler
-    $('#st_id').on('change', function() {
+    $('#st_id').on('change', function () {
         const selectedStoreId = $(this).val();
         const selectedStoreName = $(this).find('option:selected').text();
-        
+
         if (selectedStoreId && selectedStoreName !== '- Pilih -') {
             // Update store name display
             $('#store-name-display').text(selectedStoreName);
             $('#store-id-display').text('#' + selectedStoreId);
-            
+
             // Reset order items and summary when store changes
             orderItems = [];
             shippingCost = 0;
@@ -2311,18 +2402,18 @@ $(document).ready(function() {
             $('#store-id-display').text('#123345');
         }
     });
-    
+
     // ===========================================
     // RETUR EVENT HANDLERS
     // ===========================================
-    
+
     // Retur checkbox handler
-    $('#retur-checkbox').on('change', function() {
+    $('#retur-checkbox').on('change', function () {
         if ($(this).is(':checked')) {
             // Show retur search container
             $('#retur-search-container').removeClass('hidden');
             $('#retur-type-badge').html('<span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold">ACTIVE</span>');
-            
+
             // Clear order items with confirmation
             if (orderItems.length > 0) {
                 showConfirmToast('Clear semua items untuk aktivasi mode retur?').then((confirmed) => {
@@ -2354,24 +2445,24 @@ $(document).ready(function() {
             $('#exchange_flag').val('');
             selectedTransactionForRetur = null;
             returItemsData = [];
-            
+
             showToast('Mode retur dinonaktifkan', 'info');
         }
     });
-    
+
     // Transaction search with debounce
     let transactionSearchTimeout;
-    $('#transaction-search').on('input', function() {
+    $('#transaction-search').on('input', function () {
         const searchTerm = $(this).val().trim();
-        
+
         clearTimeout(transactionSearchTimeout);
-        
+
         if (searchTerm.length < 5) {
             $('#transaction-list').addClass('hidden').html('');
             return;
         }
-        
-        transactionSearchTimeout = setTimeout(function() {
+
+        transactionSearchTimeout = setTimeout(function () {
             // AJAX search for transactions
             $.ajax({
                 url: '/search_transaction_for_retur',
@@ -2380,10 +2471,10 @@ $(document).ready(function() {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     search: searchTerm
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.status === 'success' && response.data.length > 0) {
                         let html = '';
-                        response.data.forEach(function(transaction) {
+                        response.data.forEach(function (transaction) {
                             html += `
                                 <div class="transaction-item p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
                                      data-pt-id="${transaction.id}"
@@ -2411,15 +2502,15 @@ $(document).ready(function() {
                         $('#transaction-list').html('<div class="p-3 text-center text-gray-500 text-sm">Transaksi tidak ditemukan</div>').removeClass('hidden');
                     }
                 },
-                error: function() {
+                error: function () {
                     showToast('Gagal mencari transaksi', 'error');
                 }
             });
         }, 500);
     });
-    
+
     // Select transaction
-    $(document).on('click', '.transaction-item', function() {
+    $(document).on('click', '.transaction-item', function () {
         const ptId = $(this).data('pt-id');
         const invoice = $(this).data('invoice');
         const date = $(this).data('date');
@@ -2427,7 +2518,7 @@ $(document).ready(function() {
         const custId = $(this).data('cust-id');
         const subCustId = $(this).data('sub-cust-id');
         const stdId = $(this).data('std-id');
-        
+
         // Store selected transaction
         selectedTransactionForRetur = {
             id: ptId,
@@ -2438,19 +2529,19 @@ $(document).ready(function() {
             sub_cust_id: subCustId,
             std_id: stdId
         };
-        
+
         // Set hidden field
         $('#pt_id_complaint').val(ptId);
-        
+
         // Display selected transaction badge
         $('#selected-transaction-invoice').text(invoice);
         $('#selected-transaction-date').text(`${date} - ${customer}`);
         $('#transaction-badge').removeClass('hidden');
-        
+
         // Hide search list
         $('#transaction-list').addClass('hidden');
         $('#transaction-search').val('');
-        
+
         // Auto-populate division and customer from transaction
         if (stdId) {
             // Set division without clearing customer (for retur)
@@ -2460,7 +2551,7 @@ $(document).ready(function() {
                 // Only reload customer list, don't clear existing data
                 reloadCustomerByDivision(stdId);
             }
-            
+
             // Wait a bit then load customer
             setTimeout(() => {
                 if (custId) {
@@ -2468,13 +2559,13 @@ $(document).ready(function() {
                 }
             }, 800);
         }
-        
+
         // Load transaction items
         loadReturItems(ptId);
     });
-    
+
     // Clear selected transaction
-    $('#clear-transaction-btn').on('click', function() {
+    $('#clear-transaction-btn').on('click', function () {
         $('#transaction-badge').addClass('hidden');
         $('#retur-items-container').addClass('hidden');
         $('#retur-items-list').html('');
@@ -2482,14 +2573,14 @@ $(document).ready(function() {
         $('#exchange_flag').val('');
         selectedTransactionForRetur = null;
         returItemsData = [];
-        
+
         // Remove retur items from order
         orderItems = orderItems.filter(item => item.isRetur !== true);
         updateProductTable();
         updateSummary();
         updateOrderDisplay();
     });
-    
+
     // Load items from selected transaction
     function loadReturItems(ptId) {
         $.ajax({
@@ -2499,7 +2590,7 @@ $(document).ready(function() {
                 _token: $('meta[name="csrf-token"]').attr('content'),
                 pt_id: ptId
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.status === 'success' && response.data.length > 0) {
                     returItemsData = response.data;
                     displayReturItems(response.data);
@@ -2507,16 +2598,16 @@ $(document).ready(function() {
                     showToast('Tidak ada item yang bisa diretur', 'warning');
                 }
             },
-            error: function() {
+            error: function () {
                 showToast('Gagal memuat item transaksi', 'error');
             }
         });
     }
-    
+
     // Display retur items with checkboxes
     function displayReturItems(items) {
         let html = '';
-        items.forEach(function(item, index) {
+        items.forEach(function (item, index) {
             // Use initial or image like regular order items
             let imageHtml = '';
             if (item.image) {
@@ -2525,7 +2616,7 @@ $(document).ready(function() {
                 const initial = item.product_name ? item.product_name.charAt(0).toUpperCase() : 'P';
                 imageHtml = `<div class="w-12 h-12 rounded border border-gray-200 bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">${initial}</div>`;
             }
-            
+
             html += `
                 <div class="retur-item-card p-3 bg-white border border-gray-200 rounded-lg hover:border-red-300 transition-colors">
                     <div class="flex items-start gap-3">
@@ -2557,16 +2648,16 @@ $(document).ready(function() {
                 </div>
             `;
         });
-        
+
         $('#retur-items-list').html(html);
         $('#retur-items-container').removeClass('hidden');
     }
-    
+
     // Enable qty input when checkbox is checked
-    $(document).on('change', '.retur-item-checkbox', function() {
+    $(document).on('change', '.retur-item-checkbox', function () {
         const index = $(this).data('item-index');
         const qtyInput = $(`.retur-qty-input[data-item-index="${index}"]`);
-        
+
         if ($(this).is(':checked')) {
             qtyInput.prop('disabled', false);
             // Add to order items as negative qty
@@ -2577,47 +2668,47 @@ $(document).ready(function() {
             removeReturItemFromOrder(index);
         }
     });
-    
+
     // Update qty for retur item
-    $(document).on('change', '.retur-qty-input', function() {
+    $(document).on('change', '.retur-qty-input', function () {
         const index = $(this).data('item-index');
         const newQty = parseInt($(this).val());
         const maxQty = returItemsData[index].qty;
-        
+
         if (newQty > maxQty) {
             showToast(`Qty retur tidak boleh melebihi pembelian (max: ${maxQty})`, 'warning');
             $(this).val(maxQty);
             return;
         }
-        
+
         if (newQty < 1) {
             $(this).val(1);
             return;
         }
-        
+
         // Update in order items
         updateReturItemQty(index, newQty);
     });
-    
+
     // Add retur item to order with negative qty
     function addReturItemToOrder(itemIndex) {
         const item = returItemsData[itemIndex];
         const qtyInput = $(`.retur-qty-input[data-item-index="${itemIndex}"]`);
         const qty = parseInt(qtyInput.val()) || item.qty;
-        
+
         // Check if already exists
         const existingIndex = orderItems.findIndex(oi => oi.returItemIndex === itemIndex);
         if (existingIndex !== -1) {
             return; // Already added
         }
-        
+
         // Use image or initial like regular order items
         let imageUrl = '';
         if (item.image) {
             imageUrl = '/app/assets/media/products/' + item.image;
         }
         // Note: initial will be handled in updateOrderDisplay
-        
+
         // Add as negative qty
         orderItems.push({
             id: item.pst_id,
@@ -2639,32 +2730,32 @@ $(document).ready(function() {
             returItemIndex: itemIndex,
             plst_id: item.plst_id
         });
-        
+
         // Set exchange flag to true (ada item retur + nanti bisa add item baru)
         $('#exchange_flag').val('true');
-        
+
         updateProductTable();
         updateSummary();
         updateOrderDisplay();
-        
+
         showToast(`Item retur ditambahkan: ${item.product_name}`, 'success');
     }
-    
+
     // Remove retur item from order
     function removeReturItemFromOrder(itemIndex) {
         orderItems = orderItems.filter(item => item.returItemIndex !== itemIndex);
-        
+
         // Check if still has retur items
         const hasReturItems = orderItems.some(item => item.isRetur === true);
         if (!hasReturItems) {
             $('#exchange_flag').val(''); // No retur items, reset flag
         }
-        
+
         updateProductTable();
         updateSummary();
         updateOrderDisplay();
     }
-    
+
     // Update retur item qty
     function updateReturItemQty(itemIndex, newQty) {
         const orderIndex = orderItems.findIndex(item => item.returItemIndex === itemIndex);
@@ -2676,14 +2767,14 @@ $(document).ready(function() {
             updateOrderDisplay();
         }
     }
-    
+
     // Load customer for retur - auto populate customer from selected transaction
     function loadCustomerForRetur(custId, subCustId, customerName) {
         if (custId) {
             // Set customer ID and name
             $('#customer-search').val(customerName);
             $('#cust_id').val(custId);
-            
+
             // Fetch full customer details to get customer type
             $.ajax({
                 url: '/check_customer',
@@ -2692,13 +2783,13 @@ $(document).ready(function() {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     _cust_id: custId
                 },
-                success: function(r) {
+                success: function (r) {
                     if (r.status == '200') {
                         // Show customer badge with name and type
                         $('#customer-badge').removeClass('hidden');
                         $('#selected-customer-name').text(r.cust_name);
                         $('#selected-customer-type').text(r.ct_name || 'Customer');
-                        
+
                         // If sub customer exists (for dropshipper)
                         if (subCustId) {
                             $('#sub_cust_id').val(subCustId);
@@ -2710,7 +2801,7 @@ $(document).ready(function() {
                                     _token: $('meta[name="csrf-token"]').attr('content'),
                                     _cust_id: subCustId
                                 },
-                                success: function(subR) {
+                                success: function (subR) {
                                     if (subR.status == '200') {
                                         $('#sub-customer-search').val(subR.cust_name);
                                         $('#dropship-input-container').removeClass('hidden');
@@ -2722,7 +2813,7 @@ $(document).ready(function() {
                         }
                     }
                 },
-                error: function() {
+                error: function () {
                     // Fallback if AJAX fails
                     $('#customer-badge').removeClass('hidden');
                     $('#selected-customer-name').text(customerName);
@@ -2731,45 +2822,45 @@ $(document).ready(function() {
             });
         }
     }
-    
+
     // ==================== CLOCK & HEADER BUTTONS ====================
-    
+
     // Real-time clock function
     function updateClock() {
         const now = new Date();
-        
+
         // Format time
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
-        
+
         // Format date
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        
+
         const dayName = days[now.getDay()];
         const date = now.getDate();
         const monthName = months[now.getMonth()];
         const year = now.getFullYear();
-        
+
         // Update time display (simple format)
         $('#current-time').text(`${hours}:${minutes}:${seconds}`);
-        
+
         // Update tooltip with full date and time
         const tooltip = `${dayName}, ${date} ${monthName} ${year} - ${hours}:${minutes}:${seconds}`;
         $('#clock-container').attr('title', tooltip);
     }
-    
+
     // Update clock immediately and then every second
     updateClock();
     setInterval(updateClock, 1000);
-    
+
     // ==================== SHIFT EMPLOYEE ====================
-    
+
     let clockInterval = null;
-    
+
     // Shift Button - Open Modal and Check Status
-    $('#shift-btn').on('click', function() {
+    $('#shift-btn').on('click', function () {
         // Check current shift status
         const baseUrl = window.location.origin;
         $.ajax({
@@ -2778,13 +2869,13 @@ $(document).ready(function() {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.status === '200') {
                     // User has started a shift
                     $('#start-shift-btn').hide();
                     $('#stop-shift-btn').show();
                     $('#shift-status-text').html('Shift In Progress');
-                    
+
                     // Start clock display (current time, not duration)
                     startShiftClock();
                 } else {
@@ -2794,7 +2885,7 @@ $(document).ready(function() {
                     $('#shift-status-text').html('Shift not started');
                     $('.clock').html('');
                 }
-                
+
                 // Show modal
                 if (window.shiftModal) {
                     window.shiftModal.show();
@@ -2802,14 +2893,14 @@ $(document).ready(function() {
                     $('#modal-shift').removeClass('hidden').addClass('flex');
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Error checking shift status:', xhr.status, error);
-                
+
                 $('#start-shift-btn').show();
                 $('#stop-shift-btn').hide();
                 $('#shift-status-text').html('Shift not started');
                 $('.clock').html('');
-                
+
                 if (window.shiftModal) {
                     window.shiftModal.show();
                 } else {
@@ -2818,14 +2909,14 @@ $(document).ready(function() {
             }
         });
     });
-    
+
     // Start Shift Clock - Display current time (not duration)
     function startShiftClock() {
         if (clockInterval) {
             clearInterval(clockInterval);
         }
-        
-        clockInterval = setInterval(function() {
+
+        clockInterval = setInterval(function () {
             const now = new Date();
             const hours = now.getHours();
             const minutes = now.getMinutes();
@@ -2834,16 +2925,16 @@ $(document).ready(function() {
             $('.clock').html(formattedTime);
         }, 1000);
     }
-    
+
     // Start Shift Button Handler
-    $('#start-shift-btn').on('click', function() {
+    $('#start-shift-btn').on('click', function () {
         $('#shift-status-text').html('Shift In Progress');
         $('#start-shift-btn').hide();
         $('#stop-shift-btn').show();
-        
+
         // Start clock
         startShiftClock();
-        
+
         // Send to backend
         const baseUrl = window.location.origin;
         $.ajax({
@@ -2852,25 +2943,25 @@ $(document).ready(function() {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            success: function(response) {
+            success: function (response) {
                 // Shift started successfully
             },
-            error: function(error) {
+            error: function (error) {
                 console.error('Error starting shift:', error);
             }
         });
     });
-    
+
     // Stop Shift Button Handler
-    $('#stop-shift-btn').on('click', function() {
+    $('#stop-shift-btn').on('click', function () {
         $('#shift-status-text').html('Shift Stopped');
         $('#start-shift-btn').show();
         $('#stop-shift-btn').hide();
-        
+
         // Stop clock
         clearInterval(clockInterval);
         $('.clock').html('');
-        
+
         // Send to backend
         const baseUrl = window.location.origin;
         $.ajax({
@@ -2879,42 +2970,42 @@ $(document).ready(function() {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            success: function(response) {
+            success: function (response) {
                 // Shift stopped successfully
             },
-            error: function(error) {
+            error: function (error) {
                 console.error('Error stopping shift:', error);
             }
         });
     });
-    
+
     // Close Shift Modal Handler (for X button)
-    $('[data-modal-hide="modal-shift"]').on('click', function() {
+    $('[data-modal-hide="modal-shift"]').on('click', function () {
         if (window.shiftModal) {
             window.shiftModal.hide();
         } else {
             $('#modal-shift').removeClass('flex').addClass('hidden');
         }
     });
-    
+
     // Calculator Button & Dropdown Handler
     let calculatorExpression = '';
     let calculatorDisplay = '0';
-    
-    $('#calculatorButton').on('click', function(e) {
+
+    $('#calculatorButton').on('click', function (e) {
         e.stopPropagation();
         $('#calculatorDropdown').toggleClass('hidden');
     });
-    
+
     // Close calculator when clicking outside
-    $(document).on('click', function(e) {
+    $(document).on('click', function (e) {
         if (!$(e.target).closest('#calculatorButton, #calculatorDropdown').length) {
             $('#calculatorDropdown').addClass('hidden');
         }
     });
-    
+
     // Calculator number/operator buttons
-    $(document).on('click', '.calc-number, .calc-operator', function() {
+    $(document).on('click', '.calc-number, .calc-operator', function () {
         const value = $(this).data('value');
         if (calculatorDisplay === '0' && value !== '.') {
             calculatorDisplay = value;
@@ -2924,9 +3015,9 @@ $(document).ready(function() {
         calculatorExpression += value;
         $('#calculator-input').text(calculatorDisplay);
     });
-    
+
     // Calculator result button
-    $('#calc-result').on('click', function() {
+    $('#calc-result').on('click', function () {
         try {
             // Replace symbols for eval
             let expression = calculatorExpression.replace(/×/g, '*').replace(/÷/g, '/');
@@ -2940,16 +3031,16 @@ $(document).ready(function() {
             calculatorExpression = '';
         }
     });
-    
+
     // Calculator clear button
-    $('#calc-clear').on('click', function() {
+    $('#calc-clear').on('click', function () {
         calculatorDisplay = '0';
         calculatorExpression = '';
         $('#calculator-input').text(calculatorDisplay);
     });
-    
+
     // Folder Button Handler
-    $('#folder-btn').on('click', function() {
+    $('#folder-btn').on('click', function () {
         showToast('Fitur Data Folder akan segera tersedia', 'info');
     });
 });

@@ -128,7 +128,7 @@
                     <strong>Sneakerzone.id</strong><br/>
                     {{ ucwords(strtolower($data['st_name'])) }}<br/>
                     <br/><br/>
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
                 <div class="separate"></div>
 
@@ -193,7 +193,7 @@
 
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                                 $total_item += $srow->qty;
-                                $calculated_price = ($srow->original_price * $srow->qty)- ($srow->discount_seller + $srow->discount_platform); // Calculate the effective price
+                                $calculated_price = ($srow->original_price * $srow->qty)- ($srow->discount_seller* $srow->qty); // Calculate the effective price
                                 $total_price += $calculated_price; // Accumulate total price
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_potongan += $srow->total_discount;
@@ -289,7 +289,7 @@
                     ~~~ Terimakasih ~~~
                 </div>
                 <div class="azost">
-                    www.jez.co.id
+                    www.zona-karya.id
                 </div>
                 <br/>
 

@@ -606,7 +606,7 @@
         var pesan = 'Your message content here'; // Customize your message as needed
         jQuery.ajax({
             type: "GET",
-            url: "http://jezdb.com:3000/api",
+            url: "http://localhost:3000/api",
             data: {
                 nohp: nohp,
                 pesan: pesan
@@ -1147,7 +1147,7 @@
         var pls_qty = jQuery(this).attr('data-pls_qty');
         var psc_id = jQuery(this).attr('data-psc_id');
         var plst_id = jQuery(this).attr('data-plst_id');
-        var sell_price = jQuery(this).attr('data-sell_price');
+        var sell_price = Math.ceil(jQuery(this).attr('data-sell_price'));
         var total_row = parseFloat(jQuery('#total_row').val());
         jQuery('#total_row').val(total_row + 1);
         var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
@@ -1637,7 +1637,7 @@
                     var pls_qty = r.pls_qty;
                     var psc_id = r.psc_id;
                     var plst_id = r.plst_id;
-                    var sell_price = r.sell_price;
+                    var sell_price = Math.ceil(r.sell_price);
                     var bandrol = r.bandrol;
                     var total_row = parseFloat(jQuery('#total_row').val());
                     jQuery('#total_row').val(total_row + 1);
@@ -1649,7 +1649,7 @@
                     var highlight = '';
                     var b1g1_mode = '';
                     var total_discount = jQuery('#total_discount_value_side').text();
-                    var discount_normal = r.bandrol - r.sell_price;
+                    var discount_normal = bandrol - sell_price;
 
                     if (psc_id == '1') {
                         shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
@@ -2967,6 +2967,7 @@
             var final_total_admin = parseFloat(replaceComma(final_total)) + parseFloat(cost) -
                 parseFloat(admin) + parseFloat(unique) + parseFloat(shipping_cost);
             jQuery('#payment_total').text(addCommas(final_total_admin));
+            jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
         });
 
         jQuery('#admin_cost').on('change', function() {

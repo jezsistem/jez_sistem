@@ -8,26 +8,26 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class ProductSupplierImport implements ToModel, WithHeadingRow
 {
-    /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
     public function model(array $row)
     {
-        if ($row['nama'] == null) {
+        $name = isset($row['nama']) ? trim($row['nama']) : null;
+
+        if (!$name) {
             return null;
         }
-        return new ProductSupplier([
-            'ps_name' => ltrim($row['nama']),
-            'ps_email' => ltrim($row['email']),
-            'ps_phone' => ltrim($row['telepon']),
-            'ps_address' => ltrim($row['alamat']),
-            'ps_description' => ltrim($row['deskripsi']),
-            'ps_rekening' => ltrim($row['rekening']),
-            'ps_npwp' => ltrim($row['npwp']),
-            'ps_pkp' => ($row['pkp'] == 'YA') ? '1' : '0',
-            'ps_delete' => '0',
-        ]);
+
+        return ProductSupplier::updateOrCreate(
+            ['ps_name' => $name],
+            [
+                'ps_email'       => isset($row['email']) ? trim($row['email']) : null,
+                'ps_phone'       => isset($row['telepon']) ? trim($row['telepon']) : null,
+                'ps_address'     => isset($row['alamat']) ? trim($row['alamat']) : null,
+                'ps_description' => isset($row['deskripsi']) ? trim($row['deskripsi']) : null,
+                'ps_rekening'    => isset($row['rekening']) ? trim($row['rekening']) : null,
+                'ps_npwp'        => isset($row['npwp']) ? trim($row['npwp']) : null,
+                'ps_pkp'         => (isset($row['pkp']) && strtoupper(trim($row['pkp'])) === 'YA') ? '1' : '0',
+                'ps_delete'      => '0',
+            ]
+        );
     }
 }

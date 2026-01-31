@@ -156,9 +156,16 @@ class StockTransferDataController extends Controller
                 ->editColumn('stf_code_show', function ($data) {
                     return '<span class="btn-sm btn-primary">' . $data->stf_code . '</span>';
                 })
-                ->editColumn('qty', function ($data) {
-                        $qty = StockTransferDetail::select('stfd_qty')->where('stf_id', '=', $data->stf_id)->sum('stfd_qty');
+                ->editColumn('qty_send', function ($data) {
+                    $qty = StockTransferDetail::select('stfd_qty')->where('stf_id', '=', $data->stf_id)->sum('stfd_qty');
                     return '<span class="btn-sm btn-success">' . $qty . '</span>';
+                })
+                ->editColumn('qty_receive', function ($data) {
+                    $qty = StockTransferDetailStatus::select('stfds_qty')
+                        ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
+                        ->where('stock_transfer_details.stf_id', '=', $data->stf_id)
+                        ->sum('stfds_qty');
+                    return '<span class="btn-sm btn-info">' . $qty . '</span>';
                 })
                 ->editColumn('start_store', function ($data) {
                     $store = Store::select('st_name')->where('id', $data->st_id_start)->get()->first()->st_name;
@@ -186,7 +193,7 @@ class StockTransferDataController extends Controller
                         return '<span class="btn-sm btn-success">DONE</span>';
                     }
                 })
-                ->rawColumns(['stf_code_show', 'qty', 'stf_status'])
+                ->rawColumns(['stf_code_show', 'qty_send', 'qty_receive', 'stf_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -213,12 +220,12 @@ class StockTransferDataController extends Controller
                     } else {
                         $instance->where('stock_transfers.st_id_start', '=', -1); // Handle not found case
                     }
-                    
+
                     if (!empty($request->get('st_id_end'))) {
                         $instance->where('stock_transfers.st_id_end', '=', $request->get('st_id_end'));
                     } else {
                         $instance->where('stock_transfers.st_id_end', '=', -1); // Handle not found case
-                    }                    
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -228,7 +235,7 @@ class StockTransferDataController extends Controller
     public function getAcceptDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(StockTransferDetail::select(
+            $query = StockTransferDetail::select(
                 'stock_transfer_details.id as stfd_id',
                 'pst_id',
                 'pl_id',
@@ -251,7 +258,14 @@ class StockTransferDataController extends Controller
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('temp_stock_transfer_receive', 'temp_stock_transfer_receive.stfd_id', '=', 'stock_transfer_details.id')
-                ->where('stf_code', '=', $request->stf_code))
+                ->where('stf_code', '=', $request->stf_code);
+
+            // If show_not_receive_only == 1, only show not fully accepted
+            if ($request->show_not_receive_only == 1) {
+                $query->whereRaw('(SELECT COALESCE(SUM(stfds_qty),0) FROM ts_stock_transfer_detail_statuses WHERE stfd_id = ts_stock_transfer_details.id) < ts_stock_transfer_details.stfd_qty');
+            }
+
+            return datatables()->of($query)
                 ->editColumn('article', function ($data) {
                     return '<span class="btn-sm btn-primary" style="white-space:nowrap;">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })
@@ -275,7 +289,7 @@ class StockTransferDataController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('ps_barcode', 'LIKE', "%$search%")
-                            ->orWhereRaw('CONCAT(br_name," ", p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
+                                ->orWhereRaw('CONCAT(br_name," ", p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
                         });
                     }
                 })
@@ -353,22 +367,22 @@ class StockTransferDataController extends Controller
                 })
                 ->editColumn('hb', function ($d) {
                     $hpp = $d->ps_purchase_price;
-//                    $poads = DB::table('purchase_order_article_detail_statuses')
-//                        ->select('poads_purchase_price', 'ps_purchase_price')
-//                        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-//                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-//                        ->where('product_stocks.id', '=', $d->pst_id)
-//                        ->whereNotNull('purchase_order_article_detail_statuses.poad_id')
-//                        ->orderByDesc('purchase_order_article_detail_statuses.id')
-//                        ->groupBy('poads_purchase_price')
-//                        ->get()->first();
-//                    if (!empty($poads)) {
-//                        if (!empty($poads->poads_purchase_price)) {
-//                            $hpp = $poads->poads_purchase_price;
-//                        } else {
-//                            $hpp = $poads->ps_purchase_price;
-//                        }
-//                    }
+                    //                    $poads = DB::table('purchase_order_article_detail_statuses')
+                    //                        ->select('poads_purchase_price', 'ps_purchase_price')
+                    //                        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                    //                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                    //                        ->where('product_stocks.id', '=', $d->pst_id)
+                    //                        ->whereNotNull('purchase_order_article_detail_statuses.poad_id')
+                    //                        ->orderByDesc('purchase_order_article_detail_statuses.id')
+                    //                        ->groupBy('poads_purchase_price')
+                    //                        ->get()->first();
+                    //                    if (!empty($poads)) {
+                    //                        if (!empty($poads->poads_purchase_price)) {
+                    //                            $hpp = $poads->poads_purchase_price;
+                    //                        } else {
+                    //                            $hpp = $poads->ps_purchase_price;
+                    //                        }
+                    //                    }
                     return $hpp;
                 })
                 ->editColumn('hj', function ($d) {
@@ -399,7 +413,7 @@ class StockTransferDataController extends Controller
         $data = $request->_arr;
         $stf_id = $request->_stf_id;
         $st_id_end = $request->_st_id_end;
-//    $st_id_end -= 1;
+        //    $st_id_end -= 1;
 
         $default_bin = ProductLocation::select('id')->where([
             'st_id' => $st_id_end,
@@ -461,7 +475,8 @@ class StockTransferDataController extends Controller
         return json_encode($r);
     }
 
-    public function tempChangeStockTransferAccept(){
+    public function tempChangeStockTransferAccept()
+    {
         $data = request()->_arr;
         $stfd_id = request()->_stfd_id;
         $u_id = Auth::user()->id;
@@ -520,7 +535,129 @@ class StockTransferDataController extends Controller
                 if ($import->getRowCount() >= 0) {
                     $processData = $this->processImportData($data[0]);
 
-                    $r['data'] = $processData;
+                    //get the transfer
+                    $transfer_qty_per_item = StockTransferDetail::where('stock_transfer_details.stf_id', $request->stf_id)
+                        ->join('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
+                        ->leftJoin('temp_stock_transfer_receive', 'temp_stock_transfer_receive.stfd_id', '=', 'stock_transfer_details.id')
+                        ->groupBy('stock_transfer_details.pst_id')
+                        ->selectRaw('ts_stock_transfer_details.pst_id, SUM(ts_stock_transfer_details.stfd_qty) - COALESCE(SUM(ts_temp_stock_transfer_receive.stfds_qty), 0) as total_qty, ps_barcode')
+                        ->pluck('total_qty', 'stock_transfer_details.pst_id')
+                        ->toArray();
+
+                    $invalid_items = [];
+
+                    // Validate quantities
+                    foreach ($processData as $item) {
+                        $pst_id = $item['pst_id'];
+                        $qty = $item['qty'];
+                        $barcode = $item['barcode'];
+
+                        if (!isset($transfer_qty_per_item[$pst_id])) {
+                            // Item not found in the transfer
+                            $invalid_items[] = [
+                                'ps_barcode' => $barcode,
+                                'message' => 'Item dengan barcode ' . $barcode . ' tidak ditemukan di transfer.'
+                            ];
+                            continue;
+                        }
+
+                        if ($qty > $transfer_qty_per_item[$pst_id]) {
+                            // Quantity exceeds the transfer quantity
+                            $invalid_items[] = [
+                                'ps_barcode' => $barcode,
+                                'message' => 'Jumlah ' . $qty . ' melebihi jumlah transfer ' . $transfer_qty_per_item[$pst_id] . ' untuk Barcode ' . $barcode . '.'
+                            ];
+                        }
+                    }
+
+                    if (!empty($invalid_items)) {
+                        return json_encode([
+                            'status' => '422',
+                            'errors' => $invalid_items
+                        ]);
+                    }
+
+                    // Save data to temp table and spread if there are multiple same barcode
+                    foreach ($processData as $item) {
+                        $pst_id = $item['pst_id'];
+                        $qty = $item['qty'];
+                        $remaining_qty = $qty;
+
+                        // Get all stock transfer details for this pst_id, ordered by id
+                        $stfd_list = StockTransferDetail::where('stf_id', $request->stf_id)
+                            ->where('pst_id', $pst_id)
+                            ->orderBy('id')
+                            ->get();
+
+                        foreach ($stfd_list as $stfd) {
+                            if ($remaining_qty <= 0) {
+                                break;
+                            }
+
+                            // Calculate already accepted quantity for this stfd
+                            $already_accepted = StockTransferDetailStatus::where('stfd_id', $stfd->id)
+                                ->sum('stfds_qty');
+
+                            // Calculate available quantity to accept
+                            $available_qty = $stfd->stfd_qty - $already_accepted;
+
+                            if ($available_qty <= 0) {
+                                continue; // This stfd is already full
+                            }
+
+                            // Calculate quantity to insert
+                            $qty_to_insert = min($remaining_qty, $available_qty);
+
+                            // Check if temp record already exists
+                            $temp_exists = DB::table('temp_stock_transfer_receive')
+                                ->where('stfd_id', $stfd->id)
+                                ->first();
+
+                            if ($temp_exists) {
+                                // Update existing temp record
+                                DB::table('temp_stock_transfer_receive')
+                                    ->where('stfd_id', $stfd->id)
+                                    ->update([
+                                        'stfds_qty' => $qty_to_insert,
+                                        'u_id' => Auth::user()->id,
+                                        'updated_at' => date('Y-m-d H:i:s'),
+                                    ]);
+                            } else {
+                                // Insert new temp record
+                                DB::table('temp_stock_transfer_receive')->insert([
+                                    'stf_id' => $request->stf_id,
+                                    'stfd_id' => $stfd->id,
+                                    'stfds_qty' => $qty_to_insert,
+                                    'u_id' => Auth::user()->id,
+                                    'created_at' => date('Y-m-d H:i:s'),
+                                    'updated_at' => date('Y-m-d H:i:s'),
+                                ]);
+                            }
+
+                            $remaining_qty -= $qty_to_insert;
+                        }
+
+                        // If there's still remaining quantity, it means overfilled - cancel all
+                        if ($remaining_qty > 0) {
+                            // Delete all temp records for this import
+                            DB::table('temp_stock_transfer_receive')
+                                ->where('stf_id', $request->stf_id)
+                                ->where('u_id', Auth::user()->id)
+                                ->whereDate('created_at', date('Y-m-d'))
+                                ->delete();
+
+                            return json_encode([
+                                'status' => '422',
+                                'errors' => [
+                                    [
+                                        'ps_barcode' => $item['barcode'],
+                                        'message' => 'Jumlah melebihi kapasitas untuk barcode ' . $item['barcode'] . '. Sisa yang tidak terisi: ' . $remaining_qty
+                                    ]
+                                ]
+                            ]);
+                        }
+                    }
+
                     $r['status'] = '200';
                 } else {
                     $r['status'] = '419';
@@ -543,6 +680,12 @@ class StockTransferDataController extends Controller
         $processedData = [];
 
         foreach ($data as $item) {
+            // get pst_id from barcode
+            $pst_id = DB::table('product_stocks')->select('id')->where('ps_barcode', $item[0])->get()->first();
+            if (empty($pst_id)) {
+                continue; // Skip if barcode not found
+            }
+
             $barcode = $item[0];
             $qty = $item[1];
 
@@ -555,6 +698,7 @@ class StockTransferDataController extends Controller
             } else {
                 // If barcode doesn't exist, create a new entry
                 $rowData = [
+                    'pst_id' => $pst_id->id,
                     'barcode' => $barcode,
                     'qty' => $qty,
                 ];
@@ -564,6 +708,4 @@ class StockTransferDataController extends Controller
 
         return $processedData;
     }
-
-
 }

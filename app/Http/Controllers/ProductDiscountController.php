@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\MassDiscountImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -440,5 +441,16 @@ class ProductDiscountController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function massImportData(Request $request)
+    {
+        if (!$request->hasFile('mpd_template')) {
+            return response()->json(['status' => '400']);
+        }
+
+        Excel::import(new MassDiscountImport, $request->file('mpd_template'));
+
+        return response()->json(['status' => '200']);
     }
 }

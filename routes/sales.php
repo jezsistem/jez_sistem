@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('nameset_datatables', [NamesetDataController::class, 'getDatatables']);
     Route::get('nameset_datatables_simple', [NamesetDataController::class, 'getDatatablesForSimple']);
     Route::post('update_data_nameset', [NamesetDataController::class, 'updateData']);
+    Route::get('export_nameset', [NamesetDataController::class, 'exportData'])->name('export.nameset');
 
     // Target
     Route::get('target', [TargetController::class, 'index'])->name('target');
@@ -59,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('add_item_to_discount', [ProductDiscountController::class, 'addItemToDiscount']);
     Route::post('delete_item_discount', [ProductDiscountController::class, 'deleteItemDiscount']);
     Route::post('discount_import', [ProductDiscountController::class, 'importData']);
+    Route::post('mass_import_product_discount', [ProductDiscountController::class, 'massImportData']);
 
     // Voucher
     Route::get('voucher', [VoucherController::class, 'index']);
@@ -108,6 +110,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('all_waybill_tracking', [InvoiceTrackingController::class, 'allWaybillTracking']);
     Route::get('invoice_dp_repayment_details/{id}', [InvoiceTrackingController::class, 'invoiceDpRepaymentDetails']);
     Route::post('invoice_dp_repayment', [InvoiceTrackingController::class, 'invoiceDpRepayment']);
+    Route::get('get_total_transactions', [InvoiceTrackingController::class, 'getTotalTransactions']);
 
     // Artikel Promo
     Route::get('artikel_promo', [ArtikelPromoController::class, 'index']);

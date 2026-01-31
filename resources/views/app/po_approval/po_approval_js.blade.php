@@ -1,7 +1,33 @@
 <script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/calc_remaining_payment.js"></script>
 
 <script>
     var approval = '';
+    var is_rejected = false;
+    var is_approved = false;
+
+    function changeFinanceStatus(po_id) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _po_id: po_id,
+            },
+            dataType: 'json',
+            url: "{{ url('po_change_finance_status') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
 
     $(document).ready(function() {
         $.ajaxSetup({
@@ -71,8 +97,8 @@
                     name: 'u_name'
                 },
                 {
-                    data: 'u_receive',
-                    name: 'u_receive',
+                    data: 'status_approval',
+                    name: 'status_approval',
                     orderable: false
                 },
                 // {
@@ -81,7 +107,8 @@
                 // },
             ],
             rowCallback: function(row, data, index) {
-                if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute == 1)) {
+                if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute ==
+                        1)) {
                     $(row).css('background-color', '#f8d7da');
                 }
             },
@@ -233,22 +260,20 @@
             ],
         });
 
-        
+
         var apd_table = $('#APDtb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: true,
+            responsive: false, // Disable responsive to allow horizontal scroll
+            scrollX: true, // Enable horizontal scrolling
+            autoWidth: false, // Allow columns to use their defined widths
             dom: 'Brtl<"text-right"ip>',
             buttons: [],
             ajax: {
                 url: "{{ url('apd_datatables') }}",
                 data: function(d) {
                     d.poads_invoice = $('#invoice_label').text();
-                    // jQuery('#st_id').val(r.st_id).trigger('change');
-                    // jQuery('#ps_id').val(r.ps_id).trigger('change');
-                    // jQuery('#stkt_id').val(r.stkt_id).trigger('change');
-                    // jQuery('#tax_id').val(r.tax_id).trigger('change');
                 }
             },
             columns: [{
@@ -297,34 +322,28 @@
                     name: 'pls_qty_current'
                 },
                 {
-                    data: 'poad_purchase_price',
-                    name: 'poad_purchase_price',
+                    data: 'poads_purchase_price',
+                    name: 'poads_purchase_price',
                     render: function(data, type, row) {
-                        // Ensure the value is treated as a number
                         var price = parseFloat(data);
-                        // Format the price as Rupiah
                         var formattedPrice = new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
                             minimumFractionDigits: 0
                         }).format(price);
-                        // Return the formatted price
                         return formattedPrice;
                     }
                 },
                 {
-                    data: 'poad_total_price',
-                    name: 'poad_total_price',
+                    data: 'poads_total_price',
+                    name: 'poads_total_price',
                     render: function(data, type, row) {
-                        // Ensure the value is treated as a number
                         var price = parseFloat(data);
-                        // Format the price as Rupiah
                         var formattedPrice = new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
                             minimumFractionDigits: 0
                         }).format(price);
-                        // Return the formatted price
                         return formattedPrice;
                     }
                 },
@@ -381,20 +400,32 @@
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
             var arrived_at = po_approval_table.row(this).data().arrived_at;
-            approval = po_approval_table.row(this).data().u_receive;
+            approval = po_approval_table.row(this).data().status_approval;
+            is_approved = u_id_approve ? true : false;
+
+            u_id_reject = po_approval_table.row(this).data().u_id_reject;
+            is_rejected = u_id_reject ? true : false;
+            var payment_amount = po_approval_table.row(this).data().payment_amount;
+            if (is_approved || is_rejected) {
+                $('#approve_btn').hide();
+                $('#reject_btn').css('visibility', 'hidden');
+            } else {
+                $('#approve_btn').show();
+                $('#reject_btn').css('visibility', 'visible');
+            }
+
+            if (!is_rejected) {
+                $('#reject_reason_detail').hide();
+            } else {
+                $('#reject_reason_detail').show();
+            }
+
+            var reject_reason = po_approval_table.row(this).data().reject_reason;
+            $('#reject_reason').val(reject_reason);
             jQuery.noConflict();
 
             let dispute_text = '';
             let putaway_text = '';
-            let status_dispute_text = '';
-
-            if (dispute === 1) {
-                dispute_text = 'Yes';
-            } else if (dispute === 0) {
-                dispute_text = 'No';
-            } else {
-                dispute_text = 'Empty';
-            }
 
             if (putaway === 1) {
                 putaway_text = 'Yes';
@@ -404,16 +435,8 @@
                 putaway_text = 'Empty';
             }
 
-            if (status_dispute === 1) {
-                status_dispute_text = 'Progress';
-            } else if (status_dispute === 0) {
-                status_dispute_text = 'Closed';
-            } else {
-                status_dispute_text = '';
-            }
-
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id, 'approval_penerimaan');
+            const lockResult = await openEditModal('purchase_order', po_id, 'pembelian');
             if (lockResult === false) {
                 return;
             }
@@ -421,7 +444,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id, 'approval_penerimaan');
+                extendLock('purchase_order', po_id, 'pembelian');
             }, 60000);
 
             console.log('STORES : ', tgl_terima);
@@ -474,23 +497,28 @@
                     $('#stkt_id').val(stkt_name);
                     $('#tax_id').val(tax_id);
                     $('#a_name').val(a_name);
-                    $('#dispute').val(dispute_text);
+                    $('#dispute').val(dispute).trigger('change');
                     $('#dispute_description').val(dispute_description);
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
                     $('#putaway').val(putaway_text);
-                    $('#status_dispute').val(status_dispute_text);
+                    $('#status_dispute').val(status_dispute).trigger('change');
+                    $('#payment_amount').val(payment_amount);
+                    calcRemainingPayment(po_invoice);
                     // Format arrived_at to 'YYYY-MM-DDTHH:mm'
                     let formattedArrivedAt = '';
                     if (arrived_at) {
                         const dateObj = new Date(arrived_at);
                         if (!isNaN(dateObj.getTime())) {
                             const year = dateObj.getFullYear();
-                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const month = String(dateObj.getMonth() + 1).padStart(2,
+                                '0');
                             const day = String(dateObj.getDate()).padStart(2, '0');
                             const hours = String(dateObj.getHours()).padStart(2, '0');
-                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-                            formattedArrivedAt = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            const minutes = String(dateObj.getMinutes()).padStart(2,
+                                '0');
+                            formattedArrivedAt =
+                                `${year}-${month}-${day}T${hours}:${minutes}`;
                         }
                     }
                     $('#arrived_at').val(formattedArrivedAt).prop('readonly', true);
@@ -507,6 +535,85 @@
             apd_table.draw();
 
 
+        });
+
+        $('#dispute_description').on('blur', function() {
+
+            var no_order = $('#no_po').text();
+
+            const description = $(this).val();
+            const po_invoice = no_order;
+
+            if (!po_invoice) {
+                alert("No PO Invoice provided!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('dispute_description_save') }}",
+                type: 'POST',
+                data: {
+                    dispute_description: description,
+                    po_invoice: po_invoice,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Dispute deskripsi berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan data", "Gagal");
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            var previousDisputeValue = $('#dispute').val();
+            var isInitialized = false;
+
+            $('#dispute').change(function() {
+
+                if (!isInitialized) {
+                    isInitialized = true;
+                    previousDisputeValue = $(this).val();
+                    return;
+                }
+
+                var currentDisputeValue = $(this).val();
+
+
+                if (currentDisputeValue === previousDisputeValue) {
+                    return;
+                }
+                previousDisputeValue = currentDisputeValue;
+
+                var no_order = $('#no_po').text();
+
+                if (!no_order) {
+                    alert("No PO Invoice provided!");
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ url('dispute_save') }}",
+                    type: 'POST',
+                    data: {
+                        dispute: currentDisputeValue,
+                        po_invoice: no_order,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        toastr.success("Dispute selection berhasil disimpan",
+                            "Berhasil");
+                    },
+                    error: function(xhr) {
+                        console.error(xhr);
+                        toastr.error("Gagal menyimpan data", "Gagal");
+                    }
+                });
+            });
         });
 
         $(document).delegate('#ExportApprovalBtn', 'click', function() {
@@ -636,8 +743,12 @@
 
         $('#approve_btn').on('click', function() {
             console.log(approval);
-            if (approval != '<span class="badge badge-warning">Menunggu Approval</span>') {
-                swal('Sudah Approve', 'Invoice ini sudah diapprove', 'warning');
+            if (is_approved) {
+                swal('Sudah Approve', 'Invoice ini sudah diapprove', 'error');
+                return false;
+            } else if (is_rejected) {
+                swal('Sudah Ditolak', 'Invoice ini sudah direject, tidak bisa diapprove',
+                    'error');
                 return false;
             }
             swal({
@@ -669,15 +780,16 @@
                         success: function(r) {
                             if (r.status == '200') {
                                 const po_id = $('#_po_id')
-                            .val();
+                                    .val();
                                 if (po_id) {
                                     closeEditModal('purchase_order', po_id,
-                                        'approval_penerimaan'); // ✅ panggil fungsi
+                                        'pembelian'); // ✅ panggil fungsi
                                 }
                                 $('#ApproveModal').modal('hide');
                                 po_approval_table.draw(false);
                                 swal("Berhasil", "Data berhasil diapprove",
                                     "success");
+                                changeFinanceStatus(po_id);
                             } else {
                                 swal('Gagal', r.message, 'error');
                             }
@@ -694,14 +806,106 @@
             })
         });
 
-        $('#close_modal_approve_btn').on('click', function(e) {
+        $('#reject_btn').on('click', function() {
+            if (is_approved) {
+                swal('Sudah Approve', 'Invoice ini sudah diapprove', 'error');
+                return false;
+            } else if (is_rejected) {
+                swal('Sudah Ditolak', 'Invoice ini sudah direject, tidak bisa diapprove',
+                    'error');
+                return false;
+            }
+
+            jQuery.noConflict();
+            $('#reject_reason_input').val('');
+            $('#reject_reason_input').removeClass('is-invalid');
+            $('#reject_reason_error').text('');
+            $('#RejectConfirmationModal').modal('show');
+        });
+
+        $('#confirm_reject_btn').on('click', function() {
+            var reason = $('#reject_reason_input').val().trim();
+
+            if (!reason) {
+                $('#reject_reason_input').addClass('is-invalid');
+                $('#reject_reason_error').text('Alasan penolakan tidak boleh kosong');
+                return false;
+            }
+
+            $('#reject_reason_input').removeClass('is-invalid');
+            $('#loader').show();
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                data: {
+                    invoice: $('#invoice_label').text(),
+                    rejection_reason: reason
+                },
+                dataType: 'json',
+                url: "{{ url('apd_reject') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+                        $('#RejectConfirmationModal').modal('hide');
+                        $('#ApproveModal').modal('hide');
+                        var po_id = $('#_po_id').val();
+                        if (po_id) {
+                            closeEditModal('purchase_order', po_id, 'pembelian');
+                        }
+                        po_approval_table.draw(false);
+                        swal("Berhasil", "Data berhasil direject", "success");
+                    } else {
+                        swal('Gagal', r.message || 'Gagal reject data', 'error');
+                    }
+                },
+                error: function() {
+                    swal('Gagal', 'Terjadi kesalahan pada server', 'error');
+                },
+                complete: function() {
+                    $('#loader').hide();
+                }
+            });
+        });
+
+        $('.close_approval_modal').on('click', function(e) {
             e.preventDefault();
             $('#ApproveModal').modal('hide');
             var po_id = $('#_po_id').val();
             if (po_id) {
-                closeEditModal('purchase_order', po_id, 'approval_penerimaan');
+                closeEditModal('purchase_order', po_id, 'pembelian');
             }
             po_approval_table.draw(false);
+        });
+
+        $('#status_dispute').on('change', function() {
+            var status_disputeValue = $(this).val();
+            var no_order = $('#no_po').text();
+
+            if (status_disputeValue === "" || status_disputeValue === null) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('status_dispute_save') }}",
+                type: 'POST',
+                data: {
+                    status_dispute: status_disputeValue,
+                    po_invoice: no_order,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    console.log(response);
+                    toastr.success("Status Dispute berhasil disimpan", "Berhasil");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan Status Dispute", "Gagal");
+                }
+            });
         });
 
         jQuery.noConflict();
