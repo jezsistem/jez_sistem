@@ -108,11 +108,11 @@
             
             <!-- Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 mt-4">
-                <button type="button" id="reset_btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                <button type="button" id="reset_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                     <i class="fas fa-redo"></i>
                     Reset
                 </button>
-                <button type="button" id="pickup_list_btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                <button type="button" id="pickup_list_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                     <i class="fas fa-list"></i>
                     Pickup List
                 </button>
@@ -160,7 +160,7 @@
                 <button type="button" id="pickZeroBtn" class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors">
                     Stok Semua Varian
                 </button>
-                <button type="button" id="pickAvailableBtn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="button" id="pickAvailableBtn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                     Stok Tersedia
                 </button>
                 <input type="hidden" value="" id="is_zero">

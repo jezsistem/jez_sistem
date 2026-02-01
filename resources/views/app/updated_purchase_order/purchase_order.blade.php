@@ -12,7 +12,7 @@
             <button type="button" id="add_po_btn" class="px-4 py-2.5 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors">
                 <i class="fas fa-plus mr-2"></i>Data Baru
             </button>
-            <button type="button" id="import_modal_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <button type="button" id="import_modal_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                 <i class="fas fa-upload mr-2"></i>Import
             </button>
         </div>

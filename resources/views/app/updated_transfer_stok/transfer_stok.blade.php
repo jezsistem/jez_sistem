@@ -39,7 +39,7 @@
                     <div id="st_id_end_parent"></div>
                 </div>
                 <div class="flex items-end">
-                    <button type="button" id="transfer_btn" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="button" id="transfer_btn" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                         Transfer
                     </button>
                 </div>
@@ -97,7 +97,7 @@
             <!-- Transfer Code and Actions -->
             <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
                 <div>
-                    <span id="stf_code" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg inline-block"></span>
+                    <span id="stf_code" class="px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-lg inline-block"></span>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" id="transfer_cancel_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">

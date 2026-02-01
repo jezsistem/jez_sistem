@@ -12,7 +12,7 @@
             <button type="button" id="add_artikel_promo_btn" class="px-4 py-2.5 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors">
                 <i class="fas fa-plus mr-2"></i>Data Baru
             </button>
-            <button type="button" id="import_modal_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <button type="button" id="import_modal_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                 <i class="fas fa-upload mr-2"></i>Import
             </button>
         </div>
@@ -29,7 +29,7 @@
             </div>
             <div>
                 <input type="hidden" id="artikelpromo_date" value=""/>
-                <button type="button" id="kt_dashboard_daterangepicker" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-left">
+                <button type="button" id="kt_dashboard_daterangepicker" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors text-left">
                     <i class="fas fa-calendar-alt mr-2"></i>
                     <span id="kt_dashboard_daterangepicker_title">All Days</span>
                     <span id="kt_dashboard_daterangepicker_date"></span>

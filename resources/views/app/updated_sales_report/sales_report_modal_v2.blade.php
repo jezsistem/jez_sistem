@@ -51,7 +51,7 @@
                             <td class="px-4 py-2 border font-bold"><b>Rp. <span id="cabang_total_cash"></span></b></td>
                         </tr>
                         <tr id="cross_order_row">
-                            <td class="px-4 py-2 border"><a class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 cursor-pointer" id="cabang_cross_order_detail">Cross Order</a></td>
+                            <td class="px-4 py-2 border"><a class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-red-600 cursor-pointer" id="cabang_cross_order_detail">Cross Order</a></td>
                             <td class="px-4 py-2 border font-bold"><b>Rp. <span id="cabang_cross_order"></span></b></td>
                         </tr>
                     </tbody>
@@ -102,7 +102,7 @@
             </button>
         </div>
         <div class="mb-4">
-            <button type="button" data-type="cross" id="export_cross_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 mb-4">
+            <button type="button" data-type="cross" id="export_cross_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 mb-4">
                 <i class="fas fa-download mr-2"></i>Export Excel
             </button>
             <div class="overflow-x-auto">

@@ -81,7 +81,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Download Template <span class="text-red-500">*</span>
                         </label>
-                        <a href="{{ asset('upload/template/artikel_promo_template.xlsx') }}" class="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <a href="{{ asset('upload/template/artikel_promo_template.xlsx') }}" class="inline-block px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                             <i class="fas fa-download mr-2"></i>Download
                         </a>
                     </div>

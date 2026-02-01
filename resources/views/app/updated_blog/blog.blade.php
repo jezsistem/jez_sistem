@@ -29,7 +29,7 @@
             </select>
         </div>
         <div class="flex gap-2">
-            <button id="add_bc_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button id="add_bc_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fas fa-plus mr-2"></i>Tambah
             </button>
             <button id="edit_bc_btn" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">

@@ -31,7 +31,7 @@
         <div class="p-4 border-b border-gray-200 bg-gray-50">
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-900">Daftar Area Penyimpanan</h2>
-                <button type="button" id="add_area_btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="button" id="add_area_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                     Tambah Area
                 </button>
             </div>

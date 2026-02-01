@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 mt-1">Kelola threshold promo</p>
         </div>
         <div class="flex gap-2">
-            <button type="button" id="import_modal_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <button type="button" id="import_modal_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                 <i class="fas fa-upload mr-2"></i>Import
             </button>
         </div>
@@ -34,7 +34,7 @@
             <div>
                 <input type="hidden" id="threshold_promo_date_start" value=""/>
                 <input type="hidden" id="threshold_promo_date_end" value=""/>
-                <button type="button" id="kt_dashboard_daterangepicker" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-left">
+                <button type="button" id="kt_dashboard_daterangepicker" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors text-left">
                     <i class="fas fa-calendar-alt mr-2"></i>
                     <span id="kt_dashboard_daterangepicker_title">All Days</span>
                     <span id="kt_dashboard_daterangepicker_date"></span>

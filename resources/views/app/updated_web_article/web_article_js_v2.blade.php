@@ -489,7 +489,7 @@ function renderArticleTable(data) {
                 <td class="px-3 py-3">
                     <div class="flex items-center gap-1">
                         <input id="p_slug_input" data-id="${row.pid}" class="flex-1 px-2 py-1 text-sm border border-gray-300 rounded p_slug_input_${row.pid}" type="text" value="${row.p_slug}" autocomplete="off"/>
-                        <i id="generate_slug_btn" data-slug="${row.p_slug_base}" data-id="${row.pid}" class="fas fa-edit px-2 py-1 text-sm bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700"></i>
+                        <i id="generate_slug_btn" data-slug="${row.p_slug_base}" data-id="${row.pid}" class="fas fa-edit px-2 py-1 text-sm bg-blue-600 text-white rounded cursor-pointer hover:bg-red-600"></i>
                     </div>
                 </td>
                 <td class="px-3 py-3">

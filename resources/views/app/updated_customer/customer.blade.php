@@ -32,7 +32,7 @@
             </select>
             
             <!-- Graph Button -->
-            <button id="graph_btn" class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+            <button id="graph_btn" class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 focus:ring-2 focus:ring-blue-500">
                 <i class="fa fa-bar-chart"></i>
             </button>
             
@@ -129,15 +129,15 @@
         <h3 class="text-lg font-semibold text-gray-900">Detail Customer</h3>
         <div class="flex flex-wrap items-center gap-2">
             <!-- Export Button -->
-            <a href="{{ url('customer_data_export') }}" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <a href="{{ url('customer_data_export') }}" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fa fa-download mr-2"></i> Export
             </a>
             <!-- Import Button -->
-            <button id="import_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button id="import_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fa fa-upload mr-2"></i> Import
             </button>
             <!-- Add Customer Button -->
-            <button id="add_customer_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button id="add_customer_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fa fa-plus mr-2"></i> Data Baru
             </button>
             <!-- Toggle Customer Type -->

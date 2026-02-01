@@ -89,7 +89,7 @@ function loadRatingHistoryData(page = 1) {
                     // Invoice button
                     var invoiceBtn = '';
                     if (row.pt_id) {
-                        invoiceBtn = $('<button>').addClass('px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700')
+                        invoiceBtn = $('<button>').addClass('px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-red-600')
                             .text(row.pos_invoice)
                             .attr('data-pt_id', row.pt_id)
                             .addClass('sales_item_detail_btn');

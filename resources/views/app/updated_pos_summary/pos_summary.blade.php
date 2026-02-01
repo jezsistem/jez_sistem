@@ -118,7 +118,7 @@
                 <h3 class="text-lg font-semibold text-gray-900">
                     <span class="btn-sm btn-primary font-weight-bold fs-4" id="article_power_label">Product Rating</span>
                 </h3>
-                <button type="button" id="export_excel" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="button" id="export_excel" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                     <i class="fas fa-file-excel mr-2"></i>Excel
                 </button>
             </div>

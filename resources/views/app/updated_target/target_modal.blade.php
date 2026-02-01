@@ -37,7 +37,7 @@
                 <input type="hidden" id="tr_id" value="" />
                 <div class="mb-4 flex justify-end gap-2">
                     <button type="button" id="ImportModalBtn" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">Import Data</button>
-                    <button type="button" id="add_target_detail_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Tambah Data</button>
+                    <button type="button" id="add_target_detail_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">Tambah Data</button>
                 </div>
                 <div class="datatable-container overflow-x-auto border border-gray-200 rounded-lg">
                     <table class="min-w-full divide-y divide-gray-200" id="TargetDetailtb">
@@ -116,7 +116,7 @@
                 <div class="px-6 py-4">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Download Template <span class="text-red-500">*</span></label>
-                        <a href="{{ asset('upload/template/set_target_template.csv') }}" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 inline-block">Download</a>
+                        <a href="{{ asset('upload/template/set_target_template.csv') }}" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 inline-block">Download</a>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Store</label>

@@ -533,7 +533,7 @@ class StaffController extends Controller
                 ->get()
                 ->map(function ($row) {
                     $row->action = '<div class="flex gap-2 justify-center">
-                        <button type="button" class="edit-position-btn px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700" data-id="' . $row->id . '" data-up_id="' . ($row->up_id ?? '') . '">Position</button>
+                        <button type="button" class="edit-position-btn px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-red-600" data-id="' . $row->id . '" data-up_id="' . ($row->up_id ?? '') . '">Position</button>
                         <button type="button" class="edit-division-btn px-2 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700" data-id="' . $row->id . '" data-ud_id="' . ($row->ud_id ?? '') . '">Division</button>
                         <button type="button" class="edit-user-type-btn px-2 py-1 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700" data-id="' . $row->id . '" data-ut_id="' . ($row->ut_id ?? '') . '">Type</button>
                         <button type="button" class="edit-leave-balance-btn px-2 py-1 text-xs font-medium text-white bg-orange-600 rounded hover:bg-orange-700" data-id="' . $row->id . '" data-balance="' . ($row->lb_remaining_balance ?? 0) . '">Leave</button>

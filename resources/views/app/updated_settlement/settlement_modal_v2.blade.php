@@ -162,7 +162,7 @@
         </div>
         <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
             <button type="button" onclick="closeSettlementDetail()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Close</button>
-            <a type="a" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" id="btn_print_receipt" target="_blank">Print</a>
+            <a type="a" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" id="btn_print_receipt" target="_blank">Print</a>
         </div>
     </div>
 </div>

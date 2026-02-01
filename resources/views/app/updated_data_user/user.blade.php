@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 mt-1">Kelola data user dan user level</p>
         </div>
         <div>
-            <button type="button" id="toggle_user_level_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" id="toggle_user_level_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fas fa-users mr-2"></i>User Level
             </button>
         </div>

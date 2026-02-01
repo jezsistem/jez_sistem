@@ -70,7 +70,7 @@
                 <input type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" id="search_filter" name="search" placeholder="Cari berdasarkan nama atau NIP..." value="{{ $search ?? '' }}">
             </div>
             <div class="flex items-end gap-2">
-                <button type="submit" class="px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                <button type="submit" class="px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                     <i class="fas fa-filter mr-2"></i>Filter
                 </button>
                 @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))

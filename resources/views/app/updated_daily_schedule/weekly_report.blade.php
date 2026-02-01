@@ -86,7 +86,7 @@
             </div>
         </div>
         <div class="flex justify-end gap-2 mt-4">
-            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fas fa-filter mr-2"></i> Filter
             </button>
             <a href="{{ route('daily-schedules.weekly-report_v2') }}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">

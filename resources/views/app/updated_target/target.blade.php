@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 mt-1">Kelola target penjualan</p>
         </div>
         <div class="flex gap-2">
-            <button type="button" id="target_excel_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+            <button type="button" id="target_excel_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors cursor-pointer">
                 <i class="fas fa-file-excel mr-2"></i>Export Excel
             </button>
             <button type="button" id="add_target_btn" class="px-4 py-2.5 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors">

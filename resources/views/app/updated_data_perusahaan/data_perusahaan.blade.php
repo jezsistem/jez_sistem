@@ -17,7 +17,7 @@
             </button>
             <!-- Add Button -->
             <button onclick="openAddModal()" 
-                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                 <i class="cft-standard-stroke cft-plus"></i>
                 Data Baru
             </button>
@@ -124,7 +124,7 @@
                     @endif
                     <button type="submit" 
                             id="save_data_perusahaan_btn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors">
                         Simpan
                     </button>
                 </div>

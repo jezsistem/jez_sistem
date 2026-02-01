@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 mt-1">Dashboard informasi penjualan, profit, pembelian, asset, dan hutang</p>
         </div>
         <div class="flex gap-2">
-            <button type="button" id="synchronize_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" id="synchronize_btn" class="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-red-600">
                 Synchronize
             </button>
             <input type="hidden" id="dashboard_date" value="" />
@@ -24,7 +24,7 @@
 <!-- Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
     <!-- Jual Bersih -->
-    <div class="bg-blue-600 rounded-lg p-6 text-white">
+    <div class="bg-blue-500 rounded-lg p-6 text-white">
         <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium">Jual Bersih</span>
         </div>
@@ -32,7 +32,7 @@
     </div>
     
     <!-- Profit -->
-    <div class="bg-blue-600 rounded-lg p-6 text-white">
+    <div class="bg-red-500 rounded-lg p-6 text-white">
         <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium">Profit</span>
         </div>
@@ -48,7 +48,7 @@
     </div>
     
     <!-- Asset CC -->
-    <div class="bg-blue-600 rounded-lg p-6 text-white">
+    <div class="bg-orange-500 rounded-lg p-6 text-white">
         <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium" id="cash_credit_asset_label">Asset CC</span>
         </div>
@@ -56,7 +56,7 @@
     </div>
     
     <!-- Asset CON -->
-    <div class="bg-blue-600 rounded-lg p-6 text-white">
+    <div class="bg-green-500 rounded-lg p-6 text-white">
         <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium" id="consignment_asset_label">Asset CON</span>
         </div>
@@ -64,7 +64,7 @@
     </div>
     
     <!-- Hutang -->
-    <div class="bg-blue-600 rounded-lg p-6 text-white">
+    <div class="bg-purple-500 rounded-lg p-6 text-white">
         <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium">Hutang</span>
         </div>
@@ -78,7 +78,7 @@
         <h3 class="text-lg font-semibold text-gray-900">Store</h3>
         <div class="flex gap-2">
             <input type="search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2 w-64" id="store_search" placeholder="Cari store">
-            <button type="button" id="store_excel" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" id="store_excel" class="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200">
                 <i class="fas fa-download mr-2"></i>Excel
             </button>
         </div>
@@ -119,7 +119,7 @@
         <h3 class="text-lg font-semibold text-gray-900">Brand</h3>
         <div class="flex gap-2">
             <input type="search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2 w-64" id="brand_search" placeholder="Cari brand">
-            <button type="button" id="brand_excel" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" id="brand_excel" class="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200">
                 <i class="fas fa-download mr-2"></i>Excel
             </button>
         </div>

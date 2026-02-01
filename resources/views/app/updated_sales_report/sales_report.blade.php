@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 mt-1">Laporan penjualan berdasarkan invoice dan artikel</p>
         </div>
         <div class="flex gap-2">
-            <button type="button" id="check_hb_hj" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" id="check_hb_hj" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 Cek HB HJ
             </button>
         </div>
@@ -76,7 +76,7 @@
         <h3 class="text-lg font-semibold text-gray-900">By Invoice</h3>
         <div class="flex gap-2">
             <input type="search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2 w-64" id="invoice_report_search" placeholder="Cari invoice / customer / user / divisi">
-            <button type="button" data-type="invoice" id="export_invoice_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" data-type="invoice" id="export_invoice_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fas fa-download mr-2"></i>Export Excel
             </button>
         </div>
@@ -146,7 +146,7 @@
         </div>
         <div class="flex gap-2">
             <input type="search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2 w-64" id="article_report_search" placeholder="Cari artikel">
-            <button type="button" data-type="article" id="export_article_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" data-type="article" id="export_article_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fas fa-download mr-2"></i>Export Excel
             </button>
         </div>

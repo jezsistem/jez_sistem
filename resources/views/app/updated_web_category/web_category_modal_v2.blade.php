@@ -55,7 +55,7 @@
             <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
                 <button type="button" onclick="closeWebCategoryModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Tutup</button>
                 <button type="button" id="delete_web_category_btn" class="hidden px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">Hapus</button>
-                <button type="submit" id="save_web_category_btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan</button>
+                <button type="submit" id="save_web_category_btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Simpan</button>
             </div>
         </form>
     </div>

@@ -81,7 +81,7 @@
                     </div>
                     <div class="flex gap-2">
                         <button type="button" id="import_modal_btn_detail" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">Import</button>
-                        <button type="button" id="add_product_discount_detail_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Data Baru</button>
+                        <button type="button" id="add_product_discount_detail_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">Data Baru</button>
                     </div>
                 </div>
                 <div class="datatable-container overflow-x-auto border border-gray-200 rounded-lg">
@@ -164,7 +164,7 @@
                 <div class="px-6 py-4">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Download Template <span class="text-red-500">*</span></label>
-                        <a href="{{ asset('upload/template/discount_template.xlsx') }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Download</a>
+                        <a href="{{ asset('upload/template/discount_template.xlsx') }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">Download</a>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Pilih template yang sudah di download dan diisi <span class="text-red-500">*</span></label>

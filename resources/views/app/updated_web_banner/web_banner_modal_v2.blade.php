@@ -56,7 +56,7 @@
             <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
                 <button type="button" onclick="closeBannerModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Tutup</button>
                 <button type="button" id="delete_wb_btn" class="hidden px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">Hapus</button>
-                <button type="submit" id="save_wb_btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan</button>
+                <button type="submit" id="save_wb_btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Simpan</button>
             </div>
         </form>
     </div>
@@ -68,7 +68,7 @@
         <div class="flex justify-between items-center pb-3 border-b mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Brand</h3>
             <div class="flex gap-2">
-                <button type="button" id="add_brand_btn" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                <button type="button" id="add_brand_btn" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-red-600">
                     <i class="fa fa-plus mr-1"></i>Data Baru
                 </button>
                 <button type="button" onclick="closeBrandModal()" class="text-gray-400 hover:text-gray-600">
@@ -129,7 +129,7 @@
             <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
                 <button type="button" onclick="closeBrandEditModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Tutup</button>
                 <button type="button" id="delete_brand_btn" class="hidden px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">Hapus</button>
-                <button type="submit" id="save_brand_btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan</button>
+                <button type="submit" id="save_brand_btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Simpan</button>
             </div>
         </form>
     </div>
@@ -141,7 +141,7 @@
         <div class="flex justify-between items-center pb-3 border-b mb-4">
             <h3 class="text-lg font-semibold text-gray-900">SubSub Kategori</h3>
             <div class="flex gap-2">
-                <button type="button" id="add_article_btn" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                <button type="button" id="add_article_btn" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-red-600">
                     <i class="fa fa-plus mr-1"></i>Data Baru
                 </button>
                 <button type="button" onclick="closeArticleModal()" class="text-gray-400 hover:text-gray-600">
@@ -193,7 +193,7 @@
             <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
                 <button type="button" onclick="closeArticleEditModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Tutup</button>
                 <button type="button" id="delete_article_btn" class="hidden px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">Hapus</button>
-                <button type="submit" id="save_article_btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan</button>
+                <button type="submit" id="save_article_btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Simpan</button>
             </div>
         </form>
     </div>

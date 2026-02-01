@@ -95,7 +95,7 @@
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="flex justify-between items-center">
-                        <button type="button" id="check_resi_btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <button type="button" id="check_resi_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                             Cek Resi
                         </button>
                         <span class="text-xs text-gray-500">Pastikan data resi sudah benar sebelum melanjutkan.</span>

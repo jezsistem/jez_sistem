@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 mt-1">Kelola cek dana online</p>
         </div>
         <div class="flex gap-2">
-            <button type="button" id="import_modal_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" id="import_modal_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fas fa-upload mr-2"></i>Import
             </button>
             <button type="button" id="export_btn" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
@@ -80,7 +80,7 @@
         </div>
     </div>
     <div class="mt-4">
-        <button type="button" id="filter_btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <button type="button" id="filter_btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
             <i class="fas fa-filter mr-2"></i>Filter
         </button>
     </div>

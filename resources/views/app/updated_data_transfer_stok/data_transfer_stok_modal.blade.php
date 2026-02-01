@@ -45,7 +45,7 @@
                 
                 <!-- Accept Button -->
                 <div class="flex justify-end mb-4">
-                    <button type="button" id="accept_qty_btn" class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="button" id="accept_qty_btn" class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                         Terima
                     </button>
                 </div>

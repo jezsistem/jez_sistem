@@ -76,14 +76,14 @@
         </div>
     </div>
     <div class="flex gap-2 mt-4">
-        <button type="button" id="filter_btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <button type="button" id="filter_btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
             <i class="fas fa-filter mr-2"></i>Filter
         </button>
         <button type="button" id="reset_btn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
             <i class="fas fa-undo mr-2"></i>Reset
         </button>
         <div class="relative">
-            <button type="button" onclick="toggleExportMenu('settlementExportMenu')" class="px-4 py-2 bg-green-100 text-green-600 text-sm font-medium rounded-lg hover:bg-green-200 transition-colors flex items-center gap-2">
+            <button type="button" onclick="toggleExportMenu('settlementExportMenu')" class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
                 <i class="cft-standard-stroke cft-download"></i>
                 Export
             </button>
@@ -136,7 +136,7 @@
             <button type="button" id="settlement_btn" class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900">
                 <i class="fas fa-check mr-2"></i>Settlement
             </button>
-            <button type="button" id="calc_cogs_tag_btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <button type="button" id="calc_cogs_tag_btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                 <i class="fas fa-check mr-2"></i>Calc Cogs & Price Tag
             </button>
         </div>

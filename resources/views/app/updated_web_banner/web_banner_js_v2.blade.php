@@ -324,7 +324,7 @@ function loadBannerData(page = 1) {
                     tr.append($('<td>').addClass('px-3 py-4').text(row.bn_sort));
                     tr.append($('<td>').addClass('px-3 py-4').text(row.bn_filter_label));
                     var brandBtn = $('<button>')
-                        .addClass('px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700')
+                        .addClass('px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-red-600')
                         .text(row.brand_count)
                         .attr('data-id', row.id)
                         .on('click', function(e) {
@@ -397,7 +397,7 @@ function loadBrandData(page = 1) {
                     tr.append($('<td>').addClass('px-3 py-4').text(row.no));
                     tr.append($('<td>').addClass('px-3 py-4').text(row.br_name));
                     var articleBtn = $('<button>')
-                        .addClass('px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700')
+                        .addClass('px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-red-600')
                         .text(row.article_count)
                         .attr('data-id', row.id)
                         .attr('data-br_id', row.br_id)

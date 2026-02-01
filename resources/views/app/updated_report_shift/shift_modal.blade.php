@@ -14,7 +14,7 @@
             <div id="UserShiftModalBody"></div>
         </div>
         <div class="bg-gray-100 px-6 py-4 border-t border-gray-200 flex justify-end rounded-b-2xl">
-            <button type="button" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-md" id="close_user_shift_btn_2">
+            <button type="button" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors shadow-md" id="close_user_shift_btn_2">
                 <i class="fas fa-times mr-2"></i>Tutup
             </button>
         </div>

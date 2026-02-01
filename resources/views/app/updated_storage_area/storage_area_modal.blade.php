@@ -27,7 +27,7 @@
                     <button type="button" onclick="closeAddStorageAreaModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                         Tutup
                     </button>
-                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors">
                         Simpan
                     </button>
                 </div>
@@ -66,7 +66,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">List Bin Yang Akan Ditambahkan</label>
                     <div id="bin_list_temp" class="border border-gray-200 rounded-lg p-4 min-h-[100px]"></div>
-                    <button type="button" id="add_bin_to_area" class="mt-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="button" id="add_bin_to_area" class="mt-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors">
                         Save Changes
                     </button>
                 </div>

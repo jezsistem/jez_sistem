@@ -86,7 +86,7 @@
                 <button type="button" id="problem_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-500 transition-colors" data-notice="">0</button>
                 <button type="button" id="waiting_online_btn" class="px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition-colors" data-notice="">0</button>
                 <button type="button" id="waiting_offline_btn" class="px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 transition-colors" data-notice="">0</button>
-                <button type="button" id="graph_btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                <button type="button" id="graph_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                     <i class="fas fa-bar-chart"></i>
                     Graph
                 </button>
@@ -102,7 +102,7 @@
                     </div>
                     <input type="search" id="stock_tracking_search" class="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari artikel / customer / invoice (ketik minimal 5 karakter)">
                 </div>
-                <button type="button" id="export_stock_tracking" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="button" id="export_stock_tracking" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                     Excel
                 </button>
             </div>

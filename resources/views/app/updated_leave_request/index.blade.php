@@ -15,7 +15,7 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('leave-requests_v2.summary-report') }}" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <a href="{{ route('leave-requests_v2.summary-report') }}" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <i class="fas fa-chart-bar mr-2"></i>Summary Report
             </a>
             <div class="relative">
@@ -148,7 +148,7 @@
                 </select>
             </div>
             <div class="flex items-end">
-                <button type="submit" class="w-full px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                <button type="submit" class="w-full px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                     <i class="fas fa-filter mr-2"></i>Filter
                 </button>
             </div>

@@ -10,7 +10,7 @@
         </div>
         <div class="flex items-center gap-3">
             <select id="st_id_filter" name="st_id_filter" 
-                    class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                    class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
                 <option value="">- Pilih Store -</option>
                 @foreach ($data['st_id'] as $key => $value)
                     <option value="{{ $key }}">{{ $value }}</option>
@@ -22,7 +22,7 @@
     <!-- Multibin Button -->
     <div class="flex">
         <button type="button" id="multibin_btn"
-                class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
             <i class="fas fa-exchange-alt"></i>
             Multibin to Multibin Mutations
         </button>

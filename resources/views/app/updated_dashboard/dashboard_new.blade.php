@@ -13,7 +13,7 @@
                 <i class="cft-standard-stroke cft-file mr-2"></i>
                         Detail Asset/Penjualan
                     </a>
-            <button id="detail_activity_btn" class="px-4 py-2 bg-red-400 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <button id="detail_activity_btn" class="px-4 py-2 bg-red-400 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                 <i class="cft-standard-stroke cft-user mr-2"></i>
                         Aktifitas User
             </button>

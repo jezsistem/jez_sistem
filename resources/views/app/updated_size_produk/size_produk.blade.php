@@ -13,7 +13,7 @@
             <div class="relative">
                 <button type="button" 
                         onclick="toggleExportMenu()"
-                        class="px-4 py-2 bg-green-100 text-green-600 text-sm font-medium rounded-lg hover:bg-green-200 transition-colors flex items-center gap-2">
+                        class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
                     <i class="cft-standard-stroke cft-download"></i>
                     Export
                 </button>
@@ -34,7 +34,7 @@
             </button>
             <!-- Add Button -->
             <button onclick="openAddModal()" 
-                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                 <i class="cft-standard-stroke cft-add"></i>
                 Data Baru
             </button>
@@ -158,7 +158,7 @@
                     </button>
                     <button type="submit" 
                             id="save_size_produk_btn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors">
                         Simpan
                     </button>
                 </div>
@@ -189,7 +189,7 @@
                             Download Template <span class="text-red-500">*</span>
                         </label>
                         <a href="{{ asset('upload/template/supplier_template.xlsx') }}"
-                           class="inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                           class="inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors">
                             Download
                         </a>
                     </div>
@@ -214,7 +214,7 @@
                     </button>
                     <button type="submit" 
                             id="import_data_btn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors">
                         Import
                     </button>
                 </div>
@@ -379,7 +379,7 @@ function loadSizeProdukData() {
                     },
                     labels: {
                         placeholder: "Cari...",
-                        perPage: "{select} data per halaman",
+                        perPage: "",
                         noRows: "Tidak ada data",
                         info: "Menampilkan {start} sampai {end} dari {rows} data",
                         noResults: "Tidak ada hasil pencarian"

@@ -279,7 +279,7 @@ function loadBlogData(page = 1) {
                     tr.append($('<td>').addClass('px-3 py-4').text(row.bct_title));
                     tr.append($('<td>').addClass('px-3 py-4').html('<img src="' + row.bct_image_url + '" class="w-16 h-16 object-cover rounded" />'));
                     tr.append($('<td>').addClass('px-3 py-4').text(row.bct_views));
-                    var actionBtn = $('<a>').attr('href', row.ecommerce_url + '/' + row.bct_slug).attr('target', '_blank').addClass('px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm').html('<i class="fa fa-eye"></i>');
+                    var actionBtn = $('<a>').attr('href', row.ecommerce_url + '/' + row.bct_slug).attr('target', '_blank').addClass('px-3 py-1 bg-blue-600 text-white rounded hover:bg-red-600 text-sm').html('<i class="fa fa-eye"></i>');
                     tr.append($('<td>').addClass('px-3 py-4').append(actionBtn));
                     tr.on('click', function(e) {
                         if (!$(e.target).closest('a').length) {

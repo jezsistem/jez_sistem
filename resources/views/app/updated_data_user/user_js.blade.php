@@ -125,7 +125,7 @@ function loadUserData(page = 1) {
                     tr.append($('<td>').addClass('px-3 py-4').text(row.g_name));
                     
                     // Menu Access button
-                    var menuAccessBtn = $('<button>').addClass('px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700')
+                    var menuAccessBtn = $('<button>').addClass('px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-red-600')
                         .html('<i class="fas fa-eye mr-1"></i>')
                         .attr('data-id', row.uid)
                         .addClass('menu_access_btn');
@@ -157,7 +157,7 @@ function loadUserData(page = 1) {
                     tr.append($('<td>').addClass('px-3 py-4').append(manualToggle));
                     
                     // Detail button
-                    var detailBtn = $('<button>').addClass('px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700')
+                    var detailBtn = $('<button>').addClass('px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-red-600')
                         .text('Detail')
                         .attr('data-uid', row.uid)
                         .addClass('btn-detail');
@@ -239,7 +239,7 @@ function loadUserMenu() {
         success: function(r) {
             for (var i = 0; i < r.length; i++) {
                 $('#menu_panel').append(
-                    "<button type='button' class='px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 mr-1 mb-1 menu-option' data-id='" + r[i]['id'] + "'>" + r[i]['ma_title'] + "</button>");
+                    "<button type='button' class='px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-red-600 mr-1 mb-1 menu-option' data-id='" + r[i]['id'] + "'>" + r[i]['ma_title'] + "</button>");
             }
         }
     });

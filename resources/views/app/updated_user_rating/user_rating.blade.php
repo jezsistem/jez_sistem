@@ -10,7 +10,7 @@
         </div>
         <div>
             <input type="hidden" id="user_rating_date" value=""/>
-            <button type="button" id="kt_dashboard_daterangepicker" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button type="button" id="kt_dashboard_daterangepicker" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                 <span id="kt_dashboard_daterangepicker_title">Today</span>
                 <span id="kt_dashboard_daterangepicker_date" class="ml-2"></span>
             </button>

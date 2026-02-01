@@ -52,7 +52,7 @@
         <button type="button" id="exec_btn" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
             Tampilkan
         </button>
-        <button type="button" id="export_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+        <button type="button" id="export_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
             Download Excel
         </button>
     </div>

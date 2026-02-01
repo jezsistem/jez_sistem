@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 mt-1">Manage and organize all announcements</p>
         </div>
         <div>
-            <a href="{{ route('announcements_v2.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+            <a href="{{ route('announcements_v2.create') }}" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                 <i class="cft-standard-stroke cft-plus"></i>
                 Create Announcement
             </a>
@@ -90,7 +90,7 @@
                 <!-- Action Buttons -->
                 <div class="md:col-span-3 flex items-end gap-3">
                     <button type="submit" 
-                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                         <i class="cft-standard-stroke cft-search"></i>
                         Search
                     </button>
@@ -266,7 +266,7 @@
                 <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors" onclick="closeAttachmentModal()">
                     Close
                 </button>
-                <a href="#" id="downloadAttachment" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2" download>
+                <a href="#" id="downloadAttachment" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2" download>
                     <i class="cft-standard-stroke cft-cloud-download"></i>
                     Download
                 </a>

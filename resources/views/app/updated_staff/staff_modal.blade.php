@@ -39,7 +39,7 @@
                     </button>
                     <button type="submit" 
                             id="save_position_btn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                         Update Position
                     </button>
                 </div>
@@ -89,7 +89,7 @@
                     </button>
                     <button type="submit" 
                             id="save_division_btn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                         Update Division
                     </button>
                 </div>
@@ -139,7 +139,7 @@
                     </button>
                     <button type="submit" 
                             id="save_user_type_staff_btn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                         Update User Type
                     </button>
                 </div>
@@ -187,7 +187,7 @@
                     </button>
                     <button type="submit" 
                             id="save_leave_balance_btn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                         Update Leave Balance
                     </button>
                 </div>

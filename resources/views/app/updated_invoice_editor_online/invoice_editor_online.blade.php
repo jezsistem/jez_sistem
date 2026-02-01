@@ -18,7 +18,7 @@
                     <input type="text" placeholder="Input nomor order / nomor Resi" id="pos_invoice_online" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-green-50">
                 </div>
                 <div>
-                    <button type="button" id="exec_online_btn" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="button" id="exec_online_btn" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                         Tampilkan
                     </button>
                 </div>

@@ -436,7 +436,7 @@ class UserPositionController extends Controller
                         ? '<span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Active</span>'
                         : '<span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactive</span>';
                     $row->action = '<div class="flex gap-2 justify-center">
-                        <button type="button" class="btn-detail px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" data-id="' . $row->id . '">Detail</button>
+                        <button type="button" class="btn-detail px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-red-600" data-id="' . $row->id . '">Detail</button>
                         <button type="button" class="delete-user-position-btn px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-700" data-id="' . $row->id . '">Hapus</button>
                     </div>';
                     return $row;

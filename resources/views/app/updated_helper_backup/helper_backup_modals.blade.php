@@ -66,7 +66,7 @@
                         <input type="hidden" id="filter_status" value="">
                     </div>
                     <div>
-                        <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" id="btn_filter">Submit</button>
+                        <button class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors" id="btn_filter">Submit</button>
                     </div>
                 </div>
                 <div class="flex justify-center mb-4">
@@ -122,7 +122,7 @@
                         <input type="hidden" id="filter_status" value="">
                     </div>
                     <div>
-                        <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" id="btn_filter">Submit</button>
+                        <button class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors" id="btn_filter">Submit</button>
                     </div>
                 </div>
                 <div class="flex justify-center mb-4">

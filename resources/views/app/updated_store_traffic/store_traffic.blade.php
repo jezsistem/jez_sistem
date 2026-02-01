@@ -20,7 +20,7 @@
         
         <div class="space-y-4">
             <!-- Pria Button -->
-            <button id="btnPria" class="w-full py-6 text-xl font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg">
+            <button id="btnPria" class="w-full py-6 text-xl font-bold text-white bg-blue-600 rounded-xl hover:bg-red-600 focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg">
                 <i class="fa fa-male mr-3 text-2xl"></i>
                 PRIA
             </button>

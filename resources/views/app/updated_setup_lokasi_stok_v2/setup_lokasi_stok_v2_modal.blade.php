@@ -27,7 +27,7 @@
                         </p>
                     </div>
                     <a href="{{ asset('upload/template/impot_single_bin_mutasi_template.xlsx') }}" 
-                       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                         <i class="fas fa-download"></i>
                         Download Template
                     </a>
@@ -63,7 +63,7 @@
                 <h3 class="text-lg font-semibold text-gray-900">Mutation Multi Bin</h3>
                 <div class="flex items-center gap-3">
                     <a href="{{ asset('upload/template/mutation_multi_bin_template.xlsx') }}"
-                       class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                       class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                         <i class="fas fa-download"></i>
                         Download Template
                     </a>
@@ -86,7 +86,7 @@
                     <input type="file" name="mutationInput" id="mutationInput"
                            class="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                     <button type="submit" id="mutationMultiBinSubmitBtn"
-                            class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                         Import
                     </button>
                 </form>

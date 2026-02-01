@@ -594,7 +594,7 @@ class ShiftCodeController extends Controller
                         $actionBtns .= '<button type="button" class="btn-view px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200" data-id="' . $row->id . '">View</button>';
                     }
                     if ($canUpdate) {
-                        $actionBtns .= '<button type="button" class="btn-edit px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" data-id="' . $row->id . '">Edit</button>';
+                        $actionBtns .= '<button type="button" class="btn-edit px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-red-600" data-id="' . $row->id . '">Edit</button>';
                     }
                     if ($canDelete) {
                         $actionBtns .= '<button type="button" class="btn-delete px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-700" data-id="' . $row->id . '">Delete</button>';

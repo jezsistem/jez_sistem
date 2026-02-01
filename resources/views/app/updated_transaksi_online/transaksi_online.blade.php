@@ -56,7 +56,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
                 <input type="hidden" id="sales_date" value=""/>
-                <button type="button" id="kt_dashboard_daterangepicker" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-left">
+                <button type="button" id="kt_dashboard_daterangepicker" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors text-left">
                     <span class="text-blue-200 font-weight-bold mr-2" id="kt_dashboard_daterangepicker_title">Today</span>
                     <span class="text-white font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
                 </button>

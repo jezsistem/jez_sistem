@@ -208,7 +208,7 @@ function renderCustomerTable(data) {
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${escapeHtml(row.cust_email)}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" title="${escapeHtml(row.cust_address)}">${escapeHtml(row.cust_address)}</td>
                 <td class="px-4 py-3 whitespace-nowrap shopping-cell">
-                    <button class="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shopping-btn" data-cust_id="${row.cid}">
+                    <button class="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 shopping-btn" data-cust_id="${row.cid}">
                         ${row.cust_shopping}
                     </button>
                 </td>

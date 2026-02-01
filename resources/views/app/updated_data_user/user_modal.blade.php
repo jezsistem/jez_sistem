@@ -167,7 +167,7 @@
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-2">
                     <div id="menu_panel" class="flex flex-wrap gap-2"></div>
-                    <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" id="add_menu_access_btn">
+                    <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600" id="add_menu_access_btn">
                         <i class="fas fa-plus mr-2"></i>Tambah
                     </button>
                 </div>

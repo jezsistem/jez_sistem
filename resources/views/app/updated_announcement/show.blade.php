@@ -14,7 +14,7 @@
                 Back to Announcements
             </a>
             @if(auth()->id() == $announcement->created_by)
-                <a href="{{ route('announcements_v2.edit', $announcement->id) }}" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                <a href="{{ route('announcements_v2.edit', $announcement->id) }}" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
                     <i class="cft-standard-stroke cft-edit"></i>
                     Edit
                 </a>
@@ -91,7 +91,7 @@
                                 <p class="text-xs text-gray-500">{{ $attachment->file_size_human }}</p>
                             </div>
                             <button onclick="viewAnnouncementAttachment('{{ $attachment->file_path }}', '{{ $attachment->original_name }}', '{{ $attachment->mime_type }}', '{{ $attachment->file_size }}')" 
-                                    class="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                    class="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors">
                                 View
                             </button>
                         </div>
@@ -332,7 +332,7 @@
                 <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors" onclick="closeAttachmentModal()">
                     Close
                 </button>
-                <a href="#" id="downloadAttachment" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2" download>
+                <a href="#" id="downloadAttachment" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2" download>
                     <i class="cft-standard-stroke cft-cloud-download"></i>
                     Download
                 </a>

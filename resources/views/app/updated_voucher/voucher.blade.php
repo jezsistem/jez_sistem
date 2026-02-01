@@ -10,7 +10,7 @@
         </div>
         <div class="flex gap-2">
             <div class="relative">
-                <button type="button" id="voucher_excel_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="button" id="voucher_excel_btn" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                     <i class="fas fa-file-excel mr-2"></i>Export Excel
                 </button>
             </div>

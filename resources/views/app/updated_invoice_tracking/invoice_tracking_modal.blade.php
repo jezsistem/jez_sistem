@@ -221,7 +221,7 @@
                     <button type="button" onclick="closeDPPaymentModal()" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors">
                         <i class="fas fa-times mr-2"></i>Tutup
                     </button>
-                    <button type="submit" id="save_payment_dp_btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="submit" id="save_payment_dp_btn" class="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                         <i class="fas fa-save mr-2"></i>Simpan Pembayaran
                     </button>
                 </div>

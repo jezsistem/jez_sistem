@@ -15,7 +15,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Download Template <span class="text-red-500">*</span>
                         </label>
-                        <a href="{{ asset('upload/template/template_recom_promo.xlsx') }}" class="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <a href="{{ asset('upload/template/template_recom_promo.xlsx') }}" class="inline-block px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors">
                             <i class="fas fa-download mr-2"></i>Download
                         </a>
                     </div>
@@ -46,7 +46,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-lg font-semibold text-gray-900">Detail Threshold Promo <span class="pr_code"></span></h3>
                 <div class="flex items-center gap-3">
-                    <button type="button" id="ExportArticleData" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="button" id="ExportArticleData" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600 transition-colors">
                         <i class="fas fa-file-excel mr-2"></i>Export
                     </button>
                     <button type="button" onclick="closePromoRecommendationDetailModal()" class="text-gray-400 hover:text-gray-600">

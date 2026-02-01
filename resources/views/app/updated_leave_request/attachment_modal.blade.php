@@ -20,7 +20,7 @@
                 <button type="button" onclick="closeAttachmentModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
                     Close
                 </button>
-                <a href="#" id="download_attachment_link" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" download>
+                <a href="#" id="download_attachment_link" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600" download>
                     <i class="fas fa-download mr-2"></i> Download
                 </a>
             </div>

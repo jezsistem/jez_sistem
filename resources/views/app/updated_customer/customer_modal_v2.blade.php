@@ -12,7 +12,7 @@
             <div class="p-6">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Download Template <span class="text-red-500">*</span></label>
-                    <a href="{{ asset('upload/template/supplier_template.xlsx') }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                    <a href="{{ asset('upload/template/supplier_template.xlsx') }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                         <i class="fa fa-download mr-2"></i> Download Template
                     </a>
                 </div>
@@ -24,7 +24,7 @@
             </div>
             <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
                 <button type="button" class="close-modal px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Tutup</button>
-                <button type="submit" id="import_data_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                <button type="submit" id="import_data_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                     <i class="fa fa-upload mr-2"></i> Import
                 </button>
             </div>
@@ -165,7 +165,7 @@
                 <button type="button" id="delete_customer_btn" class="hidden px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-700">
                     <i class="fa fa-trash mr-2"></i> Hapus
                 </button>
-                <button type="submit" id="save_customer_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                <button type="submit" id="save_customer_btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-red-600">
                     <i class="fa fa-save mr-2"></i> Simpan
                 </button>
             </div>
